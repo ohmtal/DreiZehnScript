@@ -1,6 +1,6 @@
 # DreiZehn-Script: Scripting Language Syntax & Documentation
 
-A lightweight, line by line, embedded scripting language built from scratch in C++. 
+A lightweight, embedded scripting language built from scratch in C++. 
 
 [Benchmark Results](Benchmark.md )
 

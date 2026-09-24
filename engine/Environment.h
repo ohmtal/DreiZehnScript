@@ -115,27 +115,44 @@ public:
             }
             // --- Assign ---
             case NodeType::AssignStatement: {
-                #ifdef DREIZEHN_BYTECODE
+                // #ifdef DREIZEHN_BYTECODE
+                // if (auto* assign = dynamic_cast<AssignStatement*>(node)) {
+                //     // new chunk
+                //     BytecodeChunk chunk;
+                //     CompilerScope scope;
+                //
+                //     // compile
+                //     ASTCompiler::compileExpression(assign->mRhs.get(), chunk, scope);
+                //
+                //     chunk.emit(OP_EXIT);
+                //
+                //     // fire!
+                //     Value result = runDirectThreadedVM(chunk, scope.getLocalCount());
+                //     // save
+                //     currentEnv.mVariableFrame->setVariable(assign->mVarNameSymbolId, result);
+                // }
+                // #else
                 if (auto* assign = dynamic_cast<AssignStatement*>(node)) {
-                    // new chunk
-                    BytecodeChunk chunk;
-                    CompilerScope scope;
+                    if(assign->mFieldSymbolId > 0) {
+                        Value varValue = currentEnv.getVariableFrame()->getVariable(assign->mVarNameSymbolId);
+                        if (!varValue.isPointer()) {
+                            Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(assign->mVarNameSymbolId).c_str());
+                            break;
+                        }
 
-                    // compile
-                    ASTCompiler::compileExpression(assign->mRhs.get(), chunk, scope);
+                        ValueObject* obj = dynamic_cast<ValueObject*>(varValue.asPointerObject());
+                        if (!obj->onSetField(assign->mFieldSymbolId, assign->mRhs->evaluate(currentEnv))) {
+                            Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
+                                          SymbolTable::getName(assign->mVarNameSymbolId).c_str(),
+                                          SymbolTable::getName(assign->mFieldSymbolId).c_str()
+                            );
+                        }
 
-                    chunk.emit(OP_EXIT);
-
-                    // fire!
-                    Value result = runDirectThreadedVM(chunk, scope.getLocalCount());
-                    // save
-                    currentEnv.mVariableFrame->setVariable(assign->mVarNameSymbolId, result);
+                    } else {
+                        currentEnv.mVariableFrame->setVariable(assign->mVarNameSymbolId, assign->mRhs->evaluate(currentEnv));
+                    }
                 }
-                #else
-                if (auto* assign = dynamic_cast<AssignStatement*>(node)) {
-                    currentEnv.mVariableFrame->setVariable(assign->mVarNameSymbolId, assign->mRhs->evaluate(currentEnv));
-                }
-                #endif
+                // #endif
                 break;
             }
             // ---- AssignOPStatement

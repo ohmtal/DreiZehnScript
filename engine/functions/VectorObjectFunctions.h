@@ -53,6 +53,14 @@ namespace DreiZehn {
         }
 
         // -------------------------------------------------------------------------
+        inline bool onSetField(uint32_t fieldSymbolId, const Value& value) override{
+            if (fieldSymbolId == xId) mVec.x = Value(value.getDouble());
+            else if (fieldSymbolId == yId) mVec.y = Value(value.getDouble());
+            else if (fieldSymbolId == zId) mVec.z = Value(value.getDouble());
+            else return false;
+            return true;
+        }
+        // -------------------------------------------------------------------------
         inline bool onGetField(uint32_t fieldSymbolId, Value& ret) override{
             if (fieldSymbolId == xId) ret = mVec.x;
             else if (fieldSymbolId == yId) ret = mVec.y;

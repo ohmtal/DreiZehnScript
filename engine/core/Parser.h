@@ -24,6 +24,7 @@ private:
     Token peek() { return mTokens[mPos]; }
     Token peekNext() { if (mPos + 1 < mTokens.size()) return mTokens[mPos+1]; else return Token(TokenType::EOFToken); }
     Token peekNextNext() { if (mPos + 2 < mTokens.size()) return mTokens[mPos+2]; else return Token(TokenType::EOFToken); }
+    Token peekOffset(uint32_t offset) { if (mPos + offset < mTokens.size()) return mTokens[mPos+offset]; else return Token(TokenType::EOFToken); }
     Token peekPrev() { if (mPos > 1) return mTokens[mPos-1]; else return Token(TokenType::NoToken); }
     Token advance() { if (mPos + 1 < mTokens.size()) return mTokens[mPos++]; else return Token(TokenType::EOFToken);}
 
@@ -366,10 +367,21 @@ public:
                 std::string varName = advance().mValue;
                 advance(); // '='
                 auto rhs = parseComparison();
-                return std::make_unique<AssignStatement>(SymbolTable::insert( varName), std::move(rhs));
+                return std::make_unique<AssignStatement>(SymbolTable::insert( varName),0, std::move(rhs));
             }
             else if (nextToken.mType == TokenType::Dot) {
-                return parsePrimary();
+                if (peekOffset(+2).mType == TokenType::Identifier
+                    && peekOffset(+3).mType == TokenType::Assign) {
+                    std::string varName = advance().mValue;
+                    advance(); // 'DOT'
+                    std::string fieldName = advance().mValue;
+                    advance(); // '='
+                    auto rhs = parseComparison();
+                    return std::make_unique<AssignStatement>(
+                        SymbolTable::insert( varName),
+                        SymbolTable::insert( fieldName), std::move(rhs));
+                }
+                else return parsePrimary();
             }
             else if (nextToken.mType == TokenType::Arrow) {
                 return parsePrimary();

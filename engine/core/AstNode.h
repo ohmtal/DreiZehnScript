@@ -171,10 +171,11 @@ struct MethodExpression : public Expression {
 // Assingment ------------------------------------------------------------------
 struct AssignStatement : public ASTNode {
     uint32_t mVarNameSymbolId;
+    uint32_t mFieldSymbolId = 0;
     std::unique_ptr<Expression> mRhs; // Right-Hand Side
 
-    AssignStatement(uint32_t varNameSymId, std::unique_ptr<Expression> expr)
-    : mVarNameSymbolId(varNameSymId), mRhs(std::move(expr)) {
+    AssignStatement(uint32_t varNameSymId, uint32_t fieldSymbolId, std::unique_ptr<Expression> expr)
+    : mVarNameSymbolId(varNameSymId), mFieldSymbolId(fieldSymbolId), mRhs(std::move(expr)) {
         mNodeType  = NodeType::AssignStatement;
     }
 };

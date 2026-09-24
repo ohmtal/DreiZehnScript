@@ -1,0 +1,92 @@
+-- # Benchmark-Test for DreiZehn Script
+-- # broke in parts for noderunner optimize
+
+-- all fn: 25.937u 0.004s 0:26.02 99.6%    0+0k 0+0io 0pf+0w
+
+-- loop1 + reset: 4.861u 0.002s 0:04.87 99.7%     0+0k 0+0io 0pf+0w
+--  add "++"
+--      7.603u 0.003s 0:07.63 99.6%     0+0k 0+0io 0pf+0w
+--      Why is it slower ???!!! does only one node operation!
+--      FIXED: it must be the dynamic casts!!!!
+--         ==> changed from dynamic cast to new NodeType!
+--             1.918u 0.002s 0:01.93 98.9%     0+0k 0+0io 0pf+0w
+
+-- loop2 + reset: 3.735u 0.003s 0:03.75 99.4%     0+0k 0+0io 0pf+0w
+--    add "--"
+--       ==> 1.942u 0.002s 0:01.95 99.4%     0+0k 0+0io 0pf+0w
+-- loop3 + reset: 7.649u 0.001s 0:07.66 99.7%     0+0k 0+0io 0pf+0w
+--    add "*=" "/=" => 6.254u 0.003s 0:06.27 99.6%     0+0k 0+0io 0pf+0w
+--      mhh only slightly faster
+-- loop4 + reset:3.916u 0.005s 0:03.93 99.4%     0+0k 0+0io 0pf+0w
+--    added "+=" "-=" =>2.874u 0.001s 0:02.88 99.6%     0+0k 0+0io 0pf+0w
+
+-- final result: 12.906u 0.004s 0:12.95 99.6%    0+0k 0+0io 0pf+0w
+--      found 26-13 => 13 sec DOUBLE SPEED!
+
+
+
+JLOOPS = 25
+ILOOPS = 1000000
+
+localX = 0
+
+fn loop1
+    for i 0 (ILOOPS - 1)
+--         localX = localX + 1
+        localX++
+    end
+    print  "SUM (++) IS: " localX
+end
+
+fn loop2
+    for i 0 (ILOOPS - 1)
+--         localX = localX - 1
+        localX--
+    end
+    print  "SUM (--) IS: " localX
+end
+
+fn loopReset
+    localX = 66
+    print  "set Sum to 66 == " (localX * 1)
+end
+
+fn loop3
+    for i 0 (ILOOPS - 1)
+--         localX = localX * (i + 1)
+--         localX = localX / (i + 1)
+        localX *= i + 1
+        localX /= i + 1
+    end
+    print  "SUM (*/ %i+1) IS: " localX
+end
+
+fn loop4
+    limit = (ILOOPS / 2) - 1
+    ran = 0.0
+    for i 0 limit
+        ran = math.randomf * i
+--         localX = localX - ran
+--         localX = localX + ran
+        localX -= ran
+        localX += ran
+    end
+    print  "last ran" ran
+    print  "SUM (rand +-) IS: " localX
+end
+
+for j 0 (JLOOPS - 1 )
+    loop1
+    loop2
+    loopReset
+    loop3
+    loop4
+
+end
+
+localX = localX - 33
+print "---------------------"
+print "---------------------"
+print  "Final sum should be 33 == " localX
+print "---------------------"
+print "---------------------"

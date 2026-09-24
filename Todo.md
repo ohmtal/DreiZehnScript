@@ -1,0 +1,87 @@
+# DreiZehn Todo
+
+## 0.2
+
+- [X] fix Identifier and Keywords can be delimited by a '.' or ':'
+- [X] neg numbers and fix '.' somewhere outside a number  
+- [X] fix Garbage collection to current scope, using a current scope global env 
+It needs to be done in "end" 
+- [X] add preprocessor with ';' break to lines
+- [X] added multiline statement parser and fixed issues with undetected syntax errors - endless loop
+- [X] while or similar while(true) loop
+
+## 0.3 
+
+- add some basic SDL3 bindings ;) Test if i can use my ElfScript macros - but i 
+don't have to PoD Types here at the moment. 
+- [X] setup projecct Simply Added to current CMake
+- [X] add some basic bindings
+- [X] fixed if statement broken afer while inserted
+- [X] added getDouble/getInt for auto type convert
+- [X] BinaryExpression::evaluate uses getDouble
+- [X] Added else and finally fixed If as BlockStatement - run in a own execute !! .. variables ?!?
+- [X] "!=" as compare 
+- [X] add a constant system ...
+    - true and false added in core
+- [X] write the starfield demo in DreiZehn
+- [X] test params  => if (math.random 10 20) != 4 print "huhu" end
+- [X] need: ||, &&, <=, >=, >>, <<, |, &
+- [X] Pointer method calles with Array '->' \o/
+- [X] rewrote RunScript .. 
+- [X] added Symbols Table for fast lookup variables/functions/constants ....
+- [X] optimized a bit found 3 sek on test_var bench ;) 
+
+# 0.4
+- [X] VariableFrame for variables and garbage collection
+- [X] ValueObject type registry (gUserObjectTypes / registerUserObjectType)
+- [X] When a new String is set the old should be deleted!!! ..
+    => added an mAssigned flag
+- [~] add delete method to ALL object.  .. onMethod must call the parent 
+    => let the garbage collection do that - i added the assigned flag. 
+- [X] Bytecode 
+    - [X] change the direct threading like it is in ElfScript
+    - [X] While i port it use the new VariableFrame 
+- [X] Better Garbage collection and array also keep track of object assignment
+- [X] Before I continue with ByteCode I'll optimize the current code i guess i can get
+under 15 sec and beat python here without bytecode ;)
+    - [X] Operator ++, --, +=, -=, *=, /= 
+    - [X] other BinaryExpression to switch case
+- **12.478u 0.002s 0:12.52 99.6%    0+0k 0+0io 0pf+0w** 
+
+# 0.5
+- [ ] object fields Vector3 example: `v = Vector3.new 1.0 2.2 3.3`
+    - [ ] using v.x instead of a method -> caller . At the moment the lexer add the '.' to the variable name
+    - [ ] fix method expression:
+        - [ ] this only return the first value: `print v->x v->y v->z` => 1.0
+```
+Token 0: 0 :: Identifier PRINT
+
+Token 1: 0 :: Identifier
+Token 2: 37 :: Arrow Pointer access
+Token 3: 0 :: Identifier
+
+Token 4: 0 :: Identifier
+Token 5: 37 :: Arrow Pointer access
+Token 6: 0 :: Identifier
+
+Token 7: 0 :: Identifier
+Token 8: 37 :: Arrow Pointer access
+Token 9: 0 :: Identifier
+
+Token 10: 39 :: EOFToken
+```
+        - [ ] `print concat v->x v->y v->z` => 1 
+        
+    - [ ] `v->z = 1` << In method call. Syntax-Error: Unexpected token 'Assign'
+        - this is also for all other math tokens, i must find a way to register it like 
+        a Variable. 
+- [ ] multiline statement for example if..
+
+
+# future ideas
+- [ ] Bytecode continue .... 
+- [ ] header only - for easy include 
+    - Problem : CallExpression <> FunctionMap < ASTNode
+    
+- change printf errorf to a overwritable class or add a handler 
+

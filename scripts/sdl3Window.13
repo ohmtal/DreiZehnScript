@@ -1,0 +1,47 @@
+print "SDL Window Example - DreiZehn-Script 0.3"
+
+Window = 0
+Renderer = 0
+fontScale = 2.5
+
+
+-- NOTE: SDL_init with no params set SDL_INIT_VIDEO | SDL_INIT_AUDIO
+InitOK = SDL_Init
+-- print "INIT RESULT:" InitOK
+
+if InitOK == 0
+    print "FAILED to init SDL3! it's:" InitOK
+    return
+end
+
+print "creating window:"
+Window = SDL_CreateWindow "Hello SDL3" 800 450 0
+
+print "creating renderer Window:" Window
+Renderer = SDL_CreateRenderer Window
+print "Window:" Window "Renderer" Renderer
+
+
+-- TODO SDL_SetRenderVSync Renderer 1
+
+-- ------ Main Loop -----
+print "fontScale is " fontScale
+Event = SDL_CreateEvent
+
+while 1
+    SDL_SetRenderDrawColor Renderer 60 20 60 255
+    SDL_RenderClear Renderer
+
+    SDL_SetRenderScale Renderer  fontScale fontScale
+    SDL_SetRenderDrawColor Renderer 55 155 155 255
+    SDL_RenderDebugText Renderer (250 / fontScale)  (180 / fontScale) "Hello World!"
+
+    SDL_RenderPresent Renderer
+
+    -- TODO break condition
+
+end
+
+// ------ Cleanup -----
+SDL_DestroyRenderer Renderer ;
+SDL_DestroyWindow Window

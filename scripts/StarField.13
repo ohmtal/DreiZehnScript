@@ -1,0 +1,139 @@
+--  -----------------------------------------------------------------------------
+--  ported from raylib-elfScript to BaseElf / NativSDL to CrazyElf to DreiZehn
+--  original: BSD-License, Copyright (c) 2025 JP Mortiboys (@themushroompirates)
+--  -----------------------------------------------------------------------------
+print " StarField v2 @13 startup...."
+W = 640
+H = 320
+maxW = W / 2
+minW = maxW * -1
+maxH = H / 2
+minH = maxH * -1
+STAR_COUNT  = 420
+START_DIV   = 0.03125
+Speed       = 0.4
+fontScale   = 1.2
+-- Objects initialize with 0:
+Window      = 0
+Renderer    = 0
+Event       = 0
+Points_X    = 0
+Points_Y    = 0
+Points_Z    = 0
+
+fn Init
+    if (SDL_Init SDL_INIT_VIDEO) == false
+        print "Failed to init SDL3"
+        return false
+    end
+
+    Window = SDL_CreateWindow "StarField DreiZehn" W H 0
+    if Window == 0
+        print "Failed to create window"
+        return false
+    end
+
+    Renderer = SDL_CreateRenderer Window
+    Event = SDL_CreateEvent
+
+    Points_X = Array.new
+    Points_Y = Array.new
+    Points_Z = Array.new
+
+    for i 1 STAR_COUNT
+        Points_X->push  math.random minW maxW
+        Points_Y->push  math.random minH maxH
+        Points_Z->push  math.randomf
+    end
+
+    return true
+end
+
+if Init
+    Running = true
+
+    Time_Last = SDL_GetTicks
+
+    while Running
+        Time_Now = SDL_GetTicks
+        Dt = (Time_Now - Time_Last) / 1000.0
+        Time_Last = Time_Now
+
+        while SDL_PollEvent Event
+            Type = SDL_GetEventType Event
+            if Type == SDL_EVENT_QUIT
+                Running = false
+            end
+            if Type == SDL_EVENT_KEY_DOWN
+                if (SDL_GetEventKey Event) == SDLK_ESCAPE
+                    Running = false
+                end
+            end
+        end
+
+        SDL_SetRenderDrawColor Renderer 20 20 40 255
+        SDL_RenderClear Renderer
+
+        i = 0
+        while i < STAR_COUNT
+            pX = Points_X->get i
+            pY = Points_Y->get i
+            pZ = Points_Z->get i
+
+            pZ -= Dt * Speed
+
+            invZ = 1.0 / pZ
+            screenX = (W * 0.5) + (pX * invZ)
+            screenY = (H * 0.5) + (pY * invZ)
+
+
+            if (pZ < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
+                pX = math.random minW maxW
+                pY = math.random minH maxH
+                pZ = 1.0
+
+                screenX = W + pX
+                screenY = H + pY
+            end
+
+
+            radius = math.lerp 2.0 0.3 pZ
+            SDL_SetRenderDrawColor Renderer 255 255 255 255
+            SDL_RenderFillRect Renderer screenX screenY radius radius
+
+            Points_X->set i pX
+            Points_Y->set i pY
+            Points_Z->set i pZ
+
+            i = i + 1
+        end
+
+        SDL_SetRenderDrawColor Renderer 200 200 255 255
+        SDL_SetRenderScale Renderer  fontScale fontScale
+        SDL_RenderDebugText Renderer 10 10 concat "StarField @13-Script Stars:" STAR_COUNT " DT:" Dt
+        SDL_SetRenderScale Renderer  1 1
+
+        SDL_RenderPresent Renderer
+        SDL_Delay 16
+    end
+end
+
+SDL_DestroyWindow Window
+SDL_Quit
+
+--  cleanup - unassign Global Objects:
+Window      = 0
+Renderer    = 0
+Event       = 0
+Points_X    = 0
+Points_Y    = 0
+Points_Z    = 0
+
+print "Starfield shutdown completed, running Garbage Collection manually..."
+-- Manually Call Garbage Collection:
+core.gc
+
+-- you can use:
+--  debug.garbage
+-- to check it worked - if you did use ´run "scripts/StarField.13"´ this on console
+

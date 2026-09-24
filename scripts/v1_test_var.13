@@ -1,0 +1,44 @@
+# Benchmark-Test for DreiZehn Script
+JLOOPS = 25
+ILOOPS = 1000000
+
+localX = 0
+
+for j 0 (JLOOPS - 1)
+    for i 0 (ILOOPS - 1)
+        localX = localX + 1
+    end
+    print  "SUM (++) IS: " localX
+
+    for i 0 (ILOOPS - 1)
+        localX = localX - 1
+    end
+    print  "SUM (--) IS: " localX
+
+    localX = 66
+    print  "set Sum to 66 == " (localX * 1)
+
+    for i 0 (ILOOPS - 1)
+        localX = localX * (i + 1)
+        localX = localX / (i + 1)
+    end
+    print  "SUM (*/ %i+1) IS: " localX
+
+    #-- TESTcomment
+    limit = (ILOOPS / 2) - 1
+    ran = 0.0
+    for i 0 limit
+        ran = math.randomf * i
+        localX = localX - ran
+        localX = localX + ran
+    end
+    print  "last ran" ran
+    print  "SUM (rand +-) IS: " localX
+end
+
+localX = localX - 33
+print "---------------------"
+print "---------------------"
+print  "Final sum should be 33 == " localX
+print "---------------------"
+print "---------------------"

@@ -1,0 +1,105 @@
+# Test for DreiZehn Script
+print "--- Run Engine-Test ---"
+
+-- Not working:
+-- print "..... multiline statement:"
+-- -- debug.toggle
+-- i = 1
+-- if ( (i == 2)
+--     || (i == 1) )
+--     print "huhu"
+-- end
+--
+-- return
+
+foo = 1
+if ( foo == 0 )
+    print "Foo ist:" foo
+end
+print "......."
+
+-- print "... time to break ..."
+-- return
+-- print "...still here ..."
+
+
+
+# functions
+fn calc faktor
+    result = (faktor * 10) + 5
+    print result
+    return result
+end
+print "calc with return:" calc 10
+
+
+# loop
+for i 1 3
+    print "#" i
+    calc i
+end
+
+# concat
+for i 1 3
+   print (concat "i is: " i)
+end
+
+# break
+for i 0 10
+   print (concat "break at " (i - 5) "=>" i)
+   if (i == 5) break end
+end
+
+fn scriptAdd a b
+    return (a+b)
+end
+
+print (scriptAdd 5 6 )
+
+
+i = 5
+while (i > 0)
+    i = i - 1
+    print "while loop stop at 0:" i
+end
+
+i = 0
+while (i > 0)
+    i = i - 1
+    print "while loop stop at 0:" i
+end
+
+print "---- one line separated while break test: ----- "
+i = 0; while 1; i = i + 1;if i > 4 break;end; print i; end
+
+print "---- one line separated while break test localvar: ----- "
+while 1; print "lo is" lo; lo = lo + 1; if lo > 4 break;end;  end
+
+print "---- one line separated while break test inside a function ----- "
+i = 4711
+fn whiler; i = 0;while i < 3;  i = i + 1;if i > 4 break; end; print i; end;end
+print "Run whiler:"
+whiler
+print "final i is" i;
+
+print "... many simulated ';' and invalid variable adds:"
+;;;;;;;;;;;;;;;;;;;print "huhu";;;;;;;;;;;;;;;;;;;;;;;; i i i i i
+
+print ""; print "----------- another local var test: --------------"
+
+bla= 1212;
+
+fn fasel
+    bla = 12;
+    print "inside fn bla (12) is:" bla
+end
+
+fasel
+
+print "outside bla is (global was: 1212):" bla
+print "its 12 so fasel hijacked the global var ... good or bad ? "
+print "setVariable and getVariable does the magic"
+
+print ""
+print "....................."
+print "--- test ends ... ---"

@@ -1,0 +1,131 @@
+--  -----------------------------------------------------------------------------
+--  ported from raylib-elfScript to BaseElf / NativSDL to CrazyElf to DreiZehn
+--  original: BSD-License, Copyright (c) 2025 JP Mortiboys (@themushroompirates)
+--  -----------------------------------------------------------------------------
+print " StarField @13 startup...."
+W = 640
+H = 320
+maxW = W / 2
+minW = maxW * -1
+maxH = H / 2
+minH = maxH * -1
+STAR_COUNT  = 420
+START_DIV   = 0.03125
+Window      = 0
+Renderer    = 0
+Event       = 0
+Speed       = 0.4
+fontScale   = 1.2
+-- init to stay in global scope
+Points_X = 0
+Points_Y = 0
+Points_Z = 0
+
+fn Init
+    if (SDL_Init SDL_INIT_VIDEO) == false
+        print "Failed to init SDL3"
+        return false
+    end
+
+    Window = SDL_CreateWindow "StarField DreiZehn" W H 0
+    if Window == 0
+        print "Failed to create window"
+        return false
+    end
+
+    Renderer = SDL_CreateRenderer Window
+    Event = SDL_CreateEvent
+
+    Points_X = Array.new
+    Points_Y = Array.new
+    Points_Z = Array.new
+
+    i = 0
+    while i < STAR_COUNT
+        Array.push Points_X math.random minW maxW
+        Array.push Points_Y math.random minH maxH
+        Array.push Points_Z math.randomf
+        i = i + 1
+    end
+
+    return true
+end
+
+if Init
+    Running = true
+
+    Time_Last = SDL_GetTicks
+
+    while Running
+        Time_Now = SDL_GetTicks
+        Dt = (Time_Now - Time_Last) / 1000.0
+        Time_Last = Time_Now
+
+        while SDL_PollEvent Event
+            Type = SDL_GetEventType Event
+            if Type == 256
+                Running = false
+            end
+            if Type == 768
+                if (SDL_GetEventKey Event) == 27
+                    Running = false
+                end
+            end
+        end
+
+        SDL_SetRenderDrawColor Renderer 20 20 40 255
+        SDL_RenderClear Renderer
+
+        i = 0
+        while i < STAR_COUNT
+            pX = Array.get Points_X i
+            pY = Array.get Points_Y i
+            pZ = Array.get Points_Z i
+
+            pZ = pZ - (Dt * Speed)
+
+            if pZ < 0.01
+                pX = math.random minW maxW
+                pY = math.random minH maxH
+                pZ = 1.0
+            end
+
+            invZ = 1.0 / pZ
+            screenX = (W * 0.5) + (pX * invZ)
+            screenY = (H * 0.5) + (pY * invZ)
+
+            -- FIXME need || so hard :P
+            if screenX < 0 pZ = 0.0 end
+            if screenX > W pZ = 0.0 end
+            if screenY < 0 pZ = 0.0 end
+            if screenY > H pZ = 0.0 end
+
+            if pZ > 0.0
+                radius = 2.0 * (1.0 - pZ)
+                if radius < 0.5
+                    radius = 0.5
+                end
+
+                SDL_SetRenderDrawColor Renderer 255 255 255 255
+                SDL_RenderFillRect Renderer screenX screenY radius radius
+            end
+
+            Array.set Points_X i pX
+            Array.set Points_Y i pY
+            Array.set Points_Z i pZ
+
+            i = i + 1
+        end
+
+        SDL_SetRenderDrawColor Renderer 200 200 255 255
+        SDL_SetRenderScale Renderer  fontScale fontScale
+        SDL_RenderDebugText Renderer 10 10 concat "StarField @13-Script Stars:" STAR_COUNT " DT:" Dt
+        SDL_SetRenderScale Renderer  1 1
+
+        SDL_RenderPresent Renderer
+        SDL_Delay 16
+    end
+end
+
+SDL_DestroyWindow Window
+SDL_Quit

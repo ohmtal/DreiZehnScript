@@ -1,0 +1,4 @@
+i = 0
+for i 1 1000000000
+end
+print "i=" i

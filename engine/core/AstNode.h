@@ -37,7 +37,8 @@ enum class NodeType {
     BreakStatement,
     ReturnStatement,
     WhileStatement,
-    AssignOPStatement
+    AssignOPStatement,
+    ObjectFieldExpression
 };
 
 #include <string>
@@ -65,6 +66,7 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::ReturnStatement:         return "ReturnStatement";
         case NodeType::WhileStatement:          return "WhileStatement";
         case NodeType::AssignOPStatement:       return "AssignOPStatement";
+        case NodeType::ObjectFieldExpression:       return "ObjectFieldExpression";
     }
     return "UnknownNodeType";
 }
@@ -126,9 +128,17 @@ struct VariableExpression : public Expression {
     VariableExpression(uint32_t n) : mVariableNameSymbolId(n) {
         mNodeType  = NodeType::VariableExpression;
     }
-    Value evaluate(Environment& env) override; // Liest aus env.variables
+    Value evaluate(Environment& env) override;
 };
 
+struct ObjectFieldExpression : public Expression {
+    uint32_t mVariableNameSymbolId = 0;
+    uint32_t mFieldSymbolId = 0;
+    ObjectFieldExpression(uint32_t varId, uint32_t fieldId) : mVariableNameSymbolId(varId), mFieldSymbolId(fieldId) {
+        mNodeType  = NodeType::ObjectFieldExpression;
+    }
+    Value evaluate(Environment& env) override;
+};
 // function calls --------------------------------------------------------------
 struct CallExpression : public Expression {
     // std::string mFuncName;

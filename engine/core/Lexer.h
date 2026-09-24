@@ -47,7 +47,7 @@ enum class TokenType {
     , LowerEqual, GreaterEqual
     , SHL, SHR
 
-    , Arrow
+    , Arrow, Dot
 
     , NoToken // for peekPrev pos < 1
     , EOFToken
@@ -105,7 +105,8 @@ inline const char* tokenTypeToString(TokenType type) {
 
         case TokenType::Semicolon:     return "Semicolon";
 
-        case TokenType::Arrow:          return "Arrow Pointer access";
+        case TokenType::Arrow:          return "Arrow Object Method call";
+        case TokenType::Dot:            return "Dot Object field access";
 
         case TokenType::EOFToken:      return "EOFToken";
 
@@ -207,12 +208,14 @@ public:
             // minus after number
             if (peek() == '-') { advance(); tokens.push_back({TokenType::Minus, "-"}); continue; }
 
+            if (peek() == '.') { advance(); tokens.push_back({TokenType::Dot, "."}); continue; }
+
             // ----------------------------------------------------------------
             // Identifier and Keywords scan
-            if (std::isalpha(peek()) || peek() == '_' || peek() == '.' || peek() == ':') {
+            if (std::isalpha(peek()) || peek() == '_' ||/* peek() == '.' ||*/ peek() == ':') {
                 std::string id;
 
-                while (std::isalnum(peek()) || peek() == '_' || peek() == '.' || peek() == ':') {
+                while (std::isalnum(peek()) || peek() == '_' ||/* peek() == '.' ||*/ peek() == ':') {
                     id += advance();
                 }
 

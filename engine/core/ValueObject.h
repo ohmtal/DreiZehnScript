@@ -62,11 +62,21 @@ struct ValueObject {
     int mAssigned = 0;
     virtual ~ValueObject() = default;
 
-    inline virtual bool onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret) {
-        Tools::errorf("Runtime Error: Method or field %s not found.\n",SymbolTable::getName(methodNameSymbolId).c_str());
+    inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) {
+        Tools::errorf("Runtime Error GetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
+        return false;
+    }
+    inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) {
+        Tools::errorf("Runtime Error SetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
         return false;
     }
 
+    inline virtual bool onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret) {
+        Tools::errorf("Runtime Error: Method %s not found.\n",SymbolTable::getName(methodNameSymbolId).c_str());
+        return false;
+    }
+
+    // garbage collection control
     inline void setAssigned(bool v) {mAssigned += v ? 1 : -1;}
 
 protected:

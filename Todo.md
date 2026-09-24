@@ -49,32 +49,19 @@ under 15 sec and beat python here without bytecode ;)
 - **12.478u 0.002s 0:12.52 99.6%    0+0k 0+0io 0pf+0w** 
 
 # 0.5
+- [X] changed all static calls to ":" like math:random or Array:new... so i can use Dot for fields!
+
 - [ ] object fields Vector3 example: `v = Vector3.new 1.0 2.2 3.3`
     - [ ] using v.x instead of a method -> caller . At the moment the lexer add the '.' to the variable name
-    - [ ] fix method expression:
-        - [ ] this only return the first value: `print v->x v->y v->z` => 1.0
-```
-Token 0: 0 :: Identifier PRINT
+        - [X] onGetField => `v = Vector3:new 1 2 2; print v.x v.y v.z` => `1.000000 2.000000 2.000000`
+        - [ ] onSetField
+                TODO: v.x = 1 Syntax-Error: Unexpected token 'Assign' (v.x = 1:1)
 
-Token 1: 0 :: Identifier
-Token 2: 37 :: Arrow Pointer access
-Token 3: 0 :: Identifier
+    - [~] fix method expression:
+        - this only return the first value: `print v->x v->y v->z` => 1.0
+            This is because the method call v->x eat v->y v->z .. thats where my syntax kick my ass.
+        - The method may tell how may arguments it did consume. 
 
-Token 4: 0 :: Identifier
-Token 5: 37 :: Arrow Pointer access
-Token 6: 0 :: Identifier
-
-Token 7: 0 :: Identifier
-Token 8: 37 :: Arrow Pointer access
-Token 9: 0 :: Identifier
-
-Token 10: 39 :: EOFToken
-```
-        - [ ] `print concat v->x v->y v->z` => 1 
-        
-    - [ ] `v->z = 1` << In method call. Syntax-Error: Unexpected token 'Assign'
-        - this is also for all other math tokens, i must find a way to register it like 
-        a Variable. 
 - [ ] multiline statement for example if..
 
 

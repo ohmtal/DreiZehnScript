@@ -41,6 +41,25 @@ namespace DreiZehn {
 
     }
     // -------------------------------------------------------------------------
+    Value ObjectFieldExpression::evaluate(Environment& env) {
+        Value varValue = env.getVariableFrame()->getVariable(mVariableNameSymbolId);
+        Value returnValue = Value(0);
+        if (!varValue.isPointer()) {
+            Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(mVariableNameSymbolId).c_str());
+            return returnValue;
+        }
+
+        ValueObject* obj = dynamic_cast<ValueObject*>(varValue.asPointerObject());
+        if (obj->onGetField(mFieldSymbolId, returnValue)) {
+            return returnValue;
+        }
+        Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
+                      SymbolTable::getName(mVariableNameSymbolId).c_str(),
+                      SymbolTable::getName(mFieldSymbolId).c_str()
+                      );
+        return returnValue;
+    }
+    // -------------------------------------------------------------------------
     Value MethodExpression::evaluate(Environment& env) {
         Value objectPointer = env.getVariableFrame()->getVariable(mPointerNameSymbolId);
         if (!objectPointer.isPointer()) {

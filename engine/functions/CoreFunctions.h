@@ -32,7 +32,7 @@ namespace DreiZehn {
                         auto* strObj = static_cast<StringValueObject*>(obj);
                         Tools::printf("%s ", strObj->mValue.c_str());
                     } else {
-                        Tools::printf("%p ", (void*)obj);
+                        Tools::printf("%s [%p] ",  gUserObjectTypes[obj->mType].c_str(), (void*)obj);
                     }
                 }
             }
@@ -93,7 +93,7 @@ namespace DreiZehn {
         });
 
         // ---------------------------------------------------------------------
-        RegisterFunction("core.gc", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core:gc", [&env](std::vector<Value>& args, Value& ret) -> bool {
             if (gCurrentFrame) {
                 gCurrentFrame->doGarbageCollection(false);
                 return true;

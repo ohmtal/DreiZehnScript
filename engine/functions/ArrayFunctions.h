@@ -134,7 +134,7 @@ namespace DreiZehn {
 
         using namespace FunctionMap;
 
-        RegisterFunction("Array.new", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("Array:new", [&env](std::vector<Value>& args, Value& ret) -> bool {
             ArrayValueObject* arr = new ArrayValueObject();
             ret = Value(arr);
             if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(arr);

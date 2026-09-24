@@ -130,7 +130,16 @@ private:
                 return std::make_unique<MethodExpression>(nameTokenSymbolId
                     , SymbolTable::insert(methodToken.mValue), std::move(args));
             }
+            if (peek().mType  == TokenType::Dot
+                && peekNext().mType == TokenType::Identifier
+            ) {
 
+                advance(); // eat DOT
+                Token fieldToken = advance();
+
+                return std::make_unique<ObjectFieldExpression>(nameTokenSymbolId , SymbolTable::insert(fieldToken.mValue));
+            }
+            else
             if (FunctionMap::IsFunction(nameTokenSymbolId)) {
                 std::vector<std::unique_ptr<Expression>> args;
                 while (isContinuePeak()) {
@@ -145,7 +154,6 @@ private:
                 return std::make_unique<CallExpression>(nameTokenSymbolId, std::move(args));
             }
 
-            // return std::make_unique<VariableExpression>(nameToken.mValue);
             return std::make_unique<VariableExpression>(nameTokenSymbolId);
         }
 
@@ -351,7 +359,7 @@ public:
 
             return std::make_unique<ReturnStatement>(std::move(rhs));
         }
-        else
+        else  //FIXME switch / case !
         if (peek().mType == TokenType::Identifier) {
             Token nextToken = peekNext();
             if (nextToken.mType == TokenType::Assign) {
@@ -359,6 +367,9 @@ public:
                 advance(); // '='
                 auto rhs = parseComparison();
                 return std::make_unique<AssignStatement>(SymbolTable::insert( varName), std::move(rhs));
+            }
+            else if (nextToken.mType == TokenType::Dot) {
+                return parsePrimary();
             }
             else if (nextToken.mType == TokenType::Arrow) {
                 return parsePrimary();

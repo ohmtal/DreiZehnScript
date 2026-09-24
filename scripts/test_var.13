@@ -27,7 +27,7 @@ for j 0 (JLOOPS - 1)
     limit = (ILOOPS / 2) - 1
     ran = 0.0
     for i 0 limit
-        ran = math.randomf * i
+        ran = math:randomf * i
         localX -= ran
         localX += ran
     end

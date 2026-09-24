@@ -36,14 +36,14 @@ fn Init
     Renderer = SDL_CreateRenderer Window
     Event = SDL_CreateEvent
 
-    Points_X = Array.new
-    Points_Y = Array.new
-    Points_Z = Array.new
+    Points_X = Array:new
+    Points_Y = Array:new
+    Points_Z = Array:new
 
     for i 1 STAR_COUNT
-        Points_X->push  math.random minW maxW
-        Points_Y->push  math.random minH maxH
-        Points_Z->push  math.randomf
+        Points_X->push  math:random minW maxW
+        Points_Y->push  math:random minH maxH
+        Points_Z->push  math:randomf
     end
 
     return true
@@ -88,8 +88,8 @@ if Init
 
 
             if (pZ < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
-                pX = math.random minW maxW
-                pY = math.random minH maxH
+                pX = math:random minW maxW
+                pY = math:random minH maxH
                 pZ = 1.0
 
                 screenX = W + pX
@@ -97,7 +97,7 @@ if Init
             end
 
 
-            radius = math.lerp 2.0 0.3 pZ
+            radius = math:lerp 2.0 0.3 pZ
             SDL_SetRenderDrawColor Renderer 255 255 255 255
             SDL_RenderFillRect Renderer screenX screenY radius radius
 
@@ -131,7 +131,7 @@ Points_Z    = 0
 
 print "Starfield shutdown completed, running Garbage Collection manually..."
 -- Manually Call Garbage Collection:
-core.gc
+core:gc
 
 -- you can use:
 --  debug.garbage

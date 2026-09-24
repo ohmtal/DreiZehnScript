@@ -15,17 +15,17 @@ namespace DreiZehn {
     void RegisterDebugFunctions( ) {
          using namespace FunctionMap;
         // ---------------------------------------------------------------------
-        RegisterFunction("debug.toggle", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("debug:toggle", [](std::vector<Value>& args, Value& ret) -> bool {
             Globals::gDumpStateNodes = ! Globals::gDumpStateNodes;
             return true;
         });
         // ---------------------------------------------------------------------
-        RegisterFunction("debug.printenv", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("debug:printenv", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("Current env: %p\n", (void*)Globals::gCurEnv);
             return true;
         });
         // ---------------------------------------------------------------------
-        RegisterFunction("debug.printfn", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("debug:printfn", [](std::vector<Value>& args, Value& ret) -> bool {
 
             const bool printScriptFunc = args.size() > 0 && args.at(0).getInt() == 1;
             Tools::printf("  --- Functions [%zu] --- \n", RegisteredFunctions.size());
@@ -42,7 +42,7 @@ namespace DreiZehn {
             return true;
         });
         // ---------------------------------------------------------------------
-        RegisterFunction("debug.types", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("debug:types", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- Types ------------------\n");
             for (int i = 0; i <= gLastValueObjectType; i++) {
                 Tools::printf("%d: %s\n",i, gUserObjectTypes[i].c_str());
@@ -50,7 +50,7 @@ namespace DreiZehn {
             return true;
         });
         // ---------------------------------------------------------------------
-        RegisterFunction("debug.garbage", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("debug:garbage", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- Garbage Collection ------------------\n");
             if (gCurrentFrame) gCurrentFrame->listGarbageObjects();
             return true;

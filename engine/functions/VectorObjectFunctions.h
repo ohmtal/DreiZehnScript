@@ -17,10 +17,11 @@
 #include <core/VariableFrame.h>
 
 namespace DreiZehn {
+    // using value so i can directly link it
     struct Vector3 {
-        double x = 0.f;
-        double y = 0.f;
-        double z = 0.f;
+        Value x = Value(0.0);
+        Value y = Value(0.0);
+        Value z = Value(0.0);
     };
 
     const int TypeVector3Object =  registerUserObjectType("Vector3");
@@ -28,29 +29,42 @@ namespace DreiZehn {
     struct Vector3Object : public ValueObject {
         Vector3 mVec = {0};
 
+
         Vector3Object() : ValueObject(TypeVector3Object) { initSymbols(); }
         ~Vector3Object() { }
 
-        inline static ValueObjectMethod mX;
-        inline static ValueObjectMethod mY;
-        inline static ValueObjectMethod mZ;
+        inline static ValueObjectMethod mToString;
+        inline static ValueObjectMethod mNormalize;
+        inline static uint32_t xId = 0;
+        inline static uint32_t yId = 0;
+        inline static uint32_t zId = 0;
 
         inline static void initSymbols() {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return;
 
-            mX  = ValueObjectMethod("x", 0,0, "get x");
-            mY  = ValueObjectMethod("y", 0,0, "get y");
-            mZ  = ValueObjectMethod("z", 0,0, "get z");
+            xId = SymbolTable::insert("x");
+            yId = SymbolTable::insert("y");
+            zId = SymbolTable::insert("z");
+
+            mToString   = ValueObjectMethod("toString", 0,0, "return vector as string");
+            mNormalize  = ValueObjectMethod("normalize", 0,0, "normalize vector");
             mSymbolsLoaded = true;
         }
 
         // -------------------------------------------------------------------------
+        inline bool onGetField(uint32_t fieldSymbolId, Value& ret) override{
+            if (fieldSymbolId == xId) ret = mVec.x;
+            else if (fieldSymbolId == yId) ret = mVec.y;
+            else if (fieldSymbolId == zId) ret = mVec.z;
+            else return false;
+            return true;
+        }
+        // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
 
-            if ( methodId == mX.mSymbolId ) { ret =  Value(mVec.x); }
-            if ( methodId == mY.mSymbolId ) { ret =  Value(mVec.y); }
-            if ( methodId == mZ.mSymbolId ) { ret =  Value(mVec.z); }
+            if ( methodId == mToString.mSymbolId ) { /*FIXME*/ return false;}
+            if ( methodId == mNormalize.mSymbolId ) { /*FIXME*/ return false;}
             else return false;
 
             return true;
@@ -60,7 +74,9 @@ namespace DreiZehn {
     void RegisterVectorObjectFunctions() {
         using namespace FunctionMap;
 
-        RegisterFunction("Vector3.new", [](std::vector<Value>& args, Value& ret) -> bool {
+        Vector3Object::initSymbols();
+
+        RegisterFunction("Vector3:new", [](std::vector<Value>& args, Value& ret) -> bool {
             Vector3Object* v = new Vector3Object();
             if (args.size() > 0 ) v->mVec.x = args[0].getDouble();
             if (args.size() > 1 ) v->mVec.y = args[1].getDouble();

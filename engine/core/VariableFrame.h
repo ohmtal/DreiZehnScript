@@ -31,12 +31,7 @@ private:
     std::vector<ValueObject*> mGarbageCollection;
     int mGarbageCheckCounter = 0;
 
-
     VariableFrame* mParentFrame = nullptr;
-
-
-
-
 
 public:
     VariableFrame( VariableFrame* parentFrame ) {
@@ -57,8 +52,10 @@ public:
     // -------------------------------------------------------------------------
 private:
     void internalSetVariable(Value& pre, Value& post) {
-        if (pre.isPointer()) static_cast<ValueObject*>(pre.asPointer())->setAssigned(false);
-        if (post.isPointer()) static_cast<ValueObject*>(post.asPointer())->setAssigned(true);
+        // if (pre.isPointer()) static_cast<ValueObject*>(pre.asPointer())->setAssigned(false);
+        // if (post.isPointer()) static_cast<ValueObject*>(post.asPointer())->setAssigned(true);
+        if (pre.isPointer())  pre.asPointerObject()->setAssigned(false);
+        if (post.isPointer()) post.asPointerObject()->setAssigned(true);
         pre = post;
     }
 public:

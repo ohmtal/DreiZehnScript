@@ -16,14 +16,16 @@ Ich wollte mir nur mal NaN boxing anschauen und dann hab ich gleich eine kleine 
     - Equal: ==
     - Non Equal: !=
 - Supported operations: 
-    - Add: +,
-    - Sub: -
-    - Mul: *
-    - Div: /
+    - Add: +, ++, +=
+    - Sub: -, --, -=
+    - Mul: *, *=
+    - Div: /, /=
     - Bitwise shift right: >>
     - Bitwise shift left: <<
     - Bitwise Or: |
     - Bitwise And: &
+- Note Object fields only allow assign Inline Operation (`++`) or Operation Assign (`+=`) is not 
+implemented so far.
 - If: `if i == 5; print "is 5"; else print "is not 5"; end` 
 You always need a end at the end. Same for loops.
 - Loops: 
@@ -33,13 +35,15 @@ You always need a end at the end. Same for loops.
 - Return: break the current statement and may return a value : `return 4`
 - Function parameters are simply added: `print "Hello World"`
 - If you need to pass statements you can use: `print "Hello" ( 1 + 1 )`
-- Object constructors are with a big first captial like: `Array.new`
-- libary function calls are all lower case like `math.randomf`
+- Static methods use usally ":" or you use the C-Name like i did on SDL3 binding test.
+- Object constructors are with a big first captial like: `Array:new`
+- libary function calls are all lower case like `math:randomf`
 - methods on objects are called with a Arrow: `arr->pop` 
+- fields on objects used the Dot: `vec.x = 10.0`
 - fn: function definition: `fn hello param1 param2;print param1 param2; end; hello`
 - Uncomment: Full Line only at the start of a line: `#` or `--`
 
-Nore: I have not implemented `var++`,`var--`, `var [OP]=`  or `if !var ..`, maybe later. 
+Nore: I have not implemented  `if !var ..`, maybe later. 
 
 # Add a new function in C++:
 It's so easy:
@@ -194,12 +198,12 @@ run "test_suite.13"
 ## 8. Built-in Safety Features
 * **Infinite Loop Prevention:** Parser-level locks intercept stalled index trackers and throw non-blocking compiler alerts.
 * **String Memory Safety:** The lexer forces automatic emergency lookbehinds on unclosed string sequences (`"hello...`) to prevent state corruption.
-* **Garbage Collection (GC):** `Environment::shutdown()` walks through all dynamically tracked memory nodes upon exit to prevent memory leaks in the host C++ application.
+* **Garbage Collection (GC):** Destructors walks through all dynamically tracked memory nodes upon exit to prevent memory leaks in the host C++ application. You can trigger a Garbage Collection with: "core:gc" and check it with "debug:garbage"
 
 ## 9. Added Methods by Arrow:
 
 ```
-> foo = Array.new
+> foo = Array:new
 > foo->push "Hello Foo"
 > print (foo->size) (foo->get 0) 
 1 Hello Foo 

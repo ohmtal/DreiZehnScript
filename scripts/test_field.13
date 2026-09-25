@@ -1,0 +1,44 @@
+# Benchmark-Test for DreiZehn Script (0.4)
+JLOOPS = 25
+ILOOPS = 1000000
+
+obj = Vector3:new
+
+
+for j 0 (JLOOPS - 1)
+    for i 0 (ILOOPS - 1)
+        obj.x = obj.x + 1
+    end
+    print  "SUM (++) IS: " obj.x
+
+    for i 0 (ILOOPS - 1)
+        obj.x = obj.x - 1
+    end
+    print  "SUM (--) IS: " obj.x
+
+    obj.x = 66
+    print  "set Sum to 66 == " (obj.x * 1)
+
+    for i 0 (ILOOPS - 1)
+        obj.x = obj.x * (i + 1)
+        obj.x = obj.x / (i + 1)
+    end
+    print  "SUM (*/ %i+1) IS: " obj.x
+
+    limit = (ILOOPS / 2) - 1
+    ran = 0.0
+    for i 0 limit
+        ran = math:randomf * i
+        obj.x = obj.x + ran
+        obj.x = obj.x - ran
+    end
+    print  "last ran" ran
+    print  "SUM (rand +-) IS: " obj.x
+end
+
+obj.x = obj.x - 33
+print "---------------------"
+print "---------------------"
+print  "Final sum should be 33 == " obj.x
+print "---------------------"
+print "---------------------"

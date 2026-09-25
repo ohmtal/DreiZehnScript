@@ -53,20 +53,27 @@ namespace DreiZehn {
         }
 
         // -------------------------------------------------------------------------
+        inline Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
+            if (fieldSymbolId == xId) return &mVec.x;
+            else if (fieldSymbolId == yId) return &mVec.y ;
+            else if (fieldSymbolId == zId) return &mVec.z ;
+
+            return nullptr;
+        }
+        // -------------------------------------------------------------------------
         inline bool onSetField(uint32_t fieldSymbolId, const Value& value) override{
-            if (fieldSymbolId == xId) mVec.x = Value(value.getDouble());
-            else if (fieldSymbolId == yId) mVec.y = Value(value.getDouble());
-            else if (fieldSymbolId == zId) mVec.z = Value(value.getDouble());
-            else return false;
+            Value* ptr = onGetFieldPtr(fieldSymbolId);
+            if (!ptr) return false;
+            *ptr = Value(value.getDouble());
             return true;
         }
         // -------------------------------------------------------------------------
         inline bool onGetField(uint32_t fieldSymbolId, Value& ret) override{
-            if (fieldSymbolId == xId) ret = mVec.x;
-            else if (fieldSymbolId == yId) ret = mVec.y;
-            else if (fieldSymbolId == zId) ret = mVec.z;
-            else return false;
+            Value* ptr = onGetFieldPtr(fieldSymbolId);
+            if (!ptr) return false;
+            ret = *ptr;
             return true;
+
         }
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {

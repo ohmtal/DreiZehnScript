@@ -66,6 +66,12 @@ struct ValueObject {
         Tools::errorf("Runtime Error GetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
         return false;
     }
+
+    inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) {
+        Tools::errorf("Runtime Error GetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
+        return nullptr;
+    }
+
     inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) {
         Tools::errorf("Runtime Error SetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
         return false;

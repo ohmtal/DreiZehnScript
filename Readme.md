@@ -4,9 +4,8 @@ A lightweight, embedded scripting language built from scratch in C++.
 
 [Benchmark Results](Benchmark.md )
 
-```
-Ich wollte mir nur mal NaN boxing anschauen und dann hab ich gleich eine kleine Scriptsprache Drumherum gebaut *lol*.
-```
+
+> Ich wollte mir nur mal NaN boxing anschauen und dann hab ich gleich eine kleine Scriptsprache Drumherum gebaut *lol*.
 
 ## Syntax 
 - The ';' spearator is only needed if you write multiple statements in one line.

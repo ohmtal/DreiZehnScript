@@ -210,7 +210,7 @@ namespace DreiZehn {
             // ------- setPixel
             if (methodId == setPixelId) {
                 if (args.size() != 3) {
-                    Tools::errorf("Usage .setPixel int x int y uint color");
+                    Tools::errorf("Usage .setPixel int x int y uint color\n");
                     return false;
                 }
                 int32_t x = args[0].getInt();
@@ -227,7 +227,7 @@ namespace DreiZehn {
             // ------- isKeyDown
             if (methodId == isKeyDownId) {
                 if (args.size() != 1) {
-                    Tools::errorf("Usage .isKeyDown int keycode");
+                    Tools::errorf("Usage .isKeyDown int keycode\n");
                     return false;
                 }
                 int32_t keyCode = args[0].getInt();
@@ -266,7 +266,7 @@ namespace DreiZehn {
             // ------- line
             if (methodId == lineId) {
                 if (args.size() != 5) {
-                     Tools::errorf("Usage .line x0 y0 x1 y1 color");
+                     Tools::errorf("Usage .line x0 y0 x1 y1 color\n");
                     return false;
                 }
 
@@ -276,7 +276,7 @@ namespace DreiZehn {
             // ------- rect
             if (methodId == rectId) {
                 if (args.size() != 5) {
-                    Tools::errorf("Usage .rect x y w h color");
+                    Tools::errorf("Usage .rect x y w h color\n");
                     return false;
                 }
 
@@ -287,7 +287,7 @@ namespace DreiZehn {
             // ------- circle
             if (methodId == circleId) {
                 if (args.size() != 4) {
-                    Tools::errorf("Usage .circle x y r color");
+                    Tools::errorf("Usage .circle x y r color\n");
                     return false;
                 }
                 FensterWrapper::circle(&mFenster, args[0].getInt(), args[1].getInt(), args[2].getInt(), args[3].getUInt());
@@ -297,7 +297,7 @@ namespace DreiZehn {
             // ------- fill
             if (methodId == fillId) {
                 if (args.size() != 4) {
-                    Tools::errorf("Usage .fill x y oldcolor color");
+                    Tools::errorf("Usage .fill x y oldcolor color\n");
                     return false;
                 }
                 FensterWrapper::fill(&mFenster, args[0].getInt(), args[1].getInt(), args[2].getUInt(), args[3].getUInt());
@@ -307,7 +307,7 @@ namespace DreiZehn {
             // ------- text
             if (methodId == textId) {
                 if (args.size() != 5) {
-                    Tools::errorf("Usage .text x y text scale color");
+                    Tools::errorf("Usage .text x y text scale color\n");
                     return false;
                 }
                 FensterWrapper::text(&mFenster,

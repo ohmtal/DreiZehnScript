@@ -258,6 +258,8 @@ SDL_Quit
 
 DreiZehn 0.5c - I added Fenster lib as Object :)
 
+![res/dreizehn_0_5c_FensterDrawing.png](res/dreizehn_0_5c_FensterDrawing.png)
+
 ```
 W = 320
 H = 240

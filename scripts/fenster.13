@@ -5,12 +5,13 @@ fenster = Fenster:new "DreiZehn Fenster" 320 240
 print fenster
 
 while fenster->loop
-    fenster->clear 0xFF0C0C
+    fenster->clear 0x000CDD
     -- ESC
    if fenster->isKeyDown 27
        break
    end
-
+   fenster->text 20 20 "Hello Fenster!" 4 0xFFFFFF
+   fenster->text 20 220 (concat "mouse: x:" fenster.mouseX ", y:" fenster.mouseY ", down:" fenster.mouseDown) 2 0xFFFFFF
 
 end
 

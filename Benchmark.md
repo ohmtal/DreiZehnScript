@@ -71,7 +71,9 @@ print "---------------------"
 Same as before but with Vector3Object field. 
 
 Note on 0.5b: While Variables  uses fast "++"/"--" fields only have the slower assign
+Note on 0.5c: Added inline OP and OP assign :) Nearly as fast as global var
 
+- 🐢 DreiZehn 0.5c: 13.057u 0.004s 0:13.09 99.6%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.5b: 19.794u 0.004s 0:19.85 99.6%    0+0k 0+0io 0pf+0w
 
 

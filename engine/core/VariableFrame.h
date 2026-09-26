@@ -8,6 +8,7 @@
 
 #include <unordered_map>
 #include <cassert>
+#include <algorithm>
 
 #include "Value.h"
 #include "ValueObject.h"
@@ -60,7 +61,7 @@ private:
     }
 public:
     // -------------------------------------------------------------------------
-    inline void setVariable(uint32_t id, Value val) {
+    inline void setVariable(uint32_t id, Value val, bool forceScope = false) {
 
         // if (Globals::gShowVariableDebug) Tools::printf("DEBUG: setVariable :: name: %s id: %d, floatval: %f\n", SymbolTable::getName(id).c_str(), id, val.getFloat());
 
@@ -69,6 +70,10 @@ public:
             // it->second = val;
             internalSetVariable(it->second , val);
             return;
+        }
+        if (forceScope) {
+             internalSetVariable( mVariables[id] , val);
+             return;
         }
 
         if (mParentFrame != nullptr) {
@@ -144,6 +149,13 @@ public:
             doGarbageCollection(false);
         }
 
+    }
+
+
+    inline void removeFromGarbageCollection(ValueObject* obj) {
+        assert(gMasterFrame && "removeFromGarbageCollection but no MasterFrame!!!");
+        auto& gc = gMasterFrame->mGarbageCollection;
+        gc.erase(std::remove(gc.begin(), gc.end(), obj), gc.end());
     }
 
     inline void listGarbageObjects() {

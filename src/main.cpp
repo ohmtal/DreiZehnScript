@@ -7,6 +7,10 @@
 #include "engine/functions/ArrayFunctions.h"
 #include "engine/functions/VectorObjectFunctions.h"
 
+#ifdef DREIZEHN_FENSTER
+#include "engine/functions/FensterFunctions.h"
+#endif
+
 #ifdef DREIZEHN_SDL3
 #include "engine/functions/SDL3Functions.h"
 #endif
@@ -68,6 +72,9 @@ int main(int argc, char* argv[]) {
     RegisterDebugFunctions();
     RegisterUserFunc();
 
+    #ifdef DREIZEHN_FENSTER
+    RegisterFensterFunctions();
+    #endif
     #ifdef DREIZEHN_SDL3
     RegisterSDL3Functions();
     #endif
@@ -95,11 +102,9 @@ int main(int argc, char* argv[]) {
     std::vector<OpenBlock> blockStack;
 
     while (true) {
-        // for (size_t i = 0; i < blockStack.size(); ++i) std::cout << ".. ";
-        // std::cout << (blockStack.empty() ? "> " : "");
-        // std::getline(std::cin, line);
         read_line("> ", line);
         if (line == "exit") break;
+        if (line == "quit") break;
 
         std::stringstream stream(line);
         RunScriptStream(stream, env);

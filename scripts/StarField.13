@@ -3,6 +3,9 @@
 --  original: BSD-License, Copyright (c) 2025 JP Mortiboys (@themushroompirates)
 --  -----------------------------------------------------------------------------
 print " StarField v2 @13 startup...."
+-- DreiZehn global variables are also available by the functions
+-- if you want to make clear it's global you may use a prefix separated by ':'
+-- log Glob::Window = ...
 W = 640
 H = 320
 maxW = W / 2

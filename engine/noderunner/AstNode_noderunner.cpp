@@ -49,7 +49,7 @@ namespace DreiZehn {
             return returnValue;
         }
 
-        ValueObject* obj = dynamic_cast<ValueObject*>(varValue.asPointerObject());
+        ValueObject* obj = varValue.asPointerObject();
         if (obj->onGetField(mFieldSymbolId, returnValue)) {
             return returnValue;
         }
@@ -67,7 +67,7 @@ namespace DreiZehn {
             Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(mPointerNameSymbolId).c_str());
             return Value();
         }
-        ValueObject* obj = dynamic_cast<ValueObject*>(objectPointer.asPointerObject());
+        ValueObject* obj = objectPointer.asPointerObject();
         if (!obj) {
             Tools::errorf("RunTime Error: Invalid Object: %s.\n", SymbolTable::getName(mPointerNameSymbolId).c_str());
             return Value();
@@ -119,7 +119,7 @@ namespace DreiZehn {
             for (size_t i = 0; i < func.parameterNames.size(); ++i) {
                 if (i < arguments.size()) {
                     Value evaluatedArg = arguments[i]->evaluate(env);
-                    localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), evaluatedArg);
+                    localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), evaluatedArg, true);
                 }
             }
             Value functionResult = Value(0);
@@ -173,11 +173,19 @@ namespace DreiZehn {
             Tools::PrintParseError("variable is missing:");
             return Value();
         }
-        Value* valPtr = env.getVariableFrame()->getVariablePtr(mVarNameSymbolId);
-        if (!valPtr || valPtr->isPointer()) {
+        Value* valPtr = nullptr;
+        Value* variablePtr = env.getVariableFrame()->getVariablePtr(mVarNameSymbolId);
+        if (!variablePtr) {
             Tools::errorf("Invalid Pointer operation: %s\n",tokenTypeToString(mOp));
             return Value();
         }
+        if (variablePtr->isPointer() && mFieldSymbolId > 0) {
+            valPtr = variablePtr->asPointerObject()->onGetFieldPtr(mFieldSymbolId);
+            if (!valPtr) return Value();
+        } else {
+            valPtr = variablePtr;
+        }
+
         // NOTE: should i cast it to int?!
 
         if (valPtr->isInt() ) {

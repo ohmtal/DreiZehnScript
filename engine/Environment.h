@@ -158,12 +158,19 @@ public:
             // ---- AssignOPStatement
             case NodeType::AssignOPStatement: {
                 if (auto* assignOP = dynamic_cast<AssignOPStatement*>(node)) {
-                    Value* valuePtr = currentEnv.mVariableFrame->getVariablePtr(assignOP->mVarNameSymbolId);
-                    Value rightHand = assignOP->mRhs->evaluate(currentEnv);
-                    if (valuePtr->isPointer() ) {
-                        Tools::PrintRuntimeError("Operation with pointer not allowed!\n");
+                    Value* valuePtr = nullptr;
+                    Value* variablePtr = currentEnv.mVariableFrame->getVariablePtr(assignOP->mVarNameSymbolId);
+                    if (!variablePtr) {
+                        Tools::errorf("Invalid Pointer operation: %s\n",tokenTypeToString(assignOP->mOp));
                         break;
                     }
+                    if (variablePtr->isPointer() ) {
+                        valuePtr = variablePtr->asPointerObject()->onGetFieldPtr(assignOP->mFieldSymbolId);
+                        if (!valuePtr) break;
+                    } else {
+                        valuePtr = variablePtr;
+                    }
+                    Value rightHand = assignOP->mRhs->evaluate(currentEnv);
                     if (valuePtr->isInt() && rightHand.isInt()) {
                         int32_t intval = valuePtr->asInt();
                         switch(assignOP->mOp) {
@@ -188,6 +195,7 @@ public:
                 }
                 break;
             }
+
             // --- If-Statement  ---
             case NodeType::IfStatement: {
                 auto* ifStmt = dynamic_cast<IfStatement*>(node);
@@ -212,22 +220,53 @@ public:
                 }
                 break;
             }
+            // ------ Range - Statement --------
+            case NodeType::RangeStatement: {
+                auto* rangeStmt = dynamic_cast<ForRangeStatement*>(node);
+                if (!rangeStmt->mCountExpr ) {
+                    Tools::errorf("Runtime Error: range need a count border!\n");
+                    return FlowSignal::None;
+                }
+                Value countVal = rangeStmt->mCountExpr->evaluate(currentEnv);
+                Environment loopEnv(&currentEnv);
 
+                int32_t count = countVal.getInt();
+                if (count < 0 ) {
+                    Tools::errorf("Runtime Error: range border must be >= 0 and is %d!\n", count);
+                    return FlowSignal::None;
+                }
+                for (int i = 0; i < count; i++) {
+                    loopEnv.mVariableFrame->setVariable(rangeStmt->mIteratorVarNameSymbolId, Value(i));
+
+                    for (auto& statement : rangeStmt->mBody) {
+                        FlowSignal sig = currentEnv.execute(statement.get(), loopEnv);
+
+                        if (sig == FlowSignal::Break) {
+                            return FlowSignal::None;
+                        }
+                        if (sig == FlowSignal::Return) {
+                            return FlowSignal::Return;
+                        }
+                    }
+                }
+
+                break;
+            }
             // ---- for statement .....
             case NodeType::ForStatement: {
-                #ifdef DREIZEHN_BYTECODE
-                    auto* forStmt = dynamic_cast<ForStatement*>(node);
-                    BytecodeChunk chunk;
-                    CompilerScope scope;
-
-                    ASTCompiler::compileExpression(forStmt, chunk, scope);
-
-                    //TODO: ASTCompiler::compileForStatement(forStmt, chunk, scope);
-
-                    chunk.emit(OP_EXIT);
-
-                    runDirectThreadedVM(chunk, scope.getLocalCount());
-                #else
+                // #ifdef DREIZEHN_BYTECODE
+                //     auto* forStmt = dynamic_cast<ForStatement*>(node);
+                //     BytecodeChunk chunk;
+                //     CompilerScope scope;
+                //
+                //     ASTCompiler::compileExpression(forStmt, chunk, scope);
+                //
+                //     //TODO: ASTCompiler::compileForStatement(forStmt, chunk, scope);
+                //
+                //     chunk.emit(OP_EXIT);
+                //
+                //     runDirectThreadedVM(chunk, scope.getLocalCount());
+                // #else
                     auto* forStmt = dynamic_cast<ForStatement*>(node);
                     if (!forStmt->mStartExpr || !forStmt->mEndExpr ) {
                         Tools::errorf("Runtime Error: invalid for borders!\n");
@@ -273,7 +312,7 @@ public:
                             }
                         }
                     }
-                #endif
+                // #endif
                 break;
             }
 

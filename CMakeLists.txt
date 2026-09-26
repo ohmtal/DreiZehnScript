@@ -13,6 +13,10 @@ endif()
 set(WITHSDL3_DEFAULT ON)
 set(BUILD_WITH_SDL3 ${WITHSDL3_DEFAULT} CACHE BOOL "Build Application with SDL3 Demo")
 
+set(WITH_FENSTER_DEFAULT ON)
+set(BUILD_WITH_FENSTER ${WITH_FENSTER_DEFAULT} CACHE BOOL "Build Application with Fenster Demo")
+
+
 set(SANITIZE_DEFAULT OFF)
 set(BUILD_WITH_SANITIZE ${SANITIZE_DEFAULT} CACHE BOOL "Build Application with -fsanitize=address -g")
 
@@ -74,11 +78,24 @@ if (BUILD_WITH_SDL3)
     find_package(SDL3 REQUIRED)
     set (SDL3_LINKLIB SDL3::SDL3)
 
-    list(APPEND PROJECT_SRC "engine/functions/SDL3Functions.h")
-
-    add_compile_definitions(DREIZEHN_SDL3)
 
 endif()
+
+# ------------- FENSTER
+set(FENSTER_LINKLIB "")
+if (BUILD_WITH_FENSTER)
+    if (WIN32)
+        set(FENSTER_LINKLIB "gdi32" "winmm")
+    elseif (APPLE)
+        set(FENSTER_LINKLIB "-framework Cocoa" "-framework AudioToolbox")
+    else()
+        set(FENSTER_LINKLIB "X11" "asound")
+    endif()
+
+    list(APPEND PROJECT_SRC "engine/functions/FensterFunctions.h")
+    add_compile_definitions(DREIZEHN_FENSTER)
+endif()
+
 # ------------- Main
 add_executable(${PROJECT_NAME}
     ${PROJECT_SRC}
@@ -98,6 +115,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${SDL3_LINKLIB}
+    ${FENSTER_LINKLIB}
 )
 
 if (BUILD_WITH_SANITIZE)

@@ -21,22 +21,26 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // -------- print --------------
         RegisterFunction("print", [](std::vector<Value>& args, Value& ret) -> bool {
-            for (const auto& val : args) {
-                if (val.isInt()) {
-                    Tools::printf("%d ", val.asInt());
-                } else if (val.isDouble()) {
-                    Tools::printf("%f ", val.asDouble());
-                } else if (val.isPointer()) {
-                    auto* obj = static_cast<ValueObject*>(val.asPointer());
-                    if (obj->mType == ValueObjectType::String) {
-                        auto* strObj = static_cast<StringValueObject*>(obj);
-                        Tools::printf("%s ", strObj->mValue.c_str());
-                    } else {
-                        Tools::printf("%s [%p] ",  gUserObjectTypes[obj->mType].c_str(), (void*)obj);
-                    }
-                }
+            for ( auto& value : args) {
+                value.print();
             }
             Tools::printf("\n");
+            // for (const auto& val : args) {
+            //     if (val.isInt()) {
+            //         Tools::printf("%d ", val.asInt());
+            //     } else if (val.isDouble()) {
+            //         Tools::printf("%f ", val.asDouble());
+            //     } else if (val.isPointer()) {
+            //         auto* obj = static_cast<ValueObject*>(val.asPointer());
+            //         if (obj->mType == ValueObjectType::String) {
+            //             auto* strObj = static_cast<StringValueObject*>(obj);
+            //             Tools::printf("%s ", strObj->mValue.c_str());
+            //         } else {
+            //             Tools::printf("%s [%p] ",  gUserObjectTypes[obj->mType].c_str(), (void*)obj);
+            //         }
+            //     }
+            // }
+            // Tools::printf("\n");
             return true;
         });
 

@@ -49,6 +49,8 @@ enum class TokenType {
 
     , Arrow, Dot
 
+    , forRange
+
     , NoToken // for peekPrev pos < 1
     , EOFToken
 };
@@ -108,6 +110,8 @@ inline const char* tokenTypeToString(TokenType type) {
         case TokenType::Arrow:          return "Arrow Object Method call";
         case TokenType::Dot:            return "Dot Object field access";
 
+        case TokenType::forRange:          return "Range";
+
         case TokenType::EOFToken:      return "EOFToken";
 
         default:                       return "UnknownToken";
@@ -126,6 +130,11 @@ private:
 
     char peek() { return mPos < mSrc.size() ? mSrc[mPos] : '\0'; }
     char peekNext() { return mPos+1 < mSrc.size() ? mSrc[mPos + 1] : '\0'; }
+    char peekOffset(int32_t offset) {
+        int32_t tmpPeek = mPos + offset;
+        if (tmpPeek < mSrc.size() && tmpPeek >= 0 )
+            return mSrc[tmpPeek]; else return '\0';
+    }
     char peekPrev() { return mPos-1 > 0  ? mSrc[mPos - 1] : '\0'; }
     char advance() { return mPos < mSrc.size() ? mSrc[mPos++] : '\0'; }
 
@@ -192,7 +201,19 @@ public:
 
             // ----------------------------------------------------------------
             // Numbers
-            //FIXME this can be optimized!
+            //  - hex numbers  ( 0xFFFFFF / 0x1a2b)
+            if (peek() == '0' && (peekNext() == 'x' || peekNext() == 'X') && std::isxdigit(peekOffset(+2)) ) {
+                std::string hexNum;
+                hexNum += advance(); hexNum += advance();
+                while (std::isxdigit(peek())) { hexNum += advance(); }
+                unsigned long long rawValue = std::stoull(hexNum, nullptr, 16);
+                int32_t intVal = static_cast<int32_t>(rawValue);
+
+                tokens.push_back({TokenType::Number, std::to_string(intVal)});
+                continue;
+            }
+
+            // --- Normal number
             if ( std::isdigit(peek())
                 || (!std::isdigit(peekPrev()) && peek() == '-' && std::isdigit(peekNext()))
                 || (std::isdigit(peekPrev()) && peek() == '.' && std::isdigit(peekNext()))
@@ -227,6 +248,7 @@ public:
                 else if (id == "break") { tokens.push_back({TokenType::Break, "break"});  }
                 else if (id == "return") { tokens.push_back({TokenType::Return, "return"});  }
                 else if (id == "while") { tokens.push_back({TokenType::While, "while"});  }
+                else if (id == "forRange") { tokens.push_back({TokenType::forRange, "forRange"});  }
                 else {
                     tokens.push_back({TokenType::Identifier, id});
                 }

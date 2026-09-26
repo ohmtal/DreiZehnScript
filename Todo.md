@@ -31,7 +31,7 @@ don't have to PoD Types here at the moment.
 - [X] added Symbols Table for fast lookup variables/functions/constants ....
 - [X] optimized a bit found 3 sek on test_var bench ;) 
 
-# 0.4
+## 0.4
 - [X] VariableFrame for variables and garbage collection
 - [X] ValueObject type registry (gUserObjectTypes / registerUserObjectType)
 - [X] When a new String is set the old should be deleted!!! ..
@@ -48,13 +48,13 @@ under 15 sec and beat python here without bytecode ;)
     - [X] other BinaryExpression to switch case
 - **12.478u 0.002s 0:12.52 99.6%    0+0k 0+0io 0pf+0w** 
 
-# 0.5
+## 0.5
 - [X] changed all static calls to ":" like math:random or Array:new... so i can use Dot for fields!
 
-- [ ] object fields Vector3 example: `v = Vector3.new 1.0 2.2 3.3`
-    - [ ] using v.x instead of a method -> caller . At the moment the lexer add the '.' to the variable name
+- [X] object fields Vector3 example: `v = Vector3.new 1.0 2.2 3.3`
+    - [X] using v.x instead of a method -> caller . At the moment the lexer add the '.' to the variable name
         - [X] onGetField => `v = Vector3:new 1 2 2; print v.x v.y v.z` => `1.000000 2.000000 2.000000`
-        - [ ] onSetField
+        - [X] onSetField
                 TODO: v.x = 1 Syntax-Error: Unexpected token 'Assign' (v.x = 1:1)
 
     - [~] fix method expression:
@@ -62,6 +62,18 @@ under 15 sec and beat python here without bytecode ;)
             This is because the method call v->x eat v->y v->z .. thats where my syntax kick my ass.
         - The method may tell how may arguments it did consume. 
 
+- [X] Field Assign
+- [X] Field Inline MathOp (++/--)
+
+## 0.5c: 
+- [X] math fixed: order of operations
+- [X] added `ForRange i 10` is the same as in C: `for (int i=0; i < 10; i++)`
+- [X] fixed bug in function (fn) parameter variable scope - and force parameter as in local scope
+- [X] added optional "Fenster" lib - had to modify fenster.h a bit -. It's handled as Object with methods. 
+- [X] ported Fenster Drawing Example to  DreiZehn 
+
+
+## 0.5d:
 - [ ] multiline statement for example if..
 
 

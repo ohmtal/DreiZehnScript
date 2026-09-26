@@ -38,7 +38,8 @@ enum class NodeType {
     ReturnStatement,
     WhileStatement,
     AssignOPStatement,
-    ObjectFieldExpression
+    ObjectFieldExpression,
+    RangeStatement
 };
 
 #include <string>
@@ -66,7 +67,8 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::ReturnStatement:         return "ReturnStatement";
         case NodeType::WhileStatement:          return "WhileStatement";
         case NodeType::AssignOPStatement:       return "AssignOPStatement";
-        case NodeType::ObjectFieldExpression:       return "ObjectFieldExpression";
+        case NodeType::ObjectFieldExpression:   return "ObjectFieldExpression";
+        case NodeType::RangeStatement:          return "RangeStatement";
     }
     return "UnknownNodeType";
 }
@@ -209,10 +211,11 @@ struct BinaryOpExpression : public Expression {
 // BinaryInline ----------------------------------------------------------------------
 struct BinaryInlineExpression : public Expression {
     uint32_t mVarNameSymbolId;
+    uint32_t mFieldSymbolId;
     TokenType mOp;
 
-    BinaryInlineExpression(uint32_t symId, TokenType o)
-    : mVarNameSymbolId(symId), mOp(o) {
+    BinaryInlineExpression(uint32_t varId,uint32_t fieldId, TokenType o)
+    : mVarNameSymbolId(varId), mFieldSymbolId(fieldId), mOp(o) {
         mNodeType  = NodeType::BinaryInlineExpression;
     }
 
@@ -221,11 +224,12 @@ struct BinaryInlineExpression : public Expression {
 // AssingmentOP ------------------------------------------------------------------
 struct AssignOPStatement : public ASTNode {
     uint32_t mVarNameSymbolId;
+    uint32_t mFieldSymbolId;
     TokenType mOp;
     std::unique_ptr<Expression> mRhs; // Right-Hand Side
 
-    AssignOPStatement(uint32_t varNameSymId, TokenType op, std::unique_ptr<Expression> expr)
-    : mVarNameSymbolId(varNameSymId),mOp(op),  mRhs(std::move(expr)) {
+    AssignOPStatement(uint32_t varNameSymId, uint32_t fieldId, TokenType op, std::unique_ptr<Expression> expr)
+    : mVarNameSymbolId(varNameSymId),mFieldSymbolId(fieldId),mOp(op),  mRhs(std::move(expr)) {
         mNodeType  = NodeType::AssignOPStatement;
     }
 };
@@ -269,6 +273,16 @@ struct ForStatement : public BlockStatement {
     ForStatement(uint32_t nameSymId, std::unique_ptr<Expression> start, std::unique_ptr<Expression> end)
     : mIteratorVarNameSymbolId(nameSymId), mStartExpr(std::move(start)), mEndExpr(std::move(end)) {
             mNodeType  = NodeType::ForStatement;
+    }
+};
+// forRange -------------------------------------------------------------------------
+struct ForRangeStatement : public BlockStatement {
+    uint32_t mIteratorVarNameSymbolId = 0;
+    std::unique_ptr<Expression> mCountExpr;
+
+    ForRangeStatement(uint32_t nameSymId, std::unique_ptr<Expression> count)
+    : mIteratorVarNameSymbolId(nameSymId), mCountExpr(std::move(count)) {
+        mNodeType  = NodeType::RangeStatement;
     }
 };
 // break -------------------------------------------------------------------------

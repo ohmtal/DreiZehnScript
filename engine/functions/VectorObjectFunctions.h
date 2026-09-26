@@ -78,8 +78,8 @@ namespace DreiZehn {
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
 
-            if ( methodId == mToString.mSymbolId ) { /*FIXME*/ return false;}
-            if ( methodId == mNormalize.mSymbolId ) { /*FIXME*/ return false;}
+            if ( methodId == mToString.mSymbolId ) { /*TODO*/ return false;}
+            if ( methodId == mNormalize.mSymbolId ) { /*TODO*/ return false;}
             else return false;
 
             return true;

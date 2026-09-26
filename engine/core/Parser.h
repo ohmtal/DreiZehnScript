@@ -24,7 +24,11 @@ private:
     Token peek() { return mTokens[mPos]; }
     Token peekNext() { if (mPos + 1 < mTokens.size()) return mTokens[mPos+1]; else return Token(TokenType::EOFToken); }
     Token peekNextNext() { if (mPos + 2 < mTokens.size()) return mTokens[mPos+2]; else return Token(TokenType::EOFToken); }
-    Token peekOffset(uint32_t offset) { if (mPos + offset < mTokens.size()) return mTokens[mPos+offset]; else return Token(TokenType::EOFToken); }
+    Token peekOffset(int32_t offset) {
+        int32_t tmpPeek = mPos + offset;
+        if (tmpPeek < mTokens.size() && tmpPeek >= 0 )
+            return mTokens[tmpPeek]; else return Token(TokenType::EOFToken);
+    }
     Token peekPrev() { if (mPos > 1) return mTokens[mPos-1]; else return Token(TokenType::NoToken); }
     Token advance() { if (mPos + 1 < mTokens.size()) return mTokens[mPos++]; else return Token(TokenType::EOFToken);}
 
@@ -36,6 +40,23 @@ private:
         || op.mType == TokenType::Div
         ;
     }
+
+    // punkt vor strich :P
+    int getPrecedence(TokenType type) {
+        if (type == TokenType::Mul || type == TokenType::Div) return 6;
+        if (type == TokenType::Plus || type == TokenType::Minus) return 5;
+        if (type == TokenType::SHL || type == TokenType::SHR) return 4;
+
+        if (type == TokenType::Less || type == TokenType::Greater ||
+            type == TokenType::LowerEqual || type == TokenType::GreaterEqual) return 3;
+
+        if (type == TokenType::Equal || type == TokenType::NotEqual) return 2;
+        if (type == TokenType::BitAnd || type == TokenType::BitOr) return 1;
+        if (type == TokenType::And || type == TokenType::Or) return 0;
+
+        return 0;
+    }
+
 
     bool isMathAssignOperatorType(const Token& op) {
         return op.mType == TokenType::AssignPlus
@@ -69,6 +90,9 @@ private:
         || peek().mType == TokenType::SHR
         ;
     }
+
+
+
     bool isContinuePeak() {
         return peek().mType != TokenType::EOFToken
         && peek().mType != TokenType::RParen
@@ -105,10 +129,10 @@ private:
             if (constansPointer != nullptr) {
                 return std::make_unique<ValueExpression>((*constansPointer));
             }
-
+            else
             if (isInlineMathType(peek())) {
                 Token op = advance();
-                return std::make_unique<BinaryInlineExpression>(nameTokenSymbolId, op.mType);
+                return std::make_unique<BinaryInlineExpression>(nameTokenSymbolId,0, op.mType);
             }
             else
             if (peek().mType  == TokenType::Arrow
@@ -162,22 +186,46 @@ private:
     }
 
     // -------------------------------------------------------------------------
-    std::unique_ptr<Expression> parseMath() {
+    std::unique_ptr<Expression> parseMath(int minPrecedence = 0) {
         auto left = parsePrimary();
-        while (isMathType()){
 
-            Token op = advance();
+        while (isMathType()) {
+            Token op = peek();
+            int precedence = getPrecedence(op.mType);
 
-            auto right = parsePrimary();
-            if (isMathOperatorType(op))
+            if (precedence < minPrecedence) {
+                break;
+            }
+
+            advance();
+
+            auto right = parseMath(precedence + 1);
+
+            if (isMathOperatorType(op)) {
                 left = std::make_unique<BinaryOpExpression>(std::move(left), op.mType, std::move(right));
-            else
+            } else {
                 left = std::make_unique<BinaryExpression>(std::move(left), op.mType, std::move(right));
-
+            }
         }
 
         return left;
     }
+    // std::unique_ptr<Expression> parseMath() {
+    //     auto left = parsePrimary();
+    //     while (isMathType()){
+    //
+    //         Token op = advance();
+    //
+    //         auto right = parsePrimary();
+    //         if (isMathOperatorType(op))
+    //             left = std::make_unique<BinaryOpExpression>(std::move(left), op.mType, std::move(right));
+    //         else
+    //             left = std::make_unique<BinaryExpression>(std::move(left), op.mType, std::move(right));
+    //
+    //     }
+    //
+    //     return left;
+    // }
 
     // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parseComparison() {
@@ -304,6 +352,21 @@ public:
             return std::make_unique<FunctionDefineStartNode>(funcNameSymbolId);
         }
         else
+        if (peek().mType == TokenType::forRange) {
+            advance(); //eat range
+
+            if (peek().mType != TokenType::Identifier) {
+                Tools::errorf("Syntax-Error: variable name after range expected\n");
+                return nullptr;
+            }
+            std::string varName = advance().mValue;
+
+            auto countExpr = parseMath();
+
+            return std::make_unique<ForRangeStatement>(SymbolTable::insert(varName)
+                , std::move(countExpr));
+        }
+        else
         if (peek().mType == TokenType::For) {
             advance();
 
@@ -369,9 +432,11 @@ public:
                 auto rhs = parseComparison();
                 return std::make_unique<AssignStatement>(SymbolTable::insert( varName),0, std::move(rhs));
             }
+            //FIXME REVIEW it's or maybe i should make some functions for that
             else if (nextToken.mType == TokenType::Dot) {
                 if (peekOffset(+2).mType == TokenType::Identifier
-                    && peekOffset(+3).mType == TokenType::Assign) {
+                    && peekOffset(+3).mType == TokenType::Assign
+                ) {
                     std::string varName = advance().mValue;
                     advance(); // 'DOT'
                     std::string fieldName = advance().mValue;
@@ -381,7 +446,36 @@ public:
                         SymbolTable::insert( varName),
                         SymbolTable::insert( fieldName), std::move(rhs));
                 }
-                else return parsePrimary();
+                else
+                if (peekOffset(+2).mType == TokenType::Identifier
+                    && isInlineMathType(peekOffset(+3))
+                ) {
+                    std::string varName = advance().mValue;
+                    advance(); // 'DOT'
+                    std::string fieldName = advance().mValue;
+                    Token op = advance();
+                    auto rhs = parseComparison();
+                    return std::make_unique<BinaryInlineExpression>(
+                        SymbolTable::insert( varName),
+                        SymbolTable::insert( fieldName), op.mType);
+                }
+                else
+                if (peekOffset(+2).mType == TokenType::Identifier
+                    && isMathAssignOperatorType(peekOffset(+3))
+                ) {
+                    std::string varName = advance().mValue;
+                    advance(); // 'DOT'
+                    std::string fieldName = advance().mValue;
+                    Token op = advance();
+                    auto rhs = parseComparison();
+                    return std::make_unique<AssignOPStatement>(
+                        SymbolTable::insert( varName),
+                        SymbolTable::insert( fieldName),
+                        op.mType,
+                        std::move(rhs));
+                }
+                else
+                return parsePrimary();
             }
             else if (nextToken.mType == TokenType::Arrow) {
                 return parsePrimary();
@@ -393,7 +487,8 @@ public:
                 std::string varName = advance().mValue;
                 Token op = advance();
                 auto rhs = parseComparison();
-                return std::make_unique<AssignOPStatement>(SymbolTable::insert( varName),op.mType, std::move(rhs));
+                return std::make_unique<AssignOPStatement>(SymbolTable::insert(varName)
+                        ,0,op.mType, std::move(rhs));
             }
         }
 

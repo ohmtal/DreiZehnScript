@@ -60,8 +60,9 @@ namespace DreiZehn {
                 bool isIf = dynamic_cast<IfStatement*>(ast.get()) != nullptr;
                 bool isFor = dynamic_cast<ForStatement*>(ast.get()) != nullptr;
                 bool isWhile = dynamic_cast<WhileStatement*>(ast.get()) != nullptr;
+                bool isRange = dynamic_cast<ForRangeStatement*>(ast.get()) != nullptr;
 
-                if (isFor || isWhile || isIf) {
+                if (isFor || isWhile || isIf || isRange) {
                     std::shared_ptr<ASTNode> sharedBase = std::move(ast);
                     std::shared_ptr<BlockStatement> sharedLoop = std::static_pointer_cast<BlockStatement>(sharedBase);
 

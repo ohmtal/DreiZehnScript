@@ -42,6 +42,6 @@ while 1
 
 end
 
-// ------ Cleanup -----
+-- ------ Cleanup -----
 SDL_DestroyRenderer Renderer ;
 SDL_DestroyWindow Window

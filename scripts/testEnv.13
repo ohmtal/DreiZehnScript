@@ -1,12 +1,12 @@
 # Test for DreiZehn Script
 print "--- Run Engine-Test ---"
 
-print "at start:"; debug.printenv
+print "at start:"; debug:printenv
 # functions
 
 fn calc faktor
     result = (faktor * 10) + 5
-    print "fn calc:"; debug.printenv
+    print "fn calc:"; debug:printenv
     print result
 end
 
@@ -14,21 +14,21 @@ calc 5
 
 # loop
 for i 1 3
-    print "loop:"; debug.printenv
+    print "loop:"; debug:printenv
 end
 
 i = 10
 while i < 5
-    print "while:"; debug.printenv
+    print "while:"; debug:printenv
     i = i -3
 end
 
 fn nested
-    print "nestet I:"; debug.printenv
+    print "nestet I:"; debug:printenv
     for i 1 2
-        print "nestet for:"; debug.printenv
+        print "nestet for:"; debug:printenv
     end
 end
 
 nested
-print "at end:"; debug.printenv
+print "at end:"; debug:printenv

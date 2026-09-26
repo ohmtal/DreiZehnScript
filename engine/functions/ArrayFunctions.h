@@ -40,6 +40,9 @@ namespace DreiZehn {
         inline static ValueObjectMethod mSet;
         inline static ValueObjectMethod mBack;
         inline static ValueObjectMethod mFront;
+        inline static ValueObjectMethod mAppend;
+        inline static ValueObjectMethod mClear;
+        inline static ValueObjectMethod mPrint;
 
         inline static void initSymbols() {
             static bool mSymbolsLoaded = false;
@@ -53,11 +56,16 @@ namespace DreiZehn {
             mSet   = ValueObjectMethod("set", 2,2,  "set a value at index. @param index, @param Value");
             mFront   = ValueObjectMethod("front", 0,0,  "get the first value");
             mBack   = ValueObjectMethod("back", 0,0,  "get the last value");
+            mAppend   = ValueObjectMethod("append", 1,256,  "append up to 256 arguments to the end");
+
+            mClear   = ValueObjectMethod("clear", 0,0,  "clear the list.");
+            mPrint   = ValueObjectMethod("print", 0,0,  "print the values");
             mSymbolsLoaded = true;
         }
 
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
+
 
             if ( methodId == mPush.mSymbolId ) {
                 if (!mPush.ValidateArgs(args)) return false;
@@ -119,8 +127,34 @@ namespace DreiZehn {
                 return true;
             }
             else
+            if (methodId == mAppend.mSymbolId) {
+                if (!mAppend.ValidateArgs(args)) return false;
+                for (auto& arg: args) {
+                    this->mElements.push_back(arg);
+                }
+                ret = Value(1);
+                return true;
+            }
+            else
+            if (methodId == mClear.mSymbolId) {
+                if (!mClear.ValidateArgs(args)) return false;
+                this->mElements.clear();
+                ret = Value(1);
+                return true;
+            }
+            else
+            if (methodId == mPrint.mSymbolId) {
+                if (!mPrint.ValidateArgs(args)) return false;
+                for (auto& value: mElements) {
+                    value.print();
+                }
+                Tools::printf("\n");
+                ret = Value(1);
+                return true;
+            }
+            else
             {
-                Tools::errorf("Unknown method: %s", SymbolTable::getName(methodId).c_str());
+                Tools::errorf("Unknown Array method: %s\n", SymbolTable::getName(methodId).c_str());
             }
 
             return false;
@@ -137,6 +171,13 @@ namespace DreiZehn {
         RegisterFunction("Array:new", [&env](std::vector<Value>& args, Value& ret) -> bool {
             ArrayValueObject* arr = new ArrayValueObject();
             ret = Value(arr);
+
+            // add args!
+            for (auto& arg: args) {
+                arr->mElements.push_back(arg);
+            }
+
+
             if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(arr);
             return true;
         });

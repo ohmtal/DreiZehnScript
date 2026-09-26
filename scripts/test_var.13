@@ -2,42 +2,42 @@
 JLOOPS = 25
 ILOOPS = 1000000
 
-localX = 0
+globalX = 0
 
 for j 0 (JLOOPS - 1)
     for i 0 (ILOOPS - 1)
-        localX++
+        globalX++
     end
-    print  "SUM (++) IS: " localX
+    print  "SUM (++) IS: " globalX
 
     for i 0 (ILOOPS - 1)
-        localX--
+        globalX--
     end
-    print  "SUM (--) IS: " localX
+    print  "SUM (--) IS: " globalX
 
-    localX = 66
-    print  "set Sum to 66 == " (localX * 1)
+    globalX = 66
+    print  "set Sum to 66 == " (globalX * 1)
 
     for i 0 (ILOOPS - 1)
-        localX *= (i + 1)
-        localX /= (i + 1)
+        globalX *= (i + 1)
+        globalX /= (i + 1)
     end
-    print  "SUM (*/ %i+1) IS: " localX
+    print  "SUM (*/ %i+1) IS: " globalX
 
     limit = (ILOOPS / 2) - 1
     ran = 0.0
     for i 0 limit
         ran = math:randomf * i
-        localX -= ran
-        localX += ran
+        globalX -= ran
+        globalX += ran
     end
     print  "last ran" ran
-    print  "SUM (rand +-) IS: " localX
+    print  "SUM (rand +-) IS: " globalX
 end
 
-localX = localX - 33
+globalX = globalX - 33
 print "---------------------"
 print "---------------------"
-print  "Final sum should be 33 == " localX
+print  "Final sum should be 33 == " globalX
 print "---------------------"
 print "---------------------"

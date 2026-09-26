@@ -1,0 +1,20 @@
+-- DreiZehn Fenster Demo
+
+fenster = Fenster:new "DreiZehn Fenster" 320 240
+
+print fenster
+
+while fenster->loop
+    fenster->clear 0xFF0C0C
+    -- ESC
+   if fenster->isKeyDown 27
+       break
+   end
+
+
+end
+
+fenster->close
+fenster = 0
+core:gc
+

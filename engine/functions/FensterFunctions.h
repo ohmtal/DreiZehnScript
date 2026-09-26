@@ -15,7 +15,7 @@
 #include "Globals.h"
 #include "ArrayFunctions.h"
 #include "ext/fenster/fenster.h"
-#include "ext/fenster/fenster_audio.h"
+// #include "ext/fenster/fenster_audio.h"
 
 
 namespace DreiZehn::FensterWrapper {
@@ -339,7 +339,7 @@ namespace DreiZehn {
                 }
                 FensterWrapper::text(&mFenster,
                                      args[0].getInt(), args[1].getInt(),
-                                     args[2].getString(),
+                                     args[2].getStringRef().c_str(),
                                      args[3].getInt(), args[4].getUInt());
                 return true;
             }
@@ -420,13 +420,14 @@ namespace DreiZehn {
 
         RegisterFunction("Fenster::new", [](std::vector<Value>& args, Value& ret) -> bool {
 
-            if (args.size() < 3 || !args[0].isString() || !args[1].isInt() || !args[2].isInt()) {
+            if (args.size() < 3 || !args[0].isStringId() || !args[1].isInt() || !args[2].isInt()) {
                 Tools::errorf("Usage: Fenster:new \"Window Title\" width height [int sleepms default 16]\n");
                 return false;
             }
 
-            FensterObject* f = new FensterObject(args[0].getString(), args[1].asInt(), args[2].asInt());
+            FensterObject* f = new FensterObject(args[0].getStringRef().c_str(), args[1].asInt(), args[2].asInt());
             if (args.size() == 4) f->mSleepMS = args[3].asInt();
+
             ret = Value(f);
             if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(f);
             return true;

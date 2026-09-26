@@ -76,6 +76,7 @@ under 15 sec and beat python here without bytecode ;)
 ## 0.5d:
 - [X] renamed static / tool calls. Now and finally separated by '::'
 - [X] Fenster added some: KEY_ COLOR_ constants
+- [X] Added StringTable and set all variable strings here with new Value Type StringId
 - [ ] Added some help commands 
 - [ ] Fenster need also the Register System 
 - [ ] Fenster audio

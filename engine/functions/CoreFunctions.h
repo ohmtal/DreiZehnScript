@@ -10,10 +10,161 @@
 
 namespace DreiZehn {
 
+    inline std::function<bool()> OnBreath = nullptr;
+
+    // =============================================================================
+    // --- StringValueObject ---
+    // =============================================================================
+
+     const int TypeStringObject =  RegisterUserObjectType("String");
+
+    struct StringObject : public ValueObject {
+        Value mValue;
+        StringObject(std::string str) : ValueObject(TypeStringObject), mValue(str) {}
+
+
+        static inline ValueObjectProperty valueProp; //Field
+        static inline ValueObjectProperty appendProp;
+        static inline ValueObjectProperty toNumberProp;
+        static inline ValueObjectProperty getLenProp;
+        static inline ValueObjectProperty getCharProp;
+        // -------------------------------------------------------------------------
+        inline static void RegisterSymbols() {
+            // ValueObjectProperty(std::string name,  uint32_t minParams, uint32_t maxParams, std::string help)
+
+            // method
+            valueProp = ValueObjectProperty("value","Return the String");
+            RegisterObjectProperty(TypeStringObject,valueProp);
+
+            appendProp =  ValueObjectProperty("append",1,16,"append up to 16 values to the string and return the result");
+            RegisterObjectProperty(TypeStringObject,appendProp);
+
+            toNumberProp =  ValueObjectProperty("toNumber",0,0,"Return the number representation of the String");
+            RegisterObjectProperty(TypeStringObject,toNumberProp);
+
+            getLenProp = ValueObjectProperty("len",0,0,"Return the length the String");
+            RegisterObjectProperty(TypeStringObject,getLenProp);
+
+            getCharProp = ValueObjectProperty("char",1,1,"Return the int value of on character. Usage: .char index");
+            RegisterObjectProperty(TypeStringObject, getCharProp);
+
+        }
+        // -------------------------------------------------------------------------
+        inline Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
+            if (fieldSymbolId == valueProp.mSymbolId) return &mValue;
+
+            return nullptr;
+        }
+        // -------------------------------------------------------------------------
+        inline bool onSetField(uint32_t fieldSymbolId, const Value& value) override{
+            Value* ptr = onGetFieldPtr(fieldSymbolId);
+            if (!ptr) return false;
+            if (value.isStringId() ) {
+                *ptr = value;
+            } else {
+                *ptr = Value("");
+            }
+            return true;
+        }
+        // -------------------------------------------------------------------------
+        inline bool onGetField(uint32_t fieldSymbolId, Value& ret) override{
+            Value* ptr = onGetFieldPtr(fieldSymbolId);
+            if (!ptr) return false;
+            ret = *ptr;
+            return true;
+        }
+        // -------------------------------------------------------------------------
+        inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override{
+
+
+            // --------- append
+            if (methodId == appendProp.mSymbolId ) {
+                if (!appendProp.ValidateArgs(args)) return false;
+                std::string resultStr = mValue.getString();
+
+                for ( auto& val : args) {
+                    if (val.isInt()) {
+                        resultStr += std::to_string(val.asInt());
+                    }
+                    else if (val.isDouble()) {
+                        std::string dStr = std::to_string(val.asDouble());
+                        dStr.erase(dStr.find_last_not_of('0') + 1, std::string::npos);
+                        if (dStr.back() == '.') dStr.pop_back();
+                        resultStr += dStr;
+                    }
+                    else if (val.isStringId()) {
+                        resultStr += val.getString();
+                    }
+                }
+                mValue = Value(resultStr);
+                ret = mValue;
+                return true;
+            }
+            else
+            // --------- toNumber
+            if (methodId == toNumberProp.mSymbolId ) {
+                if (!toNumberProp.ValidateArgs(args)) return false;
+                char* endptr = nullptr;
+                std::string s = mValue.getString();
+                double resDouble = std::strtod(s.c_str(), &endptr);
+                if (s.empty() || *endptr != '\0') {
+                    ret = Value(0);
+                } else {
+                    ret = Value(resDouble);
+                }
+                return true;
+            }
+            else
+                // --------- ->len
+                if (methodId == getLenProp.mSymbolId ) {
+                    if (!getLenProp.ValidateArgs(args)) return false;
+                    ret = Value(static_cast<int32_t>(mValue.getStringRef().length()));
+                    return true;
+
+                }
+                // --------- char
+                if (methodId == getCharProp.mSymbolId ) {
+                    if (!getCharProp.ValidateArgs(args)) return false;
+                    int32_t offset = args[0].getInt();
+                    std::string s = mValue.getStringRef();
+                    if (offset >= 0 && offset < s.length()) {
+                        ret = Value(static_cast<int32_t>(s[offset]));
+                    }
+                    return false;
+                }
+                else
+                {
+                    Tools::errorf("Unknown String method: %s\n", SymbolTable::getName(methodId).c_str());
+                }
+
+                return false;
+        }
+
+    };
+
+
+    // =============================================================================
+    // --- RegisterCoreFunctions ---
+    // =============================================================================
+
 
 
     void RegisterCoreFunctions( Environment& env) {
         using namespace FunctionMap;
+
+
+        // ---------------------------------------------------------------------
+        StringObject::RegisterSymbols();
+        RegisterFunction("String::new", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 1 || !args[0].isStringId()) {
+                Tools::errorf("Usage: String::new string");
+                return false;
+            }
+            StringObject* s = new StringObject(args[0].getString());
+            ret = Value(s);
+            if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(s);
+            return true;
+        });
         // ---------------------------------------------------------------------
         // also push some CORE Constants here:
         RegisterConstants("true", Value(1));
@@ -35,27 +186,22 @@ namespace DreiZehn {
                 return false;
             }
 
-            if (args[0].isPointer()) {
-                auto* obj = static_cast<ValueObject*>(args[0].asPointer());
-                if (obj->mType == ValueObjectType::String) {
-                    auto* strObj = static_cast<StringValueObject*>(obj);
-
-                    Tools::printf("Loading Script: %s\n", strObj->mValue.c_str());
-                    bool success = RunScriptFile(strObj->mValue, env);
-
-                    ret = Value(success ? 1 : 0);
-                    return success;
-                }
+            if (args[0].isStringId() ) {
+                 Tools::printf("Loading Script: %s\n", args[0].getStringRef().c_str());
+                 bool success = RunScriptFile(args[0].getStringRef(), env);
+                 ret = Value(success ? 1 : 0);
+                 return success;
             }
+
 
             Tools::errorf("file name requires for run\n");
             return false;
         });
         // ---------------------------------------------------------------------
-        RegisterFunction("concat", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("concat", [](std::vector<Value>& args, Value& ret) -> bool {
             std::string resultStr = "";
 
-            for (const auto& val : args) {
+            for ( auto& val : args) {
                 if (val.isInt()) {
                     resultStr += std::to_string(val.asInt());
                 }
@@ -65,21 +211,26 @@ namespace DreiZehn {
                     if (dStr.back() == '.') dStr.pop_back();
                     resultStr += dStr;
                 }
-                else if (val.isPointer()) {
-                    auto* obj = static_cast<ValueObject*>(val.asPointer());
-                    if (obj && obj->mType == ValueObjectType::String) {
-                        auto* strObj = static_cast<StringValueObject*>(obj);
-                        resultStr += strObj->mValue;
-                    }
+                else if (val.isStringId()) {
+                    resultStr += val.getString();
                 }
             }
 
-            auto* newStrObj = new StringValueObject(resultStr);
-            env.getVariableFrame()->addToGarbageCollection(newStrObj);
-            ret = Value(newStrObj);
+            ret = Value(resultStr);
             return true;
         });
 
+        // ---------------------------------------------------------------------
+        // Let the console Breath ... return a boolean can also be used to cancel
+        // a main loop in script
+        // ---------------------------------------------------------------------
+        RegisterFunction("core::breath", [&env](std::vector<Value>& args, Value& ret) -> bool {
+            if (OnBreath) {
+                ret = Value(OnBreath());
+                return true;
+            }
+            return false;
+        });
         // ---------------------------------------------------------------------
         // Garbage collection
         // ---------------------------------------------------------------------
@@ -159,17 +310,19 @@ namespace DreiZehn {
 
 
             if (args.size() > 0) {
-
                 int id = 0;
-                bool found = false;
-                for (id = 0; id <= gLastValueObjectType; id++) {
-                    if (args[0].getString() == gUserObjectTypes[id].mName){
-                        found = true;
-                        break;
+
+                if (args[0].isStringId()) {
+                    for (id = 1; id <= gLastValueObjectType; id++) {
+                        if (args[0].getString() == gUserObjectTypes[id].mName){
+                            break;
+                        }
                     }
+                } else {
+                    id = args[0].getInt();
                 }
 
-                if (found) {
+                if (id > 0 && id < gLastValueObjectType) {
                     Tools::printf("%d: %s\n",id, gUserObjectTypes[id].mName.c_str());
                     for (int i = 0; i < gUserObjectTypes[id].mProperties.size(); i++) {
                         Tools::printf(" %s%s  :: %s\n",
@@ -182,7 +335,7 @@ namespace DreiZehn {
 
                 }
             } else {
-                for (int i = 0; i <= gLastValueObjectType; i++) {
+                for (int i = 1; i <= gLastValueObjectType; i++) {
                     Tools::printf("%d: %s\n",i, gUserObjectTypes[i].mName.c_str());
                 }
                 Tools::printf("\n** To get fields and methods of an object use: help::objects \"String\"\n");

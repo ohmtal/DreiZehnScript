@@ -16,11 +16,18 @@
 
 namespace DreiZehn{
 
-enum class ValueType { Double, Int, Pointer, Undefined};
 
-constexpr uint64_t QNAN_MASK = 0x7FF8000000000000ULL;
-constexpr uint64_t TAG_INT   = 0x0001000000000000ULL; // Integer
-constexpr uint64_t TAG_PTR   = 0x0002000000000000ULL; // Pointer
+constexpr uint64_t QNAN_MASK        = 0x7FF8000000000000ULL;
+constexpr uint64_t TAG_INT          = 0x0001000000000000ULL; // 1 (binär 001) =>  Integer
+constexpr uint64_t TAG_PTR          = 0x0002000000000000ULL; // 2 (binär 010) =>  Pointer
+constexpr uint64_t TAG_VALUE_PTR    = 0x0003000000000000ULL; // 3 (binär 011) =>  Pointer to a Value - will be used in byte code
+constexpr uint64_t TAG_STRING_ID    = 0x0004000000000000ULL; // 4 (binär 100) =>  StringTable uint32_t Identifier
+
+constexpr uint64_t TAG_DUMMY_5       = 0x0005000000000000ULL; // 5 (binär 101)
+constexpr uint64_t TAG_DUMMY_6       = 0x0006000000000000ULL; // 6 (binär 110)
+constexpr uint64_t TAG_DUMMY_7       = 0x0007000000000000ULL; // 7 (binär 111)
+// ----
+constexpr uint64_t TAG_MASK         = 0x0007000000000000ULL; // for type safty - last type
 
 class Value {
 private:
@@ -37,6 +44,11 @@ public:
         mBits = std::bit_cast<uint64_t>(d);
     }
     // -------------------------------------------------------------------------
+    Value(bool b) {
+        // NaN Mask + Int-Tag + 32-Bit Integers
+        mBits = QNAN_MASK | TAG_INT | static_cast<uint32_t>(b);
+    }
+    // -------------------------------------------------------------------------
     Value(int32_t i) {
         // NaN Mask + Int-Tag + 32-Bit Integers
         mBits = QNAN_MASK | TAG_INT | static_cast<uint32_t>(i);
@@ -47,20 +59,35 @@ public:
         mBits = QNAN_MASK | TAG_INT | i;
     }
     // -------------------------------------------------------------------------
+    Value(std::string str) {
+        uint32_t strId = StringTable::insert(str);
+        mBits = QNAN_MASK | TAG_STRING_ID | strId;
+    }
+    // -------------------------------------------------------------------------
     Value(ValueObject* obj) {
         uint64_t ptrBits = std::bit_cast<uint64_t>(obj);
         mBits = QNAN_MASK | TAG_PTR | (ptrBits & 0x0000FFFFFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
+    Value(Value* valuePtr) {
+        uint64_t ptrBits = std::bit_cast<uint64_t>(valuePtr);
+        mBits = QNAN_MASK | TAG_VALUE_PTR| (ptrBits & 0x0000FFFFFFFFFFFFULL);
+    }
+
+
+    // -------------------------------------------------------------------------
     // --- Typ-Check ---
     // -------------------------------------------------------------------------
     inline bool isDouble()  const { return (mBits & QNAN_MASK) != QNAN_MASK; }
-    inline bool isInt()     const { return (mBits & (QNAN_MASK | TAG_INT)) == (QNAN_MASK | TAG_INT); }
-    inline bool isPointer() const { return (mBits & (QNAN_MASK | TAG_PTR)) == (QNAN_MASK | TAG_PTR); }
+    inline bool isInt()     const { return (mBits & (QNAN_MASK | TAG_MASK)) == (QNAN_MASK | TAG_INT); }
+    inline bool isPointer() const { return (mBits & (QNAN_MASK | TAG_MASK)) == (QNAN_MASK | TAG_PTR); }
+    inline bool isValuePointer() const { return (mBits & (QNAN_MASK | TAG_MASK)) == (QNAN_MASK | TAG_VALUE_PTR); }
+    inline bool isStringId() const { return (mBits & (QNAN_MASK | TAG_MASK)) == (QNAN_MASK | TAG_STRING_ID); }
 
-    inline bool isString() const {
-        return (isPointer() && asPointerObject()->mType == ValueObjectType::String);
-    }
+
+    // inline bool isString() const {
+    //     return (isPointer() && asPointerObject()->mType == ValueObjectType::String);
+    // }
 
     inline bool isNumber() {return  isInt() || isDouble();}
 
@@ -83,6 +110,11 @@ public:
         return static_cast<uint32_t>(mBits & 0xFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
+    inline uint32_t asStringId() const {
+        assert(isStringId());
+        return static_cast<uint32_t>(mBits & 0xFFFFFFFFULL);
+    }
+    // -------------------------------------------------------------------------
     inline void* asPointer() const {
         assert(isPointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
@@ -94,6 +126,13 @@ public:
         assert(isPointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<ValueObject*>(ptrBits);
+    }
+
+
+    inline Value* asValuePointer() const {
+        assert(isValuePointer());
+        uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
+        return std::bit_cast<Value*>(ptrBits);
     }
 
     // -------------------------------------------------------------------------
@@ -144,38 +183,29 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    inline StringValueObject* getStringObj() {
-        if (this->isPointer()) {
-            auto* obj = static_cast<ValueObject*>(this->asPointer());
-            if (obj->mType == ValueObjectType::String) {
-                auto* strObj = static_cast<StringValueObject*>(obj);
-                return strObj;
-            }
-        }
-        return nullptr;
+    // by reference
+    inline const std::string& getStringRef() {
+        static const std::string empty = "";
+        if (!isStringId()) return empty;
+        return StringTable::get(asStringId());
     }
-    // -------------------------------------------------------------------------
-    // -------------------------------------------------------------------------
-    inline const char* getString() {
-        StringValueObject* strObj = getStringObj();
-        if (strObj) {
-            return strObj->mValue.c_str();
-        }
-        return "";
+
+    inline const std::string getString() {
+        if (!isStringId()) return "";
+        return StringTable::get(asStringId());
     }
     // -------------------------------------------------------------------------
     // Debug print
     inline void const print(bool appendLineFeed = false) {
         if (isInt()) Tools::printf("%d ", asInt());
         else if (isDouble()) Tools::printf("%f ", asDouble());
+        else if (isStringId()) Tools::printf("%s ", getStringRef().c_str());
         else if (isPointer()) {
             ValueObject* obj = asPointerObject();
-            if (obj->mType == ValueObjectType::String) {
-                auto* strObj = static_cast<StringValueObject*>(obj);
-                Tools::printf("%s ", strObj->mValue.c_str());
-            } else {
-                Tools::printf("%s [%p] ",  GetObjectTypeName(obj), (void*)obj);
-            }
+            Tools::printf("%s [%p] ",  GetObjectTypeName(obj), (void*)obj);
+        }
+        else if(isValuePointer()) {
+            Tools::printf("ValuePtr [%p] ",  asValuePointer());
         }
         if (appendLineFeed) Tools::printf("\n");
     }

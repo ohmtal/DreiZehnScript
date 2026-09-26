@@ -1,6 +1,6 @@
 -- DreiZehn Fenster Demo
 
-fenster = Fenster::new "DreiZehn Fenster" 320 240
+fenster = Fenster::new "DreiZehn Fenster" 320 240 64
 
 print fenster
 
@@ -13,9 +13,10 @@ while fenster->loop
    fenster->text 20 20 "Hello Fenster!" 4 0xFFFFFF
    fenster->text 20 220 (concat "mouse: x:" fenster.mouseX ", y:" fenster.mouseY ", down:" fenster.mouseDown) 2 0xFFFFFF
 
+   if core::breath != 1 break; end
 end
 
 fenster->close
 fenster = 0
-core:gc
+core::gc
 

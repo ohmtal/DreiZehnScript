@@ -13,10 +13,6 @@ namespace DreiZehn{
 class Value;
 
 
-enum ValueObjectType {
-    String   = 0,
-    Userdata = 1
-};
 
 // =============================================================================
 // --- ValueObject ---
@@ -93,7 +89,7 @@ struct UserObjectDefintion {
     std::vector <ValueObjectProperty> mProperties;
 };
 
-inline int gLastValueObjectType = 1;
+inline int gLastValueObjectType = 0;
 inline std::unordered_map <int,UserObjectDefintion> gUserObjectTypes;
 
 
@@ -102,11 +98,7 @@ inline std::unordered_map <int,UserObjectDefintion> gUserObjectTypes;
 // =============================================================================
 
 inline int RegisterUserObjectType(std::string typeName, bool initial = false) {
-    if (gLastValueObjectType == 1) {
-        gUserObjectTypes[0] = {"String"};
-        gUserObjectTypes[1] = {"UserData"};
-    }
-    if (initial) return 0;
+
     gLastValueObjectType++;
     gUserObjectTypes[gLastValueObjectType] = {typeName};
     return gLastValueObjectType;
@@ -135,32 +127,6 @@ inline uint32_t RegisterObjectProperty(int valueObjectTypeId, ValueObjectPropert
     assert(true && "registerObjectProperty impossible on unknown valueObjectTypeId");
     return 0;
 }
-// =============================================================================
-// --- StringValueObject, UserdataValueObject  ---
-// =============================================================================
-struct StringValueObject : public ValueObject {
-    std::string mValue;
-    StringValueObject(std::string str) : ValueObject(ValueObjectType::String), mValue(std::move(str)) {}
-    bool onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret) override;
 
-
-    static inline ValueObjectProperty toNumberProp;
-    static inline ValueObjectProperty getLenProp;
-    static inline ValueObjectProperty getCharProp;
-    static void RegisterSymbols();
-
-};
-
-struct UserdataValueObject : public ValueObject {
-    void* mRawCustomPointer;
-    UserdataValueObject(void* p) : ValueObject(ValueObjectType::Userdata), mRawCustomPointer(p) {}
-};
-// =============================================================================
-// --- InitSubSystem  ---
-// =============================================================================
-inline void InitSubSystem() {
-    RegisterUserObjectType("",true);
-    StringValueObject::RegisterSymbols();
-}
 
 } //namespace

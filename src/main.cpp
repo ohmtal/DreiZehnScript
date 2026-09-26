@@ -110,13 +110,25 @@ bool read_line_nonblocking(const char* prompt, std::string& line) {
     return false;
 }
 
+
+bool ConsoleCall(DreiZehn::Environment& env) {
+    static std::string line;
+    if (read_line_nonblocking("> ", line )) {
+        if (line == "exit") return false;
+        if (line == "quit") return false;
+
+        std::stringstream stream(line);
+        DreiZehn::RunScriptStream(stream, env);
+    }
+    return true;
+}
+
 // -------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
     using namespace DreiZehn;
 
     Environment env;
 
-    InitSubSystem();
     RegisterCoreFunctions(env);
     RegisterMathFunctions();
     RegisterUserFunc();
@@ -131,6 +143,9 @@ int main(int argc, char* argv[]) {
     RegisterSDL3Functions();
     #endif
 
+    OnBreath = [&env]() -> bool {
+        return ConsoleCall(env);
+    };
 
 
     if (argc > 1) {
@@ -154,12 +169,14 @@ int main(int argc, char* argv[]) {
     std::vector<OpenBlock> blockStack;
 
     while (true) {
-        read_line("> ", line);
-        if (line == "exit") break;
-        if (line == "quit") break;
 
-        std::stringstream stream(line);
-        RunScriptStream(stream, env);
+        if (!ConsoleCall(env)) break;
+        // read_line("> ", line);
+        // if (line == "exit") break;
+        // if (line == "quit") break;
+        //
+        // std::stringstream stream(line);
+        // RunScriptStream(stream, env);
 
     }
     env.shutDown();

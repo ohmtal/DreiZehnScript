@@ -122,10 +122,13 @@ end
 -- fillHouse
 -- fillGradient
 -- fillTunnel
-fillSky
+-- fillSky
+-- fillRandom
 
--- Wait for escape
+fillHouse
+
 spaceWasUp = true
+now = fenster.time
 while fenster->loop
    if fenster->isKeyDown KEY_SPACE
        if spaceWasUp
@@ -142,11 +145,17 @@ while fenster->loop
         spaceWasUp = true
    end
     -- ESC
-   if fenster->isKeyDown KEY_ESC
-       print "BREAK!"
-       break
+   if fenster->isKeyDown KEY_ESC; break end
+
+   time = fenster.time
+   if time - now < 1000 / 60
+       fenster->sleep time - now;
    end
-   loopi++
+   now = time;
+
+--    let the console breath
+  if  core::breath != true break; end
+
 end
 
 fenster->close

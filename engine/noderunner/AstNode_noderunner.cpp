@@ -26,11 +26,7 @@ namespace DreiZehn {
         }
 
         if (mType == TokenType::StringLiteral) {
-            auto* strObj = new StringValueObject(mRawValue);
-
-            env.getVariableFrame()->addToGarbageCollection(strObj);
-
-            return Value(strObj);
+            return Value(mRawValue);
         }
         return Value(); // Fallback
     }

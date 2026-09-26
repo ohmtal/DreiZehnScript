@@ -35,9 +35,7 @@ public:
             }
 
             else if (literal->mType == TokenType::StringLiteral) {
-                auto* strObj = new StringValueObject(literal->mRawValue);
-                if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(strObj);
-                finalValue = Value(strObj);
+                finalValue = Value(literal->mRawValue);
             }
 
             uint32_t constIdx = chunk.addConstant(finalValue);

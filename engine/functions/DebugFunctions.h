@@ -43,7 +43,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         RegisterFunction("debug::types", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- Types ------------------\n");
-            for (int i = 0; i <= gLastValueObjectType; i++) {
+            for (int i = 1; i <= gLastValueObjectType; i++) {
                 Tools::printf("%d: %s\n",i, gUserObjectTypes[i].mName.c_str());
             }
             return true;

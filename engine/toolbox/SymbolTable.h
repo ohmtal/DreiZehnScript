@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// SymbolTable for fast map lookup ,
+// String / SymbolTable for fast map lookup ,
 // NOTE: Singleton
 //-----------------------------------------------------------------------------
 #pragma once
@@ -11,32 +11,12 @@
 #include <vector>
 #include <cstdint>
 
-class SymbolTable {
-public:
-    inline static uint32_t insert(const std::string& name) {
-        return get().internalInsert(name);
-    }
+class BaseStringTable {
 
-    inline static const std::string& getName(uint32_t id) {
-        return get().internalGetName(id);
-    }
-
-    SymbolTable(const SymbolTable&) = delete;
-    SymbolTable& operator=(const SymbolTable&) = delete;
-    SymbolTable(SymbolTable&&) = delete;
-    SymbolTable& operator=(SymbolTable&&) = delete;
-
-private:
-    // SymbolTable() = default;
-    SymbolTable() {
+protected:
+    BaseStringTable() {
         internalInsert(""); //first is a emty string
     }
-
-    static SymbolTable& get() {
-        static SymbolTable instance;
-        return instance;
-    }
-
     uint32_t internalInsert(const std::string& name) {
         auto it = mNameToId.find(name);
         if (it != mNameToId.end()) {
@@ -55,4 +35,56 @@ private:
 
     std::unordered_map<std::string, uint32_t> mNameToId;
     std::vector<std::string> mIdToName;
+};
+// ----------------------------------------------------------------
+// for Symbols like variable names, methods, fieldnames, ..
+// ----------------------------------------------------------------
+class SymbolTable:  BaseStringTable {
+public:
+    inline static uint32_t insert(const std::string& name) {
+        return get().internalInsert(name);
+    }
+
+    inline static const std::string& getName(uint32_t id) {
+        return get().internalGetName(id);
+    }
+
+    SymbolTable() = default;
+    SymbolTable(const SymbolTable&) = delete;
+    SymbolTable& operator=(const SymbolTable&) = delete;
+    SymbolTable(SymbolTable&&) = delete;
+    SymbolTable& operator=(SymbolTable&&) = delete;
+
+private:
+    static SymbolTable& get() {
+        static SymbolTable instance;
+        return instance;
+    }
+
+};
+// ----------------------------------------------------------------
+// For Strings only saved in Value
+// ----------------------------------------------------------------
+class StringTable:  BaseStringTable {
+public:
+    inline static uint32_t insert(const std::string& name) {
+        return get().internalInsert(name);
+    }
+
+    inline static const std::string& get(uint32_t id) {
+        return get().internalGetName(id);
+    }
+
+    StringTable() = default;
+    StringTable(const StringTable&) = delete;
+    StringTable& operator=(const StringTable&) = delete;
+    StringTable(StringTable&&) = delete;
+    StringTable& operator=(StringTable&&) = delete;
+
+private:
+    static StringTable& get() {
+        static StringTable instance;
+        return instance;
+    }
+
 };

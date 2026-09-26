@@ -23,6 +23,7 @@ inline VariableFrame* gCurrentFrame = nullptr;
 // all objects go into the gMasterFrame for
 // GarbageCollection !!!
 inline VariableFrame* gMasterFrame = nullptr;
+inline size_t _GarbageCheckCounter = 0;
 // -----------------------------------------------------------------------------
 class VariableFrame {
 private:
@@ -30,7 +31,6 @@ private:
     std::unordered_map<uint32_t, Value> mVariables;
     // Garbage collection
     std::vector<ValueObject*> mGarbageCollection;
-    int mGarbageCheckCounter = 0;
 
     VariableFrame* mParentFrame = nullptr;
 
@@ -39,7 +39,7 @@ public:
         gCurrentFrame = this;
         if (parentFrame == nullptr) {
             gMasterFrame = this;
-            mGarbageCollection.reserve(512);
+            mGarbageCollection.reserve(2048);
         }
         mParentFrame = parentFrame;
     }
@@ -143,9 +143,9 @@ public:
     inline void addToGarbageCollection(ValueObject* obj) {
         assert(gMasterFrame && "addToGarbageCollection but Frame have not MasterFrame!!!");
         gMasterFrame->mGarbageCollection.push_back(obj);
-        mGarbageCheckCounter++;
-        if (mGarbageCheckCounter > 500) {
-            mGarbageCheckCounter = 0;
+        _GarbageCheckCounter++;
+        if (_GarbageCheckCounter > 500) {
+            _GarbageCheckCounter = 0;
             doGarbageCollection(false);
         }
 
@@ -195,6 +195,7 @@ public:
            mGarbageCollection.erase(it, mGarbageCollection.end());
        }
 
+       // Tools::printf("DEBUG; gc:%zu\n", mGarbageCollection.size());
        //DEBUG: if (!calledOnDestructor) listGarbageObjects();
     }
     // -------------------------------------------------------------------------

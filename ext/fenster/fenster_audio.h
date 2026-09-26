@@ -1,3 +1,6 @@
+//NOTE: DreiZehn
+//      -  [XXTH] fixed bug in fenster_audio_open
+//      -  [XXTH] added extern "C"
 #ifndef FENSTER_AUDIO_H
 #define FENSTER_AUDIO_H
 
@@ -8,6 +11,11 @@
 #ifndef FENSTER_AUDIO_BUFSZ
 #define FENSTER_AUDIO_BUFSZ 8192
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #if defined(__APPLE__)
 #include <AudioToolbox/AudioQueue.h>
@@ -136,7 +144,12 @@ int snd_pcm_close(void *);
 FENSTER_API int fenster_audio_open(struct fenster_audio *fa) {
   if (snd_pcm_open(&fa->pcm, "default", 0, 0))
     return -1;
-  int fmt = (*(unsigned char *)(&(uint16_t){1})) ? 14 : 15;
+  //NOTE XXTH >>>>>>>
+   uint16_t endian_check = 1;
+   int fmt = (*(unsigned char *)&endian_check) ? 14 : 15;
+  // orig:
+   // int fmt = (*(unsigned char *)(&(uint16_t){1})) ? 14 : 15;
+  // <<<<< XXTH
   return snd_pcm_set_params(fa->pcm, fmt, 3, 1, FENSTER_SAMPLE_RATE, 1, 100000);
 }
 FENSTER_API int fenster_audio_available(struct fenster_audio *fa) {
@@ -157,4 +170,9 @@ FENSTER_API void fenster_audio_close(struct fenster_audio *fa) {
 #endif
 
 #endif /* FENSTER_HEADER */
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* FENSTER_AUDIO_H */

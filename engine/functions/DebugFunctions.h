@@ -41,7 +41,6 @@ namespace DreiZehn {
             return true;
         });
         // ---------------------------------------------------------------------
-        //FIXME remove
         RegisterFunction("debug::types", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- Types ------------------\n");
             for (int i = 0; i <= gLastValueObjectType; i++) {
@@ -50,7 +49,6 @@ namespace DreiZehn {
             return true;
         });
         // ---------------------------------------------------------------------
-        //FIXME remove
         RegisterFunction("debug::garbage", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- Garbage Collection ------------------\n");
             if (gCurrentFrame) gCurrentFrame->listGarbageObjects();

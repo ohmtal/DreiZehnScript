@@ -7,6 +7,11 @@ A lightweight, embedded scripting language built from scratch in C++.
 
 > Ich wollte mir nur mal NaN boxing anschauen und dann hab ich gleich eine kleine Scriptsprache Drumherum gebaut *lol*.
 
+### Why is it called DreiZehn Script ? 
+Dreizehn is the number 13 in german. I work also on ElfScript (Elf == 11 in german) and so i count up. 
+I did not want to use the Umlaut "ö" in Zwölf (==12) so i stepped up to 13 which is DreiZehn.
+
+
 ## Syntax 
 - The ';' spearator is only needed if you write multiple statements in one line.
 - Compare: 

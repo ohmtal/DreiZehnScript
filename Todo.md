@@ -74,8 +74,11 @@ under 15 sec and beat python here without bytecode ;)
 
 
 ## 0.5d:
-- [ ] Fenster some: KEY_ COLOR_ constants
-- [ ] Fenster need also the Register System
+- [X] renamed static / tool calls. Now and finally separated by '::'
+- [X] Fenster added some: KEY_ COLOR_ constants
+- [ ] Added some help commands 
+- [ ] Fenster need also the Register System 
+- [ ] Fenster audio
 - [ ] Fenster: is key pressed
 - [ ] Help with categories: syntax, function, objects
 - [ ] add core.breath to enable console while running a loop 

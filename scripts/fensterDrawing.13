@@ -125,12 +125,10 @@ end
 fillSky
 
 -- Wait for escape
-loopi = 0
-lastloopi = 0
+spaceWasUp = true
 while fenster->loop
    if fenster->isKeyDown KEY_SPACE
-       if loopi - lastloopi > 20
-            lastloopi = loopi
+       if spaceWasUp
             print "FILL RANDOM"
             ran = math::random 0 4
             if (ran == 0) fillRandom end
@@ -139,7 +137,9 @@ while fenster->loop
             if (ran == 3) fillTunnel end
             if (ran == 4) fillSky end
         end
-
+        spaceWasUp = false
+    else
+        spaceWasUp = true
    end
     -- ESC
    if fenster->isKeyDown KEY_ESC

@@ -15,17 +15,8 @@
 #include "Globals.h"
 #include "ArrayFunctions.h"
 #include "ext/fenster/fenster.h"
+#include "ext/fenster/fenster_audio.h"
 
-// NOTE this allowes to contunue when a window is closed!
-// // #ifndef _WIN32
-// // #include <X11/Xlib.h>
-// // int handle_x11_error(Display *display, XErrorEvent *error) {
-// //     return 0; // ignore
-// // }
-// // int handle_x11_io_error(Display *display) {
-// //     return 0;
-// // }
-// // #endif
 
 namespace DreiZehn::FensterWrapper {
     // -------------------------------------------------------------------------
@@ -107,6 +98,24 @@ namespace DreiZehn::FensterWrapper {
      // -------------------------------------------------------------------------
 }
 
+
+// // struct fenster_audio fa = {0};
+// // fenster_audio_open(&fa);
+// // float audio[FENSTER_AUDIO_BUFSZ];
+// //
+// // int n = fenster_audio_available(&fa);
+// // if (n > 0) {
+// //     for (int i = 0; i < n; i++) {
+// //         u++;
+// //         /*audio[i] = (rand() & 0xff)/256.f;*/
+// //         int x = u * 80 / 441;
+// //         audio[i] = ((((x >> 10) & 42) * x) & 0xff) / 256.f;
+// //     }
+// //     fenster_audio_write(&fa, audio, n);
+// //
+// //     fenster_audio_close(&fa);
+// //
+
 // =============================================================================
 // --- FensterObject ---
 // =============================================================================
@@ -118,10 +127,12 @@ namespace DreiZehn {
     struct FensterObject : public ValueObject {
         struct fenster mFenster = {0};
         uint32_t* mPixelBuffer = nullptr;
+        int64_t mSleepMS = 0;
 
         // Symbol-IDs
         inline static uint32_t titleId = 0, widthId = 0, heightId = 0;
         inline static uint32_t mouseXId = 0, mouseYId = 0, mouseDownId = 0;
+        inline static uint32_t timeId = 0;
 
 
         FensterObject(const char* title, int w, int h) : ValueObject(TypeFensterObject) {
@@ -151,6 +162,7 @@ namespace DreiZehn {
             mouseXId    = SymbolTable::insert("mouseX");
             mouseYId    = SymbolTable::insert("mouseY");
             mouseDownId = SymbolTable::insert("mouseDown");
+            timeId      = SymbolTable::insert("time");
             mSymbolsLoaded = true;
         }
         // -------------------------------------------------------------------------
@@ -159,20 +171,29 @@ namespace DreiZehn {
                 ret = Value(static_cast<int32_t>(mFenster.x));
                 return true;
             }
+            else
             if (fieldSymbolId == mouseYId) {
                 ret = Value(static_cast<int32_t>(mFenster.y));
                 return true;
             }
+            else
             if (fieldSymbolId == mouseDownId) {
                 ret = Value(static_cast<int32_t>(mFenster.mouse));
                 return true;
             }
+            else
             if (fieldSymbolId == widthId) {
                 ret = Value(static_cast<int32_t>(mFenster.width));
                 return true;
             }
+            else
             if (fieldSymbolId == heightId) {
                 ret = Value(static_cast<int32_t>(mFenster.height));
+                return true;
+            }
+            else
+            if (fieldSymbolId == timeId) {
+                ret = Value(static_cast<double>(fenster_time()));
                 return true;
             }
             return false;
@@ -202,10 +223,12 @@ namespace DreiZehn {
             static uint32_t fillId = SymbolTable::insert("fill");
             static uint32_t textId = SymbolTable::insert("text");
 
+            static uint32_t sleepid = SymbolTable::insert("sleep");
+
             // ------- loop
             if (methodId == loopId) {
                 int result = fenster_loop(&mFenster);
-                fenster_sleep(16);
+                if (mSleepMS > 0) fenster_sleep(mSleepMS);
                 ret = Value(static_cast<int32_t>(result == 0));
                 return true;
             }
@@ -255,6 +278,7 @@ namespace DreiZehn {
                 return true;
             }
 
+            else
             // ------- clear
             if (methodId == clearId && args.size() >= 1) {
                 uint32_t color = 0xFFFFFFFF;
@@ -264,8 +288,7 @@ namespace DreiZehn {
                 std::fill_n(mPixelBuffer, mFenster.width * mFenster.height, color);
                 return true;
             }
-
-
+            else
             // ------- line
             if (methodId == lineId) {
                 if (args.size() != 5) {
@@ -276,6 +299,7 @@ namespace DreiZehn {
                 FensterWrapper::line(&mFenster, args[0].getInt(), args[1].getInt(), args[2].getInt(), args[3].getInt(),args[4].getUInt());
                 return true;
             }
+            else
             // ------- rect
             if (methodId == rectId) {
                 if (args.size() != 5) {
@@ -286,7 +310,7 @@ namespace DreiZehn {
                 FensterWrapper::rect(&mFenster, args[0].getInt(), args[1].getInt(), args[2].getInt(), args[3].getInt(),args[4].getUInt());
                 return true;
             }
-
+            else
             // ------- circle
             if (methodId == circleId) {
                 if (args.size() != 4) {
@@ -296,7 +320,7 @@ namespace DreiZehn {
                 FensterWrapper::circle(&mFenster, args[0].getInt(), args[1].getInt(), args[2].getInt(), args[3].getUInt());
                 return true;
             }
-
+            else
             // ------- fill
             if (methodId == fillId) {
                 if (args.size() != 4) {
@@ -306,7 +330,7 @@ namespace DreiZehn {
                 FensterWrapper::fill(&mFenster, args[0].getInt(), args[1].getInt(), args[2].getUInt(), args[3].getUInt());
                 return true;
             }
-
+            else
             // ------- text
             if (methodId == textId) {
                 if (args.size() != 5) {
@@ -319,7 +343,16 @@ namespace DreiZehn {
                                      args[3].getInt(), args[4].getUInt());
                 return true;
             }
-            // static inline void text(struct fenster *f, int x, int y, char *s, int scale, uint32_t c)
+            else
+            // ------- sleep
+            if (methodId == sleepid) {
+                if (args.size() != 1) {
+                    Tools::errorf("Usage .sleep (int) ms\n");
+                    return false;
+                }
+                fenster_sleep(static_cast<int64_t>(args[0].getDouble()));
+                return true;
+            }
 
             // ------- nothing found
             else {
@@ -334,12 +367,6 @@ namespace DreiZehn {
 
     // -------------------------------------------------------------------------
     void RegisterFensterFunctions() {
-
-        // // #ifndef _WIN32
-        // // // X11 close window handler
-        // // XSetErrorHandler(handle_x11_error);
-        // // XSetIOErrorHandler(handle_x11_io_error);
-        // // #endif
 
         using namespace FunctionMap;
 
@@ -388,16 +415,18 @@ namespace DreiZehn {
 
         // --------------------
         FensterObject::RegisterSymbols();
+        // --------------------
 
 
         RegisterFunction("Fenster::new", [](std::vector<Value>& args, Value& ret) -> bool {
 
-            if (args.size() != 3 || !args[0].isString() || !args[1].isInt() || !args[2].isInt()) {
-                Tools::errorf("Usage: Fenster:new \"Window Title\" width height\n");
+            if (args.size() < 3 || !args[0].isString() || !args[1].isInt() || !args[2].isInt()) {
+                Tools::errorf("Usage: Fenster:new \"Window Title\" width height [int sleepms default 16]\n");
                 return false;
             }
 
             FensterObject* f = new FensterObject(args[0].getString(), args[1].asInt(), args[2].asInt());
+            if (args.size() == 4) f->mSleepMS = args[3].asInt();
             ret = Value(f);
             if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(f);
             return true;

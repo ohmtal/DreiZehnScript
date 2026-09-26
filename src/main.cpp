@@ -1,6 +1,10 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include <sys/select.h>
+#include <unistd.h>
+#include <string>
+
 
 #include "engine/DreiZehn.h"
 #include "engine/functions/DebugFunctions.h"
@@ -60,18 +64,66 @@ bool read_line(const char* prompt, std::string& line) {
     return true;
 }
 
+
+
+bool read_line_nonblocking(const char* prompt, std::string& line) {
+    static struct linenoiseState ls;
+    static char buf[4096];
+    static bool is_initialized = false;
+
+    if (!is_initialized) {
+        linenoiseEditStart(&ls, -1, -1, buf, sizeof(buf), prompt);
+        is_initialized = true;
+    }
+
+    fd_set readfds;
+    struct timeval tv = {0, 0};
+
+    FD_ZERO(&readfds);
+    FD_SET(ls.ifd, &readfds);
+
+    int retval = select(ls.ifd + 1, &readfds, NULL, NULL, &tv);
+
+    if (retval <= 0) {
+        return false;
+    }
+
+    char *result_buffer = linenoiseEditFeed(&ls);
+
+    if (result_buffer == linenoiseEditMore) {
+        return false;
+    }
+
+    linenoiseEditStop(&ls);
+    is_initialized = false;
+
+    if (result_buffer != nullptr) {
+        line = result_buffer;
+        if (!line.empty()) {
+            linenoiseHistoryAdd(result_buffer);
+        }
+        linenoiseFree(result_buffer);
+        return true;
+    }
+
+    line = "";
+    return false;
+}
+
 // -------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
     using namespace DreiZehn;
 
     Environment env;
+
+    InitSubSystem();
     RegisterCoreFunctions(env);
-    RegisterArrayFunctions(env);
-    RegisterVectorObjectFunctions();
     RegisterMathFunctions();
-    RegisterDebugFunctions();
     RegisterUserFunc();
 
+    RegisterDebugFunctions();
+    RegisterArrayFunctions(env);
+    RegisterVectorObjectFunctions();
     #ifdef DREIZEHN_FENSTER
     RegisterFensterFunctions();
     #endif

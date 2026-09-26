@@ -70,18 +70,22 @@ under 15 sec and beat python here without bytecode ;)
 - [X] added `ForRange i 10` is the same as in C: `for (int i=0; i < 10; i++)`
 - [X] fixed bug in function (fn) parameter variable scope - and force parameter as in local scope
 - [X] added optional "Fenster" lib - had to modify fenster.h a bit -. It's handled as Object with methods. 
-- [X] ported Fenster Drawing Example to  DreiZehn 
+- [X] ported Fenster Drawing Example to DreiZehn 
 
 
 ## 0.5d:
+- [ ] Fenster some: KEY_ COLOR_ constants
+- [ ] Fenster need also the Register System
+- [ ] Fenster: is key pressed
+- [ ] Help with categories: syntax, function, objects
 - [ ] add core.breath to enable console while running a loop 
-- [ ] multiline statement for example if..
 
 
 # future ideas
 - [ ] Bytecode continue .... 
 - [ ] header only - for easy include 
     - Problem : CallExpression <> FunctionMap < ASTNode
+- [ ] multiline statement for if..  << but then i need a parameter separator !
     
 - change printf errorf to a overwritable class or add a handler 
 

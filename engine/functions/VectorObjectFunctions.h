@@ -2,11 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Vector Objects .. like Vector 3
-//-----------------------------------------------------------------------------
-// TODO impement fields ...
-//      - setter FIXME
-//      - getter is onMethodCall
+// Vector Objects: Vector3,
 //-----------------------------------------------------------------------------
 #pragma once
 
@@ -24,39 +20,47 @@ namespace DreiZehn {
         Value z = Value(0.0);
     };
 
-    const int TypeVector3Object =  registerUserObjectType("Vector3");
+    const int TypeVector3Object =  RegisterUserObjectType("Vector3");
 
     struct Vector3Object : public ValueObject {
         Vector3 mVec = {0};
 
 
-        Vector3Object() : ValueObject(TypeVector3Object) { initSymbols(); }
+        Vector3Object() : ValueObject(TypeVector3Object) { }
         ~Vector3Object() { }
 
-        inline static ValueObjectMethod mToString;
-        inline static ValueObjectMethod mNormalize;
-        inline static uint32_t xId = 0;
-        inline static uint32_t yId = 0;
-        inline static uint32_t zId = 0;
+        inline static ValueObjectProperty mToString;
+        inline static ValueObjectProperty mNormalize;
+        inline static ValueObjectProperty mXprop;
+        inline static ValueObjectProperty mYprop;
+        inline static ValueObjectProperty mZprop;
 
-        inline static void initSymbols() {
+        inline static void RegisterSymbols() {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return;
 
-            xId = SymbolTable::insert("x");
-            yId = SymbolTable::insert("y");
-            zId = SymbolTable::insert("z");
+            mXprop   = ValueObjectProperty("x","return double X");
+            RegisterObjectProperty(TypeVector3Object, mXprop);
 
-            mToString   = ValueObjectMethod("toString", 0,0, "return vector as string");
-            mNormalize  = ValueObjectMethod("normalize", 0,0, "normalize vector");
+            mYprop   = ValueObjectProperty("y","return double Y");
+            RegisterObjectProperty(TypeVector3Object, mYprop);
+
+            mZprop   = ValueObjectProperty("z","return double Z");
+            RegisterObjectProperty(TypeVector3Object, mZprop);
+
+
+            // TODO
+            mNormalize  = ValueObjectProperty("normalize", 0,0, "normalize vector");
+            RegisterObjectProperty(TypeVector3Object, mNormalize);
+
             mSymbolsLoaded = true;
         }
 
         // -------------------------------------------------------------------------
         inline Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
-            if (fieldSymbolId == xId) return &mVec.x;
-            else if (fieldSymbolId == yId) return &mVec.y ;
-            else if (fieldSymbolId == zId) return &mVec.z ;
+            if (fieldSymbolId == mXprop.mSymbolId) return &mVec.x;
+            else if (fieldSymbolId == mYprop.mSymbolId) return &mVec.y ;
+            else if (fieldSymbolId == mZprop.mSymbolId) return &mVec.z ;
 
             return nullptr;
         }
@@ -89,9 +93,9 @@ namespace DreiZehn {
     void RegisterVectorObjectFunctions() {
         using namespace FunctionMap;
 
-        Vector3Object::initSymbols();
+        Vector3Object::RegisterSymbols();
 
-        RegisterFunction("Vector3:new", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("Vector3::new", [](std::vector<Value>& args, Value& ret) -> bool {
             Vector3Object* v = new Vector3Object();
             if (args.size() > 0 ) v->mVec.x = args[0].getDouble();
             if (args.size() > 1 ) v->mVec.y = args[1].getDouble();

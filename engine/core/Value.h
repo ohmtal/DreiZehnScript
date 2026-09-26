@@ -42,6 +42,11 @@ public:
         mBits = QNAN_MASK | TAG_INT | static_cast<uint32_t>(i);
     }
     // -------------------------------------------------------------------------
+    Value(uint32_t i) {
+        // NaN Mask + Int-Tag + 32-Bit Integers
+        mBits = QNAN_MASK | TAG_INT | i;
+    }
+    // -------------------------------------------------------------------------
     Value(ValueObject* obj) {
         uint64_t ptrBits = std::bit_cast<uint64_t>(obj);
         mBits = QNAN_MASK | TAG_PTR | (ptrBits & 0x0000FFFFFFFFFFFFULL);
@@ -169,7 +174,7 @@ public:
                 auto* strObj = static_cast<StringValueObject*>(obj);
                 Tools::printf("%s ", strObj->mValue.c_str());
             } else {
-                Tools::printf("%s [%p] ",  gUserObjectTypes[obj->mType].c_str(), (void*)obj);
+                Tools::printf("%s [%p] ",  GetObjectTypeName(obj), (void*)obj);
             }
         }
         if (appendLineFeed) Tools::printf("\n");

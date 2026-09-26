@@ -17,21 +17,32 @@
 
 namespace DreiZehn {
     // -------------------------------------------------------------------------
-    bool ValueObjectMethod::ValidateArgs( std::vector<Value>& args) {
+    bool ValueObjectProperty::ValidateArgs( std::vector<Value>& args) {
         if (args.size() < mMinParams || args.size() > mMaxParams) {
-            Tools::errorf("Method %s parameter error. min:%d max:%d %s\n", mName.c_str(),mMinParams, mMaxParams, mHelp.c_str());
+            Tools::errorf("Method %s parameter error. min:%d max:%d\n%s\n", mName.c_str(),mMinParams, mMaxParams, mHelp.c_str());
             return false;
         }
         return true;
     }
     // -------------------------------------------------------------------------
+    void StringValueObject::RegisterSymbols() {
+        // ValueObjectProperty(std::string name,  uint32_t minParams, uint32_t maxParams, std::string help)
+        toNumberProp =  ValueObjectProperty("toNumber",0,0,"Return the number representation of the String");
+        RegisterObjectProperty(ValueObjectType::String,toNumberProp);
+
+        getLenProp = ValueObjectProperty("len",0,0,"Return the length the String");
+        RegisterObjectProperty(ValueObjectType::String,getLenProp);
+
+        getCharProp = ValueObjectProperty("char",1,1,"Return the int value of on character. Usage: .char index");
+        RegisterObjectProperty(ValueObjectType::String, getCharProp);
+    }
     // -------------------------------------------------------------------------
     bool StringValueObject::onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) {
-        static uint32_t toNumberId = SymbolTable::insert("toNumber");
-        static uint32_t getCharId = SymbolTable::insert("char");
-        static uint32_t getLen = SymbolTable::insert("len");
+
+
         // --------- toNumber
-        if (methodId == toNumberId ) {
+        if (methodId == toNumberProp.mSymbolId ) {
+            if (!toNumberProp.ValidateArgs(args)) return false;
             char* endptr = nullptr;
             double resDouble = std::strtod(mValue.c_str(), &endptr);
             if (mValue.empty() || *endptr != '\0') {
@@ -43,21 +54,15 @@ namespace DreiZehn {
         }
         else
         // --------- ->len
-        if (methodId == getLen ) {
-            if (args.size() != 0) {
-                Tools::errorf("Usage obj->len\n");
-                return false;
-            }
+        if (methodId == getLenProp.mSymbolId ) {
+             if (!getLenProp.ValidateArgs(args)) return false;
             ret = Value(static_cast<int32_t>(mValue.length()));
             return true;
 
         }
         // --------- char
-        if (methodId == getCharId ) {
-            if (args.size() != 1) {
-                Tools::errorf("Usage obj->char OFFSET\n");
-                return false;
-            }
+        if (methodId == getCharProp.mSymbolId ) {
+            if (!getCharProp.ValidateArgs(args)) return false;
             int32_t offset = args[0].getInt();
             if (offset >= 0 && offset < mValue.length()) {
                 ret = Value(static_cast<int32_t>(mValue[offset]));

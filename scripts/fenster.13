@@ -1,6 +1,6 @@
 -- DreiZehn Fenster Demo
 
-fenster = Fenster:new "DreiZehn Fenster" 320 240
+fenster = Fenster::new "DreiZehn Fenster" 320 240
 
 print fenster
 

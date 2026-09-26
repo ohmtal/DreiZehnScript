@@ -25,7 +25,7 @@ Points_Y    = 0
 Points_Z    = 0
 
 fn Init
-    if (SDL_Init SDL_INIT_VIDEO) == false
+    if ( SDL_Init SDL_INIT_VIDEO ) == false
         print "Failed to init SDL3"
         return false
     end
@@ -39,9 +39,9 @@ fn Init
     Renderer = SDL_CreateRenderer Window
     Event = SDL_CreateEvent
 
-    Points_X = Array:new
-    Points_Y = Array:new
-    Points_Z = Array:new
+    Points_X = Array::new
+    Points_Y = Array::new
+    Points_Z = Array::new
 
     for i 1 STAR_COUNT
         Points_X->push  math:random minW maxW
@@ -134,9 +134,9 @@ Points_Z    = 0
 
 print "Starfield shutdown completed, running Garbage Collection manually..."
 -- Manually Call Garbage Collection:
-core:gc
+core::gc
 
 -- you can use:
---  debug.garbage
+--  core::listgc
 -- to check it worked - if you did use ´run "scripts/StarField.13"´ this on console
 

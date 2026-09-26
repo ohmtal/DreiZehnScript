@@ -166,7 +166,7 @@ public:
            int objtype = obj->mType;
            Tools::printf("#%d [%p] assigned: %d type:%d %s\n"
                          , i, (void*)obj, obj->mAssigned
-                         , objtype, gUserObjectTypes[objtype].c_str());
+                         , objtype, GetObjectTypeName(obj));
 
            i++;
        }

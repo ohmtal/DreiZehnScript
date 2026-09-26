@@ -19,12 +19,12 @@
 namespace DreiZehn {
 
 
-    const int TypeArrayObject =  registerUserObjectType("Array");
+    const int TypeArrayObject =  RegisterUserObjectType("Array");
 
     struct ArrayValueObject : public ValueObject {
         std::vector<Value> mElements;
 
-        ArrayValueObject() : ValueObject(TypeArrayObject) { initSymbols(); }
+        ArrayValueObject() : ValueObject(TypeArrayObject) {  }
         ~ArrayValueObject() {
             // GarbageCollection: cleanup assigned flags for object members
             for (auto e: mElements) {
@@ -32,34 +32,45 @@ namespace DreiZehn {
             }
         }
 
-        inline static ValueObjectMethod mPush;
-        inline static ValueObjectMethod mPop;
-        inline static ValueObjectMethod mSize;
-        inline static ValueObjectMethod mGet;
-        inline static ValueObjectMethod mAt;
-        inline static ValueObjectMethod mSet;
-        inline static ValueObjectMethod mBack;
-        inline static ValueObjectMethod mFront;
-        inline static ValueObjectMethod mAppend;
-        inline static ValueObjectMethod mClear;
-        inline static ValueObjectMethod mPrint;
+        inline static ValueObjectProperty mPush;
+        inline static ValueObjectProperty mPop;
+        inline static ValueObjectProperty mSize;
+        inline static ValueObjectProperty mGet;
+        inline static ValueObjectProperty mAt;
+        inline static ValueObjectProperty mSet;
+        inline static ValueObjectProperty mBack;
+        inline static ValueObjectProperty mFront;
+        inline static ValueObjectProperty mAppend;
+        inline static ValueObjectProperty mClear;
+        inline static ValueObjectProperty mPrint;
 
-        inline static void initSymbols() {
+        inline static void RegisterSymbols() {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return;
-            //  ValueObjectMethod(std::string name,  uint32_t minParams, uint32_t maxParams, std::string help)
-            mPush  = ValueObjectMethod("push", 1,1, "push a value to the end of the Array. @param Value");
-            mPop   = ValueObjectMethod("pop", 0,0,  "pop the last value and return it");
-            mSize  = ValueObjectMethod("size", 0,0, "get to size (count)");
-            mGet   = ValueObjectMethod("get", 1,1,  "get a value at index. @param index");
-            mAt    = ValueObjectMethod("at", 1,1,   "get a value at index. @param index");
-            mSet   = ValueObjectMethod("set", 2,2,  "set a value at index. @param index, @param Value");
-            mFront   = ValueObjectMethod("front", 0,0,  "get the first value");
-            mBack   = ValueObjectMethod("back", 0,0,  "get the last value");
-            mAppend   = ValueObjectMethod("append", 1,256,  "append up to 256 arguments to the end");
+            //  ValueObjectProperty(std::string name,  uint32_t minParams, uint32_t maxParams, std::string help)
+            mPush  = ValueObjectProperty("push", 1,1, "push a value to the end of the Array. @param Value");
+            RegisterObjectProperty(TypeArrayObject, mPush);
+            mPop   = ValueObjectProperty("pop", 0,0,  "pop the last value and return it");
+            RegisterObjectProperty(TypeArrayObject, mPop);
+            mSize  = ValueObjectProperty("size", 0,0, "get to size (count)");
+            RegisterObjectProperty(TypeArrayObject, mSize);
+            mGet   = ValueObjectProperty("get", 1,1,  "get a value at index. @param index");
+            RegisterObjectProperty(TypeArrayObject, mGet);
+            mAt    = ValueObjectProperty("at", 1,1,   "get a value at index. @param index");
+            RegisterObjectProperty(TypeArrayObject, mAt);
+            mSet   = ValueObjectProperty("set", 2,2,  "set a value at index. @param index, @param Value");
+            RegisterObjectProperty(TypeArrayObject, mSet);
+            mFront   = ValueObjectProperty("front", 0,0,  "get the first value");
+            RegisterObjectProperty(TypeArrayObject, mFront);
+            mBack   = ValueObjectProperty("back", 0,0,  "get the last value");
+            RegisterObjectProperty(TypeArrayObject, mBack);
+            mAppend   = ValueObjectProperty("append", 1,256,  "append up to 256 arguments to the end");
+            RegisterObjectProperty(TypeArrayObject, mAppend);
 
-            mClear   = ValueObjectMethod("clear", 0,0,  "clear the list.");
-            mPrint   = ValueObjectMethod("print", 0,0,  "print the values");
+            mClear   = ValueObjectProperty("clear", 0,0,  "clear the list.");
+            RegisterObjectProperty(TypeArrayObject, mClear);
+            mPrint   = ValueObjectProperty("print", 0,0,  "print the values");
+            RegisterObjectProperty(TypeArrayObject, mPrint);
             mSymbolsLoaded = true;
         }
 
@@ -163,12 +174,12 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     void RegisterArrayFunctions(Environment& env) {
         // init Methods:
-        ArrayValueObject::initSymbols();
+        ArrayValueObject::RegisterSymbols();
 
 
         using namespace FunctionMap;
 
-        RegisterFunction("Array:new", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("Array::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
             ArrayValueObject* arr = new ArrayValueObject();
             ret = Value(arr);
 
@@ -182,78 +193,6 @@ namespace DreiZehn {
             return true;
         });
 
-        // NOTE we have methods now :)
-        // // ---------------------------------------------------------------------
-        // RegisterFunction("Array.push", [](std::vector<Value>& args, Value& ret) -> bool {
-        //     if (args.size() != 2) {
-        //         Tools::errorf("usage: Array.push arr value\n");
-        //         return false;
-        //     }
-        //     auto* arr = dynamic_cast<ArrayValueObject*>(args[0].asPointerObject());
-        //     if (!arr) return false;
-        //
-        //     arr->mElements.push_back(args[1]);
-        //     ret = args[1];
-        //     return true;
-        // });
-        //
-        // RegisterFunction("Array.pop", [](std::vector<Value>& args, Value& ret) -> bool {
-        //     if (args.size() != 1) {
-        //         Tools::errorf("usage: Array.pop arr\n");
-        //         return false;
-        //     }
-        //     auto* arr = dynamic_cast<ArrayValueObject*>(args[0].asPointerObject());
-        //     if (!arr) return false;
-        //
-        //     if (arr->mElements.size() > 0) {
-        //         ret = Value(arr->mElements.back());
-        //         arr->mElements.pop_back();
-        //     } else {
-        //         ret= Value();
-        //     }
-        //     return true;
-        // });
-        // // ---------------------------------------------------------------------
-        // RegisterFunction("Array.size", [](std::vector<Value>& args, Value& ret) -> bool {
-        //     if (args.size() != 1) return false;
-        //     auto* arr = dynamic_cast<ArrayValueObject*>(args[0].asPointerObject());
-        //     if (!arr) return false;
-        //
-        //     ret = Value(static_cast<double>(arr->mElements.size()));
-        //     return true;
-        // });
-        //
-        // // ---------------------------------------------------------------------
-        // RegisterFunction("Array.get", [](std::vector<Value>& args, Value& ret) -> bool {
-        //     if (args.size() != 2) return false;
-        //     auto* arr = dynamic_cast<ArrayValueObject*>(args[0].asPointerObject());
-        //     int idx = static_cast<int>(args[1].getDouble());
-        //
-        //     if (!arr || idx < 0 || idx >= static_cast<int>(arr->mElements.size())) {
-        //         Tools::errorf("Array.get: Index out of bounds or invalid Array\n");
-        //         return false;
-        //     }
-        //
-        //     ret = arr->mElements[idx];
-        //     return true;
-        // });
-        //
-        // // ---------------------------------------------------------------------
-        // RegisterFunction("Array.set", [](std::vector<Value>& args, Value& ret) -> bool {
-        //     if (args.size() != 3) return false;
-        //     auto* arr = dynamic_cast<ArrayValueObject*>(args[0].asPointerObject());
-        //     int idx = static_cast<int>(args[1].getDouble());
-        //
-        //     if (!arr || idx < 0 || idx >= static_cast<int>(arr->mElements.size())) {
-        //         Tools::errorf("Array.set: Index out of bounds\n");
-        //         return false;
-        //     }
-        //
-        //     arr->mElements[idx] = args[2];
-        //     ret = args[2];
-        //     return true;
-        // });
-        // // ---------------------------------------------------------------------
     }
 
 }

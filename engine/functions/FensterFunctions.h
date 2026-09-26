@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // Fenster Commands
+// FIXME: Register system for help!!!
 // NOTE! Modified fenster.h!
 //      - I had to remove const int width and height in fenster.h!
 //      - added X11 wmDeleteMessage message so my prog does not crash when
@@ -112,7 +113,7 @@ namespace DreiZehn::FensterWrapper {
 
 namespace DreiZehn {
 
-    const int TypeFensterObject = registerUserObjectType("Fenster");
+    const int TypeFensterObject = RegisterUserObjectType("Fenster");
 
     struct FensterObject : public ValueObject {
         struct fenster mFenster = {0};
@@ -124,7 +125,6 @@ namespace DreiZehn {
 
 
         FensterObject(const char* title, int w, int h) : ValueObject(TypeFensterObject) {
-            initSymbols();
             mFenster.title = title;
             mFenster.width = w;
             mFenster.height = h;
@@ -141,7 +141,7 @@ namespace DreiZehn {
             }
         }
 
-        inline static void initSymbols() {
+        inline static void RegisterSymbols() {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return;
 
@@ -343,9 +343,54 @@ namespace DreiZehn {
 
         using namespace FunctionMap;
 
-        FensterObject::initSymbols();
+        // --- most used KEY CODES ----
+        // A-Z  (ASCII 65 - 90)
+        for (int i = 65; i <= 90; i++) {
+            char name[8];
+            sprintf(name, "KEY_%C", (char)i);
+            RegisterConstants(name, Value(i));
+        }
 
-        RegisterFunction("Fenster:new", [](std::vector<Value>& args, Value& ret) -> bool {
+        // 0 - 0(ASCII 48 - 57)
+        for (int i = 48; i <= 57; i++) {
+            char name[8];
+            sprintf(name, "KEY_%C", (char)i);
+            RegisterConstants(name, Value(i));
+        }
+        //
+        RegisterConstants("KEY_ESC",       Value(27));
+        RegisterConstants("KEY_SPACE",     Value(32));
+        RegisterConstants("KEY_BACKSPACE", Value(8));
+        RegisterConstants("KEY_TAB",       Value(9));
+        RegisterConstants("KEY_ENTER",     Value(10)); // oder 13, fenster normalisiert meist auf \n (10)
+
+        RegisterConstants("KEY_UP",        Value(17));
+        RegisterConstants("KEY_DOWN",      Value(18));
+        RegisterConstants("KEY_LEFT",      Value(19));
+        RegisterConstants("KEY_RIGHT",     Value(20));
+
+
+        // --- colors ----
+        RegisterConstants("COLOR_BLACK",   Value(0xFF000000));
+        RegisterConstants("COLOR_WHITE",   Value(0xFFFFFFFF));
+        RegisterConstants("COLOR_RED",     Value(0xFFFF0000));
+        RegisterConstants("COLOR_GREEN",   Value(0xFF00FF00));
+        RegisterConstants("COLOR_BLUE",    Value(0xFF0000FF));
+
+        RegisterConstants("COLOR_YELLOW",  Value(0xFFFFFF00));
+        RegisterConstants("COLOR_MAGENTA", Value(0xFFFF00FF));
+        RegisterConstants("COLOR_CYAN",    Value(0xFF00FFFF));
+
+        RegisterConstants("COLOR_GRAY",    Value(0xFF808080));
+        RegisterConstants("COLOR_DARKGRAY",Value(0xFF333333));
+        RegisterConstants("COLOR_ORANGE",  Value(0xFFFFA500));
+
+
+        // --------------------
+        FensterObject::RegisterSymbols();
+
+
+        RegisterFunction("Fenster::new", [](std::vector<Value>& args, Value& ret) -> bool {
 
             if (args.size() != 3 || !args[0].isString() || !args[1].isInt() || !args[2].isInt()) {
                 Tools::errorf("Usage: Fenster:new \"Window Title\" width height\n");
@@ -357,6 +402,31 @@ namespace DreiZehn {
             if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(f);
             return true;
         });
+
+         RegisterFunction("Fenster::color", [](std::vector<Value>& args, Value& ret) -> bool {
+
+             if (args.size() < 3 ) {
+                 Tools::errorf("Usage: Fenster:color int r int g int b [int a]\n");
+                 return false;
+             }
+
+             uint8_t r = static_cast<uint8_t>(args[0].getInt());
+             uint8_t g = static_cast<uint8_t>(args[1].getInt());
+             uint8_t b = static_cast<uint8_t>(args[2].getInt());
+             uint8_t a;
+
+             if (args.size() < 4) a = 255;
+             else a = static_cast<uint8_t>(args[3].getInt());
+
+             // Format: 0xAARRGGBB
+             uint32_t color = (static_cast<uint32_t>(a) << 24) |
+             (static_cast<uint32_t>(r) << 16) |
+             (static_cast<uint32_t>(g) << 8)  |
+             (static_cast<uint32_t>(b));
+
+             ret = Value(color);
+             return true;
+         });
 
     }
 } //namespace DreiZehn

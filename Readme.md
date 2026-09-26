@@ -34,9 +34,9 @@ You always need a end at the end. Same for loops.
 - Return: break the current statement and may return a value : `return 4`
 - Function parameters are simply added: `print "Hello World"`
 - If you need to pass statements you can use: `print "Hello" ( 1 + 1 )`
-- Static methods use usally ":" or you use the C-Name like i did on SDL3 binding test.
-- Object constructors are with a big first captial like: `Array:new`
-- libary function calls are all lower case like `math:randomf`
+- Static methods use usally "::" or you use the C-Name like i did on SDL3 binding test.
+- Object constructors are with a big first captial like: `Array::new`
+- libary function calls are all lower case like `math::randomf`
 - methods on objects are called with a Arrow: `arr->pop` 
 - fields on objects used the Dot: `vec.x = 10.0`
 - fn: function definition: `fn hello param1 param2;print param1 param2; end; hello`

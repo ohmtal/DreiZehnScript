@@ -14,7 +14,7 @@
 
 namespace DreiZehn {
 
-    const int Type_SDL_Window_Object =  registerUserObjectType("SDL_Window");
+    const int Type_SDL_Window_Object =  RegisterUserObjectType("SDL_Window");
 
     struct SDL_Window_Object : ValueObject {
         SDL_Window* value = nullptr;
@@ -25,7 +25,7 @@ namespace DreiZehn {
         }
     };
 
-    const int Type_SDL_Renderer_Object =  registerUserObjectType("SDL_Renderer");
+    const int Type_SDL_Renderer_Object =  RegisterUserObjectType("SDL_Renderer");
     struct SDL_Renderer_Object : ValueObject {
         SDL_Renderer* value = nullptr;
         SDL_Renderer_Object(SDL_Renderer* rend) : ValueObject(Type_SDL_Renderer_Object), value(rend) {}
@@ -35,7 +35,7 @@ namespace DreiZehn {
         }
     };
 
-    const int Type_SDL_Event_Object =  registerUserObjectType("SDL_Event_Object");
+    const int Type_SDL_Event_Object =  RegisterUserObjectType("SDL_Event_Object");
     struct SDL_Event_Object : ValueObject {
         SDL_Event value;
         SDL_Event_Object() : ValueObject(Type_SDL_Event_Object) { std::memset(&value, 0, sizeof(SDL_Event)); }

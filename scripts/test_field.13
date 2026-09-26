@@ -2,7 +2,7 @@
 JLOOPS = 25
 ILOOPS = 1000000
 
-obj = Vector3:new
+obj = Vector3::new
 
 
 for j 0 (JLOOPS - 1)

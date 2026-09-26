@@ -226,7 +226,6 @@ private:
     //
     //     return left;
     // }
-
     // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parseComparison() {
         auto left = parseMath();

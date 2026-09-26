@@ -78,7 +78,8 @@ if (BUILD_WITH_SDL3)
     find_package(SDL3 REQUIRED)
     set (SDL3_LINKLIB SDL3::SDL3)
 
-
+    list(APPEND PROJECT_SRC "engine/functions/SDL3Functions.h")
+    add_compile_definitions(DREIZEHN_SDL3)
 endif()
 
 # ------------- FENSTER

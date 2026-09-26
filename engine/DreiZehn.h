@@ -11,3 +11,8 @@
 #include "functions/CoreFunctions.h"
 #include "functions/MathFunctions.h"
 
+namespace DreiZehn {
+
+
+
+}

@@ -74,6 +74,7 @@ under 15 sec and beat python here without bytecode ;)
 
 
 ## 0.5d:
+- [ ] add core.breath to enable console while running a loop 
 - [ ] multiline statement for example if..
 
 

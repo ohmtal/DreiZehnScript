@@ -14,6 +14,8 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <time.h>
+// XXTH: needed to prevent resize:
+#include <X11/Xutil.h>
 #endif
 
 #include <stdint.h>
@@ -275,11 +277,37 @@ FENSTER_API int fenster_open(struct fenster *f) {
                              f->height, 0, BlackPixel(f->dpy, screen),
                              WhitePixel(f->dpy, screen));
   f->gc = XCreateGC(f->dpy, f->w, 0, 0);
+
+  // NOTE XXTH START
+  // would need a buffer resize!
+  // XSelectInput(f->dpy, f->w,
+  //              ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask |
+  //              ButtonReleaseMask | PointerMotionMask | StructureNotifyMask);
+
+  // ORIG:
   XSelectInput(f->dpy, f->w,
                ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask |
                    ButtonReleaseMask | PointerMotionMask);
+  // <<<<<<<<<<<<<<
   XStoreName(f->dpy, f->w, f->title);
   XMapWindow(f->dpy, f->w);
+
+  // NOTE XXTH START - deny resize!
+  XSizeHints *hints = XAllocSizeHints();
+  if (hints) {
+    hints->flags = PMinSize | PMaxSize;
+    hints->min_width  = f->width;
+    hints->max_width  = f->width;
+    hints->min_height = f->height;
+    hints->max_height = f->height;
+
+    XSetWMNormalHints(f->dpy, f->w, hints);
+    XFree(hints);
+  }
+  // <<<<<<<<<<<<<< XXTH
+
+
+
   XSync(f->dpy, f->w);
 
   // NOTE: XXTH START >>>>>>>
@@ -326,6 +354,14 @@ FENSTER_API int fenster_loop(struct fenster *f) {
       }
       break;
     }
+    // bad idea when buffer is not resized!
+    // case ConfigureNotify: {
+    //
+    //     XConfigureEvent xce = ev.xconfigure;
+    //
+    //     f->width = xce.width;
+    //     f->height = xce.height;
+    // }
     // <<<<<<<<<<<<<<<<  XXTH
     }
   }

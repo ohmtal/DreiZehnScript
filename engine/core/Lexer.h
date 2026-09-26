@@ -50,6 +50,7 @@ enum class TokenType {
     , Arrow, Dot
 
     , forRange
+    , Not
 
     , NoToken // for peekPrev pos < 1
     , EOFToken
@@ -111,6 +112,7 @@ inline const char* tokenTypeToString(TokenType type) {
         case TokenType::Dot:            return "Dot Object field access";
 
         case TokenType::forRange:          return "Range";
+        case TokenType::Not:          return "Not";
 
         case TokenType::EOFToken:      return "EOFToken";
 
@@ -179,6 +181,8 @@ public:
             if (peek() == '*') { advance(); tokens.push_back({TokenType::Mul,   "*"}); continue; }
             if (peek() == '/') { advance(); tokens.push_back({TokenType::Div,   "/"}); continue; }
 
+            if (peek() == '!') { advance(); tokens.push_back({TokenType::Not,   "!"}); continue; }
+
             // ----------------------------------------------------------------
             if (peek() == '-' && peekNext() == '>') {
                 advance();advance();
@@ -219,8 +223,10 @@ public:
                 || (std::isdigit(peekPrev()) && peek() == '.' && std::isdigit(peekNext()))
             ){
                 std::string num;
-                while (std::isdigit(peek()) || peek() == '.' || peek() == '-') {
+                bool isFirst = true;
+                while (std::isdigit(peek()) || (peek() == '.' && !isFirst) || (peek() == '-' && isFirst)) {
                     num += advance();
+                    isFirst = false;
                 }
                 tokens.push_back({TokenType::Number, num});
                 continue;

@@ -94,11 +94,18 @@ public:
     // -------------------------------------------------------------------------
     // --- Getter (Unboxing) ---
     // -------------------------------------------------------------------------
+    inline double asFastDouble() const {
+        return std::bit_cast<double>(mBits);
+    }
+    // -------------------------------------------------------------------------
     inline double asDouble() const {
         assert(isDouble());
         return std::bit_cast<double>(mBits);
     }
-
+    // -------------------------------------------------------------------------
+    inline int32_t asFastInt() const {
+        return static_cast<int32_t>(mBits & 0xFFFFFFFFULL);
+    }
     // -------------------------------------------------------------------------
     inline int32_t asInt() const {
         assert(isInt());

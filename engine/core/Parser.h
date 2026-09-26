@@ -189,6 +189,11 @@ private:
     std::unique_ptr<Expression> parseMath(int minPrecedence = 0) {
         auto left = parsePrimary();
 
+        //FIXME ,,,, must think about how to add it with Precedence
+//         if (peek().mType == TokenType::Not) {
+//
+//         }
+
         while (isMathType()) {
             Token op = peek();
             int precedence = getPrecedence(op.mType);

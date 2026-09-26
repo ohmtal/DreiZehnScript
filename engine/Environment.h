@@ -172,15 +172,26 @@ public:
                     }
                     Value rightHand = assignOP->mRhs->evaluate(currentEnv);
                     if (valuePtr->isInt() && rightHand.isInt()) {
-                        int32_t intval = valuePtr->asInt();
+                        int32_t intval = valuePtr->asFastInt();
                         switch(assignOP->mOp) {
-                            case TokenType::AssignPlus:  intval += rightHand.getInt(); break;
-                            case TokenType::AssignMinus: intval -= rightHand.getInt(); break;
-                            case TokenType::AssignMul:   intval *= rightHand.getInt(); break;
-                            case TokenType::AssignDiv:  if (rightHand.getInt() != 0) {intval /= rightHand.getInt();} break;
+                            case TokenType::AssignPlus:  intval += rightHand.asFastInt(); break;
+                            case TokenType::AssignMinus: intval -= rightHand.asFastInt(); break;
+                            case TokenType::AssignMul:   intval *= rightHand.asFastInt(); break;
+                            case TokenType::AssignDiv:  if (rightHand.asFastInt() != 0) {intval /= rightHand.asFastInt();} break;
                             default: break;
                         }
                         *valuePtr = Value(intval);
+                    } else if (valuePtr->isDouble() && rightHand.isDouble()) {
+                        double doubleval = valuePtr->asFastDouble();
+                        switch(assignOP->mOp) {
+                            case TokenType::AssignPlus:  doubleval += rightHand.asFastDouble(); break;
+                            case TokenType::AssignMinus: doubleval -= rightHand.asFastDouble(); break;
+                            case TokenType::AssignMul:   doubleval *= rightHand.asFastDouble(); break;
+                            case TokenType::AssignDiv:  if (rightHand.asFastDouble() != 0.0) {doubleval /= rightHand.asFastDouble();} break;
+                            default: break;
+                        }
+                        *valuePtr = Value(doubleval);
+
                     } else {
                         double doubleval = valuePtr->getDouble();
                         switch(assignOP->mOp) {

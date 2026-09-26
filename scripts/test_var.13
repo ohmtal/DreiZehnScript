@@ -1,16 +1,17 @@
 # Benchmark-Test for DreiZehn Script (0.4)
 JLOOPS = 25
 ILOOPS = 1000000
+HLOOPS = 1000000 / 2
 
 globalX = 0
 
-for j 0 (JLOOPS - 1)
-    for i 0 (ILOOPS - 1)
+forRange j JLOOPS
+    forRange i ILOOPS
         globalX++
     end
     print  "SUM (++) IS: " globalX
 
-    for i 0 (ILOOPS - 1)
+    forRange i ILOOPS
         globalX--
     end
     print  "SUM (--) IS: " globalX
@@ -18,15 +19,14 @@ for j 0 (JLOOPS - 1)
     globalX = 66
     print  "set Sum to 66 == " (globalX * 1)
 
-    for i 0 (ILOOPS - 1)
+    forRange i ILOOPS
         globalX *= (i + 1)
         globalX /= (i + 1)
     end
     print  "SUM (*/ %i+1) IS: " globalX
 
-    limit = (ILOOPS / 2) - 1
     ran = 0.0
-    for i 0 limit
+    forRange i HLOOPS
         ran = math::randomf * i
         globalX -= ran
         globalX += ran

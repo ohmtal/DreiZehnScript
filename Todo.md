@@ -71,22 +71,27 @@ under 15 sec and beat python here without bytecode ;)
 - [X] fixed bug in function (fn) parameter variable scope - and force parameter as in local scope
 - [X] added optional "Fenster" lib - had to modify fenster.h a bit -. It's handled as Object with methods. 
 - [X] ported Fenster Drawing Example to DreiZehn 
+- [X] bug on "-" => print (10-1) is 0! , print (10 -1) is error and  print (10 - 1) is 9, while print(10+1) is 11 ok 
+    ==> print (10 -1) is still an error but thats ok i guess. 
+- [ ] miss the "!" operator 
 
 
 ## 0.5d:
 - [X] renamed static / tool calls. Now and finally separated by '::'
 - [X] Fenster added some: KEY_ COLOR_ constants
+- [X] Added some help commands 
+- [X] add core::breath to enable console while running a loop 
 - [X] Added StringTable and set all variable strings here with new Value Type StringId
-- [ ] Added some help commands 
+
+
+## 0.6
+- [ ] Bytecode continue .... 
+
+## maybe:
 - [ ] Fenster need also the Register System 
 - [ ] Fenster audio
-- [ ] Fenster: is key pressed
-- [ ] Help with categories: syntax, function, objects
-- [ ] add core.breath to enable console while running a loop 
-
 
 # future ideas
-- [ ] Bytecode continue .... 
 - [ ] header only - for easy include 
     - Problem : CallExpression <> FunctionMap < ASTNode
 - [ ] multiline statement for if..  << but then i need a parameter separator !

@@ -45,6 +45,10 @@ public:
         return get().internalInsert(name);
     }
 
+    inline static const size_t size() {
+        return get().mNameToId.size();
+    }
+
     inline static const std::string& getName(uint32_t id) {
         return get().internalGetName(id);
     }
@@ -70,7 +74,9 @@ public:
     inline static uint32_t insert(const std::string& name) {
         return get().internalInsert(name);
     }
-
+    inline static const size_t size() {
+        return get().mNameToId.size();
+    }
     inline static const std::string& get(uint32_t id) {
         return get().internalGetName(id);
     }

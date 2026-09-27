@@ -51,6 +51,7 @@ enum class TokenType {
 
     , forRange
     , Not
+    , Modulo
 
     , NoToken // for peekPrev pos < 1
     , EOFToken
@@ -72,6 +73,7 @@ inline const char* tokenTypeToString(TokenType type) {
         case TokenType::Minus:         return "Minus";
         case TokenType::Mul:           return "Mul";
         case TokenType::Div:           return "Div";
+        case TokenType::Modulo:        return "Modulo";
 
         case TokenType::AssignPlus:    return "AssignPlus";
         case TokenType::AssignMinus:   return "AssignMinus";
@@ -182,6 +184,7 @@ public:
             if (peek() == '/') { advance(); tokens.push_back({TokenType::Div,   "/"}); continue; }
 
             if (peek() == '!') { advance(); tokens.push_back({TokenType::Not,   "!"}); continue; }
+            if (peek() == '%') { advance(); tokens.push_back({TokenType::Modulo,"%"}); continue; }
 
             // ----------------------------------------------------------------
             if (peek() == '-' && peekNext() == '>') {

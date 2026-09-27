@@ -24,34 +24,11 @@ namespace DreiZehn {
             return true;
         });
         // ---------------------------------------------------------------------
-        RegisterFunction("debug::printfn", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("debug::stat", [](std::vector<Value>& args, Value& ret) -> bool {
 
-            const bool printScriptFunc = args.size() > 0 && args.at(0).getInt() == 1;
-            Tools::printf("  --- Functions [%zu] --- \n", RegisteredFunctions.size());
-            for (const auto& [key, value] : RegisteredFunctions) {
-                Tools::printf("  - %s \n", SymbolTable::getName(key).c_str());
-            }
-
-            if (printScriptFunc) {
-                Tools::printf("  --- Script Functions [%zu] --- \n", RegisteredScriptFunctions.size());
-                for (const auto& [key, value] : RegisteredScriptFunctions) {
-                    Tools::printf("  - %s \n", SymbolTable::getName(key).c_str());
-                }
-            }
-            return true;
-        });
-        // ---------------------------------------------------------------------
-        RegisterFunction("debug::types", [](std::vector<Value>& args, Value& ret) -> bool {
-            Tools::printf("---------------- Types ------------------\n");
-            for (int i = 1; i <= gLastValueObjectType; i++) {
-                Tools::printf("%d: %s\n",i, gUserObjectTypes[i].mName.c_str());
-            }
-            return true;
-        });
-        // ---------------------------------------------------------------------
-        RegisterFunction("debug::garbage", [](std::vector<Value>& args, Value& ret) -> bool {
-            Tools::printf("---------------- Garbage Collection ------------------\n");
-            if (gCurrentFrame) gCurrentFrame->listGarbageObjects();
+            Tools::printf("SymbolTable count: %zu\n", SymbolTable::size());
+            Tools::printf("StringTable count: %zu\n", StringTable::size());
+            Tools::printf("Garbage count    : %zu\n", gMasterFrame->getGarbageSize());
             return true;
         });
 

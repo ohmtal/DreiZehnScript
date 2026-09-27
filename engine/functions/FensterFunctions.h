@@ -10,6 +10,9 @@
 //        Window is closed.
 //-----------------------------------------------------------------------------
 #pragma once
+#include <stdio.h>
+#include <stdint.h>
+
 #include "core/FunctionMap.h"
 #include "core/VariableFrame.h"
 #include "Globals.h"
@@ -46,19 +49,19 @@ namespace DreiZehn::FensterWrapper {
     // -------------------------------------------------------------------------
     static inline void rect(struct fenster *f, int x, int y, int w, int h,
                             uint32_t c) {
-    for (int row = 0; row < h; row++) {
-        for (int col = 0; col < w; col++) {
-        fenster_pixel(f, x + col, y + row) = c;
+        for (int row = 0; row < h; row++) {
+            for (int col = 0; col < w; col++) {
+                fenster_pixel(f, x + col, y + row) = c;
+            }
         }
-    }
     }
 
     static inline void circle(struct fenster *f, int x, int y, int r, uint32_t c) {
     for (int dy = -r; dy <= r; dy++) {
         for (int dx = -r; dx <= r; dx++) {
-        if (dx * dx + dy * dy <= r * r) {
-            fenster_pixel(f, x + dx, y + dy) = c;
-        }
+            if (dx * dx + dy * dy <= r * r) {
+                fenster_pixel(f, x + dx, y + dy) = c;
+            }
         }
     }
     }
@@ -96,6 +99,102 @@ namespace DreiZehn::FensterWrapper {
     }
     }
      // -------------------------------------------------------------------------
+     int save_to_bmp(const char *filename, struct fenster *f) {
+         if (!f || !f->buf || f->width <= 0 || f->height <= 0) return -1;
+
+         FILE *file = fopen(filename, "wb");
+         if (!file) return -1;
+
+         int width = f->width;
+         int height = f->height;
+
+         int row_padded_size = (width * 3 + 3) & ~3;
+         int pixel_array_size = row_padded_size * height;
+         int file_size = 54 + pixel_array_size;
+
+         // 1. 14-Byte Bitmap File Header
+         uint8_t file_header[] = {
+             'B', 'M',
+             (uint8_t)(file_size & 0xFF),
+             (uint8_t)((file_size >> 8) & 0xFF),
+             (uint8_t)((file_size >> 16) & 0xFF),
+             (uint8_t)((file_size >> 24) & 0xFF),
+             0, 0, 0, 0,
+             54, 0, 0, 0
+         };
+
+         // 2. 40-Byte DIB Info Header (BITMAPINFOHEADER)
+         uint8_t info_header[] = {
+             40, 0, 0, 0,
+             (uint8_t)(width & 0xFF), (uint8_t)((width >> 8) & 0xFF), (uint8_t)((width >> 16) & 0xFF), (uint8_t)((width >> 24) & 0xFF),
+             (uint8_t)(height & 0xFF), (uint8_t)((height >> 8) & 0xFF), (uint8_t)((height >> 16) & 0xFF), (uint8_t)((height >> 24) & 0xFF),
+             1, 0,
+             24, 0,
+             0, 0, 0, 0,
+             (uint8_t)(pixel_array_size & 0xFF), (uint8_t)((pixel_array_size >> 8) & 0xFF), (uint8_t)((pixel_array_size >> 16) & 0xFF), (uint8_t)((pixel_array_size >> 24) & 0xFF),
+             0x13, 0x0B, 0, 0,
+             0x13, 0x0B, 0, 0,
+             0, 0, 0, 0,
+             0, 0, 0, 0
+         };
+
+         fwrite(file_header, 1, 14, file);
+         fwrite(info_header, 1, 40, file);
+
+         // write pixels bottom up
+         uint8_t padding[3] = {0, 0, 0};
+
+         for (int y = height - 1; y >= 0; y--) {
+             for (int x = 0; x < width; x++) {
+                 uint32_t pixel = fenster_pixel(f, x, y);
+
+                 uint8_t b = pixel & 0xFF;
+                 uint8_t g = (pixel >> 8) & 0xFF;
+                 uint8_t r = (pixel >> 16) & 0xFF;
+
+                 fputc(b, file);
+                 fputc(g, file);
+                 fputc(r, file);
+             }
+             int current_row_bytes = width * 3;
+             int padding_needed = row_padded_size - current_row_bytes;
+             if (padding_needed > 0) {
+                 fwrite(padding, 1, padding_needed, file);
+             }
+         }
+
+         fclose(file);
+         return 0; // success
+     }
+     // ------------------------------------------------------------------------
+     //TODO implement
+     void draw_scaled_pixel(struct fenster *f, int x, int y, int scale, uint32_t color) {
+         for (int dy = 0; dy < scale; dy++) {
+             for (int dx = 0; dx < scale; dx++) {
+                 int screen_x = x * scale + dx;
+                 int screen_y = y * scale + dy;
+
+                 if (screen_x >= 0 && screen_x < f->width && screen_y >= 0 && screen_y < f->height) {
+                     f->buf[screen_y * f->width + screen_x] = color;
+                 }
+             }
+         }
+     }
+     // ------------------------------------------------------------------------
+     //TODO implement
+     void scale_buffer_to_window(struct fenster *f, uint32_t *src_buf, int src_w, int src_h) {
+         for (int y = 0; y < f->height; y++) {
+             int src_y = (y * src_h) / f->height;
+
+             for (int x = 0; x < f->width; x++) {
+                 int src_x = (x * src_w) / f->width;
+                 f->buf[y * f->width + x] = src_buf[src_y * src_w + src_x];
+             }
+         }
+     }
+     // ------------------------------------------------------------------------
+
+
 }
 
 
@@ -129,7 +228,7 @@ namespace DreiZehn {
         uint32_t* mPixelBuffer = nullptr;
         int64_t mSleepMS = 0;
 
-        // Symbol-IDs
+        // Symbol-IDs for fields (read only)
         inline static uint32_t titleId = 0, widthId = 0, heightId = 0;
         inline static uint32_t mouseXId = 0, mouseYId = 0, mouseDownId = 0;
         inline static uint32_t timeId = 0;
@@ -224,6 +323,7 @@ namespace DreiZehn {
             static uint32_t textId = SymbolTable::insert("text");
 
             static uint32_t sleepid = SymbolTable::insert("sleep");
+            static uint32_t exportid = SymbolTable::insert("export");
 
             // ------- loop
             if (methodId == loopId) {
@@ -306,8 +406,13 @@ namespace DreiZehn {
                     Tools::errorf("Usage .rect x y w h color\n");
                     return false;
                 }
+                int x = args[0].getInt(); if (x < 0) return false;
+                int y = args[1].getInt(); if (y < 0) return false;
+                int w = args[2].getInt(); if (w < 0 || x+w > mFenster.width) return false;
+                int h = args[3].getInt(); if (h < 0 || y+h > mFenster.height) return false;
+                uint32_t c = args[4].getUInt();
 
-                FensterWrapper::rect(&mFenster, args[0].getInt(), args[1].getInt(), args[2].getInt(), args[3].getInt(),args[4].getUInt());
+                FensterWrapper::rect(&mFenster, x,y,w,h,c);
                 return true;
             }
             else
@@ -353,7 +458,16 @@ namespace DreiZehn {
                 fenster_sleep(static_cast<int64_t>(args[0].getDouble()));
                 return true;
             }
-
+            else
+                // ------- export
+                if (methodId == exportid) {
+                    if (args.size() != 1 || !args[0].isStringId()) {
+                        Tools::errorf("Usage .export string filename\n");
+                        return false;
+                    }
+                    FensterWrapper::save_to_bmp(args[0].getStringRef().c_str(), &mFenster);
+                    return true;
+                }
             // ------- nothing found
             else {
                 Tools::errorf("Unknown Fenster method: %s\n", SymbolTable::getName(methodId).c_str());

@@ -82,7 +82,7 @@ under 15 sec and beat python here without bytecode ;)
 - [X] Added some help commands 
 - [X] add core::breath to enable console while running a loop 
 - [X] Added StringTable and set all variable strings here with new Value Type StringId
-
+- [X] Since main loop input is non blocking i need a sleep
 
 ## 0.6
 - [ ] Bytecode continue .... 

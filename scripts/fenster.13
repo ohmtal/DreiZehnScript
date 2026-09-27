@@ -1,19 +1,22 @@
 -- DreiZehn Fenster Demo
 
-fenster = Fenster::new "DreiZehn Fenster" 320 240 64
+fenster = Fenster::new "DreiZehn Fenster" 320 240 16
 
 print fenster
+backcolor = 0x000CDD
+fenster->clear backcolor
+fenster->line 0 210 320 210 0x00004400
+fenster->text 20 20 "Hello Fenster!" 4 0xFFFFFF
 
 while fenster->loop
-    fenster->clear 0x000CDD
     -- ESC
    if fenster->isKeyDown 27
        break
    end
-   fenster->text 20 20 "Hello Fenster!" 4 0xFFFFFF
+   fenster->rect 0 210 320 30 COLOR_DARKGRAY
    fenster->text 20 220 (concat "mouse: x:" fenster.mouseX ", y:" fenster.mouseY ", down:" fenster.mouseDown) 2 0xFFFFFF
 
-   if core::breath != 1 break; end
+   if core::breath == false break; end
 end
 
 fenster->close

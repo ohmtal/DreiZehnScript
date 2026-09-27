@@ -171,6 +171,7 @@ int main(int argc, char* argv[]) {
     while (true) {
 
         if (!ConsoleCall(env)) break;
+        Tools::sleep(16);
         // read_line("> ", line);
         // if (line == "exit") break;
         // if (line == "quit") break;

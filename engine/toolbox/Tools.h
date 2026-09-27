@@ -28,4 +28,19 @@ namespace DreiZehn::Tools{
         va_end(args);
     }
 
+    #if defined(_WIN32) || defined(__WIN32__) || defined(MSC_VER)
+    #include <windows.h>
+    #define platform_sleep(ms) Sleep(ms)
+    #elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    #include <time.h>
+    inline void sleep(unsigned int ms) {
+        struct timespec ts;
+        ts.tv_sec = ms / 1000;
+        ts.tv_nsec = (ms % 1000) * 1000000;
+        nanosleep(&ts, NULL);
+    }
+    #else
+    #error "UNKNOWN OS"
+    #endif
+
 }

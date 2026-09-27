@@ -118,6 +118,8 @@ if Init
 
         SDL_RenderPresent Renderer
         SDL_Delay 16
+
+        if core::breath == false; break; end
     end
 end
 

@@ -31,6 +31,7 @@
 
 W = 320
 H = 200
+
 fenster = Fenster::new "DreiZehn Fenster Drawing Demo" W H
 
 
@@ -50,10 +51,13 @@ end
 
 -- -----------------------------------------------------------------------------
 fn fillRandom
+    fenster->clear COLOR_BLACK
     forRange col W
         forRange row H
-           c = Fenster::color (math::random 0 255) (math::random 0 255) (math::random 0 255)
-           fenster->setPixel col row c
+            if (math::random 0 5) == 0
+                c = Fenster::color (math::random 60 205) (math::random 60 205) (math::random 60 255)
+                fenster->setPixel col row c
+            end
         end
     end
 end
@@ -126,19 +130,20 @@ end
 -- fillRandom
 
 fillHouse
+curpic = 1
 
 spaceWasUp = true
 now = fenster.time
 while fenster->loop
    if fenster->isKeyDown KEY_SPACE
        if spaceWasUp
-            print "FILL RANDOM"
-            ran = math::random 0 4
-            if (ran == 0) fillRandom end
-            if (ran == 1) fillHouse end
-            if (ran == 2) fillGradient end
-            if (ran == 3) fillTunnel end
-            if (ran == 4) fillSky end
+           curpic = (curpic + 1) % 4
+           print "curpic is:" curpic
+            if (curpic == 0) fillRandom end
+            if (curpic == 1) fillHouse end
+            if (curpic == 2) fillGradient end
+            if (curpic == 3) fillTunnel end
+            if (curpic == 4) fillSky end
         end
         spaceWasUp = false
     else

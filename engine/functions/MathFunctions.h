@@ -130,7 +130,21 @@ namespace DreiZehn {
             return true;
         });
         // ---------------------------------------------------------------------
+        RegisterFunction("math::mod", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 2) return false;
+            int i1 = args[0].getInt();
+            int i2 = args[1].getInt();
+            ret = Value(i1 % i2);
+            return true;
+        });
+        // ---------------------------------------------------------------------
+        RegisterFunction("math::fmod", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 2) return false;
 
+            ret = Value(std::fmod(args[0].getDouble(),args[1].getDouble()));
+            return true;
+        });
+        // ---------------------------------------------------------------------
     }
 
 } //namespace

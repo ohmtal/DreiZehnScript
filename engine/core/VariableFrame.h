@@ -158,6 +158,10 @@ public:
         gc.erase(std::remove(gc.begin(), gc.end(), obj), gc.end());
     }
 
+    inline size_t getGarbageSize() {
+       assert(gMasterFrame && "getGarbageSize but Frame have not MasterFrame!!!");
+       return gMasterFrame->mGarbageCollection.size();
+    }
     inline void listGarbageObjects() {
        assert(gMasterFrame && "listGarbageObjects but Frame have not MasterFrame!!!");
        int i = 0;

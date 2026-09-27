@@ -41,9 +41,9 @@ private:
         ;
     }
 
-    // punkt vor strich :P
+    // punkt vor strich :P orders of ...
     int getPrecedence(TokenType type) {
-        if (type == TokenType::Mul || type == TokenType::Div) return 6;
+        if (type == TokenType::Mul || type == TokenType::Div || type == TokenType::Modulo) return 6;
         if (type == TokenType::Plus || type == TokenType::Minus) return 5;
         if (type == TokenType::SHL || type == TokenType::SHR) return 4;
 
@@ -88,6 +88,7 @@ private:
         || peek().mType == TokenType::BitOr
         || peek().mType == TokenType::SHL
         || peek().mType == TokenType::SHR
+        || peek().mType == TokenType::Modulo
         ;
     }
 

@@ -6,6 +6,7 @@
 // - NodeRunner => evaluate
 // - ByteCode => compile
 //-----------------------------------------------------------------------------
+#include <cmath>
 #include "Environment.h"
 #include "core/FunctionMap.h"
 
@@ -284,6 +285,14 @@ namespace DreiZehn {
                 int l = lVal.getInt();
                 int r = rVal.getInt();
                 return Value( l >> r);
+            }
+            case TokenType::Modulo: {
+                if (lVal.isDouble() && rVal.isDouble() ) {
+                    return Value(std::fmod(lVal.asFastDouble(),rVal.asFastDouble()));
+                } else {
+                    return Value( lVal.getInt() % rVal.getInt());
+
+                }
             }
             default: break;
         }

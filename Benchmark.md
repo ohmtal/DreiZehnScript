@@ -4,6 +4,7 @@ I used my Benchmark Script from ElfScript:
 
 - Lua 5.5.1: 1.243u 0.002s 0:01.25 99.2%     0+0k 0+0io 0pf+0w
 - Elfscript 0.7c: 1.354u 0.002s 0:01.36 99.2%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn 0.6a: 11.218u 0.012s 0:11.28 99.4%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.4c: 12.478u 0.002s 0:12.52 99.6%    0+0k 0+0io 0pf+0w
 - python 3: 15.768u 0.005s 0:15.83 99.5%    0+0k 0+0io 0pf+0w. 
 - 🐢 DreiZehn 0.4a: 21.160u 0.002s 0:21.23 99.6%    0+0k 0+0io 0pf+0w
@@ -73,6 +74,7 @@ Same as before but with Vector3Object field.
 Note on 0.5b: While Variables  uses fast "++"/"--" fields only have the slower assign
 Note on 0.5c: Added inline OP and OP assign :) Nearly as fast as global var
 
+- 🐢 DreiZehn 0.6a: 11.743u 0.004s 0:11.78 99.6%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.5c: 13.057u 0.004s 0:13.09 99.6%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.5b: 19.794u 0.004s 0:19.85 99.6%    0+0k 0+0io 0pf+0w
 

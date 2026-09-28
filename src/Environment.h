@@ -112,182 +112,116 @@ public:
         switch(node->mNodeType) {
             // --- Break Statement ---
             case NodeType::BreakStatement:
-            case NodeType::ReturnStatement:
-            case NodeType::IfStatement:
-            case NodeType::RangeStatement:
-            case NodeType::ForStatement:
-            case NodeType::WhileStatement:
-            case NodeType::BlockStatement:
             {
-                auto* flowStmt = dynamic_cast<FlowBaseStatement*>(node);
+                auto* flowStmt = dynamic_cast<BreakStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
-
-
-            // --- Return Statement ---
-            // case NodeType::ReturnStatement:
-            // {
-            //     auto* retStmt = dynamic_cast<ReturnStatement*>(node);
-            //     if (retStmt->mExpression) {
-            //         Value retVal = retStmt->mExpression->evaluate(currentEnv);
-            //         currentEnv.mVariableFrame->setVariable(SymbolTable::insert("__return_value__"), retVal);
-            //     }
-            //     return FlowSignal::Return;
-            // }
-            // --- Assign ---
-            case NodeType::AssignStatement:
-            case NodeType::AssignOPStatement:
+            case NodeType::ReturnStatement:
             {
-                if (auto* assign = dynamic_cast<AssignBaseStatement*>(node)) {
+                auto* flowStmt = dynamic_cast<ReturnStatement*>(node);
+                return flowStmt->execute(currentEnv);
+            }
+            case NodeType::IfStatement:
+            {
+                auto* flowStmt = dynamic_cast<IfStatement*>(node);
+                return flowStmt->execute(currentEnv);
+            }
+            case NodeType::RangeStatement:
+            {
+                auto* flowStmt = dynamic_cast<ForRangeStatement*>(node);
+                return flowStmt->execute(currentEnv);
+            }
+            case NodeType::ForStatement:
+            {
+                auto* flowStmt = dynamic_cast<ForStatement*>(node);
+                return flowStmt->execute(currentEnv);
+            }
+            case NodeType::WhileStatement:
+            {
+                auto* flowStmt = dynamic_cast<WhileStatement*>(node);
+                return flowStmt->execute(currentEnv);
+            }
+            case NodeType::BlockStatement:
+            {
+                auto* flowStmt = dynamic_cast<BlockStatement*>(node);
+                return flowStmt->execute(currentEnv);
+            }
+            // --- Assign ---
+            case NodeType::AssignStatement: {
+                if (auto* assign = dynamic_cast<AssignStatement*>(node)) {
                     assign->execute(currentEnv);
                 }
                 break;
             }
-            // --- If-Statement  ---
-            // case NodeType::IfStatement: {
-            //     auto* ifStmt = dynamic_cast<IfStatement*>(node);
-            //     Value condVal = ifStmt->mCondition->evaluate(currentEnv);
-            //
-            //     double condNum = condVal.getDouble();
-            //     const double EPSILON = 1e-9;
-            //     bool isTrue = std::abs(condNum) > EPSILON;
-            //
-            //     if (isTrue) {
-            //         for (auto& childNode : ifStmt->mBody) {
-            //             if (!childNode) continue;
-            //             FlowSignal sig = execute(childNode.get(), currentEnv);
-            //             if (sig != FlowSignal::None) return sig;
-            //         }
-            //     } else {
-            //         for (auto& childNode : ifStmt->mElseBody) {
-            //             if (!childNode) continue;
-            //             FlowSignal sig = execute(childNode.get(), currentEnv);
-            //             if (sig != FlowSignal::None) return sig;
-            //         }
-            //     }
-            //     break;
-            // }
-            // // ------ Range - Statement --------
-            // case NodeType::RangeStatement: {
-            //     auto* rangeStmt = dynamic_cast<ForRangeStatement*>(node);
-            //     if (!rangeStmt->mCountExpr ) {
-            //         Tools::errorf("Runtime Error: range need a count border!\n");
-            //         return FlowSignal::None;
-            //     }
-            //     Value countVal = rangeStmt->mCountExpr->evaluate(currentEnv);
-            //     Environment loopEnv(&currentEnv);
-            //
-            //     int32_t count = countVal.getInt();
-            //     if (count < 0 ) {
-            //         Tools::errorf("Runtime Error: range border must be >= 0 and is %d!\n", count);
-            //         return FlowSignal::None;
-            //     }
-            //     for (int i = 0; i < count; i++) {
-            //         loopEnv.mVariableFrame->setVariable(rangeStmt->mIteratorVarNameSymbolId, Value(i));
-            //
-            //         for (auto& statement : rangeStmt->mBody) {
-            //             FlowSignal sig = currentEnv.execute(statement.get(), loopEnv);
-            //
-            //             if (sig == FlowSignal::Break) {
-            //                 return FlowSignal::None;
-            //             }
-            //             if (sig == FlowSignal::Return) {
-            //                 return FlowSignal::Return;
-            //             }
-            //         }
-            //     }
-            //
-            //     break;
-            // }
-            // // ---- for statement .....
-            // case NodeType::ForStatement: {
-            //
-            //         auto* forStmt = dynamic_cast<ForStatement*>(node);
-            //         if (!forStmt->mStartExpr || !forStmt->mEndExpr ) {
-            //             Tools::errorf("Runtime Error: invalid for borders!\n");
-            //             return FlowSignal::None;
-            //         }
-            //         Value startVal = forStmt->mStartExpr->evaluate(currentEnv);
-            //         Value endVal = forStmt->mEndExpr->evaluate(currentEnv);
-            //
-            //         int start = startVal.getInt();
-            //         int end = endVal.getInt();
-            //
-            //         Environment loopEnv(&currentEnv);
-            //
-            //         if (start > end ) {
-            //             for (int i = start; i >= end; --i) {
-            //                 loopEnv.mVariableFrame->setVariable(forStmt->mIteratorVarNameSymbolId, Value(i));
-            //
-            //                 for (auto& statement : forStmt->mBody) {
-            //                     FlowSignal sig = currentEnv.execute(statement.get(), loopEnv);
-            //
-            //                     if (sig == FlowSignal::Break) {
-            //                         return FlowSignal::None;
-            //                     }
-            //                     if (sig == FlowSignal::Return) {
-            //                         return FlowSignal::Return;
-            //                     }
-            //                 }
-            //             }
-            //
-            //         } else {
-            //             for (int i = start; i <= end; ++i) {
-            //                 loopEnv.mVariableFrame->setVariable(forStmt->mIteratorVarNameSymbolId, Value(i));
-            //
-            //                 for (auto& statement : forStmt->mBody) {
-            //                     FlowSignal sig = currentEnv.execute(statement.get(), loopEnv);
-            //
-            //                     if (sig == FlowSignal::Break) {
-            //                         return FlowSignal::None;
-            //                     }
-            //                     if (sig == FlowSignal::Return) {
-            //                         return FlowSignal::Return;
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     // #endif
-            //     break;
-            // }
-            //
-            // // ---- While statement .....
-            // case NodeType::WhileStatement: {
-            //     auto* whileStmt = dynamic_cast<WhileStatement*>(node);
-            //     Environment loopEnv(&currentEnv);
-            //
-            //     auto checkCondition = [&]() -> bool {
-            //         Value condVal = whileStmt->mCondition->evaluate(loopEnv);
-            //         return (condVal.isInt() && condVal.asInt() != 0) ||
-            //         (condVal.isDouble() && condVal.asDouble() != 0.0);
-            //     };
-            //
-            //     while (checkCondition()) {
-            //         for (auto& statement : whileStmt->mBody) {
-            //             FlowSignal sig = currentEnv.execute(statement.get(), loopEnv);
-            //
-            //             if (sig == FlowSignal::Break) return FlowSignal::None;
-            //             if (sig == FlowSignal::Return) return FlowSignal::Return;
-            //         }
-            //     }
-            //     break;
-            // }
-            // // --- BlockStatement  ---
-            // case NodeType::BlockStatement: {
-            //     auto* block = dynamic_cast<BlockStatement*>(node);
-            //     for (auto& statement : block->mBody) {
-            //         if (!statement) continue;
-            //         FlowSignal sig = execute(statement.get(), *this);
-            //         if (sig != FlowSignal::None) return sig;
-            //     }
-            //     return FlowSignal::None;
-            // }
+            case NodeType::AssignOPStatement:
+            {
+                if (auto* assign = dynamic_cast<AssignOPStatement*>(node)) {
+                    assign->execute(currentEnv);
+                }
+                break;
+            }
+            // -------------- OTHERS -------------------
+            case NodeType::LiteralExpression: {
+                if (auto* expr = dynamic_cast<LiteralExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
+            case NodeType::ValueExpression: {
+                if (auto* expr = dynamic_cast<ValueExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
+            case NodeType::VariableExpression: {
+                if (auto* expr = dynamic_cast<VariableExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
+            case NodeType::CallExpression: {
+                if (auto* expr = dynamic_cast<CallExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
+            case NodeType::MethodExpression: {
+                if (auto* expr = dynamic_cast<MethodExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
+            case NodeType::BinaryExpression: {
+                if (auto* expr = dynamic_cast<BinaryExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
+            case NodeType::BinaryOpExpression: {
+                if (auto* expr = dynamic_cast<BinaryOpExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
+            case NodeType::BinaryInlineExpression: {
+                if (auto* expr = dynamic_cast<BinaryInlineExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
+            case NodeType::ObjectFieldExpression: {
+                if (auto* expr = dynamic_cast<ObjectFieldExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
 
             // --- others ---
             default: {
-                if (auto* expr = dynamic_cast<Expression*>(node)) {
-                    expr->evaluate(currentEnv);
-                }
+                // if (auto* expr = dynamic_cast<Expression*>(node)) {
+                //     expr->evaluate(currentEnv);
+                // }
+                Tools::errorf("UNKNOWN Expression EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
                 break;
             }
 

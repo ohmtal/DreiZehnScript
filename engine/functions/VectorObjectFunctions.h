@@ -29,8 +29,8 @@ namespace DreiZehn {
         Vector3Object() : ValueObject(TypeVector3Object) { }
         ~Vector3Object() { }
 
-        inline static ValueObjectProperty mToString;
-        inline static ValueObjectProperty mNormalize;
+        inline static ValueObjectProperty mToStringProp;
+        inline static ValueObjectProperty mSetProp;
         inline static ValueObjectProperty mXprop;
         inline static ValueObjectProperty mYprop;
         inline static ValueObjectProperty mZprop;
@@ -45,12 +45,17 @@ namespace DreiZehn {
 
             mZprop   = ValueObjectProperty("z","return double Z", TypeVector3Object);
 
-            mToString   = ValueObjectProperty("toString", 0,0, "return as string", TypeVector3Object);
-            // mNormalize  = ValueObjectProperty("normalize", 0,0, "normalize vector", TypeVector3Object);
+            mToStringProp   = ValueObjectProperty("toString", 0,0, "return as string", TypeVector3Object);
+            mSetProp  = ValueObjectProperty("set", 1,3, "set new values", TypeVector3Object);
 
             mSymbolsLoaded = true;
         }
-
+        // -------------------------------------------------------------------------
+        inline std::string toString() override{
+            char buffer[64];
+            snprintf(buffer, sizeof(buffer), "%f %f %f", mVec.x.getDouble(), mVec.y.getDouble(), mVec.z.getDouble());
+            return std::string(buffer);
+        }
         // -------------------------------------------------------------------------
         inline Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
             if (fieldSymbolId == mXprop.mSymbolId) return &mVec.x;
@@ -77,15 +82,17 @@ namespace DreiZehn {
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
 
-            if (mToString.matchMethod( methodId , args) == 1) {
-                char buffer[64];
-                snprintf(buffer, sizeof(buffer), "%f %f %f", mVec.x.getDouble(), mVec.y.getDouble(), mVec.z.getDouble());
-                ret = Value(std::string(buffer));
+            if (mToStringProp.matchMethod( methodId , args) == 1) {
+                ret = Value(toString());
+                return true;
             }
-//             else if ( methodId == mNormalize.mSymbolId ) {
-//
-//
-//             }
+            else if (mSetProp.matchMethod( methodId , args) == 1) {
+                if (args.size() > 0 ) mVec.x = args[0].getDouble();
+                if (args.size() > 1 ) mVec.y = args[1].getDouble();
+                if (args.size() > 2 ) mVec.z = args[2].getDouble();
+                ret = Value(1);
+                return true;
+            }
             else return false;
 
             return true;

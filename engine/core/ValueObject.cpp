@@ -37,8 +37,12 @@ namespace DreiZehn {
         }
         return true;
     }
-
-
+    // -------------------------------------------------------------------------
+    std::string  ValueObject::toString() {
+        char buff[64];
+        snprintf(buff, sizeof(buff), "%s [%p] ", GetObjectTypeName(this), (void*)this);
+        return std::string(buff);
+    }
     // -------------------------------------------------------------------------
 
 }

@@ -209,12 +209,21 @@ public:
         else if (isStringId()) Tools::printf("%s ", getStringRef().c_str());
         else if (isPointer()) {
             ValueObject* obj = asPointerObject();
-            Tools::printf("%s [%p] ",  GetObjectTypeName(obj), (void*)obj);
+            Tools::printf("%s",  obj->toString().c_str());
         }
         else if(isValuePointer()) {
             Tools::printf("ValuePtr [%p] ",  asValuePointer());
         }
         if (appendLineFeed) Tools::printf("\n");
+    }
+    // Debug getType
+    inline std::string const getTypeName() {
+        if (isInt()) return "int";
+        else if (isDouble()) return "double";
+        else if (isStringId()) return "string";
+        else if (isPointer()) return GetObjectTypeName(asPointerObject());
+        else if(isValuePointer()) return "ValuePointer";
+        else return "unknown";
     }
     // -------------------------------------------------------------------------
 

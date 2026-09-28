@@ -45,6 +45,7 @@ set(PROJECT_SRC
 
     # Functions and objects
     engine/functions/CoreFunctions.h
+    engine/functions/StringFunctions.h
     engine/functions/MathFunctions.h
     engine/functions/DebugFunctions.h
     engine/functions/ArrayFunctions.h

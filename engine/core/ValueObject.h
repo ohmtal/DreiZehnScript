@@ -43,6 +43,9 @@ struct ValueObject {
         return false;
     }
 
+    virtual std::string toString();
+
+
     static void RegisterSymbols() {}
 
     // garbage collection control

@@ -9,6 +9,7 @@
 #include "Environment.h"
 
 #include "functions/CoreFunctions.h"
+#include "functions/StringFunctions.h"
 #include "functions/MathFunctions.h"
 
 namespace DreiZehn {

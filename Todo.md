@@ -73,7 +73,6 @@ under 15 sec and beat python here without bytecode ;)
 - [X] ported Fenster Drawing Example to DreiZehn 
 - [X] bug on "-" => print (10-1) is 0! , print (10 -1) is error and  print (10 - 1) is 9, while print(10+1) is 11 ok 
     ==> print (10 -1) is still an error but thats ok i guess. 
-- [ ] miss the "!" operator 
 
 
 ## 0.5d:
@@ -92,11 +91,17 @@ under 15 sec and beat python here without bytecode ;)
 - [X] Fenster audio
 - [X] Added XAudio
 
+## 0.5e
+- [X] separate StringFunctions
+- [X] add a toString in ValueObject 
+- [X] core::getType
+
 ## 0.6
-- [ ] Operator callback for Objects 
+- [ ] Bytecode continue .... 
 
 ## maybe:
-- [ ] Bytecode continue .... 
+- [ ] Operator / ToString callback for Objects
+    - [ ] add OP "event" in ValueObject 
 
 # future ideas
 - [ ] header only - for easy include 

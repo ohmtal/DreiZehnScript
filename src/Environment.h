@@ -64,6 +64,7 @@ namespace DreiZehn {
         BlockType mType;
         uint32_t mFuncNameSymbolId;
         BlockStatement* mBlockNodePointer;
+        bool mIsImplicit = false; //NOTE nested if
     };
 
 

@@ -108,9 +108,10 @@ under 15 sec and beat python here without bytecode ;)
         => test_var: 8.306u 0.002s 0:08.33 99.6%     0+0k 0+0io 0pf+0w
 - [X]  BinaryOpExpression::evaluate optimized using switch - not faster. 
         => 8.383u 0.000s 0:08.41 99.6%     0+0k 0+0io 0pf+0w
-- [ ] nested if / else ==> if (i == 1) print 1; end else print "not"; end
-            only this works: if (i == 1) print 1; else print "not"; end and cant
-            be nested 
+- [X] nested if / else: `if (i == 1) print 1; end else print "not"; end`
+            only this works: `if (i == 1) print 1; else print "not"; end` and cant
+            be nested. Also added mIsImplicit so only one end must be set :)
+
 ## maybe:
 - [ ] Bytecode continue .... 
 - [ ] Operator / ToString callback for Objects

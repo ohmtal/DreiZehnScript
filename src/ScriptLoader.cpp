@@ -62,6 +62,7 @@ namespace DreiZehn {
                 bool isWhile = dynamic_cast<WhileStatement*>(ast.get()) != nullptr;
                 bool isRange = dynamic_cast<ForRangeStatement*>(ast.get()) != nullptr;
 
+
                 if (isFor || isWhile || isIf || isRange) {
                     std::shared_ptr<ASTNode> sharedBase = std::move(ast);
                     std::shared_ptr<BlockStatement> sharedLoop = std::static_pointer_cast<BlockStatement>(sharedBase);
@@ -72,7 +73,18 @@ namespace DreiZehn {
                     auto& outerBlock = blockStack.back();
                     if (outerBlock.mType == BlockType::Function) {
                         FunctionMap::RegisteredScriptFunctions[outerBlock.mFuncNameSymbolId].body.push_back(sharedLoop);
-                    } else if (outerBlock.mType == BlockType::ForLoop || outerBlock.mType == BlockType::WhileLoop || outerBlock.mType == BlockType::IfBlock) {
+                    } else if (outerBlock.mType == BlockType::IfBlock) {
+                        auto* parentIf = dynamic_cast<IfStatement*>(outerBlock.mBlockNodePointer);
+                        if (parentIf && parentIf->mIsInElseBranch) {
+                            parentIf->mElseBody.push_back(sharedLoop);
+                            if (isIf) { //NOTE nested if with less end
+                                blockStack.push_back({bType, 0, blockPtr, true} );
+                                continue;
+                            }
+                        } else {
+                            outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
+                        }
+                    } else if (outerBlock.mType == BlockType::ForLoop || outerBlock.mType == BlockType::WhileLoop) {
                         outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
                     }
 
@@ -80,14 +92,21 @@ namespace DreiZehn {
                     continue;
                 }
 
-                //FIXME nested if end else ....
+
                 // ---- end -----
                 if (dynamic_cast<FunctionDefineEndNode*>(ast.get())) {
                     if (blockStack.size() <= 1) {
                         Tools::PrintParseError("Syntax-Error: 'end' without starting statement.");
                         return nullptr;
                     }
+
+                    //NOTE nested if with less end :
+                    while (blockStack.size() > 1 && blockStack.back().mIsImplicit) {
+                        blockStack.pop_back();
+                    }
+
                     blockStack.pop_back();
+
                     continue;
                 }
 

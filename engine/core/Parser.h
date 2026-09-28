@@ -43,7 +43,8 @@ private:
 
     // punkt vor strich :P orders of ...
     int getPrecedence(TokenType type) {
-        if (type == TokenType::Mul || type == TokenType::Div || type == TokenType::Modulo) return 6;
+        if (type == TokenType::Mul || type == TokenType::Div
+            || type == TokenType::Modulo || type == TokenType::Not) return 6;
         if (type == TokenType::Plus || type == TokenType::Minus) return 5;
         if (type == TokenType::SHL || type == TokenType::SHR) return 4;
 
@@ -86,9 +87,11 @@ private:
         || peek().mType == TokenType::GreaterEqual
         || peek().mType == TokenType::BitAnd
         || peek().mType == TokenType::BitOr
+        || peek().mType == TokenType::XOr
         || peek().mType == TokenType::SHL
         || peek().mType == TokenType::SHR
         || peek().mType == TokenType::Modulo
+        || peek().mType == TokenType::Not
         ;
     }
 
@@ -116,6 +119,12 @@ private:
                 Tools::errorf("Error: Missing closing bracket %s %d\n", __FILE__, __LINE__);
             }
             return expr;
+        }
+        else
+        if (peek().mType == TokenType::Not) {
+            advance(); //eat Not
+            auto expr = parseMath();
+            return std::make_unique<BinarySingleRightOpExpression>( TokenType::Not, std::move(expr));
         }
         else
         if (peek().mType == TokenType::Number || peek().mType == TokenType::StringLiteral) {
@@ -188,12 +197,9 @@ private:
 
     // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parseMath(int minPrecedence = 0) {
-        auto left = parsePrimary();
 
-        //FIXME ,,,, must think about how to add it with Precedence
-//         if (peek().mType == TokenType::Not) {
-//
-//         }
+
+        auto left = parsePrimary();
 
         while (isMathType()) {
             Token op = peek();
@@ -202,6 +208,7 @@ private:
             if (precedence < minPrecedence) {
                 break;
             }
+
 
             advance();
 
@@ -437,7 +444,6 @@ public:
                 auto rhs = parseComparison();
                 return std::make_unique<AssignStatement>(SymbolTable::insert( varName),0, std::move(rhs));
             }
-            //FIXME REVIEW it's or maybe i should make some functions for that
             else if (nextToken.mType == TokenType::Dot) {
                 if (peekOffset(+2).mType == TokenType::Identifier
                     && peekOffset(+3).mType == TokenType::Assign

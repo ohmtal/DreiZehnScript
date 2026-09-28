@@ -1,0 +1,41 @@
+-- FensterAudio Test
+print "FensterAudio TEST. You may set `bitRate` to change the sound "
+
+fa = FensterAudio::new
+
+global_time_total = 0
+
+rate = 8000
+melody = 0
+vol = 0.5
+
+print concat "* rate    = " rate   " ==> highter is faster."
+print concat "* melody  = " melody "  ==> 0..5 available"
+print concat "* vol     = " vol    "  ==> Volume"
+print "* quit ==> call to stop the loop"
+
+while core::breath
+    n = fa.avail
+    if n > 0
+        forRange i n
+            global_time_total++
+            x = math::floor (global_time_total * rate / 44100)
+            if melody == 0; byte_value = (x * ((x >> 8) | (x >> 9))) & 46;;
+--             if melody == 0; byte_value = (x * ((x >> 8) | (x >> 9))) & 46 & (x >> 8);;
+            if melody == 1; byte_value = (x * ((x >> 5) | (x >> 8))) & 256;;
+            if melody == 2; byte_value = ((x * 5 & x >> 7) | (x * 3 & x >> 10)) & 256;;
+            if melody == 3; byte_value = ((x >> 6 | x | x >> 5) * 10 + (x >> 11)) & 256;;
+            if melody == 4; byte_value = ((x * (x >> 8 | x >> 9) & 20 | (x >> 19) * 5)) ;;
+            if melody  > 4; byte_value = ((x * 9 & x >> 4) | (x * 5 & x >> 7)) & 256;;
+
+
+            if (byte_value > 256); print ("WAS:" byte_value);;
+            fa->set i ((byte_value / 255.0) * vol)
+        end
+        fa->write n
+    end
+    core::sleep 16
+end
+
+
+fa->close

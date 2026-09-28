@@ -198,23 +198,6 @@ namespace DreiZehn::FensterWrapper {
 }
 
 
-// // struct fenster_audio fa = {0};
-// // fenster_audio_open(&fa);
-// // float audio[FENSTER_AUDIO_BUFSZ];
-// //
-// // int n = fenster_audio_available(&fa);
-// // if (n > 0) {
-// //     for (int i = 0; i < n; i++) {
-// //         u++;
-// //         /*audio[i] = (rand() & 0xff)/256.f;*/
-// //         int x = u * 80 / 441;
-// //         audio[i] = ((((x >> 10) & 42) * x) & 0xff) / 256.f;
-// //     }
-// //     fenster_audio_write(&fa, audio, n);
-// //
-// //     fenster_audio_close(&fa);
-// //
-
 // =============================================================================
 // --- FensterObject ---
 // =============================================================================
@@ -228,10 +211,17 @@ namespace DreiZehn {
         uint32_t* mPixelBuffer = nullptr;
         int64_t mSleepMS = 0;
 
-        // Symbol-IDs for fields (read only)
-        inline static uint32_t titleId = 0, widthId = 0, heightId = 0;
-        inline static uint32_t mouseXId = 0, mouseYId = 0, mouseDownId = 0;
-        inline static uint32_t timeId = 0;
+        // Methods
+        inline static ValueObjectProperty loopProp, setPixelProp, isKeyDownProp;
+        inline static ValueObjectProperty closeProp, clearProp, lineProp;
+        inline static ValueObjectProperty rectProp, circleProp, fillProp;
+        inline static ValueObjectProperty textProp, sleepProp, exportProp;
+
+        // Fields (read only)
+        inline static ValueObjectProperty titleProp, widthProp, heightProp;
+        inline static ValueObjectProperty mouseXProp, mouseYProp, mouseDownProp;
+        inline static ValueObjectProperty timeProp;
+
 
 
         FensterObject(const char* title, int w, int h) : ValueObject(TypeFensterObject) {
@@ -255,43 +245,96 @@ namespace DreiZehn {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return;
 
-            titleId     = SymbolTable::insert("title");
-            widthId     = SymbolTable::insert("width");
-            heightId    = SymbolTable::insert("height");
-            mouseXId    = SymbolTable::insert("mouseX");
-            mouseYId    = SymbolTable::insert("mouseY");
-            mouseDownId = SymbolTable::insert("mouseDown");
-            timeId      = SymbolTable::insert("time");
+            loopProp = ValueObjectProperty("loop", 0,1
+            , "call the fenster loop"
+            , TypeFensterObject);
+
+            setPixelProp = ValueObjectProperty("setPixel", 3,3
+            , "set one pixel. @param int x int y uint color"
+            , TypeFensterObject);
+
+            isKeyDownProp = ValueObjectProperty("isKeyDown", 1,1
+            , "return if the given ASCII code key is pressed. @params int keycode"
+            , TypeFensterObject);
+
+            closeProp = ValueObjectProperty("close", 0,1
+            , "close the window "
+            , TypeFensterObject);
+
+            clearProp = ValueObjectProperty("clear", 0,1
+            , "clear the buffer with a color. @params [uint color] default COLOR_WHITE "
+            , TypeFensterObject);
+
+            lineProp = ValueObjectProperty("line", 5,5
+            , "flood fill at point. @param int x0 int y0 int x1 int y1 uint color"
+            , TypeFensterObject);
+
+            rectProp = ValueObjectProperty("rect", 5,5
+            , "flood fill at point. @param int x int y int width int height uint color"
+            , TypeFensterObject);
+
+            circleProp = ValueObjectProperty("circle", 4,4
+            , "flood fill at point. @param int x int y int radius uint color"
+            , TypeFensterObject);
+
+            fillProp = ValueObjectProperty("fill", 4,4
+            , "flood fill at point. @param int x int y uint oldcolor uint color"
+            , TypeFensterObject);
+
+            textProp = ValueObjectProperty("text", 5,5
+            , "print a text, @param int x int y string text int scale uint color"
+            , TypeFensterObject);
+
+            sleepProp = ValueObjectProperty("sleep", 1,1
+            , "sleep for x ms , @param int ms", TypeFensterObject);
+
+            exportProp = ValueObjectProperty("export", 1,1
+            , "export the picture to file, @param filename", TypeFensterObject);
+
+
+            titleProp     = ValueObjectProperty("title","readonly", TypeFensterObject);
+            widthProp     = ValueObjectProperty("width","readonly", TypeFensterObject);
+            heightProp    = ValueObjectProperty("height","readonly", TypeFensterObject);
+            mouseXProp    = ValueObjectProperty("mouseX","readonly", TypeFensterObject);
+            mouseYProp    = ValueObjectProperty("mouseY","readonly", TypeFensterObject);
+            mouseDownProp = ValueObjectProperty("mouseDown","readonly", TypeFensterObject);
+            timeProp      = ValueObjectProperty("time","readonly", TypeFensterObject);
             mSymbolsLoaded = true;
         }
         // -------------------------------------------------------------------------
         inline bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
-            if (fieldSymbolId == mouseXId) {
+
+            if (titleProp.matchField( fieldSymbolId)) {
+                ret = Value(std::string(mFenster.title));
+                return true;
+            }
+            else
+            if (mouseXProp.matchField(fieldSymbolId)) {
                 ret = Value(static_cast<int32_t>(mFenster.x));
                 return true;
             }
             else
-            if (fieldSymbolId == mouseYId) {
+            if ( mouseYProp.matchField(fieldSymbolId)) {
                 ret = Value(static_cast<int32_t>(mFenster.y));
                 return true;
             }
             else
-            if (fieldSymbolId == mouseDownId) {
+            if ( mouseDownProp.matchField(fieldSymbolId)) {
                 ret = Value(static_cast<int32_t>(mFenster.mouse));
                 return true;
             }
             else
-            if (fieldSymbolId == widthId) {
+            if ( widthProp.matchField(fieldSymbolId)) {
                 ret = Value(static_cast<int32_t>(mFenster.width));
                 return true;
             }
             else
-            if (fieldSymbolId == heightId) {
+            if ( heightProp.matchField(fieldSymbolId)) {
                 ret = Value(static_cast<int32_t>(mFenster.height));
                 return true;
             }
             else
-            if (fieldSymbolId == timeId) {
+            if ( timeProp.matchField(fieldSymbolId)) {
                 ret = Value(static_cast<double>(fenster_time()));
                 return true;
             }
@@ -309,24 +352,9 @@ namespace DreiZehn {
                 return false;
             }
 
-            //TODO add ValueObjectMethod ...
-            static uint32_t loopId = SymbolTable::insert("loop");
-            static uint32_t setPixelId = SymbolTable::insert("setPixel");
-            static uint32_t isKeyDownId = SymbolTable::insert("isKeyDown");
-            static uint32_t closeId = SymbolTable::insert("close");
-            static uint32_t clearId = SymbolTable::insert("clear") ;
-
-            static uint32_t lineId = SymbolTable::insert("line");
-            static uint32_t rectId = SymbolTable::insert("rect");
-            static uint32_t circleId = SymbolTable::insert("circle");
-            static uint32_t fillId = SymbolTable::insert("fill");
-            static uint32_t textId = SymbolTable::insert("text");
-
-            static uint32_t sleepid = SymbolTable::insert("sleep");
-            static uint32_t exportid = SymbolTable::insert("export");
 
             // ------- loop
-            if (methodId == loopId) {
+            if (loopProp.matchMethod( methodId , args) == 1) {
                 int result = fenster_loop(&mFenster);
                 if (mSleepMS > 0) fenster_sleep(mSleepMS);
                 ret = Value(static_cast<int32_t>(result == 0));
@@ -334,11 +362,7 @@ namespace DreiZehn {
             }
             else
             // ------- setPixel
-            if (methodId == setPixelId) {
-                if (args.size() != 3) {
-                    Tools::errorf("Usage .setPixel int x int y uint color\n");
-                    return false;
-                }
+            if (setPixelProp.matchMethod( methodId , args) == 1) {
                 int32_t x = args[0].getInt();
                 int32_t y = args[1].getInt();
 
@@ -351,11 +375,8 @@ namespace DreiZehn {
             }
             else
             // ------- isKeyDown
-            if (methodId == isKeyDownId) {
-                if (args.size() != 1) {
-                    Tools::errorf("Usage .isKeyDown int keycode\n");
-                    return false;
-                }
+            if (isKeyDownProp.matchMethod( methodId , args) == 1) {
+
                 int32_t keyCode = args[0].getInt();
 
                 if (keyCode >= 0 && keyCode < 256) {
@@ -368,7 +389,7 @@ namespace DreiZehn {
             }
             // ------- close
             else
-            if (methodId == closeId) {
+            if (closeProp.matchMethod( methodId , args) == 1) {
                 if (mPixelBuffer) {
                     fenster_close(&mFenster);
                     delete[] mPixelBuffer;
@@ -380,7 +401,7 @@ namespace DreiZehn {
 
             else
             // ------- clear
-            if (methodId == clearId && args.size() >= 1) {
+            if (clearProp.matchMethod( methodId , args) == 1) {
                 uint32_t color = 0xFFFFFFFF;
                 if (args.size() > 0) {
                     color = args[0].getUInt();
@@ -390,22 +411,13 @@ namespace DreiZehn {
             }
             else
             // ------- line
-            if (methodId == lineId) {
-                if (args.size() != 5) {
-                     Tools::errorf("Usage .line x0 y0 x1 y1 color\n");
-                    return false;
-                }
-
+            if (lineProp.matchMethod( methodId , args) == 1) {
                 FensterWrapper::line(&mFenster, args[0].getInt(), args[1].getInt(), args[2].getInt(), args[3].getInt(),args[4].getUInt());
                 return true;
             }
             else
             // ------- rect
-            if (methodId == rectId) {
-                if (args.size() != 5) {
-                    Tools::errorf("Usage .rect x y w h color\n");
-                    return false;
-                }
+            if (rectProp.matchMethod( methodId , args) == 1) {
                 int x = args[0].getInt(); if (x < 0) return false;
                 int y = args[1].getInt(); if (y < 0) return false;
                 int w = args[2].getInt(); if (w < 0 || x+w > mFenster.width) return false;
@@ -417,31 +429,19 @@ namespace DreiZehn {
             }
             else
             // ------- circle
-            if (methodId == circleId) {
-                if (args.size() != 4) {
-                    Tools::errorf("Usage .circle x y r color\n");
-                    return false;
-                }
+            if (circleProp.matchMethod( methodId , args) == 1) {
                 FensterWrapper::circle(&mFenster, args[0].getInt(), args[1].getInt(), args[2].getInt(), args[3].getUInt());
                 return true;
             }
             else
             // ------- fill
-            if (methodId == fillId) {
-                if (args.size() != 4) {
-                    Tools::errorf("Usage .fill x y oldcolor color\n");
-                    return false;
-                }
+            if (fillProp.matchMethod( methodId , args) == 1) {
                 FensterWrapper::fill(&mFenster, args[0].getInt(), args[1].getInt(), args[2].getUInt(), args[3].getUInt());
                 return true;
             }
             else
             // ------- text
-            if (methodId == textId) {
-                if (args.size() != 5) {
-                    Tools::errorf("Usage .text x y text scale color\n");
-                    return false;
-                }
+            if (textProp.matchMethod( methodId , args) == 1) {
                 FensterWrapper::text(&mFenster,
                                      args[0].getInt(), args[1].getInt(),
                                      args[2].getStringRef().c_str(),
@@ -450,24 +450,16 @@ namespace DreiZehn {
             }
             else
             // ------- sleep
-            if (methodId == sleepid) {
-                if (args.size() != 1) {
-                    Tools::errorf("Usage .sleep (int) ms\n");
-                    return false;
-                }
+            if (sleepProp.matchMethod( methodId , args) == 1) {
                 fenster_sleep(static_cast<int64_t>(args[0].getDouble()));
                 return true;
             }
             else
-                // ------- export
-                if (methodId == exportid) {
-                    if (args.size() != 1 || !args[0].isStringId()) {
-                        Tools::errorf("Usage .export string filename\n");
-                        return false;
-                    }
-                    FensterWrapper::save_to_bmp(args[0].getStringRef().c_str(), &mFenster);
-                    return true;
-                }
+            // ------- export
+            if (exportProp.matchMethod( methodId , args) == 1) {
+                FensterWrapper::save_to_bmp(args[0].getStringRef().c_str(), &mFenster);
+                return true;
+            }
             // ------- nothing found
             else {
                 Tools::errorf("Unknown Fenster method: %s\n", SymbolTable::getName(methodId).c_str());

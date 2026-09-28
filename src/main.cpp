@@ -13,6 +13,7 @@
 
 #ifdef DREIZEHN_FENSTER
 #include "engine/functions/FensterFunctions.h"
+#include "engine/functions/FensterAudioFunctions.h"
 #endif
 
 #ifdef DREIZEHN_SDL3
@@ -138,6 +139,7 @@ int main(int argc, char* argv[]) {
     RegisterVectorObjectFunctions();
     #ifdef DREIZEHN_FENSTER
     RegisterFensterFunctions();
+    RegisterFensterAudioFunctions();
     #endif
     #ifdef DREIZEHN_SDL3
     RegisterSDL3Functions();

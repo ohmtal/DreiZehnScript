@@ -44,6 +44,7 @@ enum class TokenType {
 
     , While
     , Or, And, BitOr, BitAnd
+    , XOr
     , LowerEqual, GreaterEqual
     , SHL, SHR
 
@@ -101,6 +102,7 @@ inline const char* tokenTypeToString(TokenType type) {
 
         case TokenType::Or:            return "OR ||";
         case TokenType::BitOr:         return "Bit |";
+        case TokenType::XOr:           return "Bit ^";
         case TokenType::BitAnd:         return "Bit &";
         case TokenType::And:            return "AND &&";
         case TokenType::LowerEqual:     return "LowerEqual";
@@ -200,6 +202,7 @@ public:
             if (peek() == '<') { advance(); tokens.push_back({TokenType::Less, "<"}); continue; }
             // ----------------------------------------------------------------
 
+            if (peek() == '^' ) { advance(); tokens.push_back({TokenType::XOr, "^"}); continue; }
             if (peek() == '|' && peekNext() != '|') { advance(); tokens.push_back({TokenType::BitOr, "|"}); continue; }
             if (peek() == '&' && peekNext() != '&') { advance(); tokens.push_back({TokenType::BitAnd, "&"}); continue; }
 
@@ -258,6 +261,7 @@ public:
                 else if (id == "return") { tokens.push_back({TokenType::Return, "return"});  }
                 else if (id == "while") { tokens.push_back({TokenType::While, "while"});  }
                 else if (id == "forRange") { tokens.push_back({TokenType::forRange, "forRange"});  }
+                else if (id == "not") { tokens.push_back({TokenType::Not, "not"});  }
                 else {
                     tokens.push_back({TokenType::Identifier, id});
                 }
@@ -296,6 +300,7 @@ public:
             }
 
 
+            if (peek() == ';' && peekNext() == ';') { advance(); tokens.push_back({TokenType::End, ";;"}); continue; }
             if (peek() == ';') { advance(); tokens.push_back({TokenType::Semicolon, ";"}); continue; }
 
             advance(); // skip unknown

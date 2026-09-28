@@ -33,20 +33,19 @@ namespace DreiZehn {
             // ValueObjectProperty(std::string name,  uint32_t minParams, uint32_t maxParams, std::string help)
 
             // method
-            valueProp = ValueObjectProperty("value","Return the String");
-            RegisterObjectProperty(TypeStringObject,valueProp);
+            valueProp = ValueObjectProperty("value","Return the String", TypeStringObject);
 
-            appendProp =  ValueObjectProperty("append",1,16,"append up to 16 values to the string and return the result");
-            RegisterObjectProperty(TypeStringObject,appendProp);
+            appendProp =  ValueObjectProperty("append",1,16,"append up to 16 values to the string and return the result"
+                , TypeStringObject
+            );
 
-            toNumberProp =  ValueObjectProperty("toNumber",0,0,"Return the number representation of the String");
-            RegisterObjectProperty(TypeStringObject,toNumberProp);
+            toNumberProp =  ValueObjectProperty("toNumber",0,0
+                ,"Return the number representation of the String", TypeStringObject);
 
-            getLenProp = ValueObjectProperty("len",0,0,"Return the length the String");
-            RegisterObjectProperty(TypeStringObject,getLenProp);
+            getLenProp = ValueObjectProperty("len",0,0,"Return the length the String", TypeStringObject);
 
-            getCharProp = ValueObjectProperty("char",1,1,"Return the int value of on character. Usage: .char index");
-            RegisterObjectProperty(TypeStringObject, getCharProp);
+            getCharProp = ValueObjectProperty("char",1,1
+                ,"Return the int value of on character. Usage: .char index", TypeStringObject);
 
         }
         // -------------------------------------------------------------------------
@@ -197,6 +196,7 @@ namespace DreiZehn {
             Tools::errorf("file name requires for run\n");
             return false;
         });
+
         // ---------------------------------------------------------------------
         RegisterFunction("concat", [](std::vector<Value>& args, Value& ret) -> bool {
             std::string resultStr = "";
@@ -231,6 +231,20 @@ namespace DreiZehn {
             }
             return false;
         });
+        // ---------------------------------------------------------------------
+        // sleep ms
+        // a main loop in script
+        // ---------------------------------------------------------------------
+        RegisterFunction("core::sleep", [&env](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 1) {
+                 Tools::errorf("Usage: core::sleep ms\n");
+                 return false;
+            }
+            Tools::sleep(args[0].asUInt());
+            return true;
+        });
+
+
         // ---------------------------------------------------------------------
         // Garbage collection
         // ---------------------------------------------------------------------

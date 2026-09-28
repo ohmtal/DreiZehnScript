@@ -276,6 +276,11 @@ namespace DreiZehn {
                 int r = rVal.getInt();
                 return Value( l | r);
             }
+            case TokenType::XOr: {
+                int l = lVal.getInt();
+                int r = rVal.getInt();
+                return Value( l ^ r);
+            }
             case TokenType::SHL: {
                 int l = lVal.getInt();
                 int r = rVal.getInt();
@@ -300,6 +305,12 @@ namespace DreiZehn {
     }
 
 
+    // -------------------------------------------------------------------------
+
+    Value BinarySingleRightOpExpression::evaluate(Environment& env)  {
+        Value rVal = mRight->evaluate(env);
+        return Value(!rVal.getInt());
+    }
     // -------------------------------------------------------------------------
 
 }

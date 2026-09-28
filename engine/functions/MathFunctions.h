@@ -130,11 +130,16 @@ namespace DreiZehn {
             return true;
         });
         // ---------------------------------------------------------------------
-        RegisterFunction("math::mod", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("math::pow", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 2) return false;
-            int i1 = args[0].getInt();
-            int i2 = args[1].getInt();
-            ret = Value(i1 % i2);
+            double i1 = args[0].getDouble();
+            double i2 = args[1].getDouble();
+            double res = std::pow(i1, i2);
+            if (std::isnan(res)) {
+                Tools::errorf("Error: pow(%f, %f) produced NaN.\n", i1,i2);
+                return false;
+            }
+            ret = Value(res);
             return true;
         });
         // ---------------------------------------------------------------------

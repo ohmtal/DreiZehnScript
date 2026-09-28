@@ -39,19 +39,14 @@ namespace DreiZehn {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return;
 
-            mXprop   = ValueObjectProperty("x","return double X");
-            RegisterObjectProperty(TypeVector3Object, mXprop);
+            mXprop   = ValueObjectProperty("x","return double X", TypeVector3Object);
 
-            mYprop   = ValueObjectProperty("y","return double Y");
-            RegisterObjectProperty(TypeVector3Object, mYprop);
+            mYprop   = ValueObjectProperty("y","return double Y", TypeVector3Object);
 
-            mZprop   = ValueObjectProperty("z","return double Z");
-            RegisterObjectProperty(TypeVector3Object, mZprop);
+            mZprop   = ValueObjectProperty("z","return double Z", TypeVector3Object);
 
-
-            // TODO
-            mNormalize  = ValueObjectProperty("normalize", 0,0, "normalize vector");
-            RegisterObjectProperty(TypeVector3Object, mNormalize);
+            mToString   = ValueObjectProperty("toString", 0,0, "return as string", TypeVector3Object);
+            // mNormalize  = ValueObjectProperty("normalize", 0,0, "normalize vector", TypeVector3Object);
 
             mSymbolsLoaded = true;
         }
@@ -82,8 +77,15 @@ namespace DreiZehn {
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
 
-            if ( methodId == mToString.mSymbolId ) { /*TODO*/ return false;}
-            if ( methodId == mNormalize.mSymbolId ) { /*TODO*/ return false;}
+            if (mToString.matchMethod( methodId , args) == 1) {
+                char buffer[64];
+                snprintf(buffer, sizeof(buffer), "%f %f %f", mVec.x.getDouble(), mVec.y.getDouble(), mVec.z.getDouble());
+                ret = Value(std::string(buffer));
+            }
+//             else if ( methodId == mNormalize.mSymbolId ) {
+//
+//
+//             }
             else return false;
 
             return true;

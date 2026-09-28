@@ -94,6 +94,7 @@ if (BUILD_WITH_FENSTER)
     endif()
 
     list(APPEND PROJECT_SRC "engine/functions/FensterFunctions.h")
+    list(APPEND PROJECT_SRC "engine/functions/FensterAudioFunctions.h")
     add_compile_definitions(DREIZEHN_FENSTER)
 endif()
 

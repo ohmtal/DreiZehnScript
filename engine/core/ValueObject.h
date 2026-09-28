@@ -57,6 +57,16 @@ protected:
 // =============================================================================
 // --- ValueObjectProperty, UserObjectDefintion  ---
 // =============================================================================
+struct ValueObjectProperty;
+
+struct UserObjectDefintion {
+    std::string mName;
+    std::vector <ValueObjectProperty> mProperties;
+};
+
+inline int gLastValueObjectType = 0;
+inline std::unordered_map <int,UserObjectDefintion> gUserObjectTypes;
+
 
 struct ValueObjectProperty {
     uint32_t mSymbolId = 0;
@@ -70,27 +80,43 @@ struct ValueObjectProperty {
     ValueObjectProperty(){}
 
     // Method
-    ValueObjectProperty(std::string name,  uint32_t minParams, uint32_t maxParams, std::string help)
+    ValueObjectProperty(std::string name,  uint32_t minParams, uint32_t maxParams, std::string help, int valueObjectTypeId )
     : mIsMethod(true),mName(name),  mHelp(help), mMinParams(minParams), mMaxParams(maxParams) {
         mSymbolId = SymbolTable::insert(name);
+        if (valueObjectTypeId > 0) RegisterAtType(valueObjectTypeId);
     }
     // Field
-    ValueObjectProperty(std::string name,  std::string help)
+    ValueObjectProperty(std::string name,  std::string help , int valueObjectTypeId )
     : mIsMethod(false),mName(name),  mHelp(help), mMinParams(0), mMaxParams(0) {
         mSymbolId = SymbolTable::insert(name);
+        if (valueObjectTypeId > 0) RegisterAtType(valueObjectTypeId);
     }
 
+    inline void RegisterAtType(int valueObjectTypeId) {
+        auto it = gUserObjectTypes.find(valueObjectTypeId);
+        if (it != gUserObjectTypes.end()) {
+            it->second.mProperties.push_back(*this);
+        }
+        assert(true && "registerObjectProperty impossible on unknown valueObjectTypeId");
+    }
+
+
     bool ValidateArgs( std::vector<Value>& args);
+    // -------------------------------------------------------------------------
+    // like ValidateArgs but also check the symbolId
+    // NOTE return 1 on success 0 = no match = -1 == param error
+    inline int matchMethod(uint32_t symbolId, std::vector<Value>& args) {
+        if (this->mSymbolId != symbolId) return 0;
+        if ( !ValidateArgs(args) ) return -1;
+        return 1;
+    }
+    inline bool matchField(uint32_t symbolId) {
+        if (this->mSymbolId != symbolId) return false;
+        return true;
+    }
 
 };
 
-struct UserObjectDefintion {
-    std::string mName;
-    std::vector <ValueObjectProperty> mProperties;
-};
-
-inline int gLastValueObjectType = 0;
-inline std::unordered_map <int,UserObjectDefintion> gUserObjectTypes;
 
 
 // =============================================================================
@@ -118,15 +144,15 @@ inline const char* GetObjectTypeName(ValueObject* object) {
 // --- RegisterObjectProperty ---
 // =============================================================================
 
-inline uint32_t RegisterObjectProperty(int valueObjectTypeId, ValueObjectProperty property) {
-    auto it = gUserObjectTypes.find(valueObjectTypeId);
-    if (it != gUserObjectTypes.end()) {
-        it->second.mProperties.push_back(property);
-        return property.mSymbolId;
-    }
-    assert(true && "registerObjectProperty impossible on unknown valueObjectTypeId");
-    return 0;
-}
+// inline uint32_t RegisterObjectProperty(int valueObjectTypeId, ValueObjectProperty property) {
+//     auto it = gUserObjectTypes.find(valueObjectTypeId);
+//     if (it != gUserObjectTypes.end()) {
+//         it->second.mProperties.push_back(property);
+//         return property.mSymbolId;
+//     }
+//     assert(true && "registerObjectProperty impossible on unknown valueObjectTypeId");
+//     return 0;
+// }
 
 
 } //namespace

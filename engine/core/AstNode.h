@@ -195,7 +195,21 @@ struct BinaryExpression : public Expression {
 
     Value evaluate(Environment& env) override;
 };
-// BinaryOP ----------------------------------------------------------------------
+// BinarySingleRightOpExpression  ----------------------------------------------
+// used for Not
+struct BinarySingleRightOpExpression : public Expression {
+
+    TokenType mOp;
+    std::unique_ptr<Expression> mRight;
+
+    BinarySingleRightOpExpression( TokenType o, std::unique_ptr<Expression> r)
+    :  mOp(o), mRight(std::move(r)) {
+        mNodeType  = NodeType::BinaryExpression;
+    }
+
+    Value evaluate(Environment& env) override;
+};
+// BinaryOP --------------------------------------------------------------------
 struct BinaryOpExpression : public Expression {
     std::unique_ptr<Expression> mLeft;
     TokenType mOp;

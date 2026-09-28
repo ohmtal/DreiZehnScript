@@ -83,13 +83,20 @@ under 15 sec and beat python here without bytecode ;)
 - [X] add core::breath to enable console while running a loop 
 - [X] Added StringTable and set all variable strings here with new Value Type StringId
 - [X] Since main loop input is non blocking i need a sleep
+- [X] added Not `!` or `not` and Module `%` - when both are float it's an fmod
+- [X] added `;;` for lazy end
+- [X] added export to Fenster 
+- [X] changed the register system to only line per prop
+- [X] added one line func for method or field match (matchMethod/matchField)
+- [X] Fenster added to the Register System 
+- [X] Fenster audio
+- [X] Added XAudio
 
 ## 0.6
-- [ ] Bytecode continue .... 
+- [ ] Operator callback for Objects 
 
 ## maybe:
-- [ ] Fenster need also the Register System 
-- [ ] Fenster audio
+- [ ] Bytecode continue .... 
 
 # future ideas
 - [ ] header only - for easy include 

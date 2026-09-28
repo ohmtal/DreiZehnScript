@@ -36,26 +36,6 @@ namespace DreiZehn::FunctionMap {
             return nullptr;
     }
 
-    // ----------- Field validation
-    // TODO .. i want to get forward with binding do this later!!
-    // struct ParameterDef {
-    //     ValueType fieldType = ValueType::Undefined;
-    //     bool optional       = false;
-    //     std::string docu    = "";
-    // };
-    // using FuncParameterList = std::vector<ParameterDef>;
-    // using FuncParameterMap = std::unordered_map<std::string, FuncParameterList>;
-    // inline FuncParameterMap RegisteredFuncParms;
-    //
-    // inline void RegisterFunctionParameter(const std::string& name, const FuncParameterList& funcParams) {
-    //     RegisteredFuncParms[name] = funcParams;
-    // }
-    //
-    // inline bool FunctionParamValidate(const std::string& name, const std::vector<Value>&) {
-    //     // if (RegisteredFuncParms.din)
-    // }
-    //
-
     // --------------- SCRIPT FUNCTION ----------------------
 
     struct ScriptFunction {

@@ -23,54 +23,13 @@ set(BUILD_WITH_SANITIZE ${SANITIZE_DEFAULT} CACHE BOOL "Build Application with -
 # -----------------------------------------------------------------------------
 project(DreiZehn C CXX)
 
+include ("${CMAKE_CURRENT_LIST_DIR}/src/DreiZehn.cmake")
+
 set(PROJECT_SRC
-
-    # core
-    engine/core/AstNode.h
-    engine/core/FunctionMap.h
-    engine/core/Lexer.h
-    engine/core/Parser.h
-    engine/core/Value.h
-    engine/core/ValueObject.h
-    engine/core/ValueObject.cpp
-    engine/core/VariableFrame.h
-
-    engine/Environment.h
-
-    engine/ScriptLoader.h
-    engine/ScriptLoader.cpp
-
-    # Noderunner:
-    engine/noderunner/AstNode_noderunner.cpp
-
-    # Functions and objects
-    engine/functions/CoreFunctions.h
-    engine/functions/StringFunctions.h
-    engine/functions/MathFunctions.h
-    engine/functions/DebugFunctions.h
-    engine/functions/ArrayFunctions.h
-    engine/functions/VectorObjectFunctions.h
-
-
-    # ToolBox
-    engine/toolbox/SymbolTable.h
-    engine/toolbox/Tools.h
-
-    # Bytecode compiler TODO
-    # engine/bytecode/AstNode_bytecode.cpp
-    # engine/bytecode/ASTCompiler.h
-    # engine/bytecode/CompilerScope.h
-    # engine/bytecode/VM.h
-    # engine/bytecode/VMStructure.h
-
-
-    engine/Globals.h
-    engine/DreiZehn.h
-
 
     ext/linenoise/linenoise.c
     ext/linenoise/linenoise.h
-    src/main.cpp
+    demo/main.cpp
 )
 
 # ------------- SDL3
@@ -79,7 +38,7 @@ if (BUILD_WITH_SDL3)
     find_package(SDL3 REQUIRED)
     set (SDL3_LINKLIB SDL3::SDL3)
 
-    list(APPEND PROJECT_SRC "engine/functions/SDL3Functions.h")
+    # list(APPEND PROJECT_SRC "engine/functions/SDL3Functions.h")
     add_compile_definitions(DREIZEHN_SDL3)
 endif()
 
@@ -94,14 +53,15 @@ if (BUILD_WITH_FENSTER)
         set(FENSTER_LINKLIB "X11;asound")
     endif()
 
-    list(APPEND PROJECT_SRC "engine/functions/FensterFunctions.h")
-    list(APPEND PROJECT_SRC "engine/functions/FensterAudioFunctions.h")
+    # list(APPEND PROJECT_SRC "engine/functions/FensterFunctions.h")
+    # list(APPEND PROJECT_SRC "engine/functions/FensterAudioFunctions.h")
     add_compile_definitions(DREIZEHN_FENSTER)
 endif()
 
 # ------------- Main
 add_executable(${PROJECT_NAME}
     ${PROJECT_SRC}
+    ${DREIZEHN_SRC}
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -112,7 +72,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 target_include_directories(${PROJECT_NAME} PRIVATE
      "${CMAKE_CURRENT_SOURCE_DIR}/"
-     "${CMAKE_CURRENT_SOURCE_DIR}/engine"
+     "${CMAKE_CURRENT_SOURCE_DIR}/src/"
      "${CMAKE_CURRENT_SOURCE_DIR}/ext"
 )
 

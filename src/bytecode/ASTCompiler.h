@@ -5,7 +5,7 @@
 // The power machine :)
 //-----------------------------------------------------------------------------
 #pragma once
-#include "VariableFrame.h"
+#include "core/VariableFrame.h"
 #include "VMStructure.h"
 #include <memory>
 

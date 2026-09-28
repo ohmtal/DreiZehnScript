@@ -6,18 +6,18 @@
 #include <string>
 
 
-#include "engine/DreiZehn.h"
-#include "engine/functions/DebugFunctions.h"
-#include "engine/functions/ArrayFunctions.h"
-#include "engine/functions/VectorObjectFunctions.h"
+#include "DreiZehn.h"
+#include "functions/DebugFunctions.h"
+#include "functions/ArrayFunctions.h"
+#include "functions/VectorObjectFunctions.h"
 
 #ifdef DREIZEHN_FENSTER
-#include "engine/functions/FensterFunctions.h"
-#include "engine/functions/FensterAudioFunctions.h"
+#include "functions/FensterFunctions.h"
+#include "functions/FensterAudioFunctions.h"
 #endif
 
 #ifdef DREIZEHN_SDL3
-#include "engine/functions/SDL3Functions.h"
+#include "functions/SDL3Functions.h"
 #endif
 
 #include "linenoise/linenoise.h"

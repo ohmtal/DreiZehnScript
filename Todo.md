@@ -97,6 +97,9 @@ under 15 sec and beat python here without bytecode ;)
 - [X] core::getType
 
 ## 0.6
+- [X] moved src to demo and engine to src and add an DreiZehn.cmake file
+- [X] Add Base Nodes to clean Enviroment::execute **hope this does not slowdown**
+- [ ] :( cleaner code cost me about 2 sec in test_var/test_field - i think it's the assign ? 
 - [ ] Bytecode continue .... 
 
 ## maybe:

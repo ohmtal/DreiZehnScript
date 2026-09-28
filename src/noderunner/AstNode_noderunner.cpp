@@ -312,5 +312,220 @@ namespace DreiZehn {
         return Value(!rVal.getInt());
     }
     // -------------------------------------------------------------------------
+    // STATEMENTS execute
+    // -------------------------------------------------------------------------
+    void AssignStatement::execute(Environment& env) {
+        if(this->mFieldSymbolId > 0) {
+            Value varValue = env.getVariableFrame()->getVariable(this->mVarNameSymbolId);
+            if (!varValue.isPointer()) {
+                Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(this->mVarNameSymbolId).c_str());
+                return;
+            }
 
+            ValueObject* obj = dynamic_cast<ValueObject*>(varValue.asPointerObject());
+            if (!obj->onSetField(this->mFieldSymbolId, this->mRhs->evaluate(env))) {
+                Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
+                                SymbolTable::getName(this->mVarNameSymbolId).c_str(),
+                                SymbolTable::getName(this->mFieldSymbolId).c_str()
+                );
+            }
+
+        } else {
+            env.getVariableFrame()->setVariable(this->mVarNameSymbolId, this->mRhs->evaluate(env));
+        }
+    }
+    // -------------------------------------------------------------------------
+    void AssignOPStatement::execute(Environment& env) {
+        Value* valuePtr = nullptr;
+        Value* variablePtr = env.getVariableFrame()->getVariablePtr(this->mVarNameSymbolId);
+        if (!variablePtr) {
+            Tools::errorf("Invalid Pointer operation: %s\n",tokenTypeToString(this->mOp));
+            return;
+        }
+        if (variablePtr->isPointer() ) {
+            valuePtr = variablePtr->asPointerObject()->onGetFieldPtr(this->mFieldSymbolId);
+            if (!valuePtr) return;
+        } else {
+            valuePtr = variablePtr;
+        }
+        Value rightHand = this->mRhs->evaluate(env);
+        if (valuePtr->isInt() && rightHand.isInt()) {
+            int32_t intval = valuePtr->asFastInt();
+            switch(this->mOp) {
+                case TokenType::AssignPlus:  intval += rightHand.asFastInt(); break;
+                case TokenType::AssignMinus: intval -= rightHand.asFastInt(); break;
+                case TokenType::AssignMul:   intval *= rightHand.asFastInt(); break;
+                case TokenType::AssignDiv:  if (rightHand.asFastInt() != 0) {intval /= rightHand.asFastInt();} break;
+                default: break;
+            }
+            *valuePtr = Value(intval);
+        } else if (valuePtr->isDouble() && rightHand.isDouble()) {
+            double doubleval = valuePtr->asFastDouble();
+            switch(this->mOp) {
+                case TokenType::AssignPlus:  doubleval += rightHand.asFastDouble(); break;
+                case TokenType::AssignMinus: doubleval -= rightHand.asFastDouble(); break;
+                case TokenType::AssignMul:   doubleval *= rightHand.asFastDouble(); break;
+                case TokenType::AssignDiv:  if (rightHand.asFastDouble() != 0.0) {doubleval /= rightHand.asFastDouble();} break;
+                default: break;
+            }
+            *valuePtr = Value(doubleval);
+
+        } else {
+            double doubleval = valuePtr->getDouble();
+            switch(this->mOp) {
+                case TokenType::AssignPlus:  doubleval += rightHand.getDouble(); break;
+                case TokenType::AssignMinus: doubleval -= rightHand.getDouble(); break;
+                case TokenType::AssignMul:   doubleval *= rightHand.getDouble(); break;
+                case TokenType::AssignDiv:  if (rightHand.getDouble() != 0.0) {doubleval /= rightHand.getDouble();} break;
+                default: break;
+            }
+            *valuePtr = Value(doubleval);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // FLOW STATEMENTS execute
+    // -------------------------------------------------------------------------
+    FlowSignal ReturnStatement::execute(Environment& env) {
+        if (this->mExpression) {
+            Value retVal = this->mExpression->evaluate(env);
+            env.getVariableFrame()->setVariable(SymbolTable::insert("__return_value__"), retVal);
+        }
+        return FlowSignal::Return;
+    };
+
+    // -------------------------------------------------------------------------
+    FlowSignal IfStatement::execute(Environment& env){
+        Value condVal = this->mCondition->evaluate(env);
+
+        double condNum = condVal.getDouble();
+        const double EPSILON = 1e-9;
+        bool isTrue = std::abs(condNum) > EPSILON;
+
+        if (isTrue) {
+            for (auto& childNode : this->mBody) {
+                if (!childNode) continue;
+                FlowSignal sig = env.execute(childNode.get(), env);
+                if (sig != FlowSignal::None) return sig;
+            }
+        } else {
+            for (auto& childNode : this->mElseBody) {
+                if (!childNode) continue;
+                FlowSignal sig = env.execute(childNode.get(), env);
+                if (sig != FlowSignal::None) return sig;
+            }
+        }
+        return  FlowSignal::None;
+    }
+
+    // -------------------------------------------------------------------------
+    FlowSignal ForRangeStatement::execute(Environment& env){
+        if (!this->mCountExpr ) {
+            Tools::errorf("Runtime Error: range need a count border!\n");
+            return FlowSignal::None;
+        }
+        Value countVal = this->mCountExpr->evaluate(env);
+        Environment loopEnv(&env);
+
+        int32_t count = countVal.getInt();
+        if (count < 0 ) {
+            Tools::errorf("Runtime Error: range border must be >= 0 and is %d!\n", count);
+            return FlowSignal::None;
+        }
+        for (int i = 0; i < count; i++) {
+            loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
+
+            for (auto& statement : this->mBody) {
+                FlowSignal sig = env.execute(statement.get(), loopEnv);
+
+                if (sig == FlowSignal::Break) {
+                    return FlowSignal::None;
+                }
+                if (sig == FlowSignal::Return) {
+                    return FlowSignal::Return;
+                }
+            }
+        }
+        return  FlowSignal::None;
+    }
+
+    // -------------------------------------------------------------------------
+    FlowSignal ForStatement::execute(Environment& env){
+        if (!this->mStartExpr || !this->mEndExpr ) {
+            Tools::errorf("Runtime Error: invalid for borders!\n");
+            return FlowSignal::None;
+        }
+        Value startVal = this->mStartExpr->evaluate(env);
+        Value endVal = this->mEndExpr->evaluate(env);
+
+        int start = startVal.getInt();
+        int end = endVal.getInt();
+
+        Environment loopEnv(&env);
+
+        if (start > end ) {
+            for (int i = start; i >= end; --i) {
+                loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
+
+                for (auto& statement : this->mBody) {
+                    FlowSignal sig = env.execute(statement.get(), loopEnv);
+
+                    if (sig == FlowSignal::Break) {
+                        return FlowSignal::None;
+                    }
+                    if (sig == FlowSignal::Return) {
+                        return FlowSignal::Return;
+                    }
+                }
+            }
+
+        } else {
+            for (int i = start; i <= end; ++i) {
+                loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
+
+                for (auto& statement : this->mBody) {
+                    FlowSignal sig = env.execute(statement.get(), loopEnv);
+
+                    if (sig == FlowSignal::Break) {
+                        return FlowSignal::None;
+                    }
+                    if (sig == FlowSignal::Return) {
+                        return FlowSignal::Return;
+                    }
+                }
+            }
+        }
+        return FlowSignal::None;
+    }
+
+    // -------------------------------------------------------------------------
+    FlowSignal WhileStatement::execute(Environment& env){
+        Environment loopEnv(&env);
+
+        auto checkCondition = [&]() -> bool {
+            Value condVal = this->mCondition->evaluate(loopEnv);
+            return (condVal.isInt() && condVal.asInt() != 0) ||
+            (condVal.isDouble() && condVal.asDouble() != 0.0);
+        };
+
+        while (checkCondition()) {
+            for (auto& statement : this->mBody) {
+                FlowSignal sig = env.execute(statement.get(), loopEnv);
+
+                if (sig == FlowSignal::Break) return FlowSignal::None;
+                if (sig == FlowSignal::Return) return FlowSignal::Return;
+            }
+        }
+        return FlowSignal::None;
+    }
+
+    // -------------------------------------------------------------------------
+    FlowSignal BlockStatement::execute(Environment& env){
+        for (auto& statement : this->mBody) {
+            if (!statement) continue;
+            FlowSignal sig = env.execute(statement.get(), env);
+            if (sig != FlowSignal::None) return sig;
+        }
+        return FlowSignal::None;
+    }
 }

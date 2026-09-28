@@ -16,7 +16,7 @@
 #include <iostream>
 #include <cstring>
 #include "VMStructure.h"
-#include "VariableFrame.h"
+#include "core/VariableFrame.h"
 
 namespace DreiZehn {
 

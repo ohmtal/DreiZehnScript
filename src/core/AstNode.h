@@ -16,6 +16,12 @@ namespace DreiZehn {
 
 class Environment;
 
+enum class FlowSignal {
+    None,
+    Break,
+    Return
+};
+
 enum class NodeType {
     BaseNode,
     Expression,
@@ -87,13 +93,25 @@ struct Expression : public ASTNode {
     virtual Value evaluate(Environment& env) = 0;
 };
 
+// AssignBaseStatement --------------------------------------------------------
+struct AssignBaseStatement: public ASTNode {
+    virtual void execute(Environment& env) = 0;
+};
+
+// FlowBaseStatement --------------------------------------------------------
+struct FlowBaseStatement: public ASTNode {
+    virtual FlowSignal execute(Environment& env) = 0;
+};
+
+
 // block statement --------------------------------------------------------------
-class BlockStatement : public ASTNode {
+class BlockStatement : public FlowBaseStatement {
 public:
     std::vector<std::shared_ptr<ASTNode>> mBody;
     BlockStatement() {
         mNodeType = NodeType::BlockStatement;
     }
+    FlowSignal execute(Environment& env) override;
 };
 
 
@@ -171,7 +189,8 @@ struct MethodExpression : public Expression {
     Value evaluate(Environment& env) override;
 };
 // Assingment ------------------------------------------------------------------
-struct AssignStatement : public ASTNode {
+
+struct AssignStatement : public AssignBaseStatement {
     uint32_t mVarNameSymbolId;
     uint32_t mFieldSymbolId = 0;
     std::unique_ptr<Expression> mRhs; // Right-Hand Side
@@ -180,6 +199,9 @@ struct AssignStatement : public ASTNode {
     : mVarNameSymbolId(varNameSymId), mFieldSymbolId(fieldSymbolId), mRhs(std::move(expr)) {
         mNodeType  = NodeType::AssignStatement;
     }
+
+    void execute(Environment& env) override;
+
 };
 // Binary ----------------------------------------------------------------------
 struct BinaryExpression : public Expression {
@@ -236,7 +258,7 @@ struct BinaryInlineExpression : public Expression {
     Value evaluate(Environment& env) override;
 };
 // AssingmentOP ------------------------------------------------------------------
-struct AssignOPStatement : public ASTNode {
+struct AssignOPStatement : public AssignBaseStatement {
     uint32_t mVarNameSymbolId;
     uint32_t mFieldSymbolId;
     TokenType mOp;
@@ -246,6 +268,7 @@ struct AssignOPStatement : public ASTNode {
     : mVarNameSymbolId(varNameSymId),mFieldSymbolId(fieldId),mOp(op),  mRhs(std::move(expr)) {
         mNodeType  = NodeType::AssignOPStatement;
     }
+    void execute(Environment& env) override;
 };
 // If -------------------------------------------------------------------------
 // struct IfStatement : public ASTNode {
@@ -258,6 +281,8 @@ struct IfStatement : public BlockStatement {
     IfStatement(std::unique_ptr<Expression> cond) : mCondition(std::move(cond)) {
         mNodeType  = NodeType::IfStatement;
     }
+
+    FlowSignal execute(Environment& env) override;
 
 };
 struct ElseMarkerNode: public ASTNode {};
@@ -288,6 +313,8 @@ struct ForStatement : public BlockStatement {
     : mIteratorVarNameSymbolId(nameSymId), mStartExpr(std::move(start)), mEndExpr(std::move(end)) {
             mNodeType  = NodeType::ForStatement;
     }
+
+    FlowSignal execute(Environment& env) override;
 };
 // forRange -------------------------------------------------------------------------
 struct ForRangeStatement : public BlockStatement {
@@ -298,21 +325,29 @@ struct ForRangeStatement : public BlockStatement {
     : mIteratorVarNameSymbolId(nameSymId), mCountExpr(std::move(count)) {
         mNodeType  = NodeType::RangeStatement;
     }
+
+    FlowSignal execute(Environment& env) override;
 };
 // break -------------------------------------------------------------------------
-struct BreakStatement : public ASTNode {
+struct BreakStatement : public FlowBaseStatement {
     BreakStatement() {
         mNodeType  = NodeType::BreakStatement;
     }
+    inline FlowSignal execute(Environment& env) override {
+        return FlowSignal::Break;
+    };
 
 };
 
 // return -------------------------------------------------------------------------
-struct ReturnStatement : public ASTNode {
+struct ReturnStatement : public FlowBaseStatement {
     std::unique_ptr<Expression> mExpression;
     ReturnStatement(std::unique_ptr<Expression> expr) : mExpression(std::move(expr)) {
         mNodeType  = NodeType::ReturnStatement;
     }
+    FlowSignal execute(Environment& env) override;
+
+
 };
 
 // While -------------------------------------------------------------------------
@@ -321,5 +356,6 @@ struct WhileStatement : public BlockStatement {
     WhileStatement(std::unique_ptr<Expression> cond) : mCondition(std::move(cond)) {
         mNodeType  = NodeType::WhileStatement;
     }
+    FlowSignal execute(Environment& env) override;
 };
 } //namespace

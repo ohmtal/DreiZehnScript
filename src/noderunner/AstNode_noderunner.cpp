@@ -13,29 +13,33 @@
 
 namespace DreiZehn {
     // -------------------------------------------------------------------------
+    // LiteralExpression :: optimized
     Value LiteralExpression::evaluate(Environment& env) {
+
+        if (mEvaluated) return mEvaluatedValue;
+        mEvaluatedValue = Value();
+
         if (mType == TokenType::Number) {
             char* endptr = nullptr;
             bool  haveDot = mRawValue.find('.') != std::string::npos;
             double resDouble = std::strtod(mRawValue.c_str(), &endptr);
             if (mRawValue.empty() || *endptr != '\0') {
-                return Value(0);
+                mEvaluatedValue =  Value(0);
             } else {
-                if (haveDot) return Value(resDouble);
-                else return Value((int32_t)resDouble);
+                if (haveDot) mEvaluatedValue = Value(resDouble);
+                else mEvaluatedValue =  Value((int32_t)resDouble);
             }
         }
 
         if (mType == TokenType::StringLiteral) {
-            return Value(mRawValue);
+            mEvaluatedValue = Value(mRawValue);
         }
-        return Value(); // Fallback
+        mEvaluated = true;
+        return mEvaluatedValue;
     }
     // -------------------------------------------------------------------------
     Value VariableExpression::evaluate(Environment& env) {
-        // return env.getVariable(SymbolTable::insert(mName));
         return env.getVariableFrame()->getVariable(mVariableNameSymbolId);
-
     }
     // -------------------------------------------------------------------------
     Value ObjectFieldExpression::evaluate(Environment& env) {
@@ -145,20 +149,37 @@ namespace DreiZehn {
         }
         Value lVal = mLeft->evaluate(env);
         Value rVal = mRight->evaluate(env);
-
         if (lVal.isInt() && rVal.isInt()) {
-            if (mOp == TokenType::Plus) return Value(lVal.asInt() + rVal.asInt());
-            if (mOp == TokenType::Minus) return Value(lVal.asInt() - rVal.asInt());
-            if (mOp == TokenType::Mul) return Value(lVal.asInt() * rVal.asInt());
-            if (mOp == TokenType::Div) return Value(lVal.asInt() / rVal.asInt());
+            switch (mOp) {
+                case TokenType::Plus:  return Value(lVal.asFastInt() + rVal.asFastInt());
+                case TokenType::Minus: return Value(lVal.asFastInt() - rVal.asFastInt());
+                case TokenType::Mul:   return Value(lVal.asFastInt()  * rVal.asFastInt());
+                case TokenType::Div:   return Value(lVal.asFastInt()  / rVal.asFastInt());
+                default: return Value(); // should not reached!
+            }
+        } else {
+            switch (mOp) {
+                case TokenType::Plus:  return Value(lVal.getDouble() + rVal.getDouble());
+                case TokenType::Minus: return Value(lVal.getDouble() - rVal.getDouble());
+                case TokenType::Mul:   return Value(lVal.getDouble() * rVal.getDouble());
+                case TokenType::Div:   return Value(lVal.getDouble() / rVal.getDouble());
+                default: return Value(); // should not reached!
+            }
         }
-        double lNum = lVal.getDouble();
-        double rNum = rVal.getDouble();
 
-        if (mOp == TokenType::Plus) return Value(lNum + rNum);
-        if (mOp == TokenType::Minus) return Value(lNum - rNum);
-        if (mOp == TokenType::Mul) return Value(lNum * rNum);
-        if (mOp == TokenType::Div) return Value(lNum / rNum);
+        // if (lVal.isInt() && rVal.isInt()) {
+        //     if (mOp == TokenType::Plus) return Value(lVal.asInt() + rVal.asInt());
+        //     if (mOp == TokenType::Minus) return Value(lVal.asInt() - rVal.asInt());
+        //     if (mOp == TokenType::Mul) return Value(lVal.asInt() * rVal.asInt());
+        //     if (mOp == TokenType::Div) return Value(lVal.asInt() / rVal.asInt());
+        // }
+        // double lNum = lVal.getDouble();
+        // double rNum = rVal.getDouble();
+        //
+        // if (mOp == TokenType::Plus) return Value(lNum + rNum);
+        // if (mOp == TokenType::Minus) return Value(lNum - rNum);
+        // if (mOp == TokenType::Mul) return Value(lNum * rNum);
+        // if (mOp == TokenType::Div) return Value(lNum / rNum);
 
         return Value();
 
@@ -504,8 +525,9 @@ namespace DreiZehn {
 
         auto checkCondition = [&]() -> bool {
             Value condVal = this->mCondition->evaluate(loopEnv);
-            return (condVal.isInt() && condVal.asInt() != 0) ||
-            (condVal.isDouble() && condVal.asDouble() != 0.0);
+            return (condVal.getInt() != 0);
+            // return (condVal.isInt() && condVal.asFastInt() != 0) ||
+            // (condVal.isDouble() && condVal.asFastDouble() != 0.0);
         };
 
         while (checkCondition()) {

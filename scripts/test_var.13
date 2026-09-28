@@ -1,4 +1,4 @@
-# Benchmark-Test for DreiZehn Script (0.4)
+# Benchmark-Test for DreiZehn Script (0.6)
 JLOOPS = 25
 ILOOPS = 1000000
 HLOOPS = 1000000 / 2

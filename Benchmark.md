@@ -4,6 +4,7 @@ I used my Benchmark Script from ElfScript:
 
 - Lua 5.5.1: 1.243u 0.002s 0:01.25 99.2%     0+0k 0+0io 0pf+0w
 - Elfscript 0.7c: 1.354u 0.002s 0:01.36 99.2%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn 0.6b: 8.300u 0.002s 0:08.33 99.6%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.6a: 11.218u 0.012s 0:11.28 99.4%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.4c: 12.478u 0.002s 0:12.52 99.6%    0+0k 0+0io 0pf+0w
 - python 3: 15.768u 0.005s 0:15.83 99.5%    0+0k 0+0io 0pf+0w. 
@@ -12,60 +13,60 @@ I used my Benchmark Script from ElfScript:
 - 🐢 DreiZehn 0.1: 26.907u 0.006s 0:27.00 99.6%    0+0k 0+0io 0pf+0w
 - OGE3D (my Torque3D based on 3.10) : 33.268u 0.299s 0:33.61 99.8%  0+0k 0+24io 0pf+0w
 
-🐢 == Noderunner (pre bytecode)- not bad for that ;) 
+🐢 == Noderunner (pre bytecode)- using "global/scope variables"- not bad for that ;) 
 
 👾 == bytecode in porting mode ....
 
 🚀 == bytecode in place 
 
 
-## Script on Version 0.1:
+## Script on Version 0.6:
 
 ```
-# Benchmark-Test for DreiZehn Engine
+# Benchmark-Test for DreiZehn Script (0.6)
 JLOOPS = 25
 ILOOPS = 1000000
+HLOOPS = 1000000 / 2
 
-localX = 0
+globalX = 0
 
-for j 0 (JLOOPS - 1)
-    for i 0 (ILOOPS - 1)
-        localX = localX + 1
+forRange j JLOOPS
+    forRange i ILOOPS
+        globalX++
     end
-    print (concat "SUM (++) IS: " localX)
+    print  "SUM (++) IS: " globalX
 
-    for i 0 (ILOOPS - 1)
-        localX = localX - 1
+    forRange i ILOOPS
+        globalX--
     end
-    print (concat "SUM (--) IS: " localX)
+    print  "SUM (--) IS: " globalX
 
-    localX = 66
-    print (concat "set Sum to 66 == " (localX * 1))
+    globalX = 66
+    print  "set Sum to 66 == " (globalX * 1)
 
-    for i 0 (ILOOPS - 1)
-        localX = localX * (i + 1)
-        localX = localX / (i + 1)
+    forRange i ILOOPS
+        globalX *= (i + 1)
+        globalX /= (i + 1)
     end
-    print (concat "SUM (*/ %i+1) IS: " localX)
+    print  "SUM (*/ %i+1) IS: " globalX
 
-    # TEST comment
-    limit = (ILOOPS / 2) - 1
     ran = 0.0
-    for i 0 limit
-        ran = random * i
-        localX = localX - ran
-        localX = localX + ran
+    forRange i HLOOPS
+        ran = math::randomf * i
+        globalX -= ran
+        globalX += ran
     end
-    print (concat "last ran" ran)
-    print (concat "SUM (rand +-) IS: " localX)
+    print  "last ran" ran
+    print  "SUM (rand +-) IS: " globalX
 end
 
-localX = localX - 33
+globalX = globalX - 33
 print "---------------------"
 print "---------------------"
-print (concat "Final sum should be 33 == " localX)
+print  "Final sum should be 33 == " globalX
 print "---------------------"
 print "---------------------"
+
 ```
 
 ## Field Benchmark
@@ -74,11 +75,10 @@ Same as before but with Vector3Object field.
 Note on 0.5b: While Variables  uses fast "++"/"--" fields only have the slower assign
 Note on 0.5c: Added inline OP and OP assign :) Nearly as fast as global var
 
+- 🐢 DreiZehn 0.6b: 8.945u 0.003s 0:08.98 99.5%     0+0k 8+0io 0pf+0w
 - 🐢 DreiZehn 0.6a: 11.743u 0.004s 0:11.78 99.6%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.5c: 13.057u 0.004s 0:13.09 99.6%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.5b: 19.794u 0.004s 0:19.85 99.6%    0+0k 0+0io 0pf+0w
-
-
 
 
 ## Counting to one Billion 

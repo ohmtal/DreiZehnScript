@@ -80,6 +80,8 @@ namespace DreiZehn {
                     continue;
                 }
 
+                //FIXME nested if end else ....
+                // ---- end -----
                 if (dynamic_cast<FunctionDefineEndNode*>(ast.get())) {
                     if (blockStack.size() <= 1) {
                         Tools::PrintParseError("Syntax-Error: 'end' without starting statement.");

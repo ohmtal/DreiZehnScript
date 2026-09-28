@@ -120,6 +120,9 @@ struct LiteralExpression : public Expression {
     TokenType mType;
     std::string mRawValue;
 
+    bool  mEvaluated = false;
+    Value mEvaluatedValue;
+
     LiteralExpression(TokenType t, std::string val)
         : mType(t), mRawValue(std::move(val)) {
             mNodeType  = NodeType::LiteralExpression;
@@ -145,6 +148,11 @@ struct ValueExpression : public Expression {
 struct VariableExpression : public Expression {
     // std::string mName;
     uint32_t mVariableNameSymbolId = 0;
+
+    // NOT!
+    // bool  mEvaluated = false;
+    // Value mEvaluatedValue;
+
     VariableExpression(uint32_t n) : mVariableNameSymbolId(n) {
         mNodeType  = NodeType::VariableExpression;
     }

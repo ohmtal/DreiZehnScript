@@ -96,20 +96,32 @@ under 15 sec and beat python here without bytecode ;)
 - [X] add a toString in ValueObject 
 - [X] core::getType
 
-## 0.6
+## 0.6a
 - [X] moved src to demo and engine to src and add an DreiZehn.cmake file
 - [X] Add Base Nodes to clean Enviroment::execute **hope this does not slowdown**
-- [ ] :( cleaner code cost me about 2 sec in test_var/test_field - i think it's the assign ? 
-- [ ] Bytecode continue .... 
+- [X] :( cleaner code cost me about 2 sec in test_var/test_field - i think it's the assign ? 
+- [X] found my 2 seconds and got one more
 
+## 0.6b
+- started at test_var time:  11.218u 0.012s 0:11.28 99.4%    0+0k 0+0io 0pf+0w
+- [X] LiteralExpression :: optimized - value is cached after evaluate! :D - 3sec :)
+        => test_var: 8.306u 0.002s 0:08.33 99.6%     0+0k 0+0io 0pf+0w
+- [X]  BinaryOpExpression::evaluate optimized using switch - not faster. 
+        => 8.383u 0.000s 0:08.41 99.6%     0+0k 0+0io 0pf+0w
+- [ ] nested if / else ==> if (i == 1) print 1; end else print "not"; end
+            only this works: if (i == 1) print 1; else print "not"; end and cant
+            be nested 
 ## maybe:
+- [ ] Bytecode continue .... 
 - [ ] Operator / ToString callback for Objects
     - [ ] add OP "event" in ValueObject 
 
 # future ideas
+- [ ] switch / case
+
+- [ ] multiline statement for if..  << but then i need a parameter separator !
 - [ ] header only - for easy include 
     - Problem : CallExpression <> FunctionMap < ASTNode
-- [ ] multiline statement for if..  << but then i need a parameter separator !
     
 - change printf errorf to a overwritable class or add a handler 
 

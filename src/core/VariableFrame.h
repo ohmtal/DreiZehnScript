@@ -39,7 +39,7 @@ public:
         gCurrentFrame = this;
         if (parentFrame == nullptr) {
             gMasterFrame = this;
-            mGarbageCollection.reserve(2048);
+            mGarbageCollection.reserve(128);
         }
         mParentFrame = parentFrame;
     }
@@ -144,7 +144,7 @@ public:
         assert(gMasterFrame && "addToGarbageCollection but Frame have not MasterFrame!!!");
         gMasterFrame->mGarbageCollection.push_back(obj);
         _GarbageCheckCounter++;
-        if (_GarbageCheckCounter > 500) {
+        if (_GarbageCheckCounter > 64) {
             _GarbageCheckCounter = 0;
             doGarbageCollection(false);
         }

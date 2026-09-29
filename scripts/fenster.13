@@ -15,7 +15,7 @@ while fenster->loop
        break
    end
    fenster->rect 0 210 320 30 COLOR_DARKGRAY
-   fenster->text 20 220 (concat "mouse: x:" fenster.mouseX ", y:" fenster.mouseY ", down:" fenster.mouseDown) 2 0xFFFFFF
+   fenster->text 20 220 (str::concat "mouse: x:" fenster.mouseX ", y:" fenster.mouseY ", down:" fenster.mouseDown) 2 0xFFFFFF
 
 
 

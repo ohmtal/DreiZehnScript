@@ -52,14 +52,14 @@ for i 1 3
     calc i
 end
 
-# concat
+# str::concat
 for i 1 3
-   print (concat "i is: " i)
+   print (str::concat "i is: " i)
 end
 
 # break
 for i 0 10
-   print (concat "break at " (i - 5) "=>" i)
+   print (str::concat "break at " (i - 5) "=>" i)
    if (i == 5) break end
 end
 

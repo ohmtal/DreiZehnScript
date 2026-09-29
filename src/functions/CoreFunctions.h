@@ -55,28 +55,7 @@ namespace DreiZehn {
             return false;
         });
 
-        // ---------------------------------------------------------------------
-        RegisterFunction("concat", [](std::vector<Value>& args, Value& ret) -> bool {
-            std::string resultStr = "";
 
-            for ( auto& val : args) {
-                if (val.isInt()) {
-                    resultStr += std::to_string(val.asInt());
-                }
-                else if (val.isDouble()) {
-                    std::string dStr = std::to_string(val.asDouble());
-                    dStr.erase(dStr.find_last_not_of('0') + 1, std::string::npos);
-                    if (dStr.back() == '.') dStr.pop_back();
-                    resultStr += dStr;
-                }
-                else if (val.isStringId()) {
-                    resultStr += val.getString();
-                }
-            }
-
-            ret = Value(resultStr);
-            return true;
-        });
 
         // ---------------------------------------------------------------------
         RegisterFunction("core::getType", [](std::vector<Value>& args, Value& ret) -> bool {

@@ -1,25 +1,25 @@
 screenWidth    = 800
 screenHeight   = 450
 
-raylib::InitWindow screenWidth screenHeight "raylib [core] example - basic window"
-raylib::SetTargetFPS 60
+rl::InitWindow screenWidth screenHeight "raylib [core] example - basic window"
+rl::SetTargetFPS 60
 
 text       = "Congrats! You created your first window!"
 fontSize   = 30
-textWidth  = raylib::MeasureText text fontSize
+textWidth  = rl::MeasureText text fontSize
 x = screenWidth  / 2 - textWidth / 2
 y = screenHeight / 2 - fontSize  / 2
-bgColor = raylib::Color::new 30 20 60 255
+bgColor = rl::Color 30 20 60 255
 
-while !raylib::WindowShouldClose && core::breath
+while !rl::WindowShouldClose && core::breath
 
-    raylib::BeginDrawing
+    rl::BeginDrawing
 
-    raylib::ClearBackground bgColor
-    raylib::DrawFPS 10 10
-    raylib::DrawText text x y fontSize raylib::LIGHTGRAY
+    rl::ClearBackground bgColor
+    rl::DrawFPS 10 10
+    rl::DrawText text x y fontSize rl::LIGHTGRAY
 
-    raylib::EndDrawing
+    rl::EndDrawing
 end
 
-raylib::CloseWindow
+rl::CloseWindow

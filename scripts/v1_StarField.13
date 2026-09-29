@@ -119,7 +119,7 @@ if Init
 
         SDL_SetRenderDrawColor Renderer 200 200 255 255
         SDL_SetRenderScale Renderer  fontScale fontScale
-        SDL_RenderDebugText Renderer 10 10 concat "StarField @13-Script Stars:" STAR_COUNT " DT:" Dt
+        SDL_RenderDebugText Renderer 10 10 str::concat "StarField @13-Script Stars:" STAR_COUNT " DT:" Dt
         SDL_SetRenderScale Renderer  1 1
 
         SDL_RenderPresent Renderer

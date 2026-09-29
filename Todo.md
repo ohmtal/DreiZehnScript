@@ -111,15 +111,21 @@ under 15 sec and beat python here without bytecode ;)
 - [X] nested if / else: `if (i == 1) print 1; end else print "not"; end`
             only this works: `if (i == 1) print 1; else print "not"; end` and cant
             be nested. Also added mIsImplicit so only one end must be set :)
+- [X] string format str::format `"Hello %s" "World"` 
+
+- [ ] string OP: 
+    - [ ] '==' '!=' BAD:  print ("UHU" == "HU") => 1 
+    - [ ] also '+' '+=' 
+            
+
 
 ## maybe:
 - [ ] Bytecode continue .... 
-- [ ] Operator / ToString callback for Objects
-    - [ ] add OP "event" in ValueObject 
-
+    
 # future ideas
+- [ ] Operator callback for Objects
+    - [ ] add OP "event" in ValueObject 
 - [ ] switch / case
-
 - [ ] multiline statement for if..  << but then i need a parameter separator !
 - [ ] header only - for easy include 
     - Problem : CallExpression <> FunctionMap < ASTNode

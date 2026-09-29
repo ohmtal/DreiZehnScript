@@ -2,14 +2,187 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
+// Parts of formatString are borrowed from ElfScript/TorqueScript:
+//      Copyright (c) 2012 GarageGames, LLC
+//      Copyright (c) 2026 Thomas Hühn (XXTH)
+//      SPDX-License-Identifier: MIT
+//-----------------------------------------------------------------------------
 // String Functions and Object
 //-----------------------------------------------------------------------------
 #pragma once
 #include "core/FunctionMap.h"
 #include "ScriptLoader.h"
 #include <core/VariableFrame.h>
+#include <string.h>
 
 namespace DreiZehn {
+
+    // =============================================================================
+    // --- formatString ---
+    // =============================================================================
+    std::string formatString(std::vector<Value>& args) {
+
+        if (args.size() < 1) return "";
+
+        const char* fmt = args[0].getStringRef().c_str();
+        int currentArgIndex = 1; // First arg at 1
+
+        std::string result = "";
+
+        while (*fmt)
+        {
+            if (*fmt == '%')
+            {
+                if (*(fmt + 1) == '\0')
+                {
+                    result += "%";
+                    break;
+                }
+
+                const char* specStart = fmt;
+                fmt++;
+
+                // We have a double %%, it's just an escaped percent sign
+                if (*fmt == '%')
+                {
+                    result += '%';
+                    fmt++;
+                    continue;
+                }
+
+                if (currentArgIndex >= args.size())
+                {
+                    Tools::errorf("formatString: invalid argument count !!");
+                    break;
+                }
+
+                Value& curVal = args[currentArgIndex];
+                currentArgIndex++;
+
+                // skip flags
+                while (*fmt != '\0' && !isalpha(*fmt))
+                {
+                    fmt++;
+                }
+
+                // long/long flags check
+                bool isLongLong = false;
+                bool isLong = false;
+                bool isLongDouble = false;
+
+                // modifier flags
+                while (*fmt == 'l' || *fmt == 'h' || *fmt == 'z' || *fmt == 'L')
+                {
+                    if (*fmt == 'l')
+                    {
+                        if (isLong) { isLongLong = true; isLong = false; }
+                        else { isLong = true; }
+                    }
+                    else if (*fmt == 'L')
+                    {
+                        isLongDouble = true;
+                    }
+                    fmt++;
+                }
+
+                // null check
+                if (*fmt == '\0')
+                {
+                    Tools::errorf("formatString: invalid format specifier!!");
+                    break;
+                }
+
+                char tokenBuffer[512];
+                tokenBuffer[0] = '\0';
+
+                // calc length
+                uint32_t specLen = (fmt - specStart) + 1;
+                char specBuffer[32];
+                if (specLen > 31)
+                {
+                    Tools::errorf("formatString: format specifier too long!");
+                    break;
+                }
+
+                strncpy(specBuffer, specStart, specLen);
+                specBuffer[specLen] = '\0';
+
+                // here is the beaf
+                switch (*fmt)
+                {
+                    case 's': // String
+                        snprintf(tokenBuffer, sizeof(tokenBuffer), specBuffer, curVal.getStringRef().c_str());
+                        break;
+
+                    case 'c':
+                    case 'C':
+                    case 'd':
+                    case 'i':
+                    case 'o':
+                    case 'u':
+                    case 'x':
+                    case 'X':
+                    {
+                        if (isLongLong)
+                        {
+                            if (*fmt == 'u' || *fmt == 'x' || *fmt == 'X')
+                                snprintf(tokenBuffer, sizeof(tokenBuffer), specBuffer, (unsigned long long)curVal.getUInt());
+                            else
+                                snprintf(tokenBuffer, sizeof(tokenBuffer), specBuffer, (long long)curVal.getInt());
+                        }
+                        else if (isLong)
+                        {
+                            if (*fmt == 'u' || *fmt == 'x' || *fmt == 'X')
+                                snprintf(tokenBuffer, sizeof(tokenBuffer), specBuffer, (unsigned long)curVal.getUInt());
+                            else
+                                snprintf(tokenBuffer, sizeof(tokenBuffer), specBuffer, (long)curVal.getInt());
+                        }
+                        else //  32-Bit Integer
+                        {
+                            if (*fmt == 'u' || *fmt == 'x' || *fmt == 'X')
+                                snprintf(tokenBuffer, sizeof(tokenBuffer), specBuffer, (unsigned int)curVal.getUInt());
+                            else
+                                snprintf(tokenBuffer, sizeof(tokenBuffer), specBuffer, (int)curVal.getInt());
+                        }
+                        break;
+                    }
+
+                    case 'e':
+                    case 'E':
+                    case 'f':
+                    case 'g':
+                    case 'G':
+                    {
+                        // sprintf erwartet für %f/%e/%g standardmäßig double (64-Bit Fließkomma)
+                        if (isLongDouble)
+                            snprintf(tokenBuffer, sizeof(tokenBuffer), specBuffer, (long double)curVal.getDouble());
+                        else
+                            snprintf(tokenBuffer, sizeof(tokenBuffer), specBuffer, curVal.getDouble());
+                        break;
+                    }
+
+                    case 'p':
+                        snprintf(tokenBuffer, sizeof(tokenBuffer), specBuffer, (void*)curVal.getPointer());
+                        break;
+
+                    default:
+                        Tools::errorf("formatString: unknown type: '%c'!", *fmt);
+                        tokenBuffer[0] = '\0';
+                        break;
+                }
+
+                result += tokenBuffer;
+            }
+            else
+            {
+                result += *fmt;
+            }
+
+            fmt++;
+        }
+
+        return result;
+    }
 
     // =============================================================================
     // --- StringObject ---
@@ -164,6 +337,35 @@ namespace DreiZehn {
             return true;
         });
         // ---------------------------------------------------------------------
+        // ---------------------------------------------------------------------
+        RegisterFunction("str::concat", [](std::vector<Value>& args, Value& ret) -> bool {
+            std::string resultStr = "";
+
+            for ( auto& val : args) {
+                if (val.isInt()) {
+                    resultStr += std::to_string(val.asInt());
+                }
+                else if (val.isDouble()) {
+                    std::string dStr = std::to_string(val.asDouble());
+                    dStr.erase(dStr.find_last_not_of('0') + 1, std::string::npos);
+                    if (dStr.back() == '.') dStr.pop_back();
+                    resultStr += dStr;
+                }
+                else if (val.isStringId()) {
+                    resultStr += val.getString();
+                }
+            }
+
+            ret = Value(resultStr);
+            return true;
+        });
+
+        // ---------------------------------------------------------------------
+        RegisterFunction("str::format", [](std::vector<Value>& args, Value& ret) -> bool {
+
+            ret = Value( formatString(args));
+            return true;
+        });
     } //RegisterStringFunctions
 
 } //namespace

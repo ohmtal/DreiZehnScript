@@ -1,4 +1,15 @@
 # FIXME: not all fields should be double!!!!
+# Example of fail:
+#     ValueObjectRenderTexture(const RenderTexture& val): ValueObject(TypeRaylibRenderTexture) {
+#     mAssigned = 0;
+#     id = Value((double)val.id);
+#    >> texture = Value((double)val.texture);
+#    >> depth = Value((double)val.depth);
+# }
+# NOTE: need a fix for structs containing structs
+
+
+
 import json
 import os
 import re
@@ -51,6 +62,7 @@ def generate_raylib_bindings(json_path, output_cpp_path):
     cpp.append("//-----------------------------------------------------------------------------")
     cpp.append("// Automatically generated Raylib Bindings for DreiZehn")
     cpp.append("//-----------------------------------------------------------------------------")
+    cpp.append("#pragma once")
     cpp.append("\n")
     cpp.append("#include <vector>")
     cpp.append("#include <string>")
@@ -59,14 +71,10 @@ def generate_raylib_bindings(json_path, output_cpp_path):
     cpp.append("#include \"core/VariableFrame.h\"")
     cpp.append("#include \"Globals.h\"")
 
-    cpp.append("\n")
-    cpp.append("namespace DreiZehn::Raylib {")
-    cpp.append("#include \"raylib-6.0/src/raylib.h\"")
-    cpp.append("}")
 
     cpp.append("\n")
-    cpp.append("namespace DreiZehn {\n")
-    cpp.append("using namespace DreiZehn::Raylib;")
+    cpp.append("namespace DreiZehn::Raylib {\n")
+    cpp.append("#include \"raylib-6.0/src/raylib.h\"")
 
 
     cpp.append("// Global Type IDs")
@@ -77,7 +85,7 @@ def generate_raylib_bindings(json_path, output_cpp_path):
     cpp.append("// Global Field Symbol IDs")
     for s in structs:
         for field in s.get("fields", []):
-            cpp.append(f"static uint32_t sym_{s['name']}_{field['name']};")
+            cpp.append(f"static ValueObjectProperty prop_{s['name']}_{field['name']};")
     cpp.append("")
 
     # --------------------------------------------------------------------------
@@ -92,45 +100,54 @@ def generate_raylib_bindings(json_path, output_cpp_path):
         s_name = s["name"]
         fields = s.get("fields", [])
 
-        cpp.append(f"struct ValueObject{s_name} : public ValueObject {{")
+        pre = ""
+        # preparse for void*
+        for f in fields:
+            if (f["type"] == "void *"):
+                cpp.append(f"// NOTE  {s_name} can not handle void *!")
+                pre = "// "
+
+
+        cpp.append(f"{pre}struct ValueObject{s_name} : public ValueObject {{")
 
         for f in fields:
-            cpp.append(f"    Value {f['name']};")
-        cpp.append("")
+            cpp.append(f"{pre}    Value {f['name']};")
+        cpp.append(f"{pre}")
 
-        cpp.append(f"    ValueObject{s_name}(const {s_name}& val): ValueObject(TypeRaylib{s_name}) {{")
-        cpp.append(f"        mAssigned = 0;")
+        cpp.append(f"{pre}    ValueObject{s_name}(const {s_name}& val): ValueObject(TypeRaylib{s_name}) {{")
+        cpp.append(f"{pre}        mAssigned = 0;")
         for f in fields:
-            cpp.append(f"        {f['name']} = Value((double)val.{f['name']});")
-        cpp.append("    }\n")
+            cpp.append(f"{pre}        {f['name']} = Value((double)val.{f['name']});")
+        cpp.append(f"{pre}    }}\n")
 
-        cpp.append(f"    {s_name} toRaylib() const {{")
-        cpp.append(f"        {s_name} res;")
+        cpp.append(f"{pre}    {s_name} toRaylib() const {{")
+        cpp.append(f"{pre}        {s_name} res;")
         for f in fields:
-            cpp.append(f"        res.{f['name']} = ({f['type']}){f['name']}.getDouble();")
-        cpp.append("        return res;")
-        cpp.append("    }\n")
+            cpp.append(f"{pre}        res.{f['name']} = ({f['type']}){f['name']}.getDouble();")
+        cpp.append(f"{pre}        return res;")
+        cpp.append(f"{pre}    }}\n")
 
-        cpp.append("    inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {")
+        cpp.append(f"{pre}    inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {{")
         for f in fields:
-            cpp.append(f"        if (fieldSymbolId == sym_{s_name}_{f['name']}) return &{f['name']};")
-        cpp.append(f"        Tools::errorf(\"Runtime Error: Field not found on {s_name}.\\n\");")
-        cpp.append("        return nullptr;")
-        cpp.append("    }\n")
+            cpp.append(f"{pre}        if (fieldSymbolId == prop_{s_name}_{f['name']}.mSymbolId) return &{f['name']};")
 
-        cpp.append("    inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override {")
-        cpp.append("        Value* ptr = onGetFieldPtr(fieldSymbolId);")
-        cpp.append("        if (ptr) { ret = *ptr; return true; }")
-        cpp.append("        return false;")
-        cpp.append("    }\n")
+        cpp.append(f"{pre}        Tools::errorf(\"Runtime Error: Field not found on {s_name}.\\n\");")
+        cpp.append(f"{pre}        return nullptr;")
+        cpp.append(f"{pre}    }}\n")
 
-        cpp.append("    inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) override {")
-        cpp.append("        Value* ptr = onGetFieldPtr(fieldSymbolId);")
-        cpp.append("        if (ptr) { *ptr = value; return true; }")
-        cpp.append("        return false;")
-        cpp.append("    }\n")
+        cpp.append(f"{pre}    inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override {{")
+        cpp.append(f"{pre}        Value* ptr = onGetFieldPtr(fieldSymbolId);")
+        cpp.append(f"{pre}        if (ptr) {{ ret = *ptr; return true; }}")
+        cpp.append(f"{pre}        return false;")
+        cpp.append(f"{pre}    }}\n")
 
-        cpp.append("};\n")
+        cpp.append(f"{pre}    inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) override {{")
+        cpp.append(f"{pre}        Value* ptr = onGetFieldPtr(fieldSymbolId);")
+        cpp.append(f"{pre}        if (ptr) {{ *ptr = value; return true; }}")
+        cpp.append(f"{pre}        return false;")
+        cpp.append(f"{pre}    }}\n")
+
+        cpp.append(f"{pre}}};\n")
 
     # --------------------------------------------------------------------------
     # --- Initialization Function ----------------------------------------------
@@ -145,11 +162,18 @@ def generate_raylib_bindings(json_path, output_cpp_path):
 
     cpp.append("    // Register User Object Types and Field Symbols")
     for s in structs:
+        # NOTE description is cleaned out because of parse errors
         s_name = s["name"]
-        cpp.append(f"    TypeRaylib{s_name} = RegisterUserObjectType(\"{s_name}\");")
+        s_desc = s["description"]
+        cpp.append(f"    TypeRaylib{s_name} = RegisterUserObjectType(\"{s_name}\"); // {s_desc}")
+
         for f in s.get("fields", []):
-            cpp.append(f"    sym_{s_name}_{f['name']} = SymbolTable::insert(\"{f['name']}\");")
-    cpp.append("")
+            f_name = f.get("name", "")
+            f_desc = f.get("description", "")
+            cpp.append(f"    prop_{s_name}_{f_name} = ValueObjectProperty(\"{f_name}\", \"{f_desc}\", TypeRaylib{s_name});")
+
+        cpp.append("")
+
 
     # --------------------------------------------------------------------------
     # --- Constants Registration (Enums, Defines, and Colors) ------------------
@@ -158,20 +182,28 @@ def generate_raylib_bindings(json_path, output_cpp_path):
     cpp.append("    // Register Raylib Constants")
     for enum in enums:
         for val in enum.get("values", []):
-            cpp.append(f"    RegisterConstants(\"raylib::{val['name']}\", Value((double){val['value']}));")
+            cpp.append(f"    RegisterConstants(\"rl::{val['name']}\", Value((uint32_t){val['value']}));")
 
     for d in defines:
         d_type = d.get("type", "")
         d_name = d.get("name", "")
+        d_value = d.get("value", "")
 
         if d_type in ["INT", "FLOAT", "DOUBLE"]:
-            cpp.append(f"    RegisterConstants(\"raylib::{d_name}\", Value((double){d_name}));")
+            cpp.append(f"    RegisterConstants(\"rl::{d_name}\", Value((double){d_name}));")
         elif d_type == "COLOR":
             cpp.append(f"    {{")
             cpp.append(f"        ValueObjectColor* const_color = new ValueObjectColor({d_name});")
             cpp.append(f"        const_color->mAssigned = 1;")
-            cpp.append(f"        RegisterConstants(\"raylib::{d_name}\", Value(const_color));")
+            cpp.append(f"        RegisterConstants(\"rl::{d_name}\", Value(const_color));")
             cpp.append(f"    }}")
+        elif d_type == "STRING":
+            cpp.append(f"    RegisterConstants(\"rl::{d_name}\", Value(std::string({d_name})));")
+        elif d_type == "FLOAT_MATH":
+            cpp.append(f"    RegisterConstants(\"rl::{d_name}\", Value((double){d_value}));")
+        else:
+            print (f" * unknown Constants: {d_type} for {d_name}")
+
     cpp.append("")
 
     # --------------------------------------------------------------------------
@@ -183,11 +215,11 @@ def generate_raylib_bindings(json_path, output_cpp_path):
         fields = s.get("fields", [])
         num_fields = len(fields)
 
-        cpp.append(f"    RegisterFunction(\"raylib::{s_name}::new\", [](std::vector<Value>& args, Value& ret) -> bool {{")
+        cpp.append(f"    RegisterFunction(\"rl::{s_name}\", [](std::vector<Value>& args, Value& ret) -> bool {{")
 
         cpp.append(f"        if (args.size() != 0 && args.size() != {num_fields}) {{")
         field_desc = ", ".join([f"{f['type']} {f['name']}" for f in fields])
-        cpp.append(f"            Tools::errorf(\"Usage: raylib::{s_name}::new() or raylib::{s_name}::new({field_desc})\\n\");")
+        cpp.append(f"            Tools::errorf(\"Usage: rl::{s_name} or rl::{s_name} {field_desc} \\n\");")
         cpp.append("            return false;")
         cpp.append("        }\n")
 
@@ -224,10 +256,10 @@ def generate_raylib_bindings(json_path, output_cpp_path):
         if has_unsupported_pointer:
             continue
 
-        cpp.append(f"    RegisterFunction(\"raylib::{f_name}\", [](std::vector<Value>& args, Value& ret) -> bool {{")
+        cpp.append(f"    RegisterFunction(\"rl::{f_name}\", [](std::vector<Value>& args, Value& ret) -> bool {{")
         cpp.append(f"        if (args.size() != {len(params)}) {{")
         param_desc = ", ".join([f"{p['type']} {p['name']}" for p in params])
-        cpp.append(f"            Tools::errorf(\"Usage: raylib::{f_name}({param_desc})\\n\");")
+        cpp.append(f"            Tools::errorf(\"Usage: rl::{f_name} {param_desc}\\n\");")
         cpp.append("            return false;")
         cpp.append("        }\n")
 
@@ -281,4 +313,4 @@ def generate_raylib_bindings(json_path, output_cpp_path):
     print(f"Successfully generated: {output_cpp_path}")
 
 if __name__ == "__main__":
-    generate_raylib_bindings("raylib_api.json", "RaylibFunctions.cpp")
+    generate_raylib_bindings("raylib_api.json", "RaylibFunctions.h")

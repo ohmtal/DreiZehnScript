@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     #endif
 
     #ifdef DREIZEHN_RAYLIB
-    RegisterRaylibFunctions();
+    Raylib::RegisterRaylibFunctions();
     #endif
 
 

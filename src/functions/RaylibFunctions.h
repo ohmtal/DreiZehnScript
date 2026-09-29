@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // Raylib Function - Initial - i work also on a auto generator.
+//                           - autogen miss the structs inside stucts do far
 //-----------------------------------------------------------------------------
 #pragma once
 #include <stdio.h>
@@ -17,19 +18,13 @@
 
 namespace DreiZehn::Raylib {
     #include "raylib-6.0/src/raylib.h"
-}
-
-
-
-namespace DreiZehn {
-    using namespace DreiZehn::Raylib;
 
     static int TypeRaylibColor = 0;
 
-    static uint32_t sym_Color_r;
-    static uint32_t sym_Color_g;
-    static uint32_t sym_Color_b;
-    static uint32_t sym_Color_a;
+    static ValueObjectProperty prop_Color_r;
+    static ValueObjectProperty prop_Color_g;
+    static ValueObjectProperty prop_Color_b;
+    static ValueObjectProperty prop_Color_a;
 
 
 
@@ -57,10 +52,10 @@ namespace DreiZehn {
         }
 
         inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
-            if (fieldSymbolId == sym_Color_r) return &r;
-            if (fieldSymbolId == sym_Color_g) return &g;
-            if (fieldSymbolId == sym_Color_b) return &b;
-            if (fieldSymbolId == sym_Color_a) return &a;
+            if (fieldSymbolId == prop_Color_r.mSymbolId) return &r;
+            if (fieldSymbolId == prop_Color_g.mSymbolId) return &g;
+            if (fieldSymbolId == prop_Color_b.mSymbolId) return &b;
+            if (fieldSymbolId == prop_Color_a.mSymbolId) return &a;
             Tools::errorf("Runtime Error: Field not found on Color.\n");
             return nullptr;
         }
@@ -84,146 +79,151 @@ namespace DreiZehn {
         using namespace FunctionMap;
 
         TypeRaylibColor = RegisterUserObjectType("Color");
-        sym_Color_r = SymbolTable::insert("r");
-        sym_Color_g = SymbolTable::insert("g");
-        sym_Color_b = SymbolTable::insert("b");
-        sym_Color_a = SymbolTable::insert("a");
+
+        prop_Color_r = ValueObjectProperty("r","", TypeRaylibColor);
+        prop_Color_g = ValueObjectProperty("g","", TypeRaylibColor);
+        prop_Color_b = ValueObjectProperty("b","", TypeRaylibColor);
+        prop_Color_a = ValueObjectProperty("a","", TypeRaylibColor);
+
+        RegisterConstants("rl::RAYLIB_VERSION", Value(std::string(RAYLIB_VERSION)));
+        RegisterConstants("rl::DEG2RAD", Value((double)(PI/180.0f)));
+
         {
             ValueObjectColor* const_color = new ValueObjectColor(LIGHTGRAY);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::LIGHTGRAY", Value(const_color));
+            RegisterConstants("rl::LIGHTGRAY", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(GRAY);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::GRAY", Value(const_color));
+            RegisterConstants("rl::GRAY", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(DARKGRAY);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::DARKGRAY", Value(const_color));
+            RegisterConstants("rl::DARKGRAY", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(YELLOW);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::YELLOW", Value(const_color));
+            RegisterConstants("rl::YELLOW", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(GOLD);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::GOLD", Value(const_color));
+            RegisterConstants("rl::GOLD", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(ORANGE);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::ORANGE", Value(const_color));
+            RegisterConstants("rl::ORANGE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(PINK);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::PINK", Value(const_color));
+            RegisterConstants("rl::PINK", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(RED);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::RED", Value(const_color));
+            RegisterConstants("rl::RED", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(MAROON);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::MAROON", Value(const_color));
+            RegisterConstants("rl::MAROON", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(GREEN);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::GREEN", Value(const_color));
+            RegisterConstants("rl::GREEN", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(LIME);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::LIME", Value(const_color));
+            RegisterConstants("rl::LIME", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(DARKGREEN);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::DARKGREEN", Value(const_color));
+            RegisterConstants("rl::DARKGREEN", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(SKYBLUE);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::SKYBLUE", Value(const_color));
+            RegisterConstants("rl::SKYBLUE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(BLUE);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::BLUE", Value(const_color));
+            RegisterConstants("rl::BLUE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(DARKBLUE);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::DARKBLUE", Value(const_color));
+            RegisterConstants("rl::DARKBLUE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(PURPLE);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::PURPLE", Value(const_color));
+            RegisterConstants("rl::PURPLE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(VIOLET);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::VIOLET", Value(const_color));
+            RegisterConstants("rl::VIOLET", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(DARKPURPLE);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::DARKPURPLE", Value(const_color));
+            RegisterConstants("rl::DARKPURPLE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(BEIGE);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::BEIGE", Value(const_color));
+            RegisterConstants("rl::BEIGE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(BROWN);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::BROWN", Value(const_color));
+            RegisterConstants("rl::BROWN", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(DARKBROWN);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::DARKBROWN", Value(const_color));
+            RegisterConstants("rl::DARKBROWN", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(WHITE);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::WHITE", Value(const_color));
+            RegisterConstants("rl::WHITE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(BLACK);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::BLACK", Value(const_color));
+            RegisterConstants("rl::BLACK", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(BLANK);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::BLANK", Value(const_color));
+            RegisterConstants("rl::BLANK", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(MAGENTA);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::MAGENTA", Value(const_color));
+            RegisterConstants("rl::MAGENTA", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(RAYWHITE);
             const_color->mAssigned = 1;
-            RegisterConstants("raylib::RAYWHITE", Value(const_color));
+            RegisterConstants("rl::RAYWHITE", Value(const_color));
         }
 
 
 
-        RegisterFunction("raylib::Color::new", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::Color", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 0 && args.size() != 4) {
-                Tools::errorf("Usage: raylib::Color::new() or raylib::Color::new(unsigned char r, unsigned char g, unsigned char b, unsigned char a)\n");
+                Tools::errorf("Usage: rl::Color or rl::Color unsigned char r, unsigned char g, unsigned char b, unsigned char a \n");
                 return false;
             }
 
@@ -243,7 +243,7 @@ namespace DreiZehn {
             return true;
         });
 
-        RegisterFunction("raylib::InitWindow", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::InitWindow", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 3) {
                 Tools::errorf("Usage:raylib::InitWindow int width int height string title\n");
                 ret = Value(0);
@@ -254,7 +254,7 @@ namespace DreiZehn {
             return true;
         });
 
-        RegisterFunction("raylib::SetTargetFPS", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::SetTargetFPS", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1) {
                 Tools::errorf("Usage: raylib::SetTargetFPS(int fps)\n");
                 return false;
@@ -266,7 +266,7 @@ namespace DreiZehn {
             return true;
         });
 
-        RegisterFunction("raylib::GetFrameTime", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::GetFrameTime", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("Usage: raylib::GetFrameTime()\n");
                 return false;
@@ -277,7 +277,7 @@ namespace DreiZehn {
             return true;
         });
 
-        RegisterFunction("raylib::WindowShouldClose", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::WindowShouldClose", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("Usage: raylib::WindowShouldClose()\n");
                 return false;
@@ -288,7 +288,7 @@ namespace DreiZehn {
             return true;
         });
 
-        RegisterFunction("raylib::ClearBackground", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::ClearBackground", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1) {
                 Tools::errorf("Usage: raylib::ClearBackground(Color color)\n");
                 return false;
@@ -307,7 +307,7 @@ namespace DreiZehn {
         });
 
 
-        RegisterFunction("raylib::DrawText", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::DrawText", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 5) {
                 Tools::errorf("Usage: raylib::DrawText(const char * text, int posX, int posY, int fontSize, Color color)\n");
                 return false;
@@ -329,7 +329,7 @@ namespace DreiZehn {
             return true;
         });
 
-        RegisterFunction("raylib::BeginDrawing", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::BeginDrawing", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("Usage: raylib::BeginDrawing()\n");
                 return false;
@@ -340,7 +340,7 @@ namespace DreiZehn {
             return true;
         });
 
-        RegisterFunction("raylib::EndDrawing", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::EndDrawing", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("Usage: raylib::EndDrawing()\n");
                 return false;
@@ -351,7 +351,7 @@ namespace DreiZehn {
             return true;
         });
 
-        RegisterFunction("raylib::CloseWindow", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::CloseWindow", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("Usage: raylib::CloseWindow()\n");
                 return false;
@@ -362,7 +362,7 @@ namespace DreiZehn {
             return true;
         });
 
-        RegisterFunction("raylib::MeasureText", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::MeasureText", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 2) {
                 Tools::errorf("Usage: raylib::MeasureText(const char * text, int fontSize)\n");
                 return false;
@@ -375,7 +375,7 @@ namespace DreiZehn {
             return true;
         });
 
-        RegisterFunction("raylib::DrawFPS", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::DrawFPS", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 2) {
                 Tools::errorf("Usage: raylib::DrawFPS(int posX, int posY)\n");
                 return false;

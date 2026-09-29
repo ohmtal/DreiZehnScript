@@ -9,9 +9,9 @@ rate = 8000
 melody = 0
 vol = 0.5
 
-print concat "* rate    = " rate   " ==> highter is faster."
-print concat "* melody  = " melody "  ==> 0..5 available"
-print concat "* vol     = " vol    "  ==> Volume"
+print str::concat "* rate    = " rate   " ==> highter is faster."
+print str::concat "* melody  = " melody "  ==> 0..5 available"
+print str::concat "* vol     = " vol    "  ==> Volume"
 print "* quit ==> call to stop the loop"
 
 while core::breath

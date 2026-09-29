@@ -27,7 +27,9 @@ I did not want to use the Umlaut "ö" in Zwölf (==12) so i stepped up to 13 whi
     - Bitwise shift right: >>
     - Bitwise shift left: <<
     - Bitwise Or: |
+    - Bitwise XOr: ^
     - Bitwise And: &
+    - Strings can be concat with `+`/`+=` and compared with `==`/`!=`
 - Note Object fields only allow assign Inline Operation (`++`) or Operation Assign (`+=`) is not 
 implemented so far.
 - If: `if i == 5; print "is 5"; else print "is not 5"; end` 
@@ -222,6 +224,8 @@ Hello Foo
 
 Version 0.3: I added SDL3 to test my Script system:
 
+Only some commands are ported.  
+
 ```
 SDL_Init SDL_INIT_VIDEO
 
@@ -263,6 +267,8 @@ SDL_Quit
 
 DreiZehn 0.5c - I added Fenster lib as Object :)
 
+Fenster and FensterAudio bindings are completed.
+
 ![dreizehn_0_5c_FensterDrawing.png](res/dreizehn_0_5c_FensterDrawing.png)
 
 ```
@@ -296,33 +302,37 @@ fenster = 0
 
 DreiZehn 0.6b - Initial Raylib bindings 
 
+I also started an auto generator from .json file but it's not finished so far. 
+So it's really only the commands you see in the example below.
+
 ![dreizehn_0_6b_raylib.png](res/dreizehn_0_6b_raylib.png)
 
 ```
 screenWidth    = 800
 screenHeight   = 450
 
-raylib::InitWindow screenWidth screenHeight "raylib [core] example - basic window"
-raylib::SetTargetFPS 60
+rl::InitWindow screenWidth screenHeight "raylib [core] example - basic window"
+rl::SetTargetFPS 60
 
 text       = "Congrats! You created your first window!"
 fontSize   = 30
-textWidth  = raylib::MeasureText text fontSize
+textWidth  = rl::MeasureText text fontSize
 x = screenWidth  / 2 - textWidth / 2
 y = screenHeight / 2 - fontSize  / 2
-bgColor = raylib::Color::new 30 20 60 255
+bgColor = rl::Color 30 20 60 255
 
-while !raylib::WindowShouldClose
+while !rl::WindowShouldClose && core::breath
 
-    raylib::BeginDrawing
+    rl::BeginDrawing
 
-    raylib::ClearBackground bgColor
-    raylib::DrawFPS 10 10
-    raylib::DrawText text x y fontSize raylib::LIGHTGRAY
+    rl::ClearBackground bgColor
+    rl::DrawFPS 10 10
+    rl::DrawText text x y fontSize rl::LIGHTGRAY
 
-    raylib::EndDrawing
+    rl::EndDrawing
 end
 
-raylib::CloseWindow
+rl::CloseWindow
+
 
 ```

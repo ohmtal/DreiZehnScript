@@ -112,10 +112,9 @@ under 15 sec and beat python here without bytecode ;)
             only this works: `if (i == 1) print 1; else print "not"; end` and cant
             be nested. Also added mIsImplicit so only one end must be set :)
 - [X] string format str::format `"Hello %s" "World"` 
-
-- [ ] string OP: 
-    - [ ] '==' '!=' BAD:  print ("UHU" == "HU") => 1 
-    - [ ] also '+' '+=' 
+- [X] string OP: 
+    - [X] '==' '!=' BAD:  print ("UHU" == "HU") => 1 
+    - [X] also '+' '+=' 
             
 
 

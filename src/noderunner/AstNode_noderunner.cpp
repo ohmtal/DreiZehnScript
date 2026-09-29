@@ -9,6 +9,7 @@
 #include <cmath>
 #include "Environment.h"
 #include "core/FunctionMap.h"
+#include <string.h>
 
 
 namespace DreiZehn {
@@ -157,6 +158,11 @@ namespace DreiZehn {
                 case TokenType::Div:   return Value(lVal.asFastInt()  / rVal.asFastInt());
                 default: return Value(); // should not reached!
             }
+        } else if (lVal.isStringId() && rVal.isStringId()) {
+            switch (mOp) {
+                case TokenType::Plus:  return Value(std::string(lVal.getStringRef() + rVal.getStringRef()));
+                default: return Value(); // return empty invalid operation
+            }
         } else {
             switch (mOp) {
                 case TokenType::Plus:  return Value(lVal.getDouble() + rVal.getDouble());
@@ -264,6 +270,8 @@ namespace DreiZehn {
             case TokenType::Equal: {
                 if (lVal.isPointer() && rVal.isPointer()) {
                     return Value(lVal.asPointer() == rVal.asPointer() ? 1 : 0);
+                } else if (lVal.isStringId() && rVal.isStringId()) {
+                    return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) == 0;
                 }
                 double l = lVal.getDouble();
                 double r = rVal.getDouble();
@@ -272,6 +280,8 @@ namespace DreiZehn {
             case TokenType::NotEqual: {
                 if (lVal.isPointer() && rVal.isPointer()) {
                     return Value(lVal.asPointer() != rVal.asPointer() ? 1 : 0);
+                } else if (lVal.isStringId() && rVal.isStringId()) {
+                    return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) != 0;
                 }
                 double l = lVal.getDouble();
                 double r = rVal.getDouble();
@@ -387,10 +397,13 @@ namespace DreiZehn {
                 case TokenType::AssignMinus: doubleval -= rightHand.asFastDouble(); break;
                 case TokenType::AssignMul:   doubleval *= rightHand.asFastDouble(); break;
                 case TokenType::AssignDiv:  if (rightHand.asFastDouble() != 0.0) {doubleval /= rightHand.asFastDouble();} break;
-                default: break;
+                default: return;
             }
             *valuePtr = Value(doubleval);
 
+        } else if (valuePtr->isStringId() && rightHand.isStringId()) {
+            if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (std::string( valuePtr->getStringRef() +  rightHand.getStringRef() ));
+            else return;
         } else {
             double doubleval = valuePtr->getDouble();
             switch(this->mOp) {
@@ -398,7 +411,7 @@ namespace DreiZehn {
                 case TokenType::AssignMinus: doubleval -= rightHand.getDouble(); break;
                 case TokenType::AssignMul:   doubleval *= rightHand.getDouble(); break;
                 case TokenType::AssignDiv:  if (rightHand.getDouble() != 0.0) {doubleval /= rightHand.getDouble();} break;
-                default: break;
+                default: return;
             }
             *valuePtr = Value(doubleval);
         }

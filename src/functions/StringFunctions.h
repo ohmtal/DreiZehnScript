@@ -161,7 +161,6 @@ namespace DreiZehn {
             }
             StringObject* s = new StringObject(args[0].getString());
             ret = Value(s);
-            if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(s);
             return true;
         });
         // ---------------------------------------------------------------------

@@ -20,6 +20,10 @@
 #include "functions/SDL3Functions.h"
 #endif
 
+#ifdef DREIZEHN_RAYLIB
+#include "functions/RaylibFunctions.h"
+#endif
+
 #include "linenoise/linenoise.h"
 
 void RegisterUserFunc() {
@@ -145,6 +149,11 @@ int main(int argc, char* argv[]) {
     #ifdef DREIZEHN_SDL3
     RegisterSDL3Functions();
     #endif
+
+    #ifdef DREIZEHN_RAYLIB
+    RegisterRaylibFunctions();
+    #endif
+
 
     OnBreath = [&env]() -> bool {
         return ConsoleCall(env);

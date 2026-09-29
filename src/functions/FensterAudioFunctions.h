@@ -18,9 +18,11 @@
 #include "core/FunctionMap.h"
 #include "core/VariableFrame.h"
 #include "Globals.h"
-#include "ext/fenster/fenster_audio.h"
 #include "ArrayFunctions.h"
 
+namespace DreiZehn::Fenster {
+#include "ext/fenster/fenster_audio.h"
+}
 #include "ext/melodyMaker.h"
 
 
@@ -29,6 +31,7 @@
 // =============================================================================
 
 namespace DreiZehn {
+    using namespace DreiZehn::Fenster;
 
     const int TypeFensterAudioObject = RegisterUserObjectType("FensterAudio");
 
@@ -123,7 +126,6 @@ namespace DreiZehn {
                 );
                 uint32_t sampleCount = byteCount / sizeof(float);
                 ArrayValueObject* array = new ArrayValueObject();
-                 if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(array);
                  array->mElements.reserve(sampleCount);
                 for (uint32_t i = 0; i < sampleCount; i++) {
                     float f = noteBuffer[i];
@@ -218,7 +220,6 @@ namespace DreiZehn {
             FensterAudioObject* fa = new FensterAudioObject();
 
             ret = Value(fa);
-            if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(fa);
             return true;
         });
 

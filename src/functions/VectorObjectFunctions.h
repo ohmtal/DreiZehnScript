@@ -110,7 +110,6 @@ namespace DreiZehn {
             if (args.size() > 1 ) v->mVec.y = args[1].getDouble();
             if (args.size() > 2 ) v->mVec.z = args[2].getDouble();
             ret = Value(v);
-            if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(v);
             return true;
         });
 

@@ -137,7 +137,6 @@ namespace DreiZehn {
             }
             SDL_Window_Object* obj = new SDL_Window_Object(win);
             ret = Value(obj);
-            if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(obj);
             return true;
         });
         // ---------------------------------------------------------------------
@@ -176,7 +175,6 @@ namespace DreiZehn {
             }
             SDL_Renderer_Object* obj = new SDL_Renderer_Object(rend);
             ret = Value(obj);
-            if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(obj);
             return true;
         });
         // ---------------------------------------------------------------------
@@ -188,7 +186,6 @@ namespace DreiZehn {
             SDL_Event_Object* obj = new SDL_Event_Object();
             ret = Value(obj);
 
-            if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(obj);
             return true;
         });
         // extern SDL_DECLSPEC bool SDLCALL SDL_PollEvent(SDL_Event *event);

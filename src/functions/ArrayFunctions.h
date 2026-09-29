@@ -178,7 +178,6 @@ namespace DreiZehn {
             }
 
 
-            if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(arr);
             return true;
         });
 

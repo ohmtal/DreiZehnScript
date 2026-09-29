@@ -54,7 +54,7 @@ struct ValueObject {
 
 
 protected:
-    ValueObject(int t) : mType(t) {}
+    ValueObject(int t);
 };
 
 // =============================================================================

@@ -16,6 +16,8 @@ set(BUILD_WITH_SDL3 ${WITHSDL3_DEFAULT} CACHE BOOL "Build Application with SDL3 
 set(WITH_FENSTER_DEFAULT ON)
 set(BUILD_WITH_FENSTER ${WITH_FENSTER_DEFAULT} CACHE BOOL "Build Application with Fenster Demo")
 
+set(WITH_RAYLIB_DEFAULT ON)
+set(BUILD_WITH_RAYLIB ${WITH_RAYLIB_DEFAULT} CACHE BOOL "Build Application with Raylib Demo")
 
 set(SANITIZE_DEFAULT OFF)
 set(BUILD_WITH_SANITIZE ${SANITIZE_DEFAULT} CACHE BOOL "Build Application with -fsanitize=address -g")
@@ -58,6 +60,21 @@ if (BUILD_WITH_FENSTER)
     add_compile_definitions(DREIZEHN_FENSTER)
 endif()
 
+# ------------- RayLib
+set(RAYLIB_LINKLIB "")
+if (BUILD_WITH_RAYLIB)
+    set(RAYLIB_DIR "${CMAKE_CURRENT_LIST_DIR}/ext/raylib-6.0/" CACHE PATH "Path to RayLib")
+    message( STATUS "\n Raylib directory is: " ${RAYLIB_DIR} )
+    set(BUILD_EXAMPLES OFF CACHE BOOL "Build raylib examples" FORCE)
+    set(BUILD_GAMES    OFF CACHE BOOL "Build raylib games"    FORCE)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+    add_subdirectory("${RAYLIB_DIR}" "${CMAKE_BINARY_DIR}/raylib_build")
+
+    set(RAYLIB_LINKLIB "raylib")
+
+    add_compile_definitions(DREIZEHN_RAYLIB)
+endif()
+
 # ------------- Main
 add_executable(${PROJECT_NAME}
     ${PROJECT_SRC}
@@ -79,6 +96,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${SDL3_LINKLIB}
     ${FENSTER_LINKLIB}
+    ${RAYLIB_LINKLIB}
 )
 
 if (BUILD_WITH_SANITIZE)

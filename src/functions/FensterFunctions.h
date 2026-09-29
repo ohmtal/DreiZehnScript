@@ -17,11 +17,15 @@
 #include "core/VariableFrame.h"
 #include "Globals.h"
 #include "ArrayFunctions.h"
+
+namespace DreiZehn::Fenster {
 #include "ext/fenster/fenster.h"
-// #include "ext/fenster/fenster_audio.h"
+}
 
 
 namespace DreiZehn::FensterWrapper {
+    using namespace DreiZehn::Fenster;
+
     // -------------------------------------------------------------------------
     // from drawing-c
     // -------------------------------------------------------------------------
@@ -203,7 +207,7 @@ namespace DreiZehn::FensterWrapper {
 // =============================================================================
 
 namespace DreiZehn {
-
+    using namespace DreiZehn::Fenster;
     const int TypeFensterObject = RegisterUserObjectType("Fenster");
 
     struct FensterObject : public ValueObject {
@@ -535,7 +539,6 @@ namespace DreiZehn {
             if (args.size() == 4) f->mSleepMS = args[3].asInt();
 
             ret = Value(f);
-            if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(f);
             return true;
         });
 

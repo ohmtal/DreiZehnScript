@@ -263,7 +263,7 @@ SDL_Quit
 
 DreiZehn 0.5c - I added Fenster lib as Object :)
 
-![res/dreizehn_0_5c_FensterDrawing.png](res/dreizehn_0_5c_FensterDrawing.png)
+![dreizehn_0_5c_FensterDrawing.png](res/dreizehn_0_5c_FensterDrawing.png)
 
 ```
 W = 320
@@ -290,4 +290,39 @@ end
 
 fenster->close
 fenster = 0
+```
+
+## Raylib implementation
+
+DreiZehn 0.6b - Initial Raylib bindings 
+
+![dreizehn_0_6b_raylib.png](res/dreizehn_0_6b_raylib.png)
+
+```
+screenWidth    = 800
+screenHeight   = 450
+
+raylib::InitWindow screenWidth screenHeight "raylib [core] example - basic window"
+raylib::SetTargetFPS 60
+
+text       = "Congrats! You created your first window!"
+fontSize   = 30
+textWidth  = raylib::MeasureText text fontSize
+x = screenWidth  / 2 - textWidth / 2
+y = screenHeight / 2 - fontSize  / 2
+bgColor = raylib::Color::new 30 20 60 255
+
+while !raylib::WindowShouldClose
+
+    raylib::BeginDrawing
+
+    raylib::ClearBackground bgColor
+    raylib::DrawFPS 10 10
+    raylib::DrawText text x y fontSize raylib::LIGHTGRAY
+
+    raylib::EndDrawing
+end
+
+raylib::CloseWindow
+
 ```

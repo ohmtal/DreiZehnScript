@@ -62,19 +62,19 @@ namespace DreiZehn {
             else if (fieldSymbolId == mYprop.mSymbolId) return &mVec.y ;
             else if (fieldSymbolId == mZprop.mSymbolId) return &mVec.z ;
 
-            return nullptr;
+            return  ValueObject::onGetFieldPtr(fieldSymbolId);
         }
         // -------------------------------------------------------------------------
         inline bool onSetField(uint32_t fieldSymbolId, const Value& value) override{
             Value* ptr = onGetFieldPtr(fieldSymbolId);
-            if (!ptr) return false;
+            if (!ptr) return ValueObject::onSetField(fieldSymbolId, value);
             *ptr = Value(value.getDouble());
             return true;
         }
         // -------------------------------------------------------------------------
         inline bool onGetField(uint32_t fieldSymbolId, Value& ret) override{
             Value* ptr = onGetFieldPtr(fieldSymbolId);
-            if (!ptr) return false;
+            if (!ptr) return ValueObject::onGetField(fieldSymbolId, ret);
             ret = *ptr;
             return true;
 
@@ -94,7 +94,7 @@ namespace DreiZehn {
                 return true;
             }
 
-            return false;
+            return ValueObject::onMethodCall(methodId, args, ret);
 
         }
     };

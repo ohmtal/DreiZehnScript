@@ -221,6 +221,31 @@ public:
     }
     // -------------------------------------------------------------------------
     // Debug print
+    inline const std::string toString() {
+        char buffer[256];
+
+        if (isInt()) {
+            snprintf(buffer, sizeof(buffer), "%d" , asInt());
+            return std::string(buffer);
+        }
+        else if (isDouble()) {
+            snprintf(buffer, sizeof(buffer), "%f" , asDouble());
+            return std::string(buffer);
+        }
+        else if (isStringId()){
+            return getStringRef();
+        }
+        else if (isPointer()) {
+            ValueObject* obj = asPointerObject();
+            return obj->toString();
+        }
+        else if(isValuePointer()) {
+            snprintf(buffer, sizeof(buffer), "[%p]" , asValuePointer());
+            return std::string(buffer);
+        }
+        return "unknown!";
+    }
+
     inline void const print(bool appendLineFeed = false) {
         if (isInt()) Tools::printf("%d ", asInt());
         else if (isDouble()) Tools::printf("%f ", asDouble());

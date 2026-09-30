@@ -13,6 +13,11 @@ namespace DreiZehn {
     inline std::function<bool()> OnBreath = nullptr;
 
 
+    const int TypeBaseObject =  RegisterUserObjectType("Object");
+    struct BaseValueObject : public ValueObject {
+        BaseValueObject() : ValueObject(TypeBaseObject) {  }
+    };
+
     // =============================================================================
     // --- RegisterCoreFunctions ---
     // =============================================================================
@@ -27,6 +32,13 @@ namespace DreiZehn {
         RegisterConstants("true", Value(1));
         RegisterConstants("false", Value(0));
         // ---------------------------------------------------------------------
+
+        RegisterFunction("Object::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
+            BaseValueObject* obj = new BaseValueObject();
+            ret = Value(obj);
+            return true;
+        });
+        // ---------------------------------------------------------------------
         // -------- print --------------
         RegisterFunction("print", [](std::vector<Value>& args, Value& ret) -> bool {
             for ( auto& value : args) {
@@ -38,9 +50,10 @@ namespace DreiZehn {
 
         // ---------------------------------------------------------------------
         RegisterFunction("run", [&env](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() < 1) {
-                Tools::errorf("file name requires for run\n");
-                return false;
+            if (args.size() != 1) {
+                Tools::errorf("file name requires for run, Usage: run filename\n");
+                ret = Value(0);
+                return true;
             }
 
             if (args[0].isStringId() ) {
@@ -52,11 +65,23 @@ namespace DreiZehn {
 
 
             Tools::errorf("file name requires for run\n");
-            return false;
+            ret = Value(0);
+            return true;
         });
 
 
 
+        // ---------------------------------------------------------------------
+        RegisterFunction("core::eval", [&env](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 1 || !args[0].isStringId()) {
+                Tools::errorf("Usage: core::eval codeled\n");
+                ret = Value(0);
+                return true;
+            }
+            std::stringstream stream(args[0].getStringRef());
+            ret = RunScriptStream(stream, env);
+            return true;
+        });
         // ---------------------------------------------------------------------
         RegisterFunction("core::getType", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1) {
@@ -180,18 +205,69 @@ namespace DreiZehn {
             return true;
         });
 
+        #include <algorithm> // Für std::sort
+
         RegisterFunction("help::fn", [](std::vector<Value>& args, Value& ret) -> bool {
-            Tools::printf("  --- Functions [%zu] --- \n", RegisteredFunctions.size());
-            for (const auto& [key, value] : RegisteredFunctions) {
-                Tools::printf("  - %s \n", SymbolTable::getName(key).c_str());
+            bool doFilter = false;
+            std::string filter;
+            if (!args.empty() && args[0].isStringId()) {
+                filter = args[0].getString();
+                if (!filter.empty()) doFilter = true;
             }
-            Tools::printf("  --- Script Function [%zu] --- \n",RegisteredScriptFunctions.size());
+
+            std::vector<std::string> nativeNames;
+            for (const auto& [key, value] : RegisteredFunctions) {
+                std::string name = SymbolTable::getName(key);
+                if (!doFilter || name.find(filter) != std::string::npos) { // Teilstring-Suche
+                    nativeNames.push_back(name);
+                }
+            }
+
+            std::vector<std::string> scriptNames;
             for (const auto& [key, value] : RegisteredScriptFunctions) {
-                Tools::printf("  - %s \n", SymbolTable::getName(key).c_str());
+                std::string name = SymbolTable::getName(key);
+                if (!doFilter || name.find(filter) != std::string::npos) {
+                    scriptNames.push_back(name);
+                }
+            }
+
+            std::sort(nativeNames.begin(), nativeNames.end());
+            std::sort(scriptNames.begin(), scriptNames.end());
+
+            Tools::printf("  --- Functions [%zu/%zu] --- \n", nativeNames.size(), RegisteredFunctions.size());
+            for (const std::string& name : nativeNames) {
+                Tools::printf("  - %s \n", name.c_str());
+            }
+
+            if (scriptNames.size() > 0) {
+                Tools::printf("  --- Script Functions [%zu/%zu] --- \n", scriptNames.size(), RegisteredScriptFunctions.size());
+                for (const std::string& name : scriptNames) {
+                    Tools::printf("  - %s \n", name.c_str());
+                }
             }
 
             return true;
         });
+
+
+        // RegisterFunction("help::fn", [](std::vector<Value>& args, Value& ret) -> bool {
+        //     Tools::printf("  --- Functions [%zu] --- \n", RegisteredFunctions.size());
+        //     bool doFilter = false;
+        //     std::string filter;
+        //     if ( args[0].isStringId() ) {
+        //         filter = args[0].getString();
+        //         if (!filter.empty()) doFilter = true;
+        //     }
+        //     for (const auto& [key, value] : RegisteredFunctions) {
+        //         Tools::printf("  - %s \n", SymbolTable::getName(key).c_str());
+        //     }
+        //     Tools::printf("  --- Script Function [%zu] --- \n",RegisteredScriptFunctions.size());
+        //     for (const auto& [key, value] : RegisteredScriptFunctions) {
+        //         Tools::printf("  - %s \n", SymbolTable::getName(key).c_str());
+        //     }
+        //
+        //     return true;
+        // });
 
         RegisterFunction("help::objects", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- Object Types ------------------\n");

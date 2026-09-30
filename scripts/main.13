@@ -1,0 +1,67 @@
+# ------------------------------------------------------------------------------
+#   DreiZehn Module Loader
+# ------------------------------------------------------------------------------
+# Every Module need the functions:
+#   - ModuleCreate
+#   - ModuleLoop
+#   - ModuleDelete
+# TODO: core object with dynamic fields and methods
+# ------------------------------------------------------------------------------
+
+-- Avail Modules
+loader::Modules = Array::new "Fenster"
+loader::ModuleIndex = -1
+loader::ModuleName = ""
+
+-- inital setup the call back function
+-- so it can be overridden
+fn ModuleCreate end
+fn ModuleLoop end
+fn ModuleDelete end
+
+# ------------------------------------------------------------------------------
+fn loader::Load moduleIndex
+    if moduleIndex < 0 || moduleIndex >= loader::Modules->size
+        print "Loader Error: moduleIndex" i "out of bounds!"
+        return false
+    end
+
+    if loader::ModuleIndex >= 0
+        ModuleDelete
+    end
+
+    loader::ModuleIndex = -1
+    loader::ModuleName = loader::Modules->at moduleIndex
+    runRes = run str::concat "scripts/modules/" loader::ModuleName ".13"
+    if (!runRes)
+        print "Loader Error: unable to load module" loader::ModuleName
+        return false
+    end
+
+    if !ModuleCreate
+        print "Loader Error: failed to CreateMod:" loader::ModuleName
+        return false
+    end
+
+    loader::ModuleIndex = moduleIndex
+    return true
+end
+# ------------------------------------------------------------------------------
+fn loader::MainLoop
+    while core::breath
+        if loader::ModuleIndex >= 0
+            if ( !ModuleLoop )
+                 ModuleDelete
+                 loader::ModuleIndex = -1
+            end
+        end
+        core::sleep 16
+    end
+end
+# ------------------------------------------------------------------------------
+
+loader::Load 0
+loader::MainLoop
+if loader::ModuleIndex >= 0
+    ModuleDelete
+end

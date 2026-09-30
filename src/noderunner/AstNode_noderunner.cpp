@@ -81,17 +81,7 @@ namespace DreiZehn {
 
         Value returnValue = Value(0);
 
-        // FIXME userdefined methods !
-        if (!obj->onMethodCall(mMethodNameSymbolId, evaluatedArgs, returnValue)) {
-
-
-
-            // let the method handle this.
-            // Tools::errorf("Runtime Error in method call: %s -> %s\n",
-            //               SymbolTable::getName(mPointerNameSymbolId).c_str(),
-            //               SymbolTable::getName(mMethodNameSymbolId).c_str()
-            // );
-        }
+        obj->onMethodCall(mMethodNameSymbolId, evaluatedArgs, returnValue);
         return returnValue;
 
     }

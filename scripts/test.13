@@ -1,5 +1,25 @@
 # Test for DreiZehn Script
 print "--- Run Engine-Test ---"
+print "------ UserMethods and BaseObject --------"
+fn Foo::Bar this; print "Foo::Bar this=" this; end
+o = Object::new
+o->setClassName "Foo"
+o->Bar
+o->dump
+
+fn Object::getBar this; return this.bar; end;
+
+o.bar = 4711.0815
+print o.bar
+o.bar /= 2;
+print o.bar
+
+print "Bar from fn is:" o->getBar
+
+-- if o->isScriptMethod "getBar"; o->getBar; end
+
+while core::breath ;;
+
 
 print "------ ELIF --------"
 forRange i 100
@@ -14,7 +34,7 @@ forRange i 100
    end
 end
 
-while core::breath ;;
+-- while core::breath ;;
 
 
 print "----- FOR FORWARD ----"

@@ -152,12 +152,8 @@ namespace DreiZehn {
                 ret = Value(1);
                 return true;
             }
-            // else
-            // {
-            //     Tools::errorf("Unknown Array method: %s\n", SymbolTable::getName(methodId).c_str());
-            // }
 
-            return false;
+            return ValueObject::onMethodCall(methodId, args, ret);
         }
     };
     // -------------------------------------------------------------------------

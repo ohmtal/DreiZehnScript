@@ -11,6 +11,8 @@
 
 namespace DreiZehn{
 class Value;
+namespace FunctionMap{ struct  ScriptFunction; }
+
 
 
 
@@ -18,31 +20,32 @@ class Value;
 // --- ValueObject ---
 // =============================================================================
 
+
+
 struct ValueObject {
     int mType;
     int mAssigned = 0;
+
+    std::string mClassName = "";
+
+    static inline uint32_t sClassNameMethodId = SymbolTable::insert("setClassName");
+    static inline uint32_t sDumpMethodId = SymbolTable::insert("dump");
+    static inline uint32_t sIsMethodId = SymbolTable::insert("isScriptMethod");
+
+    // cache the type name for user methods
+    std::string mObjectTypeName = "";
+
+    std::unordered_map<uint32_t, FunctionMap::ScriptFunction* > mMethodMap;
+    std::unordered_map<uint32_t, Value > mDynmaicFields;
+
+
     virtual ~ValueObject() = default;
 
-    inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) {
-        Tools::errorf("Runtime Error GetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
-        return false;
-    }
+    virtual bool onGetField(uint32_t fieldSymbolId, Value& ret);
+    virtual Value* onGetFieldPtr(uint32_t fieldSymbolId);
+    virtual bool onSetField(uint32_t fieldSymbolId, const Value& value);
 
-    inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) {
-        Tools::errorf("Runtime Error GetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
-        return nullptr;
-    }
-
-    inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) {
-        Tools::errorf("Runtime Error SetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
-        return false;
-    }
-
-    inline virtual bool onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret) {
-        Tools::errorf("Runtime Error: Method %s not found.\n",SymbolTable::getName(methodNameSymbolId).c_str());
-        return false;
-    }
-
+    virtual bool onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret);
     virtual std::string toString();
 
 

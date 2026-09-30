@@ -131,13 +131,34 @@ under 15 sec and beat python here without bytecode ;)
     - [X] for
     - [X] range
 - [X] need an `elif` \o/
-- [ ] HOT-RELOAD: currently a new instance is pushed ... mhhh. 
 
+- Objects 
+    - [X] Object Methods - have to rebuild the call name -- which is not very fast!
+        - [X] user defined methods like: `fn Array::foo this; print this; end;` called with `myArr->foo`
+        - NOTE: All objects must call =>  `return ValueObject::onMethodCall(methodId, args, ret);`
+        - [X] add *class* to call: `myArr->setClassName "SuperArray"`; `fn SuperArray::foo this; print this; end;` called with `myArr->foo`
+        - [X]  cache the methods ! 
+    
+    - [X] Object dynamic fields - can be cached in a table 
+        - [X] IMPORTANT ALL OBJECTS MUST CALL Parent:
+            - bool onGetField(uint32_t fieldSymbolId, Value& ret) 
+            - Value* onGetFieldPtr(uint32_t fieldSymbolId)
+            - bool onSetField(uint32_t fieldSymbolId, const Value& value)
+            
+        - [X] add a map for the field symid/value 
+            
+    - [X] add a base ValueObject Class Object::new
+    
+- [ ] create ValueObject->isScriptMethod => need also to do the same as the calling code  so I should add a function 
+- [ ] dump should also list the scriptMethods!
+- [ ] should i add this ? `o.array->print` calling a method from a object which is stored in a dynamic field ... 
 
+    
 ## maybe:
 - [ ] Bytecode continue .... 
     
 # future ideas
+- [ ] HOT-RELOAD: currently a new instance is pushed ... mhhh. 
 - objects
     - *note* wrap the current functions to call the userdefined after them, should be easy 
     - [ ] objects dynamic fields < simple key value map 

@@ -1,0 +1,20 @@
+-- DreiZehn HOT Reload Testscript
+fn rl
+    # reload itself....
+    run "scripts/hot.13"
+end
+
+fn Main
+    while core::breath
+        i++;
+        if i % 66 == 0; print "i=" i;;
+        core::sleep 16
+    end
+end
+
+
+if !foo
+    foo = String::new "running...."
+    i = 0
+    Main
+end

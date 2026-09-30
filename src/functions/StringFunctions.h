@@ -228,12 +228,12 @@ namespace DreiZehn {
         inline Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
             if (fieldSymbolId == valueProp.mSymbolId) return &mValue;
 
-            return nullptr;
+            return  ValueObject::onGetFieldPtr(fieldSymbolId);
         }
         // -------------------------------------------------------------------------
         inline bool onSetField(uint32_t fieldSymbolId, const Value& value) override{
             Value* ptr = onGetFieldPtr(fieldSymbolId);
-            if (!ptr) return false;
+            if (!ptr) return ValueObject::onSetField(fieldSymbolId, value);
             if (value.isStringId() ) {
                 *ptr = value;
             } else {
@@ -244,7 +244,7 @@ namespace DreiZehn {
         // -------------------------------------------------------------------------
         inline bool onGetField(uint32_t fieldSymbolId, Value& ret) override{
             Value* ptr = onGetFieldPtr(fieldSymbolId);
-            if (!ptr) return false;
+            if (!ptr) return ValueObject::onGetField(fieldSymbolId, ret);
             ret = *ptr;
             return true;
         }
@@ -307,12 +307,8 @@ namespace DreiZehn {
                     }
                     return false;
                 }
-                // else
-                // {
-                //     Tools::errorf("Unknown String method: %s\n", SymbolTable::getName(methodId).c_str());
-                // }
 
-                return false;
+                return ValueObject::onMethodCall(methodId, args, ret);
         }
 
     };
@@ -329,7 +325,7 @@ namespace DreiZehn {
         StringObject::RegisterSymbols();
         RegisterFunction("String::new", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isStringId()) {
-                Tools::errorf("Usage: String::new string");
+                Tools::errorf("Usage: String::new string\n");
                 return false;
             }
             StringObject* s = new StringObject(args[0].getString());

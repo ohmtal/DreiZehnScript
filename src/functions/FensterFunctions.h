@@ -349,12 +349,44 @@ namespace DreiZehn {
                 return true;
             }
 
-            return false;
+            return ValueObject::onGetField(fieldSymbolId, ret);
         }
         // -------------------------------------------------------------------------
         inline bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
             // Read-Only!
-            return false;
+            if (titleProp.matchField( fieldSymbolId)) {
+                return false;
+            }
+            else
+            if (mouseXProp.matchField(fieldSymbolId)) {
+                return false;
+            }
+            else
+            if ( mouseYProp.matchField(fieldSymbolId)) {
+                return false;
+            }
+            else
+            if ( mouseDownProp.matchField(fieldSymbolId)) {
+                return false;
+            }
+            else
+            if ( widthProp.matchField(fieldSymbolId)) {
+                return false;
+            }
+            else
+            if ( heightProp.matchField(fieldSymbolId)) {
+                return false;
+            }
+            else
+            if ( timeProp.matchField(fieldSymbolId)) {
+                return false;
+            }
+            else
+            if ( keymodProp.matchField(fieldSymbolId)) {
+                return false;
+            }
+
+            return ValueObject::onSetField(fieldSymbolId, value);
         }
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
@@ -471,13 +503,9 @@ namespace DreiZehn {
                 FensterWrapper::save_to_bmp(args[0].getStringRef().c_str(), &mFenster);
                 return true;
             }
-            // // ------- nothing found
-            // else {
-            //     Tools::errorf("Unknown Fenster method: %s\n", SymbolTable::getName(methodId).c_str());
-            // }
 
 
-            return false;
+            return ValueObject::onMethodCall(methodId, args, ret);
         }
         // -------------------------------------------------------------------------
     }; //  struct FensterObject

@@ -28,11 +28,11 @@
 
 void RegisterUserFunc() {
     using namespace DreiZehn;
-    FunctionMap::RegisterFunction("fnFoo", [](std::vector<Value>& args, Value& ret) -> bool {
-        printf("The Foo was here ...\n");
-        ret = Value(4711.0815);
-        return true;
-    });
+    // // FunctionMap::RegisterFunction("fnFoo", [](std::vector<Value>& args, Value& ret) -> bool {
+    // //     printf("The Foo was here ...\n");
+    // //     ret = Value(4711.0815);
+    // //     return true;
+    // // });
 }
 
 

@@ -97,12 +97,20 @@ namespace DreiZehn {
                 return true;
             }
 
-            return false;
+            return ValueObject::onGetField(fieldSymbolId, ret);
         }
         // -------------------------------------------------------------------------
         inline bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
             // Read-Only!
-            return false;
+            if (availableProp.matchField( fieldSymbolId)) {
+                return false;
+            }
+            else
+            if (sampleRateProp.matchField( fieldSymbolId)) {
+                return false;
+            }
+
+            return ValueObject::onSetField(fieldSymbolId, value);
         }
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
@@ -198,8 +206,7 @@ namespace DreiZehn {
                 return true;
             }
 
-              // Tools::errorf("FensterAudioObject->%s method not found!\n", SymbolTable::getName(methodId).c_str() );
-            return false;
+             return ValueObject::onMethodCall(methodId, args, ret);
         }
         // -------------------------------------------------------------------------
     }; //  struct FensterAudioObject

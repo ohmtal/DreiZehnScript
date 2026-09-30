@@ -11,9 +11,10 @@
 #include <string>
 #include "Value.h"
 #include "toolbox/SymbolTable.h"
+#include "AstNode.h"
 
+namespace DreiZehn { class Environment; }
 namespace DreiZehn::FunctionMap {
-    class Enviorment;
     using CallBack =  std::function< bool ( std::vector<Value>&, Value& )>;
     using FuncLookupMap = std::unordered_map<uint32_t, CallBack>;
 
@@ -56,6 +57,8 @@ namespace DreiZehn::FunctionMap {
         else
             return nullptr;
     }
+
+    Value CallScriptFunction(Environment& env, const ScriptFunction* sf,std::vector<Value>& args );
 
     // -------------------------------------------------------------
     // combined for parser

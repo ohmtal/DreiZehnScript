@@ -6,10 +6,7 @@
 //-----------------------------------------------------------------------------
 #include <vector>
 
-// #include <stdlib.h>
 #include <string.h>
-// #include <ctype.h>
-// #include <cstdarg>
 
 #include "Value.h"
 #include "ValueObject.h"

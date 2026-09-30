@@ -44,7 +44,7 @@ enum class TokenType {
 
     , While
     , Or, And, BitOr, BitAnd
-    , XOr
+    , BitXOr
     , LowerEqual, GreaterEqual
     , SHL, SHR
 
@@ -53,6 +53,9 @@ enum class TokenType {
     , forRange
     , Not
     , Modulo
+
+    , Question, Colon //short if then
+
 
     , NoToken // for peekPrev pos < 1
     , EOFToken
@@ -102,7 +105,7 @@ inline const char* tokenTypeToString(TokenType type) {
 
         case TokenType::Or:            return "OR ||";
         case TokenType::BitOr:         return "Bit |";
-        case TokenType::XOr:           return "Bit ^";
+        case TokenType::BitXOr:           return "Bit ^";
         case TokenType::BitAnd:         return "Bit &";
         case TokenType::And:            return "AND &&";
         case TokenType::LowerEqual:     return "LowerEqual";
@@ -110,13 +113,16 @@ inline const char* tokenTypeToString(TokenType type) {
         case TokenType::SHL:            return "Shift Left <<";
         case TokenType::SHR:            return "Shift Right >>";
 
-        case TokenType::Semicolon:     return "Semicolon";
+        case TokenType::Semicolon:      return "Semicolon";
 
         case TokenType::Arrow:          return "Arrow Object Method call";
         case TokenType::Dot:            return "Dot Object field access";
 
-        case TokenType::forRange:          return "Range";
-        case TokenType::Not:          return "Not";
+        case TokenType::forRange:       return "Range";
+        case TokenType::Not:            return "Not";
+
+        case TokenType::Question:       return "Question";
+        case TokenType::Colon:          return "Colon";
 
         case TokenType::EOFToken:      return "EOFToken";
 
@@ -128,6 +134,71 @@ struct Token {
     TokenType mType;
     std::string mValue;
 };
+
+inline bool isMathOperatorType(const Token& op) {
+    return op.mType == TokenType::Plus
+    || op.mType == TokenType::Minus
+    || op.mType == TokenType::Mul
+    || op.mType == TokenType::Div
+    ;
+}
+
+// punkt vor strich :P orders of ...
+
+
+
+inline bool isMathAssignOperatorType(const Token& op) {
+    return op.mType == TokenType::AssignPlus
+    || op.mType == TokenType::AssignMinus
+    || op.mType == TokenType::AssignMul
+    || op.mType == TokenType::AssignDiv
+    ;
+}
+
+inline bool isInlineMathType(const Token& op) {
+    return
+    op.mType == TokenType::PlusPlus
+    || op.mType == TokenType::MinusMinus
+    ;
+}
+
+inline bool isMathType(const Token& op) {
+    return
+    isMathOperatorType(op)
+    || op.mType == TokenType::Greater
+    || op.mType == TokenType::Less
+    || op.mType == TokenType::Equal
+    || op.mType == TokenType::NotEqual
+    || op.mType == TokenType::Or
+    || op.mType == TokenType::And
+    || op.mType == TokenType::LowerEqual
+    || op.mType == TokenType::GreaterEqual
+    || op.mType == TokenType::BitAnd
+    || op.mType == TokenType::BitOr
+    || op.mType == TokenType::BitXOr
+    || op.mType == TokenType::SHL
+    || op.mType == TokenType::SHR
+    || op.mType == TokenType::Modulo
+    || op.mType == TokenType::Not
+    || op.mType == TokenType::Question
+    //NOT || op.mType == TokenType::Colon
+    ;
+}
+
+
+
+inline bool isContinueToken(const Token& op) {
+    return op.mType != TokenType::EOFToken
+    && op.mType != TokenType::RParen
+    && op.mType != TokenType::Semicolon
+    && op.mType != TokenType::End
+    && op.mType != TokenType::Else
+
+
+    && !isMathType(op)
+    ;
+}
+
 
 class Lexer {
 private:
@@ -202,7 +273,7 @@ public:
             if (peek() == '<') { advance(); tokens.push_back({TokenType::Less, "<"}); continue; }
             // ----------------------------------------------------------------
 
-            if (peek() == '^' ) { advance(); tokens.push_back({TokenType::XOr, "^"}); continue; }
+            if (peek() == '^' ) { advance(); tokens.push_back({TokenType::BitXOr, "^"}); continue; }
             if (peek() == '|' && peekNext() != '|') { advance(); tokens.push_back({TokenType::BitOr, "|"}); continue; }
             if (peek() == '&' && peekNext() != '&') { advance(); tokens.push_back({TokenType::BitAnd, "&"}); continue; }
 
@@ -224,19 +295,53 @@ public:
             }
 
             // --- Normal number
-            if ( std::isdigit(peek())
-                || (!std::isdigit(peekPrev()) && peek() == '-' && std::isdigit(peekNext()))
-                || (std::isdigit(peekPrev()) && peek() == '.' && std::isdigit(peekNext()))
-            ){
+            if (std::isdigit(peek()) || (peek() == '.' && std::isdigit(peekNext()))) {
                 std::string num;
-                bool isFirst = true;
-                while (std::isdigit(peek()) || (peek() == '.' && !isFirst) || (peek() == '-' && isFirst)) {
-                    num += advance();
-                    isFirst = false;
+                bool hasDot = false;
+                bool hasExponent = false;
+
+                while (peek() != '\0') {
+                    char c = peek();
+
+                    if (std::isdigit(c)) {
+                        num += advance();
+                    }
+                    else if (c == '.' && !hasDot && !hasExponent) {
+                        hasDot = true;
+                        num += advance();
+                    }
+                    else if ((c == 'e' || c == 'E') && !hasExponent) {
+                        hasExponent = true;
+                        num += advance();
+                        if (peek() == '+' || peek() == '-') {
+                            num += advance();
+                        }
+                    }
+                    else {
+                        break;
+                    }
                 }
                 tokens.push_back({TokenType::Number, num});
                 continue;
             }
+
+
+            // if ( std::isdigit(peek())
+            //     || (std::isdigit(peekPrev()) && peek() == '.' && std::isdigit(peekNext()))
+            //     || (peek() == '-' && std::isdigit(peekNext()) && (tokens.size()>0 && isMathType(tokens.back())) )
+            //     // || (!std::isdigit(peekPrev()) && peek() == '-' && std::isdigit(peekNext()))
+            //
+            //
+            // ){
+            //     std::string num;
+            //     bool isFirst = true;
+            //     while (std::isdigit(peek()) || (peek() == '.' && !isFirst) || (peek() == '-' && isFirst)) {
+            //         num += advance();
+            //         isFirst = false;
+            //     }
+            //     tokens.push_back({TokenType::Number, num});
+            //     continue;
+            // }
 
             // minus after number
             if (peek() == '-') { advance(); tokens.push_back({TokenType::Minus, "-"}); continue; }
@@ -245,8 +350,15 @@ public:
 
             // ----------------------------------------------------------------
             // Identifier and Keywords scan
-            if (std::isalpha(peek()) || peek() == '_' ||/* peek() == '.' ||*/ peek() == ':') {
+            // 0.6c only allow "::" not more or less
+            if (std::isalpha(peek()) || peek() == '_' || ( peek() == ':' && peekNext() == ':') ) {
                 std::string id;
+
+                if (peek() == ':'  ) {
+                    if (peekNext() == ':') {
+                        advance();
+                    }
+                }
 
                 while (std::isalnum(peek()) || peek() == '_' ||/* peek() == '.' ||*/ peek() == ':') {
                     id += advance();
@@ -268,6 +380,8 @@ public:
                 continue;
             }
 
+             if (peek() == '?') { advance(); tokens.push_back({TokenType::Question, "?"}); continue; }
+             if (peek() == ':') { advance(); tokens.push_back({TokenType::Colon, ":"}); continue; }
 
             // ----------------------------------------------------------------
             // StringLiteral
@@ -291,11 +405,32 @@ public:
                     advance(); //eat '"'
                 } else {
                     Tools::errorf("[Lexer-ERROR] String not closed!\n");
-                    mPos = mSrc.size();
-                    continue;
+                    // mPos = mSrc.size();
+                    // continue;
+
+                    // clear all token and exit .. nothing else to do here !!
+                    tokens.clear();
+                    return tokens;
                 }
 
                 tokens.push_back({TokenType::StringLiteral, strValue});
+                continue;
+            }
+
+            // ---------- Comment ---------------
+            if (peek() == '#') {
+                advance(); // eat '#'
+                while ( peek() != '\0') {
+                    if (peek() == '\\' && peekNext() == 'n' ) {
+                        advance();advance();
+                        break; //end of line
+                    }
+                    if (peek() == '#') {
+                        advance();
+                        break;
+                    }
+                    advance();
+                }
                 continue;
             }
 
@@ -305,8 +440,8 @@ public:
 
             advance(); // skip unknown
         }
-        tokens.push_back({TokenType::EOFToken, ""});
-        return tokens;
+       tokens.push_back({TokenType::EOFToken, ""});
+       return tokens;
     }
 };
 } //Namespace

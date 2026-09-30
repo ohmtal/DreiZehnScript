@@ -134,16 +134,17 @@ curpic = 1
 
 spaceWasUp = true
 now = fenster.time
-while fenster->loop
+while fenster->loop && core::breath
    if fenster->isKeyDown KEY_SPACE
        if spaceWasUp
-           curpic = (curpic + 1) % 4
+           curpic = (curpic + 1) % 5
            print "curpic is:" curpic
-            if (curpic == 0) fillRandom end
-            if (curpic == 1) fillHouse end
-            if (curpic == 2) fillGradient end
-            if (curpic == 3) fillTunnel end
-            if (curpic == 4) fillSky end
+            if (curpic == 0) fillRandom
+            else if (curpic == 1) fillHouse
+            else if (curpic == 2) fillGradient
+            else if (curpic == 3) fillTunnel
+            else fillSky
+            end
         end
         spaceWasUp = false
     else
@@ -157,9 +158,6 @@ while fenster->loop
        fenster->sleep time - now;
    end
    now = time;
-
---    let the console breath
-  if  core::breath != true break; end
 
 end
 

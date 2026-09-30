@@ -307,10 +307,10 @@ namespace DreiZehn {
                     }
                     return false;
                 }
-                else
-                {
-                    Tools::errorf("Unknown String method: %s\n", SymbolTable::getName(methodId).c_str());
-                }
+                // else
+                // {
+                //     Tools::errorf("Unknown String method: %s\n", SymbolTable::getName(methodId).c_str());
+                // }
 
                 return false;
         }

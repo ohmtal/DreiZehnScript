@@ -85,7 +85,7 @@ namespace DreiZehn {
         // -------------------------------------------------------------------------
         inline bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
             if (mClosed) {
-                return false;
+                return true;
             }
             if (availableProp.matchField( fieldSymbolId)) {
                 ret = Value(fenster_audio_available(&mFensterAudio));
@@ -198,7 +198,7 @@ namespace DreiZehn {
                 return true;
             }
 
-              Tools::errorf("FensterAudioObject->%s method not found!\n", SymbolTable::getName(methodId).c_str() );
+              // Tools::errorf("FensterAudioObject->%s method not found!\n", SymbolTable::getName(methodId).c_str() );
             return false;
         }
         // -------------------------------------------------------------------------

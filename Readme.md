@@ -164,7 +164,8 @@ Functions parse their AST blocks exactly once and run them on demand inside a pr
 # Function definition with arguments
 fn calculate_bonus score factor
     if score < 50
-        return 0 # Early exit with return value
+        # Early exit with return value
+        return 0 
     end
     
     result = score * factor

@@ -66,6 +66,31 @@ namespace DreiZehn {
             ret = Value(args[0].getTypeName());
             return true;
         });
+        RegisterFunction("core::castInt", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 1) {
+                Tools::errorf("Usage: core::castInt value");
+                return false;
+            }
+            if (args[0].isInt()) ret =  args[0];
+            else
+            if (args[0].isDouble()) ret = Value(args[0].getInt());
+            else
+            Tools::PrintRuntimeError("Cant cast pointer to integer!");
+            return true;
+        });
+        RegisterFunction("core::castFloat", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 1) {
+                Tools::errorf("Usage: core::castFloat value");
+                return false;
+            }
+            if (args[0].isDouble()) ret =  args[0];
+            else
+            if (args[0].isInt()) ret = Value(args[0].getDouble());
+            else
+            Tools::PrintRuntimeError("Cant cast pointer to float!");
+
+            return true;
+        });
         // ---------------------------------------------------------------------
         // Let the console Breath ... return a boolean can also be used to cancel
         // a main loop in script

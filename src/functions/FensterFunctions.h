@@ -224,7 +224,7 @@ namespace DreiZehn {
         // Fields (read only)
         inline static ValueObjectProperty titleProp, widthProp, heightProp;
         inline static ValueObjectProperty mouseXProp, mouseYProp, mouseDownProp;
-        inline static ValueObjectProperty timeProp;
+        inline static ValueObjectProperty timeProp, keymodProp;
 
 
 
@@ -303,6 +303,7 @@ namespace DreiZehn {
             mouseYProp    = ValueObjectProperty("mouseY","readonly", TypeFensterObject);
             mouseDownProp = ValueObjectProperty("mouseDown","readonly", TypeFensterObject);
             timeProp      = ValueObjectProperty("time","readonly", TypeFensterObject);
+            keymodProp    = ValueObjectProperty("mod","readonly: mod is 4 bits mask, ctrl=1, shift=2, alt=4, meta=8", TypeFensterObject);
             mSymbolsLoaded = true;
         }
         // -------------------------------------------------------------------------
@@ -342,6 +343,12 @@ namespace DreiZehn {
                 ret = Value(static_cast<double>(fenster_time()));
                 return true;
             }
+            else
+            if ( keymodProp.matchField(fieldSymbolId)) {
+                ret = Value(static_cast<uint32_t>(mFenster.mod));
+                return true;
+            }
+
             return false;
         }
         // -------------------------------------------------------------------------
@@ -353,7 +360,7 @@ namespace DreiZehn {
         inline bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
             if (!mPixelBuffer ) {
                 Tools::errorf("Fenster Object is closed! Method: %s ignored.\n", SymbolTable::getName(methodId).c_str());
-                return false;
+                return true; // return false says method not found!
             }
 
 
@@ -464,10 +471,10 @@ namespace DreiZehn {
                 FensterWrapper::save_to_bmp(args[0].getStringRef().c_str(), &mFenster);
                 return true;
             }
-            // ------- nothing found
-            else {
-                Tools::errorf("Unknown Fenster method: %s\n", SymbolTable::getName(methodId).c_str());
-            }
+            // // ------- nothing found
+            // else {
+            //     Tools::errorf("Unknown Fenster method: %s\n", SymbolTable::getName(methodId).c_str());
+            // }
 
 
             return false;

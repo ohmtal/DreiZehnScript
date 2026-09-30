@@ -81,7 +81,11 @@ namespace DreiZehn {
 
         Value returnValue = Value(0);
 
+        // FIXME userdefined methods !
         if (!obj->onMethodCall(mMethodNameSymbolId, evaluatedArgs, returnValue)) {
+
+
+
             // let the method handle this.
             // Tools::errorf("Runtime Error in method call: %s -> %s\n",
             //               SymbolTable::getName(mPointerNameSymbolId).c_str(),
@@ -154,8 +158,24 @@ namespace DreiZehn {
             switch (mOp) {
                 case TokenType::Plus:  return Value(lVal.asFastInt() + rVal.asFastInt());
                 case TokenType::Minus: return Value(lVal.asFastInt() - rVal.asFastInt());
-                case TokenType::Mul:   return Value(lVal.asFastInt()  * rVal.asFastInt());
-                case TokenType::Div:   return Value(lVal.asFastInt()  / rVal.asFastInt());
+                case TokenType::Mul:   {
+                    double d = lVal.getDouble()  * rVal.getDouble();
+                    if (d >= INT32_MIN && d <= INT32_MAX) {
+                        return Value(static_cast<uint32_t>(d));
+                    }
+                    return d;
+                }
+                case TokenType::Div: {
+                    if (rVal.asFastInt() == 0) {
+                        Tools::errorf("Runtime Error Division by 0! ( %d / %d )\n", lVal.asFastInt(), rVal.asFastInt());
+                        return Value(0);
+                    }
+                    double l = lVal.getDouble();
+                    double r = rVal.getDouble();
+                    double res = l / r;
+
+                    return Value(static_cast<int32_t>(res));
+                }
                 default: return Value(); // should not reached!
             }
         } else if (lVal.isStringId() && rVal.isStringId()) {
@@ -168,7 +188,15 @@ namespace DreiZehn {
                 case TokenType::Plus:  return Value(lVal.getDouble() + rVal.getDouble());
                 case TokenType::Minus: return Value(lVal.getDouble() - rVal.getDouble());
                 case TokenType::Mul:   return Value(lVal.getDouble() * rVal.getDouble());
-                case TokenType::Div:   return Value(lVal.getDouble() / rVal.getDouble());
+                case TokenType::Div:   {
+                    double r = rVal.asFastDouble();
+                    if (r == 0.0) {
+                        Tools::PrintRuntimeError("Division by 0.0!\n");
+                        return Value(0.0);
+                    }
+
+                    return Value(lVal.getDouble() / rVal.getDouble());
+                }
                 default: return Value(); // should not reached!
             }
         }
@@ -288,45 +316,66 @@ namespace DreiZehn {
                 return Value(std::abs(l - r) < EPSILON ? 0 : 1);
             }
             case TokenType::Or: {
-                int l = lVal.getInt();
-                int r = rVal.getInt();
+                int l = lVal.getUInt();
+                int r = rVal.getUInt();
                 return Value( l || r);
             }
             case TokenType::And: {
-                int l = lVal.getInt();
-                int r = rVal.getInt();
+                int l = lVal.getUInt();
+                int r = rVal.getUInt();
                 return Value( l && r);
             }
             case TokenType::BitAnd: {
-                int l = lVal.getInt();
-                int r = rVal.getInt();
+                int l = lVal.getUInt();
+                int r = rVal.getUInt();
                 return Value( l & r);
             }
             case TokenType::BitOr: {
-                int l = lVal.getInt();
-                int r = rVal.getInt();
+                int l = lVal.getUInt();
+                int r = rVal.getUInt();
                 return Value( l | r);
             }
-            case TokenType::XOr: {
-                int l = lVal.getInt();
-                int r = rVal.getInt();
+            case TokenType::BitXOr: {
+                int l = lVal.getUInt();
+                int r = rVal.getUInt();
                 return Value( l ^ r);
             }
             case TokenType::SHL: {
-                int l = lVal.getInt();
-                int r = rVal.getInt();
+                int l = lVal.getUInt();
+                int r = rVal.getUInt();
                 return Value( l << r);
             }
             case TokenType::SHR: {
-                int l = lVal.getInt();
-                int r = rVal.getInt();
+                int l = lVal.getUInt();
+                int r = rVal.getUInt();
                 return Value( l >> r);
             }
             case TokenType::Modulo: {
+
                 if (lVal.isDouble() && rVal.isDouble() ) {
+                    double r = rVal.asFastDouble();
+                    if (r == 0.0) {
+                        Tools::PrintRuntimeError("Modulo Division by 0.0!");
+                        return Value(0);
+                    }
                     return Value(std::fmod(lVal.asFastDouble(),rVal.asFastDouble()));
                 } else {
-                    return Value( lVal.getInt() % rVal.getInt());
+                    int64_t l = lVal.getInt64();
+                    int64_t r = rVal.getInt64();
+                    if (r == 0) {
+                        Tools::PrintRuntimeError("Modulo Division by 0!");
+                        return Value(0);
+                    }
+                    int64_t res = l % r;
+
+                    return Value(static_cast<uint32_t>(res));
+
+                    // int r = rVal.getInt();
+                    // if (r == 0) {
+                    //     Tools::PrintRuntimeError("Modulo Division by 0!");
+                    //     return Value(0);
+                    // }
+                    // return Value( lVal.getInt() % rVal.getInt());
 
                 }
             }

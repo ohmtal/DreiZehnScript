@@ -45,7 +45,8 @@ enum class NodeType {
     WhileStatement,
     AssignOPStatement,
     ObjectFieldExpression,
-    RangeStatement
+    RangeStatement,
+    TernaryExpression
 };
 
 #include <string>
@@ -75,6 +76,7 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::AssignOPStatement:       return "AssignOPStatement";
         case NodeType::ObjectFieldExpression:   return "ObjectFieldExpression";
         case NodeType::RangeStatement:          return "RangeStatement";
+        case NodeType::TernaryExpression:       return "TernaryExpression";
     }
     return "UnknownNodeType";
 }
@@ -265,6 +267,7 @@ struct BinaryInlineExpression : public Expression {
 
     Value evaluate(Environment& env) override;
 };
+
 // AssingmentOP ------------------------------------------------------------------
 struct AssignOPStatement : public AssignBaseStatement {
     uint32_t mVarNameSymbolId;
@@ -278,6 +281,47 @@ struct AssignOPStatement : public AssignBaseStatement {
     }
     void execute(Environment& env) override;
 };
+// short if => ? : ---------------------------------------------------------------
+struct TernaryExpression : public Expression {
+    std::unique_ptr<Expression> mCondition;
+    std::unique_ptr<Expression> mTrueBranch;
+    std::unique_ptr<Expression> mFalseBranch;
+
+    TernaryExpression(
+        std::unique_ptr<Expression> cond,
+        std::unique_ptr<Expression> trueBranch,
+        std::unique_ptr<Expression> falseBranch
+    ) : mCondition(std::move(cond)),
+    mTrueBranch(std::move(trueBranch)),
+    mFalseBranch(std::move(falseBranch))
+    {
+        mNodeType = NodeType::TernaryExpression;
+    }
+
+    inline Value evaluate(Environment& env) override {
+        auto condVal = mCondition->evaluate(env);
+        if (condVal.getBool() ) {
+            return mTrueBranch->evaluate(env);
+        } else {
+            return mFalseBranch->evaluate(env);
+        }
+    }
+};
+// UnaryMinusExpression -----------------------------------------------------------
+struct UnaryMinusExpression : public Expression {
+    std::unique_ptr<Expression> mExpr;
+
+    UnaryMinusExpression( std::unique_ptr<Expression> expr) : mExpr(std::move(expr)) { }
+
+    inline Value evaluate(Environment& env) {
+        Value v = mExpr->evaluate(env);
+        if (v.isInt()) return Value(v.asFastInt() * -1);
+        if (v.isDouble()) return Value(v.asFastDouble() * -1);
+        Tools::PrintRuntimeError( "Pointer Minus Operation not allowed!");
+        return v;
+    }
+};
+
 // If -------------------------------------------------------------------------
 // struct IfStatement : public ASTNode {
 struct IfStatement : public BlockStatement {

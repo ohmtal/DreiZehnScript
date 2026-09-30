@@ -93,9 +93,9 @@ namespace DreiZehn {
                 ret = Value(1);
                 return true;
             }
-            else return false;
 
-            return true;
+            return false;
+
         }
     };
     // -------------------------------------------------------------------------

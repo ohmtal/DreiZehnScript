@@ -115,13 +115,18 @@ under 15 sec and beat python here without bytecode ;)
 - [X] string OP: 
     - [X] '==' '!=' BAD:  print ("UHU" == "HU") => 1 
     - [X] also '+' '+=' 
-            
-
+- [X] fixed Lexer `t=0;print(t-2);` had problems with the "-" which is used for neg numbers
+- [X] parse '#' in lexer as comment - it also can close a comment ! 
+- [X] Multiline Statements !! :) ==> Backslash as line break ignore 
 
 ## maybe:
 - [ ] Bytecode continue .... 
     
 # future ideas
+- objects
+    - *note* wrap the current functions to call the userdefined after them, should be easy 
+    - [ ] objects dynamic fields < simple key value map 
+    - [ ] objects user defined methods < simple key value map looking for TypeName::method this
 - [ ] Operator callback for Objects
     - [ ] add OP "event" in ValueObject 
 - [ ] switch / case

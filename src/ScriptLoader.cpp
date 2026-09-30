@@ -15,6 +15,7 @@
 
 namespace DreiZehn {
 
+
     std::shared_ptr<BlockStatement> ParseScriptToAST(std::istream& stream) {
         std::string line;
         int lineCount = 0;
@@ -24,27 +25,72 @@ namespace DreiZehn {
         std::vector<OpenBlock> blockStack;
         blockStack.push_back({BlockType::IfBlock, 0, mainProgram.get()});
 
+        // while (std::getline(stream, line)) {
+        //     lineCount++;
+        //
+        //     Globals::currentScriptLineNumber = lineCount;
+        //
+        //     size_t firstRealChar = line.find_first_not_of(" \t\r\n");
+        //     if (firstRealChar == std::string::npos) continue;
+        //
+        //     // shell script style
+        //     if (line[firstRealChar] == '#') continue;
+        //
+        //     // lua style - because lua Syntax highlight is ok for DreiZehn ;)
+        //     if (line[firstRealChar] == '-' &&
+        //         firstRealChar + 1 < line.length() &&
+        //         line[firstRealChar + 1] == '-') {
+        //         continue;
+        //     }
+        //      Globals::currentScriptLine = line;
+
+        // concat Backslash lines !!!
+        std::string fullLine = "";
+        int logicalLineStart = 0;
+
         while (std::getline(stream, line)) {
             lineCount++;
 
-            Globals::currentScriptLineNumber = lineCount;
+            if (fullLine.empty()) {
+                logicalLineStart = lineCount;
+            }
 
-            size_t firstRealChar = line.find_first_not_of(" \t\r\n");
-            if (firstRealChar == std::string::npos) continue;
+            size_t lastRealChar = line.find_last_not_of(" \t\r\n");
+            if (lastRealChar != std::string::npos && line[lastRealChar] == '\\') {
+                fullLine += line.substr(0, lastRealChar);
+                continue;
+            } else {
+                fullLine += line;
+            }
 
-            // shell script style
-            if (line[firstRealChar] == '#') continue;
+            Globals::currentScriptLineNumber = logicalLineStart;
 
-            // lua style - because lua Syntax highlight is ok for DreiZehn ;)
-            if (line[firstRealChar] == '-' &&
-                firstRealChar + 1 < line.length() &&
-                line[firstRealChar + 1] == '-') {
+            size_t firstRealChar = fullLine.find_first_not_of(" \t\r\n");
+            if (firstRealChar == std::string::npos) {
+                fullLine.clear();
                 continue;
             }
-             Globals::currentScriptLine = line;
 
-            Lexer lexer(line);
+            // Shell Script Style
+            if (fullLine[firstRealChar] == '#') {
+                fullLine.clear();
+                continue;
+            }
+            // Lua Style
+            if (fullLine[firstRealChar] == '-' &&
+                firstRealChar + 1 < fullLine.length() &&
+                fullLine[firstRealChar + 1] == '-') {
+                fullLine.clear();
+                continue;
+            }
+
+            Globals::currentScriptLine = fullLine;
+            Lexer lexer(fullLine);
+            fullLine.clear();
+
             auto tokens = lexer.tokenize();
+            if (tokens.size() == 0) continue;
+
             Parser parser(tokens);
             auto statements = parser.parseStatements();
 

@@ -33,81 +33,58 @@ private:
     Token advance() { if (mPos + 1 < mTokens.size()) return mTokens[mPos++]; else return Token(TokenType::EOFToken);}
 
     // -------------------------------------------------------------------------
-    bool isMathOperatorType(const Token& op) {
-        return op.mType == TokenType::Plus
-        || op.mType == TokenType::Minus
-        || op.mType == TokenType::Mul
-        || op.mType == TokenType::Div
-        ;
-    }
-
-    // punkt vor strich :P orders of ...
+/*
     int getPrecedence(TokenType type) {
-        if (type == TokenType::Mul || type == TokenType::Div
-            || type == TokenType::Modulo || type == TokenType::Not) return 6;
-        if (type == TokenType::Plus || type == TokenType::Minus) return 5;
-        if (type == TokenType::SHL || type == TokenType::SHR) return 4;
+        if (type == TokenType::Mul || type == TokenType::Div ||
+            type == TokenType::Modulo || type == TokenType::Not) return 8;
+        if (type == TokenType::Plus || type == TokenType::Minus) return 7;
+        if (type == TokenType::SHL || type == TokenType::SHR) return 6;
 
         if (type == TokenType::Less || type == TokenType::Greater ||
-            type == TokenType::LowerEqual || type == TokenType::GreaterEqual) return 3;
+            type == TokenType::LowerEqual || type == TokenType::GreaterEqual) return 5;
 
-        if (type == TokenType::Equal || type == TokenType::NotEqual) return 2;
-        if (type == TokenType::BitAnd || type == TokenType::BitOr) return 1;
-        if (type == TokenType::And || type == TokenType::Or) return 0;
+        if (type == TokenType::Equal || type == TokenType::NotEqual) return 4;
+        if (type == TokenType::BitAnd || type == TokenType::BitOr) return 3;
+        if (type == TokenType::And || type == TokenType::Or) return 2;
 
-        return 0;
+        //TODO short if / then
+        if (type == TokenType::Question) return 1;
+        if (type == TokenType::Colon) return 0;
+
+        return -1;
+    }*/
+    int getPrecedence(TokenType type) {
+        if (type == TokenType::Mul || type == TokenType::Div ||
+            type == TokenType::Modulo || type == TokenType::Not) return 9;
+        if (type == TokenType::Plus || type == TokenType::Minus) return 8;
+        if (type == TokenType::SHL || type == TokenType::SHR) return 7;
+
+        if (type == TokenType::Less || type == TokenType::Greater ||
+            type == TokenType::LowerEqual || type == TokenType::GreaterEqual) return 6;
+
+        if (type == TokenType::Equal || type == TokenType::NotEqual) return 5;
+
+        if (type == TokenType::BitAnd) return 4;
+        if (type == TokenType::BitXOr) return 3;
+        if (type == TokenType::BitOr)  return 2;
+
+        if (type == TokenType::And || type == TokenType::Or) return 1;
+
+        if (type == TokenType::Question) return 0;
+
+        return -1;
     }
 
-
-    bool isMathAssignOperatorType(const Token& op) {
-        return op.mType == TokenType::AssignPlus
-        || op.mType == TokenType::AssignMinus
-        || op.mType == TokenType::AssignMul
-        || op.mType == TokenType::AssignDiv
-        ;
-    }
-
-    bool isInlineMathType(const Token& op) {
-        return
-            op.mType == TokenType::PlusPlus
-            || op.mType == TokenType::MinusMinus
-        ;
-    }
-
-    bool isMathType() {
-        return
-        isMathOperatorType(peek())
-        || peek().mType == TokenType::Greater
-        || peek().mType == TokenType::Less
-        || peek().mType == TokenType::Equal
-        || peek().mType == TokenType::NotEqual
-        || peek().mType == TokenType::Or
-        || peek().mType == TokenType::And
-        || peek().mType == TokenType::LowerEqual
-        || peek().mType == TokenType::GreaterEqual
-        || peek().mType == TokenType::BitAnd
-        || peek().mType == TokenType::BitOr
-        || peek().mType == TokenType::XOr
-        || peek().mType == TokenType::SHL
-        || peek().mType == TokenType::SHR
-        || peek().mType == TokenType::Modulo
-        || peek().mType == TokenType::Not
-        ;
-    }
-
-
-
-    bool isContinuePeak() {
-        return peek().mType != TokenType::EOFToken
-        && peek().mType != TokenType::RParen
-        && peek().mType != TokenType::Semicolon
-        && peek().mType != TokenType::End
-        && peek().mType != TokenType::Else
-        && !isMathType()
-        ;
-    }
     // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parsePrimary() {
+
+
+        if (peek().mType == TokenType::Minus) {
+            advance(); // eat '-'
+            auto expr = parseMath(9);
+            return std::make_unique<UnaryMinusExpression>(std::move(expr));
+
+        } else
         if (peek().mType == TokenType::LParen) {
             advance();
 
@@ -116,7 +93,8 @@ private:
             if (peek().mType == TokenType::RParen) {
                 advance(); //  ')'
             } else {
-                Tools::errorf("Error: Missing closing bracket %s %d\n", __FILE__, __LINE__);
+                Tools::PrintParseError("Error: Missing closing bracket");
+                // Tools::errorf("Error: Missing closing bracket %s %d\n", __FILE__, __LINE__);
             }
             return expr;
         }
@@ -153,7 +131,7 @@ private:
                 Token methodToken = advance();
 
                 std::vector<std::unique_ptr<Expression>> args;
-                while (isContinuePeak()) {
+                while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());
                     if (lastPos == mPos) {
@@ -177,7 +155,7 @@ private:
             else
             if (FunctionMap::IsFunction(nameTokenSymbolId)) {
                 std::vector<std::unique_ptr<Expression>> args;
-                while (isContinuePeak()) {
+                while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());
                     if (lastPos == mPos) {
@@ -196,21 +174,32 @@ private:
     }
 
     // -------------------------------------------------------------------------
+    // 0.6 added short if/then ? :
     std::unique_ptr<Expression> parseMath(int minPrecedence = 0) {
-
-
         auto left = parsePrimary();
 
-        while (isMathType()) {
+        while (isMathType(peek())) {
             Token op = peek();
             int precedence = getPrecedence(op.mType);
 
             if (precedence < minPrecedence) {
                 break;
             }
-
-
             advance();
+
+            if (op.mType == TokenType::Question) {
+                auto trueBranch = parseMath(0);
+
+                if (peek().mType != TokenType::Colon) {
+                    Tools::PrintParseError("Expect ':' after '?'");
+                }
+                advance();
+                auto falseBranch = parseMath(precedence);
+                left = std::make_unique<TernaryExpression>(
+                    std::move(left), std::move(trueBranch), std::move(falseBranch)
+                );
+                continue;
+            }
 
             auto right = parseMath(precedence + 1);
 
@@ -220,25 +209,31 @@ private:
                 left = std::make_unique<BinaryExpression>(std::move(left), op.mType, std::move(right));
             }
         }
-
         return left;
     }
-    // std::unique_ptr<Expression> parseMath() {
+
+    // std::unique_ptr<Expression> parseMath(int minPrecedence = 0) {
     //     auto left = parsePrimary();
-    //     while (isMathType()){
+    //     while (isMathType(peek())) {
+    //         Token op = peek();
+    //         int precedence = getPrecedence(op.mType);
     //
-    //         Token op = advance();
+    //         if (precedence < minPrecedence) {
+    //             break;
+    //         }
+    //         advance();
     //
-    //         auto right = parsePrimary();
-    //         if (isMathOperatorType(op))
+    //         auto right = parseMath(precedence + 1);
+    //
+    //         if (isMathOperatorType(op)) {
     //             left = std::make_unique<BinaryOpExpression>(std::move(left), op.mType, std::move(right));
-    //         else
+    //         } else {
     //             left = std::make_unique<BinaryExpression>(std::move(left), op.mType, std::move(right));
-    //
+    //         }
     //     }
-    //
     //     return left;
     // }
+
     // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parseComparison() {
         auto left = parseMath();
@@ -284,7 +279,7 @@ private:
             if (FunctionMap::IsFunction(nameTokenSymbolId)) {
                 std::vector<std::unique_ptr<Expression>> args;
 
-                while (isContinuePeak())
+                while (isContinueToken(peek()))
                 {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());

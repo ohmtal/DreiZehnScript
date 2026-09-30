@@ -58,6 +58,7 @@ public:
         // NaN Mask + Int-Tag + 32-Bit Integers
         mBits = QNAN_MASK | TAG_INT | i;
     }
+
     // -------------------------------------------------------------------------
     Value(std::string str) {
         uint32_t strId = StringTable::insert(str);
@@ -163,7 +164,14 @@ public:
         }
         return (float)std::bit_cast<double>(mBits);
     }
+    // -------------------------------------------------------------------------
+    inline int64_t getInt64() const {
 
+        if (isDouble()) return static_cast<int64_t>(asFastDouble());
+        if (isInt()) return (int64_t)(asFastInt());
+        if (isPointer()) return (int64_t)(asPointer());
+        return 0;
+    }
     // -------------------------------------------------------------------------
     inline int32_t getInt() const {
         if (!isInt()) {
@@ -182,6 +190,16 @@ public:
         }
         return static_cast<uint32_t>(mBits & 0xFFFFFFFFULL);
     }
+    // -------------------------------------------------------------------------
+    inline bool getBool() const {
+        if (!isInt()) {
+            if (isDouble()) return ((uint32_t) getDouble() == 1);
+            else if (isPointer()) return (uint32_t)(asPointer() != nullptr);
+            else return 0;
+        }
+        return (static_cast<uint32_t>(mBits & 0xFFFFFFFFULL) == 1);
+    }
+
     // -------------------------------------------------------------------------
     inline void* getPointer() const {
         if (!isPointer()) return nullptr;

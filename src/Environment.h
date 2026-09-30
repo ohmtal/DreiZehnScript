@@ -117,6 +117,11 @@ public:
                 auto* flowStmt = dynamic_cast<BreakStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
+            case NodeType::ContinueStatement:
+            {
+                auto* flowStmt = dynamic_cast<ContinueStatement*>(node);
+                return flowStmt->execute(currentEnv);
+            }
             case NodeType::ReturnStatement:
             {
                 auto* flowStmt = dynamic_cast<ReturnStatement*>(node);

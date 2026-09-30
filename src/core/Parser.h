@@ -406,6 +406,7 @@ public:
             auto condition = parseComparison();
             return std::make_unique<IfStatement>(std::move(condition));
         }
+        // FIXME ElIf
         else
         if (peek().mType == TokenType::Else) {
             advance(); // skip "else"
@@ -415,6 +416,11 @@ public:
         if (peek().mType == TokenType::Break) {
             advance(); // eat 'break'
             return std::make_unique<BreakStatement>();
+        }
+        else
+        if (peek().mType == TokenType::Continue) {
+            advance(); // eat
+            return std::make_unique<ContinueStatement>();
         }
         else if (peek().mType == TokenType::Return) {
             advance(); // eat'return'

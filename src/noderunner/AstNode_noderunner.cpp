@@ -527,6 +527,7 @@ namespace DreiZehn {
                 if (sig == FlowSignal::Return) {
                     return FlowSignal::Return;
                 }
+                if (sig == FlowSignal::Continue) break;
             }
         }
         return  FlowSignal::None;
@@ -559,6 +560,7 @@ namespace DreiZehn {
                     if (sig == FlowSignal::Return) {
                         return FlowSignal::Return;
                     }
+                    if (sig == FlowSignal::Continue) break;
                 }
             }
 
@@ -575,6 +577,7 @@ namespace DreiZehn {
                     if (sig == FlowSignal::Return) {
                         return FlowSignal::Return;
                     }
+                    if (sig == FlowSignal::Continue) break;
                 }
             }
         }
@@ -598,6 +601,7 @@ namespace DreiZehn {
 
                 if (sig == FlowSignal::Break) return FlowSignal::None;
                 if (sig == FlowSignal::Return) return FlowSignal::Return;
+                if (sig == FlowSignal::Continue) break;
             }
         }
         return FlowSignal::None;

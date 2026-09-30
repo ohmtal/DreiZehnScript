@@ -19,7 +19,8 @@ class Environment;
 enum class FlowSignal {
     None,
     Break,
-    Return
+    Return,
+    Continue
 };
 
 enum class NodeType {
@@ -37,10 +38,12 @@ enum class NodeType {
     BinaryInlineExpression,
     IfStatement,
     ElseMarkerNode,
+    ElIfMarkerNode,
     FunctionDefineStartNode,
-    FunctionDefineEndNode,
+    EndNode,
     ForStatement,
     BreakStatement,
+    ContinueStatement,
     ReturnStatement,
     WhileStatement,
     AssignOPStatement,
@@ -67,10 +70,13 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::BinaryInlineExpression:  return "BinaryInlineExpression";
         case NodeType::IfStatement:             return "IfStatement";
         case NodeType::ElseMarkerNode:          return "ElseMarkerNode";
+        case NodeType::ElIfMarkerNode:          return "ElIfMarkerNode";
+
         case NodeType::FunctionDefineStartNode: return "FunctionDefineStartNode";
-        case NodeType::FunctionDefineEndNode:   return "FunctionDefineEndNode";
+        case NodeType::EndNode:                 return "EndNode";
         case NodeType::ForStatement:            return "ForStatement";
         case NodeType::BreakStatement:          return "BreakStatement";
+        case NodeType::ContinueStatement:       return "ContinueStatement";
         case NodeType::ReturnStatement:         return "ReturnStatement";
         case NodeType::WhileStatement:          return "WhileStatement";
         case NodeType::AssignOPStatement:       return "AssignOPStatement";
@@ -337,7 +343,17 @@ struct IfStatement : public BlockStatement {
     FlowSignal execute(Environment& env) override;
 
 };
-struct ElseMarkerNode: public ASTNode {};
+struct ElseMarkerNode: public ASTNode {
+    ElseMarkerNode() {
+        mNodeType = NodeType::ElseMarkerNode;
+    }
+};
+struct ElIfMarkerNode: public ASTNode {
+    ElIfMarkerNode() {
+        mNodeType = NodeType::ElIfMarkerNode;
+    }
+
+};
 // fn --------------------------------------------------------------------------
 struct FunctionDefineStartNode : public ASTNode {
     // std::string mFnName;
@@ -350,7 +366,7 @@ struct FunctionDefineStartNode : public ASTNode {
 // end -------------------------------------------------------------------------
 struct FunctionDefineEndNode : public ASTNode {
    FunctionDefineEndNode() {
-        mNodeType  = NodeType::FunctionDefineEndNode;
+        mNodeType  = NodeType::EndNode;
   }
 };
 
@@ -390,7 +406,16 @@ struct BreakStatement : public FlowBaseStatement {
     };
 
 };
+// continue  -------------------------------------------------------------------------
+struct ContinueStatement : public FlowBaseStatement {
+    ContinueStatement() {
+        mNodeType  = NodeType::ContinueStatement;
+    }
+    inline FlowSignal execute(Environment& env) override {
+        return FlowSignal::Continue;
+    };
 
+};
 // return -------------------------------------------------------------------------
 struct ReturnStatement : public FlowBaseStatement {
     std::unique_ptr<Expression> mExpression;

@@ -123,11 +123,14 @@ under 15 sec and beat python here without bytecode ;)
 
 
 # 0.6c
-- [ ] need continue!!! 
-- [ ] BUG: my mIsImplicit addon not became bad !
+- [X] BUG: my mIsImplicit addon not became bad !
         - cant add an if inside an else statement!!
-        - mIsImplicit :: need an `elif` ! 
-
+    
+- [X] need continue!!! 
+    - [X] while
+    - [X] for
+    - [X] range
+- [ ] need an `elif` ! 
 - [ ] HOT-RELOAD: currently a new instance is pushed ... mhhh. 
 
 

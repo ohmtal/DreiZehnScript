@@ -25,25 +25,6 @@ namespace DreiZehn {
         std::vector<OpenBlock> blockStack;
         blockStack.push_back({BlockType::IfBlock, 0, mainProgram.get()});
 
-        // while (std::getline(stream, line)) {
-        //     lineCount++;
-        //
-        //     Globals::currentScriptLineNumber = lineCount;
-        //
-        //     size_t firstRealChar = line.find_first_not_of(" \t\r\n");
-        //     if (firstRealChar == std::string::npos) continue;
-        //
-        //     // shell script style
-        //     if (line[firstRealChar] == '#') continue;
-        //
-        //     // lua style - because lua Syntax highlight is ok for DreiZehn ;)
-        //     if (line[firstRealChar] == '-' &&
-        //         firstRealChar + 1 < line.length() &&
-        //         line[firstRealChar + 1] == '-') {
-        //         continue;
-        //     }
-        //      Globals::currentScriptLine = line;
-
         // concat Backslash lines !!!
         std::string fullLine = "";
         int logicalLineStart = 0;
@@ -103,10 +84,14 @@ namespace DreiZehn {
                     continue;
                 }
 
-                bool isIf = dynamic_cast<IfStatement*>(ast.get()) != nullptr;
-                bool isFor = dynamic_cast<ForStatement*>(ast.get()) != nullptr;
-                bool isWhile = dynamic_cast<WhileStatement*>(ast.get()) != nullptr;
-                bool isRange = dynamic_cast<ForRangeStatement*>(ast.get()) != nullptr;
+                // bool isIf = dynamic_cast<IfStatement*>(ast.get()) != nullptr;
+                // bool isFor = dynamic_cast<ForStatement*>(ast.get()) != nullptr;
+                // bool isWhile = dynamic_cast<WhileStatement*>(ast.get()) != nullptr;
+                // bool isRange = dynamic_cast<ForRangeStatement*>(ast.get()) != nullptr;
+                bool isIf    = ast->mNodeType == NodeType::IfStatement;
+                bool isFor   = ast->mNodeType == NodeType::ForStatement;
+                bool isWhile = ast->mNodeType == NodeType::WhileStatement;
+                bool isRange = ast->mNodeType == NodeType::RangeStatement;
 
 
                 if (isFor || isWhile || isIf || isRange) {
@@ -119,29 +104,29 @@ namespace DreiZehn {
                     auto& outerBlock = blockStack.back();
                     if (outerBlock.mType == BlockType::Function) {
                         FunctionMap::RegisteredScriptFunctions[outerBlock.mFuncNameSymbolId].body.push_back(sharedLoop);
-                    } else if (outerBlock.mType == BlockType::IfBlock) {
+
+                    } else
+                    // ifBlock
+                    if (outerBlock.mType == BlockType::IfBlock) {
                         auto* parentIf = dynamic_cast<IfStatement*>(outerBlock.mBlockNodePointer);
                         if (parentIf && parentIf->mIsInElseBranch) {
                             parentIf->mElseBody.push_back(sharedLoop);
-                            // 0.6c sucks cant add an if inside an else
-                            // if (isIf) { //NOTE nested if with less end
-                            //     blockStack.push_back({bType, 0, blockPtr, true} );
-                            //     continue;
-                            // }
                         } else {
                             outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
                         }
-                    } else if (outerBlock.mType == BlockType::ForLoop || outerBlock.mType == BlockType::WhileLoop) {
+                    } else
+                    // ForLoop / WhileLoop
+                    if (outerBlock.mType == BlockType::ForLoop || outerBlock.mType == BlockType::WhileLoop) {
                         outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
                     }
 
                     blockStack.push_back({bType, 0, blockPtr});
                     continue;
                 }
-
-
+                else
                 // ---- end -----
-                if (dynamic_cast<FunctionDefineEndNode*>(ast.get())) {
+                // if (dynamic_cast<FunctionDefineEndNode*>(ast.get())) {
+                if (ast->mNodeType == NodeType::EndNode) {
                     if (blockStack.size() <= 1) {
                         Tools::PrintParseError("Syntax-Error: 'end' without starting statement.");
                         return nullptr;
@@ -157,9 +142,10 @@ namespace DreiZehn {
 
                     continue;
                 }
-
+                else
                 // --- else ---
-                if (dynamic_cast<ElseMarkerNode*>(ast.get())) {
+                // if (dynamic_cast<ElseMarkerNode*>(ast.get())) {
+                if (ast->mNodeType == NodeType::ElseMarkerNode) {
                     if (blockStack.empty() || blockStack.back().mType != BlockType::IfBlock) {
                         Tools::PrintParseError("Syntax-Error: 'else' without matching 'if'.");
                         return nullptr;
@@ -168,8 +154,21 @@ namespace DreiZehn {
                     if (actualIf) actualIf->mIsInElseBranch = true;
                     continue;
                 }
+                else
+                if (ast->mNodeType == NodeType::ElIfMarkerNode) {
+                    if (blockStack.empty() || blockStack.back().mType != BlockType::IfBlock) {
+                        Tools::PrintParseError("Syntax-Error: 'elif' without matching 'if'.");
+                        return nullptr;
+                    }
+                    // MHH i need to start a new If ..
+
+                    auto* actualIf = dynamic_cast<IfStatement*>(blockStack.back().mBlockNodePointer);
+                    if (actualIf) actualIf->mIsInElseBranch = true;
+                    continue;
+                }
 
 
+                // ----------- CURRENT BLOCK -------------
                 auto& currentBlock = blockStack.back();
                 std::shared_ptr<ASTNode> sharedAst = std::move(ast);
 

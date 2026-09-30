@@ -29,7 +29,9 @@ enum class TokenType {
     , AssignPlus, AssignMinus, AssignMul, AssignDiv
 
     // if ...
-    , If, Greater, Less, Equal, NotEqual, Else
+    , If,  Else , ElIf
+
+    , Greater, Less, Equal, NotEqual
     // fn functions
     , Fn, End
 
@@ -39,6 +41,7 @@ enum class TokenType {
 
     // break, return
     , Break, Return
+    , Continue
 
     , Semicolon
 
@@ -90,6 +93,7 @@ inline const char* tokenTypeToString(TokenType type) {
         case TokenType::Equal:         return "Equal";
         case TokenType::NotEqual:      return "Not Equal";
         case TokenType::Else:          return "Else";
+        case TokenType::ElIf:          return "ElIf";
 
         // fn functions
         case TokenType::Fn:            return "Fn";
@@ -102,6 +106,7 @@ inline const char* tokenTypeToString(TokenType type) {
         // break, return
         case TokenType::Break:         return "Break";
         case TokenType::Return:        return "Return";
+        case TokenType::Continue:      return "Continue";
 
         case TokenType::Or:            return "OR ||";
         case TokenType::BitOr:         return "Bit |";
@@ -193,6 +198,7 @@ inline bool isContinueToken(const Token& op) {
     && op.mType != TokenType::Semicolon
     && op.mType != TokenType::End
     && op.mType != TokenType::Else
+    && op.mType != TokenType::ElIf
 
 
     && !isMathType(op)
@@ -366,11 +372,13 @@ public:
 
                 if (id == "if") { tokens.push_back({TokenType::If, "if"}); }
                 else if (id == "else") { tokens.push_back({TokenType::Else, "else"}); }
+                else if (id == "elif") { tokens.push_back({TokenType::ElIf, "elif"});  }
                 else if (id == "fn") { tokens.push_back({TokenType::Fn, "fn"});  }
                 else if (id == "end") { tokens.push_back({TokenType::End, "end"}); }
                 else if (id == "for") { tokens.push_back({TokenType::For, "for"});  }
                 else if (id == "break") { tokens.push_back({TokenType::Break, "break"});  }
                 else if (id == "return") { tokens.push_back({TokenType::Return, "return"});  }
+                else if (id == "continue") { tokens.push_back({TokenType::Continue, "continue"});  }
                 else if (id == "while") { tokens.push_back({TokenType::While, "while"});  }
                 else if (id == "forRange") { tokens.push_back({TokenType::forRange, "forRange"});  }
                 else if (id == "not") { tokens.push_back({TokenType::Not, "not"});  }

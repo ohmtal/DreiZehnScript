@@ -54,9 +54,9 @@ fn MainLoop
 --                     if (global_time_total % 100000) > 50000; rate = 22000;;
 
 
---                     float_value  += ((t * ( (t>>13 & 1) ? 3 : 2 ) ) & 255) / 255.0 * 0.3
-                    float_value  += (((t & t ^ t >> 6 | t * 3) - t  ) & 255) / 255.0  * 0.4
---                     float_value  += (( ((t >> 6 | t | t >> 5) * (t | 2) )) & 255) / 255.0  * 0.3
+--                     float_value  += ((t * ( (t >> 13 & 1) ? 3 : 2 ) ) & 255) / 255.0 * 0.3
+--                     float_value  += (((t & t ^ t >> 6 | t * 3) - t  ) & 255) / 255.0  * 0.4
+                    float_value  += (( ((t >> 6 | t | t >> 5) * (t | 2) )) & 255) / 255.0  * 0.3
                     fa->set i (float_value  * vol)
                     useFloat = 1
 -- NEED                    continue

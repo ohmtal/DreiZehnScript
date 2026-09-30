@@ -127,6 +127,7 @@ public:
                 auto* flowStmt = dynamic_cast<ReturnStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
+            case NodeType::ElIfStatement:
             case NodeType::IfStatement:
             {
                 auto* flowStmt = dynamic_cast<IfStatement*>(node);

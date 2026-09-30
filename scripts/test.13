@@ -1,6 +1,22 @@
 # Test for DreiZehn Script
 print "--- Run Engine-Test ---"
 
+print "------ ELIF --------"
+forRange i 100
+   print "---" i "---"
+   if (i == 0) print "if is 0"
+   elif (i == 1) print "elif is 1"
+   elif (i == 2) print "elif is 2"
+   else
+       if i >= 80 break ;;
+       if i >= 20 continue ;;
+       print "else is" i
+   end
+end
+
+while core::breath ;;
+
+
 print "----- FOR FORWARD ----"
 for i 1 5;  if i == 3; print "cont..."; continue; end;print "i:" i; end
 print "----- FOR BACKWARD ----"

@@ -139,31 +139,13 @@ while fenster->loop && core::breath
        if spaceWasUp
            curpic = (curpic + 1) % 5
            print "curpic is:" curpic
---     Without elif !
-            if (curpic == 0)
-                fillRandom
-            else
-                if (curpic == 1)
-                    fillHouse
-                else
-                    if (curpic == 2)
-                        fillGradient
-                    else
-                        if (curpic == 3)
-                            fillTunnel
-                        else
-                            fillSky
-                        end
-                    end
-                end
+
+            if (curpic == 0) fillRandom
+            elif (curpic == 1) fillHouse
+            elif (curpic == 2) fillGradient
+            elif (curpic == 3) fillTunnel
+            else fillSky
             end
--- TODO elif!
---             if (curpic == 0) fillRandom
---             else if (curpic == 1) fillHouse
---             else if (curpic == 2) fillGradient
---             else if (curpic == 3) fillTunnel
---             else fillSky
---             end
         end
         spaceWasUp = false
     else

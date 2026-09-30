@@ -492,10 +492,14 @@ namespace DreiZehn {
                 if (sig != FlowSignal::None) return sig;
             }
         } else {
-            for (auto& childNode : this->mElseBody) {
-                if (!childNode) continue;
-                FlowSignal sig = env.execute(childNode.get(), env);
-                if (sig != FlowSignal::None) return sig;
+            if (mElseBranch != nullptr) {
+                FlowSignal sig = env.execute(mElseBranch.get(), env);
+                 if (sig != FlowSignal::None) return sig;
+                // for (auto& childNode : mElseBranch->mBody) {
+                //     if (!childNode) continue;
+                //     FlowSignal sig = env.execute(childNode.get(), env);
+                //     if (sig != FlowSignal::None) return sig;
+                // }
             }
         }
         return  FlowSignal::None;

@@ -109,8 +109,11 @@ namespace DreiZehn {
                     // ifBlock
                     if (outerBlock.mType == BlockType::IfBlock) {
                         auto* parentIf = dynamic_cast<IfStatement*>(outerBlock.mBlockNodePointer);
-                        if (parentIf && parentIf->mIsInElseBranch) {
-                            parentIf->mElseBody.push_back(sharedLoop);
+                        // pre elif:
+                        // if (parentIf && parentIf->mIsInElseBranch) {
+                        //     parentIf->mElseBody.push_back(sharedLoop);
+                        if (parentIf && parentIf->mElseBranch != nullptr) {
+                            parentIf->mElseBranch->mBody.push_back(sharedLoop);
                         } else {
                             outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
                         }
@@ -144,28 +147,44 @@ namespace DreiZehn {
                 }
                 else
                 // --- else ---
-                // if (dynamic_cast<ElseMarkerNode*>(ast.get())) {
+                // pre elif:
+                // if (ast->mNodeType == NodeType::ElseMarkerNode) {
+                //     if (blockStack.empty() || blockStack.back().mType != BlockType::IfBlock) {
+                //         Tools::PrintParseError("Syntax-Error: 'else' without matching 'if'.");
+                //         return nullptr;
+                //     }
+                //     auto* actualIf = dynamic_cast<IfStatement*>(blockStack.back().mBlockNodePointer);
+                //     if (actualIf) actualIf->mIsInElseBranch = true;
+                //     continue;
+                // }
                 if (ast->mNodeType == NodeType::ElseMarkerNode) {
                     if (blockStack.empty() || blockStack.back().mType != BlockType::IfBlock) {
                         Tools::PrintParseError("Syntax-Error: 'else' without matching 'if'.");
                         return nullptr;
                     }
                     auto* actualIf = dynamic_cast<IfStatement*>(blockStack.back().mBlockNodePointer);
-                    if (actualIf) actualIf->mIsInElseBranch = true;
+                    if (actualIf) {
+                        auto elseBlock = std::make_shared<BlockStatement>();
+                        actualIf->mElseBranch = elseBlock;
+                    }
                     continue;
                 }
                 else
-                if (ast->mNodeType == NodeType::ElIfMarkerNode) {
+                if (ast->mNodeType == NodeType::ElIfStatement) {
                     if (blockStack.empty() || blockStack.back().mType != BlockType::IfBlock) {
                         Tools::PrintParseError("Syntax-Error: 'elif' without matching 'if'.");
                         return nullptr;
                     }
-                    // MHH i need to start a new If ..
 
-                    auto* actualIf = dynamic_cast<IfStatement*>(blockStack.back().mBlockNodePointer);
-                    if (actualIf) actualIf->mIsInElseBranch = true;
+                    auto* parentIf = dynamic_cast<IfStatement*>(blockStack.back().mBlockNodePointer);
+
+
+                    std::shared_ptr<ElIfStatement> elifNode = std::shared_ptr<ElIfStatement>(static_cast<ElIfStatement*>(ast.release()));
+                    parentIf->mElseBranch = elifNode;
+                    blockStack.back().mBlockNodePointer = elifNode.get();
                     continue;
                 }
+
 
 
                 // ----------- CURRENT BLOCK -------------
@@ -176,8 +195,10 @@ namespace DreiZehn {
                     FunctionMap::RegisteredScriptFunctions[currentBlock.mFuncNameSymbolId].body.push_back(sharedAst);
                 } else {
                     auto* actualIf = dynamic_cast<IfStatement*>(currentBlock.mBlockNodePointer);
-                    if (currentBlock.mType == BlockType::IfBlock && actualIf && actualIf->mIsInElseBranch) {
-                        actualIf->mElseBody.push_back(sharedAst);
+                    // if (currentBlock.mType == BlockType::IfBlock && actualIf && actualIf->mIsInElseBranch) {
+                    //     actualIf->mElseBody.push_back(sharedAst);
+                    if (currentBlock.mType == BlockType::IfBlock && actualIf && actualIf->mElseBranch != nullptr) {
+                        actualIf->mElseBranch->mBody.push_back(sharedAst);
                     } else {
                         currentBlock.mBlockNodePointer->mBody.push_back(sharedAst);
                     }

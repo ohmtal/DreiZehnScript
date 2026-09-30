@@ -38,7 +38,7 @@ enum class NodeType {
     BinaryInlineExpression,
     IfStatement,
     ElseMarkerNode,
-    ElIfMarkerNode,
+    ElIfStatement,
     FunctionDefineStartNode,
     EndNode,
     ForStatement,
@@ -70,7 +70,7 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::BinaryInlineExpression:  return "BinaryInlineExpression";
         case NodeType::IfStatement:             return "IfStatement";
         case NodeType::ElseMarkerNode:          return "ElseMarkerNode";
-        case NodeType::ElIfMarkerNode:          return "ElIfMarkerNode";
+        case NodeType::ElIfStatement:           return "ElIfStatement";
 
         case NodeType::FunctionDefineStartNode: return "FunctionDefineStartNode";
         case NodeType::EndNode:                 return "EndNode";
@@ -333,8 +333,11 @@ struct UnaryMinusExpression : public Expression {
 struct IfStatement : public BlockStatement {
     std::unique_ptr<Expression> mCondition;
     // body is defined in BlockStatement
-    std::vector<std::shared_ptr<ASTNode>> mElseBody;
-     bool mIsInElseBranch = false;
+
+    std::shared_ptr<BlockStatement> mElseBranch = nullptr;
+    // pre elif:
+    // // std::vector<std::shared_ptr<ASTNode>> mElseBody;
+    // //  bool mIsInElseBranch = false;
 
     IfStatement(std::unique_ptr<Expression> cond) : mCondition(std::move(cond)) {
         mNodeType  = NodeType::IfStatement;
@@ -348,9 +351,9 @@ struct ElseMarkerNode: public ASTNode {
         mNodeType = NodeType::ElseMarkerNode;
     }
 };
-struct ElIfMarkerNode: public ASTNode {
-    ElIfMarkerNode() {
-        mNodeType = NodeType::ElIfMarkerNode;
+struct ElIfStatement: public IfStatement {
+    ElIfStatement(std::unique_ptr<Expression> cond): IfStatement(std::move(cond)) {
+        mNodeType = NodeType::ElIfStatement;
     }
 
 };

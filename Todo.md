@@ -130,7 +130,7 @@ under 15 sec and beat python here without bytecode ;)
     - [X] while
     - [X] for
     - [X] range
-- [ ] need an `elif` ! 
+- [X] need an `elif` \o/
 - [ ] HOT-RELOAD: currently a new instance is pushed ... mhhh. 
 
 

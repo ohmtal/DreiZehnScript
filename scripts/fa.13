@@ -1,61 +1,96 @@
 -- FensterAudio Test
 print "FensterAudio TEST. You may set `bitRate` to change the sound "
-
-fa = FensterAudio::new
-
-global_time_total = 0.0
-
-rate = 8000
-melody = 10
-vol = 0.5
-
 print str::concat "* rate    = " rate   " ==> highter is faster."
 print str::concat "* melody  = " melody "  ==> 0..5 available"
 print str::concat "* vol     = " vol    "  ==> Volume"
 print "* quit ==> call to stop the loop"
 
-while core::breath
-    n = fa.avail
-    if n > 0
-        forRange i n
-            global_time_total++
-            t = core::castInt (global_time_total * rate / 44100.0)
-            --   if melody == 0; byte_value = (t * ((t >> 8) | (t >> 9))) & 46 & (t >> 8);;
-            if melody == 0; byte_value = (t * ((t >> 8) | (t >> 9))) & 46
-            else
-            if melody == 1; byte_value = (t * ((t >> 5) | (t >> 8))) & 256
-            else
-            if melody == 2; byte_value = ((t * 5 & t >> 7) | (t * 3 & t >> 10)) & 256
-            else
-            if melody == 3; byte_value = ((t >> 6 | t | t >> 5) * 10 + (t >> 11)) & 256
-            else
-            if melody == 4; byte_value = ((t * (t >> 8 | t >> 9) & 20 | (t >> 19) * 5))
-            else
-            if melody == 5; byte_value = ((t * 9 & t >> 4) | (t * 5 & t >> 7)) & 256
-            else
---                 byte_value = (t|(t*t>>13)>>2) &256
---                 byte_value = (((t|t+(t>>8))^t>>8)/2&127)+((300000/((t&4095)+128))&128)
---                   byte_value =   10*(t>>7|t|t>>6)+4*(t&t>>13|t>>6)
--- c compatible => https://dollchan.net/bytebeat/
---                   byte_value = t+(t&t^t>>6)-t*(t>>9&(t%16?2:6)&t>>9)
---                   byte_value = t + ( t & t ^ t >> 6) -t * ( t >> 9 & ( t % 64 ? 16 : 1 ) & t >> 9 )
---                   byte_value = t + ( t & t ^ t >> 6) -t * ( t >> 9 & ( t % 64 ? 16 : 2 ) & t >> 9 )
---                   byte_value = t*(t&16384?6:5)*(3+(3&t>>(t&2048?7:14)))>>(3&t>>9)|t>>2
---                 byte_value = t*(t&16384?6:5)*(3+(3&t>>(t&2048?7:14)))>>(3&t>>9)|t>>3
---                 byte_value = t*(t&16384?6:5)*(5-(3&t>>(t&4096?7:14)))>>(3&t>>9)|t>>3
---                 byte_value = t*(t&16384?7:5)*(3+(3&t>>14))>>(3&t>>9)|t>>6
-                byte_value = t*((t>>9|t>>13)&15)&129
-                byte_value = byte_value & 256;
-            end
---             FAILS:
---                 byte_value = (t*3|t*3>>6)&(t/2|t/2>>3&t/2>>5)
+fn MainLoop
+    while core::breath
+        n = fa.avail
+        if n > 0
+            forRange i n
+                float_value = 0
 
-            fa->set i ((byte_value / 256.0) * vol)
+                global_time_total++ # i use double here
+                t = core::castInt (global_time_total * rate / 44100.0)
+    --               if melody == 0; byte_value = (t * ((t >> 8) | (t >> 9))) & 46 & (t >> 8)
+                if melody == 0; byte_value = (t * ((t >> 8) | (t >> 9))) & 46;;
+                if melody == 1; byte_value = (t * ((t >> 5) | (t >> 8))) & 64;;
+                if melody == 2; byte_value = ((t * 5 & t >> 7) | (t * 3 & t >> 10)) & 129;;
+                if melody == 3; byte_value = ((t >> 6 | t | t >> 5) * 10 + (t >> 11)) & 256;;
+                if melody == 4; byte_value = ((t * (t >> 8 | t >> 9) & 20 | (t >> 19) * 5));;
+                if melody == 5; byte_value = ((t * 9 & t >> 4) | (t * 5 & t >> 7)) & 256
+                else
+    --                 byte_value = (t|(t*t>>13)>>2) &256
+    --                 byte_value = (((t|t+(t>>8))^t>>8)/2&127)+((300000/((t&4095)+128))&128)
+    --                   byte_value =   10*(t>>7|t|t>>6)+4*(t&t>>13|t>>6)
+    -- c compatible => https://dollchan.net/bytebeat/
+--                       byte_value = (t+(t&t^t>>6)-t*(t>>9&(t%16?2:6)&t>>9)) & 256
+    --                   byte_value = t + ( t & t ^ t >> 6) -t * ( t >> 9 & ( t % 64 ? 16 : 1 ) & t >> 9 )
+    --                   byte_value = t*(t&16384?6:5)*(3+(3&t>>(t&2048?7:14)))>>(3&t>>9)|t>>2
+    --                 byte_value = t*(t&16384?6:5)*(3+(3&t>>(t&2048?7:14)))>>(3&t>>9)|t>>3
+    --                 byte_value = t*(t&16384?6:5)*(5-(3&t>>(t&4096?7:14)))>>(3&t>>9)|t>>3
+--                     byte_value = byte_value & 256;
+
+--                       byte_value += t + ( t & t ^ t >> 6) -t * ( t >> 9 & ( t % 64 ? 16 : 2 ) & t >> 9 ) & 256
+--                     byte_value += ( t * ( t & 16384 ? 7 : 5 ) *( 3 + ( 3 & t >> 14 ) ) >> ( 3 & t >> 9 ) | t >> 6 ) & 256
+--                     byte_value = t*((t>>9|t>>13)&15) & 129
+
+-- --------------
+--                       byte_value += t + ( t & t ^ t >> 6) -t * ( t >> 9 & ( t % 64 ? 16 : 2 ) & t >> 9 ) & 256
+--                     byte_value += (t*(t&16384?6:5)*(3+(3&t>>(t&2048?7:14)))>>(3&t>>9)|t>>3) & 256
+--                       byte_value = (t * (t&16384?6:5) * (( (t % 8) ? 1 : 3) & t >> 8)) & 256
+--                     byte_value += ((t & 1 ? 1 : 0)*(t*((t>>9|t>>13)&15))) & 129
+--                     byte_value += ((t*((t>>9|t>>13)&15))) & 129
+
+--                     byte_value += (((100000-t) & 128) | (((100000-t)*(100000-t)>>13) % 256)>>2) & 64
+--                     byte_value += ( ((100000-t)*(100000-t )>>13 )>>2) & 64
+--                     byte_value += (((100000-t) & 128) | ((100000-t)*(100000-t)>>18)>>2) & 64
+-- --------------
+                    rate = 12000
+
+--                     FIXME BUG IN IF ... if global_time_total % 100000 < 50000; rate = 12000; else rate = 22000; end;
+--                     if (global_time_total % 100000) > 50000; rate = 22000;;
+
+
+--                     float_value  += ((t * ( (t>>13 & 1) ? 3 : 2 ) ) & 255) / 255.0 * 0.3
+                    float_value  += (((t & t ^ t >> 6 | t * 3) - t  ) & 255) / 255.0  * 0.4
+--                     float_value  += (( ((t >> 6 | t | t >> 5) * (t | 2) )) & 255) / 255.0  * 0.3
+                    fa->set i (float_value  * vol)
+                    useFloat = 1
+-- NEED                    continue
+-- --------------
+
+
+--                     byte_value += ( math::abs (math::sin(t%329) * 10) + ((t >> 6 | t | t >> 5) * (t | 2) )) & 256
+--                     byte_value += ((t >> 6 | t | t >> 5) * 10 + (t >> 11)) & 256
+-- --------------
+
+--                     byte_value += t*((t>>9|t>>13)&15)&129
+                end
+    --             FAILS:
+    --                 byte_value = (t*3|t*3>>6)&(t/2|t/2>>3&t/2>>5)
+
+               if !useFloat fa->set i ((byte_value / 255.0) * vol);;
+            end
+            fa->write n
         end
-        fa->write n
+        core::sleep 16
     end
-    core::sleep 8
+
+
+    fa->close
 end
 
+if (!fa)
+    fa = FensterAudio::new
+    global_time_total = 0.0
+    rate = 8000
+    melody = 10
+    vol = 0.5
+    useFloat = false
+    MainLoop
+end
 
-fa->close
+fa = 0

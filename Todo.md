@@ -118,6 +118,18 @@ under 15 sec and beat python here without bytecode ;)
 - [X] fixed Lexer `t=0;print(t-2);` had problems with the "-" which is used for neg numbers
 - [X] parse '#' in lexer as comment - it also can close a comment ! 
 - [X] Multiline Statements !! :) ==> Backslash as line break ignore 
+- [X] added short if ? : 
+- [X] fixed math order again and added BitXOr to order
+
+
+# 0.6c
+- [ ] need continue!!! 
+- [ ] BUG: my mIsImplicit addon not became bad !
+        - cant add an if inside an else statement!!
+        - mIsImplicit :: need an `elif` ! 
+
+- [ ] HOT-RELOAD: currently a new instance is pushed ... mhhh. 
+
 
 ## maybe:
 - [ ] Bytecode continue .... 

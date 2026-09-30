@@ -24,6 +24,14 @@ namespace DreiZehn {
             return true;
         });
         // ---------------------------------------------------------------------
+        RegisterFunction("debug::fn", [](std::vector<Value>& args, Value& ret) -> bool {
+            Tools::printf("  --- Script Function [%zu] --- \n",RegisteredScriptFunctions.size());
+            for (const auto& [key, value] : RegisteredScriptFunctions) {
+                Tools::printf("  - %s bodys:%d\n", SymbolTable::getName(key).c_str(), value.body.size());
+            }
+            return true;
+        });
+        // ---------------------------------------------------------------------
         RegisterFunction("debug::stat", [](std::vector<Value>& args, Value& ret) -> bool {
 
             Tools::printf("SymbolTable count: %zu\n", SymbolTable::size());

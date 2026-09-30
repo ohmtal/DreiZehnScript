@@ -123,10 +123,11 @@ namespace DreiZehn {
                         auto* parentIf = dynamic_cast<IfStatement*>(outerBlock.mBlockNodePointer);
                         if (parentIf && parentIf->mIsInElseBranch) {
                             parentIf->mElseBody.push_back(sharedLoop);
-                            if (isIf) { //NOTE nested if with less end
-                                blockStack.push_back({bType, 0, blockPtr, true} );
-                                continue;
-                            }
+                            // 0.6c sucks cant add an if inside an else
+                            // if (isIf) { //NOTE nested if with less end
+                            //     blockStack.push_back({bType, 0, blockPtr, true} );
+                            //     continue;
+                            // }
                         } else {
                             outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
                         }
@@ -147,9 +148,10 @@ namespace DreiZehn {
                     }
 
                     //NOTE nested if with less end :
-                    while (blockStack.size() > 1 && blockStack.back().mIsImplicit) {
-                        blockStack.pop_back();
-                    }
+                    // 0.6c removed again !
+                    // while (blockStack.size() > 1 && blockStack.back().mIsImplicit) {
+                    //     blockStack.pop_back();
+                    // }
 
                     blockStack.pop_back();
 

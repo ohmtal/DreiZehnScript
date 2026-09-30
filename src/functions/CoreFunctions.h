@@ -185,7 +185,10 @@ namespace DreiZehn {
             for (const auto& [key, value] : RegisteredFunctions) {
                 Tools::printf("  - %s \n", SymbolTable::getName(key).c_str());
             }
-            return true;
+            Tools::printf("  --- Script Function [%zu] --- \n",RegisteredScriptFunctions.size());
+            for (const auto& [key, value] : RegisteredScriptFunctions) {
+                Tools::printf("  - %s \n", SymbolTable::getName(key).c_str());
+            }
 
             return true;
         });

@@ -177,18 +177,21 @@ public:
     }
 
     inline void doGarbageCollection(bool calledOnDestructor) {
+       assert(gMasterFrame && "doGarbageCollection but Frame have not MasterFrame!!!");
        const bool doMaster = (
            gMasterFrame
            && this == gMasterFrame
            && calledOnDestructor
        );
+
        if (doMaster) {
-           for (auto* obj : mGarbageCollection) {
+           for (auto* obj : gMasterFrame->mGarbageCollection) {
                delete obj;
            }
-           mGarbageCollection.clear();
+           gMasterFrame->mGarbageCollection.clear();
        } else {
-           auto it = std::remove_if(mGarbageCollection.begin(), mGarbageCollection.end(), [](auto* obj) {
+           auto it = std::remove_if(gMasterFrame->mGarbageCollection.begin()
+                    , gMasterFrame->mGarbageCollection.end(), [](auto* obj) {
                if (obj->mAssigned < 1) {
                    delete obj;
                    return true; // mark for delete
@@ -196,7 +199,7 @@ public:
                return false;
            });
 
-           mGarbageCollection.erase(it, mGarbageCollection.end());
+           gMasterFrame->mGarbageCollection.erase(it, gMasterFrame->mGarbageCollection.end());
        }
 
        // Tools::printf("DEBUG; gc:%zu\n", mGarbageCollection.size());

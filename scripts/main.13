@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-#   DreiZehn Module Loader
+#   DreiZehn Module Loader - Finit State Machine
 # ------------------------------------------------------------------------------
 # Every Module need the functions:
 #   - ModuleCreate
@@ -9,7 +9,7 @@
 # ------------------------------------------------------------------------------
 
 -- Avail Modules
-loader::Modules = Array::new "Fenster"
+loader::Modules = Array::new "Fenster" "RayFirst"
 loader::ModuleIndex = -1
 loader::ModuleName = ""
 
@@ -54,8 +54,9 @@ fn loader::MainLoop
                  ModuleDelete
                  loader::ModuleIndex = -1
             end
+        else
+            core::sleep 16
         end
-        core::sleep 16
     end
 end
 # ------------------------------------------------------------------------------

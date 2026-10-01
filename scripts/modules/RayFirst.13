@@ -1,0 +1,43 @@
+screenWidth    = 800
+screenHeight   = 450
+
+bgColor = rl::Color 10 30 10 255
+
+myText = 0;
+
+fn ModuleCreate
+    rl::InitWindow screenWidth screenHeight "raylib [core] example - basic window"
+    rl::SetTargetFPS 60
+
+    myText = Object::new
+    myText->setClassName "MyText"
+    myText.text = "Congrats! You created your first window!"
+    myText.fontSize = 30
+    myText.textWidth  = rl::MeasureText myText.text myText.fontSize
+    myText.x = screenWidth  / 2 - myText.textWidth / 2
+    myText.y = screenHeight / 2 - myText.fontSize  / 2
+
+    return true
+end
+
+fn ModuleDelete
+    rl::CloseWindow
+    myText = 0;
+
+end
+
+fn MyText::draw this
+    rl::DrawText this.text this.x this.y this.fontSize rl::LIGHTGRAY
+end
+
+fn ModuleLoop
+    if rl::WindowShouldClose; return false; end
+    rl::BeginDrawing
+    rl::ClearBackground bgColor
+    rl::DrawFPS 10 10
+    myText->draw
+    rl::EndDrawing
+    return true
+end
+
+

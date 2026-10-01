@@ -151,27 +151,29 @@ under 15 sec and beat python here without bytecode ;)
     
 - [X] Bug in assigned counting up like hell (module/RayFirst ) => #29 [0x55fddc2524c0] assigned: 1293 type:1 Object
         was the "this" in function call - i decrement it again after call return 
-- [ ] core::gc does not remove the not assigned objects ?? 
+- [X] core::gc does not remove the not assigned objects ?? 
+
 - [ ] create ValueObject->isScriptMethod => need also to do the same as the calling code  so I should add a function 
-- [ ] dump should also list the scriptMethods!
+    - [ ] dump should also list the registered scriptMethods!
+
 - [ ] should i add this ? `o.array->print` calling a method from a object which is stored in a dynamic field ... 
-    - [ ] UserFunction object to call them like a lambda from a list... 
+    - [ ] lexer/parser
+    - [ ] runtime lookup break in parts
+
+    
     
 ## maybe:
 - [ ] Bytecode continue .... 
-    
+- [ ] UserFunction object to call them like a lambda from a list... 
+- [ ] finish Raylib importer << stuck at structs inside stucts and pointer returns 
+- [ ] move more code to cpp because compiletime is raising - carefully do not break the speed
+ 
 # future ideas
-- [ ] HOT-RELOAD: currently a new instance is pushed ... mhhh. 
-- objects
-    - *note* wrap the current functions to call the userdefined after them, should be easy 
-    - [ ] objects dynamic fields < simple key value map 
-    - [ ] objects user defined methods < simple key value map looking for TypeName::method this
+- [ ] change printf errorf to a overwritable class or add a handler 
 - [ ] Operator callback for Objects
-    - [ ] add OP "event" in ValueObject 
+    - [X] add OP "event" in ValueObject << simply insert script function symbol
 - [ ] switch / case
 - [ ] multiline statement for if..  << but then i need a parameter separator !
-- [ ] header only - for easy include 
+- [NOT] header only - for easy include 
     - Problem : CallExpression <> FunctionMap < ASTNode
     
-- change printf errorf to a overwritable class or add a handler 
-

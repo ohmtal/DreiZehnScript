@@ -156,24 +156,26 @@ under 15 sec and beat python here without bytecode ;)
 - [ ] create ValueObject->isScriptMethod => need also to do the same as the calling code  so I should add a function 
     - [ ] dump should also list the registered scriptMethods!
 
+    
+- [ ] enhance AssignStatement, BinaryInlineExpression, AssignOPStatement to take a VariableExpression .. 
+        which can be field+object and arr[0] and such ....
 - [ ] should i add this ? `o.array->print` calling a method from a object which is stored in a dynamic field ... 
     - [ ] lexer/parser
     - [ ] runtime lookup break in parts
 
     
     
+# still missing:
+- [ ] change printf errorf to a overwritable class or add a handler 
+
 ## maybe:
 - [ ] Bytecode continue .... 
+- [ ] move more code to cpp because compiletime is raising - carefully do not break the speed
 - [ ] UserFunction object to call them like a lambda from a list... 
 - [ ] finish Raylib importer << stuck at structs inside stucts and pointer returns 
-- [ ] move more code to cpp because compiletime is raising - carefully do not break the speed
- 
-# future ideas
-- [ ] change printf errorf to a overwritable class or add a handler 
+- [ ] validate if there is a usable SDL3 auto bind script
+- [ ] switch / case
 - [ ] Operator callback for Objects
     - [X] add OP "event" in ValueObject << simply insert script function symbol
-- [ ] switch / case
-- [ ] multiline statement for if..  << but then i need a parameter separator !
-- [NOT] header only - for easy include 
-    - Problem : CallExpression <> FunctionMap < ASTNode
+ 
     

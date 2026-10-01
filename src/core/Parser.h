@@ -143,6 +143,7 @@ private:
                 return std::make_unique<MethodExpression>(nameTokenSymbolId
                     , SymbolTable::insert(methodToken.mValue), std::move(args));
             }
+            else
             if (peek().mType  == TokenType::Dot
                 && peekNext().mType == TokenType::Identifier
             ) {
@@ -151,6 +152,28 @@ private:
                 Token fieldToken = advance();
 
                 return std::make_unique<ObjectFieldExpression>(nameTokenSymbolId , SymbolTable::insert(fieldToken.mValue));
+            }
+            else
+            if (peek().mType == TokenType::LSquare) {
+                advance();
+                std::unique_ptr<Expression> indexArg;
+                if (isContinueToken(peek())) {
+                    indexArg = parseMath();
+                }
+
+                if (!indexArg.get()) {
+                    Tools::PrintParseError("Missing index");
+                    return nullptr;
+                }
+
+                if (peek().mType == TokenType::RSquare) {
+
+                    advance();
+                    return std::make_unique<ArrayVariableExpression>(nameToken.mValue, std::move(indexArg));
+                } else {
+                    Tools::PrintParseError("Missing closing ]");
+                    return nullptr;
+                }
             }
             else
             if (FunctionMap::IsFunction(nameTokenSymbolId)) {
@@ -441,7 +464,11 @@ public:
 
             return std::make_unique<ReturnStatement>(std::move(rhs));
         }
-        else  //FIXME switch / case !
+        else
+            //TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME
+        //FIXME no idea how to add assign of ArrayVariableExpression ... i guess i need to
+            // enhance AssignStatement, BinaryInlineExpression, AssignOPStatement to
+            // take a VariableExpression --> so i also get `o.array->print` working ?!
         if (peek().mType == TokenType::Identifier) {
             Token nextToken = peekNext();
             if (nextToken.mType == TokenType::Assign) {
@@ -496,6 +523,9 @@ public:
             }
             else if (nextToken.mType == TokenType::Arrow) {
                 return parsePrimary();
+            }
+            else if (nextToken.mType == TokenType::LSquare) {
+                return parsePrimary(); //FIXME ...
             }
             else if (isInlineMathType( nextToken)) {
                 return parsePrimary();

@@ -222,7 +222,12 @@ public:
                 }
                 break;
             }
-
+            case NodeType::ArrayVariableExpression: {
+                if (auto* expr = dynamic_cast<ArrayVariableExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
             // --- others ---
             default: {
                 // if (auto* expr = dynamic_cast<Expression*>(node)) {

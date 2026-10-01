@@ -14,10 +14,13 @@ namespace DreiZehn {
 
 
     const int TypeBaseObject =  RegisterUserObjectType("Object");
+    const int TypeStructObject =  RegisterUserObjectType("Struct");
     struct BaseValueObject : public ValueObject {
         BaseValueObject() : ValueObject(TypeBaseObject) {  }
     };
-
+    struct StructObject : public ValueObject {
+        StructObject() : ValueObject(TypeStructObject) {  }
+    };
     // =============================================================================
     // --- RegisterCoreFunctions ---
     // =============================================================================
@@ -36,6 +39,27 @@ namespace DreiZehn {
         RegisterFunction("Object::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
             BaseValueObject* obj = new BaseValueObject();
             ret = Value(obj);
+            return true;
+        });
+        RegisterFunction("struct", [&env](std::vector<Value>& args, Value& ret) -> bool {
+            for(size_t i = 0; i < args.size(); i++) {
+                if (!args[i].isStringId() ) {
+                    Tools::errorf("Usage struct [string field] [string field] ...\n");
+                    return true;
+                }
+            }
+            StructObject* obj = new StructObject();
+            ret = Value(obj);
+
+            for(size_t i = 0; i < args.size(); i++) {
+
+                const std::string &fieldName = args[i].getStringRef();
+                if (!isValidVariableName(fieldName)) continue;
+
+                uint32_t id = SymbolTable::insert(fieldName);
+                obj->mDynmaicFields[id] = Value(0);
+
+            }
             return true;
         });
         // ---------------------------------------------------------------------
@@ -69,8 +93,119 @@ namespace DreiZehn {
             return true;
         });
 
+        // ---------------------------------------------------------------------
+        // int
+        // ---------------------------------------------------------------------
+        RegisterFunction("int::cast", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 1) {
+                Tools::errorf("Usage: int::cast value\n");
+                return false;
+            }
+            if (args[0].isInt()) ret =  args[0];
+            else
+                if (args[0].isDouble()) ret = Value(args[0].getInt());
+            else
+                if (args[0].isStringId()) ret = Value( std::atoi( args[0].getStringRef().c_str()));
+            else
+                Tools::PrintRuntimeError("Cant cast pointer to integer!\n");
+
+            return true;
+        });
+
+        // ---------------------------------------------------------------------
+        RegisterFunction("int::reserve", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() < 2 || !args[0].isStringId() || !args[1].isInt()) {
+                Tools::errorf("Reserve int variables for array like usage.Usage: int::reserve string variablename int count [int defaultValue]");
+                return false;
+            }
+
+            const std::string& varname = args[0].getStringRef();
+
+            if (!isValidVariableName(varname)) {
+                Tools::errorf("Reserve int variable name %s invalid!\n", varname.c_str());
+                return true;
+            }
+
+            int count = args[1].getInt();
+
+            if (count < 1 || count > 100000) {
+                Tools::errorf("Count is out of bounds: %d  (min 0, max 100000)\n", count);
+                return true;
+
+            }
+
+            Value defaultVal = Value(0);
+            if (args.size() > 2 && args[2].isNumber()) {
+                defaultVal = Value(args[2].getInt());
+            }
+
+            for ( int i = 0; i < count; i++) {
+                uint32_t id = SymbolTable::insert(genArrayVar(varname,  Value(i)));
+                gCurrentFrame->setVariable(id, Value(defaultVal));
+            }
 
 
+            return true;
+        });
+
+
+        // ---------------------------------------------------------------------
+        // float
+        // ---------------------------------------------------------------------
+        RegisterFunction("float::cast", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 1) {
+                Tools::errorf("Usage: float::cast value\n");
+                return false;
+            }
+            if (args[0].isDouble()) ret =  args[0];
+            else
+                if (args[0].isInt()) ret = Value(args[0].getDouble());
+            else
+                if (args[0].isStringId()) ret = Value( std::atof( args[0].getStringRef().c_str()));
+            else
+                Tools::PrintRuntimeError("Cant cast pointer to float!\n");
+
+            return true;
+        });
+
+        // ---------------------------------------------------------------------
+        RegisterFunction("float::reserve", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() < 2 || !args[0].isStringId() || !args[1].isInt()) {
+                Tools::errorf("Reserve int variables for array like usage.Usage: int::reserve string variablename int count [int defaultValue]");
+                return false;
+            }
+
+            const std::string& varname = args[0].getStringRef();
+
+            if (!isValidVariableName(varname)) {
+                Tools::errorf("Reserve int variable name %s invalid!\n", varname.c_str());
+                return true;
+            }
+
+            int count = args[1].getInt();
+
+            if (count < 1 || count > 100000) {
+                Tools::errorf("Count is out of bounds: %d  (min 0, max 100000)\n", count);
+                return true;
+
+            }
+
+            Value defaultVal = Value(0.0);
+            if (args.size() > 2 && args[2].isNumber()) {
+                defaultVal = Value(args[2].getDouble());
+            }
+
+            for ( int i = 0; i < count; i++) {
+                uint32_t id = SymbolTable::insert(genArrayVar(varname,  Value(i)));
+                gCurrentFrame->setVariable(id, Value(defaultVal));
+            }
+
+
+            return true;
+        });
+
+        // ---------------------------------------------------------------------
+        // CORE
         // ---------------------------------------------------------------------
         RegisterFunction("core::eval", [&env](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isStringId()) {
@@ -89,31 +224,6 @@ namespace DreiZehn {
                 return false;
             }
             ret = Value(args[0].getTypeName());
-            return true;
-        });
-        RegisterFunction("core::castInt", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() != 1) {
-                Tools::errorf("Usage: core::castInt value");
-                return false;
-            }
-            if (args[0].isInt()) ret =  args[0];
-            else
-            if (args[0].isDouble()) ret = Value(args[0].getInt());
-            else
-            Tools::PrintRuntimeError("Cant cast pointer to integer!");
-            return true;
-        });
-        RegisterFunction("core::castFloat", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() != 1) {
-                Tools::errorf("Usage: core::castFloat value");
-                return false;
-            }
-            if (args[0].isDouble()) ret =  args[0];
-            else
-            if (args[0].isInt()) ret = Value(args[0].getDouble());
-            else
-            Tools::PrintRuntimeError("Cant cast pointer to float!");
-
             return true;
         });
         // ---------------------------------------------------------------------

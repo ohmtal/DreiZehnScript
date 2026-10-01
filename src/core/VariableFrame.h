@@ -16,6 +16,7 @@
 
 namespace DreiZehn {
 
+
 // -----------------------------------------------------------------------------
 // Global Access:
 class VariableFrame;
@@ -206,7 +207,27 @@ public:
        //DEBUG: if (!calledOnDestructor) listGarbageObjects();
     }
     // -------------------------------------------------------------------------
+
+
+
 };
+// -----------------------------------------------------------------------------
+// TOOLS
+// -----------------------------------------------------------------------------
+inline std::string genArrayVar(const std::string& varname, Value keyVal) {
+    if (keyVal.isInt()) return varname + "____" + std::to_string( keyVal.asFastInt());
+    if (keyVal.isDouble()) return varname + "____" + std::to_string( keyVal.getInt());
+    if (keyVal.isStringId()) return varname + "____" + keyVal.getStringRef();
+    return "";
+}
 
+inline bool isValidVariableName(const std::string& str) {
+    if (str.empty()) return false; // Handle empty string if needed
 
+    return std::all_of(str.begin(), str.end(), [](unsigned char c) {
+        return std::isalnum(c) || c == '_' || c == ':';
+    });
+}
+
+// -----------------------------------------------------------------------------
 } // namespace DreiZehn

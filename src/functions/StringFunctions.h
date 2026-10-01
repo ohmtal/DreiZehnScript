@@ -358,10 +358,28 @@ namespace DreiZehn {
 
         // ---------------------------------------------------------------------
         RegisterFunction("str::format", [](std::vector<Value>& args, Value& ret) -> bool {
-
+            if (args.size() < 1) {
+                ret = Value("");
+                return true;
+            }
             ret = Value( formatString(args));
             return true;
         });
+        // ---------------------------------------------------------------------
+        RegisterFunction("str::cast", [](std::vector<Value>& args, Value& ret) -> bool {
+
+            if (args.size() < 1 || args[0].isPointer()) {
+                ret = Value("");
+                return true;
+            }
+            if (args[0].isInt()) ret = Value (std::to_string(args[0].asFastInt()));
+            else
+            if (args[0].isDouble()) ret = Value (std::to_string(args[0].asFastDouble()));
+
+            return true;
+        });
+
+
     } //RegisterStringFunctions
 
 } //namespace

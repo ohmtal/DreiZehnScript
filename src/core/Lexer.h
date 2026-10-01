@@ -21,6 +21,7 @@ enum class TokenType {
     , StringLiteral
     , LParen
     , RParen
+    , LSquare, RSquare
     // math
     , Plus , Minus , Mul , Div
 
@@ -70,9 +71,10 @@ inline const char* tokenTypeToString(TokenType type) {
         case TokenType::Number:        return "Number";
         case TokenType::Assign:        return "Assign";
         case TokenType::StringLiteral: return "StringLiteral";
-        case TokenType::LParen:        return "LParen";
-        case TokenType::RParen:        return "RParen";
-
+        case TokenType::LParen:        return "LParen (";
+        case TokenType::RParen:        return "RParen )";
+        case TokenType::LSquare:        return "LSquare [";
+        case TokenType::RSquare:        return "RSquare ]";
         // math
         case TokenType::Plus:          return "Plus";
         case TokenType::PlusPlus:      return "PlusPlus";
@@ -199,6 +201,7 @@ inline bool isContinueToken(const Token& op) {
     && op.mType != TokenType::End
     && op.mType != TokenType::Else
     && op.mType != TokenType::ElIf
+    && op.mType != TokenType::RSquare
 
 
     && !isMathType(op)
@@ -264,6 +267,9 @@ public:
 
             if (peek() == '!') { advance(); tokens.push_back({TokenType::Not,   "!"}); continue; }
             if (peek() == '%') { advance(); tokens.push_back({TokenType::Modulo,"%"}); continue; }
+
+            if (peek() == '[') { advance(); tokens.push_back({TokenType::LSquare,"["}); continue; }
+            if (peek() == ']') { advance(); tokens.push_back({TokenType::RSquare,"]"}); continue; }
 
             // ----------------------------------------------------------------
             if (peek() == '-' && peekNext() == '>') {

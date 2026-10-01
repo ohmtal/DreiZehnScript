@@ -13,7 +13,7 @@ fn MainLoop
                 float_value = 0
 
                 global_time_total++ # i use double here
-                t = core::castInt (global_time_total * rate / 44100.0)
+                t = int::cast(global_time_total * rate / 44100.0)
     --               if melody == 0; byte_value = (t * ((t >> 8) | (t >> 9))) & 46 & (t >> 8)
                 if melody == 0; byte_value = (t * ((t >> 8) | (t >> 9))) & 46;;
                 if melody == 1; byte_value = (t * ((t >> 5) | (t >> 8))) & 64;;

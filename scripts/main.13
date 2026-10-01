@@ -21,7 +21,7 @@ fn ModuleDelete end
 # ------------------------------------------------------------------------------
 fn loader::Load moduleIndex
     if moduleIndex < 0 || moduleIndex >= loader::Modules->size
-        print "Loader Error: moduleIndex" i "out of bounds!"
+        print "Loader Error: moduleIndex" moduleIndex "out of bounds!"
         return false
     end
 

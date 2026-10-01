@@ -43,6 +43,18 @@ namespace DreiZehn {
         return env.getVariableFrame()->getVariable(mVariableNameSymbolId);
     }
     // -------------------------------------------------------------------------
+    Value ArrayVariableExpression::evaluate(Environment& env) {
+        Value indexValue = mIndexExpr->evaluate(env);
+        if (!indexValue.isInt()) {
+            Tools::errorf("RunTime Error: On Variable: %s. Only integer keys allowed\n",mVariableName.c_str());
+            return Value(0);
+        }
+        // slow :(
+        std::string name = genArrayVar(mVariableName, indexValue);
+        uint32_t id = SymbolTable::insert(name);
+        return env.getVariableFrame()->getVariable(id);
+    }
+    // -------------------------------------------------------------------------
     Value ObjectFieldExpression::evaluate(Environment& env) {
         Value varValue = env.getVariableFrame()->getVariable(mVariableNameSymbolId);
         Value returnValue = Value(0);

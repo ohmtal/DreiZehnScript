@@ -30,6 +30,7 @@ enum class NodeType {
     LiteralExpression,
     ValueExpression,
     VariableExpression,
+    ArrayVariableExpression,
     CallExpression,
     MethodExpression,
     AssignStatement,
@@ -62,6 +63,7 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::LiteralExpression:       return "LiteralExpression";
         case NodeType::ValueExpression:         return "ValueExpression";
         case NodeType::VariableExpression:      return "VariableExpression";
+        case NodeType::ArrayVariableExpression:   return "ArrayVariableExpression";
         case NodeType::CallExpression:          return "CallExpression";
         case NodeType::MethodExpression:        return "MethodExpression";
         case NodeType::AssignStatement:         return "AssignStatement";
@@ -157,15 +159,24 @@ struct VariableExpression : public Expression {
     // std::string mName;
     uint32_t mVariableNameSymbolId = 0;
 
-    // NOT!
-    // bool  mEvaluated = false;
-    // Value mEvaluatedValue;
-
     VariableExpression(uint32_t n) : mVariableNameSymbolId(n) {
         mNodeType  = NodeType::VariableExpression;
     }
     Value evaluate(Environment& env) override;
 };
+
+struct ArrayVariableExpression : public Expression {
+    std::string mVariableName;
+    std::unique_ptr<Expression> mIndexExpr;
+
+    ArrayVariableExpression(std::string vname, std::unique_ptr<Expression> idxExpr) :
+        mVariableName(vname),mIndexExpr(std::move(idxExpr)) {
+        mNodeType  = NodeType::ArrayVariableExpression;
+    }
+    Value evaluate(Environment& env) override;
+};
+
+
 
 struct ObjectFieldExpression : public Expression {
     uint32_t mVariableNameSymbolId = 0;

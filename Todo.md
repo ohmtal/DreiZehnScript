@@ -149,6 +149,8 @@ under 15 sec and beat python here without bytecode ;)
             
     - [X] add a base ValueObject Class Object::new
     
+- [X] Bug in assigned counting up like hell (module/RayFirst ) => #29 [0x55fddc2524c0] assigned: 1293 type:1 Object
+        was the "this" in function call - i decrement it again after call return 
 - [ ] create ValueObject->isScriptMethod => need also to do the same as the calling code  so I should add a function 
 - [ ] dump should also list the scriptMethods!
 - [ ] should i add this ? `o.array->print` calling a method from a object which is stored in a dynamic field ... 

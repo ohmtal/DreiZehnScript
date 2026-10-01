@@ -5,7 +5,6 @@
 #   - ModuleCreate
 #   - ModuleLoop
 #   - ModuleDelete
-# TODO: core object with dynamic fields and methods
 # ------------------------------------------------------------------------------
 
 -- Avail Modules

@@ -52,7 +52,10 @@ struct ValueObject {
     static void RegisterSymbols() {}
 
     // garbage collection control
-    inline void setAssigned(bool v) {mAssigned += v ? 1 : -1;}
+    inline void setAssigned(bool v) {
+        mAssigned += v ? 1 : -1;
+
+    }
 
 
 

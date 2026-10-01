@@ -104,6 +104,7 @@ namespace DreiZehn {
             if (sf) {
                 args.insert(args.begin(), Value(this));
                 ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, args);
+                this->setAssigned(false); //reset after call!
                 return true;
             }
         }

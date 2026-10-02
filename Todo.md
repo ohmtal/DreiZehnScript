@@ -160,9 +160,10 @@ under 15 sec and beat python here without bytecode ;)
 # 0.6d     
 - [X] bug return without value: __return_value__ << return 0 if not expression is found
 - [X] Fenster Scale 
-- [ ] help print constants 
-
-
+- [X] help print constants 
+- [X] Fenster PixelBuffer object 
+- [X] GC: on local var and function parameters: gc count up but is not decremented when frame is deleted 
+- [X] alot of stuff to FensterFunctions added
 
 
 # Variable problematic

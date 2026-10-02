@@ -14,6 +14,9 @@
 #include <stdint.h>
 #include <cstring>
 
+#include <fstream>
+#include <cstdint>
+
 #include "core/FunctionMap.h"
 #include "core/VariableFrame.h"
 #include "Globals.h"
@@ -57,20 +60,159 @@ namespace DreiZehn::Fenster {
                 copy_height = this->height - dest_y;
             }
 
+            // Alpha 0xAARRGGBB
             for (uint32_t row = 0; row < copy_height; ++row) {
                 uint32_t* dest_ptr = &this->buffer[(dest_y + row) * this->width + dest_x];
                 const uint32_t* src_ptr = &src.buffer[(src_start_y + row) * src.width + src_start_x];
-                std::memcpy(dest_ptr, src_ptr, copy_width * sizeof(uint32_t));
+
+                for (uint32_t col = 0; col < copy_width; ++col) {
+                    uint32_t src_pixel = src_ptr[col];
+
+                    uint32_t alpha = (src_pixel >> 24) & 0xFF;
+
+                    if (alpha == 255) {
+                        dest_ptr[col] = src_pixel;
+                    }
+                    else if (alpha > 0) {
+                        uint32_t dest_pixel = dest_ptr[col];
+
+                        uint32_t rb_src  = src_pixel & 0x00FF00FF;
+                        uint32_t g_src   = src_pixel & 0x0000FF00;
+
+                        uint32_t rb_dest = dest_pixel & 0x00FF00FF;
+                        uint32_t g_dest  = dest_pixel & 0x0000FF00;
+
+                        uint32_t rb = rb_dest + (((rb_src - rb_dest) * alpha) >> 8);
+                        uint32_t g  = g_dest  + (((g_src  - g_dest)  * alpha) >> 8);
+
+                        dest_ptr[col] = 0xFF000000 | (rb & 0x00FF00FF) | (g & 0x0000FF00);
+                    }
+                }
             }
         }
-    };
 
+    }; // pixel buffer
+    // -------------------------------------------------------------------------
+    // Rotation
+    // -------------------------------------------------------------------------
+    void rotate90_clockwise(const pixel_buffer& src, pixel_buffer& dest) {
+        dest.width = src.height;
+        dest.height = src.width;
+        const uint32_t TILE_SIZE = 32; // Passt gut in den L1-Cache
 
+        for (uint32_t ty = 0; ty < src.height; ty += TILE_SIZE) {
+            for (uint32_t tx = 0; tx < src.width; tx += TILE_SIZE) {
+                for (uint32_t y = ty; y < std::min(ty + TILE_SIZE, src.height); ++y) {
+                    for (uint32_t x = tx; x < std::min(tx + TILE_SIZE, src.width); ++x) {
+                        uint32_t src_idx = y * src.width + x;
+                        uint32_t dest_idx = x * dest.width + (src.height - 1 - y);
+                        dest.buffer[dest_idx] = src.buffer[src_idx];
+                    }
+                }
+            }
+        }
+    }
+    // OpenMP
+    void rotate_arbitrary(const pixel_buffer& src, pixel_buffer& dest, float angle_rad) {
+        float cos_a = std::cos(angle_rad);
+        float sin_a = std::sin(angle_rad);
+
+        float cx = src.width / 2.0f;
+        float cy = src.height / 2.0f;
+        float dcx = dest.width / 2.0f;
+        float dcy = dest.height / 2.0f;
+
+        #pragma omp parallel for collapse(2)
+        for (uint32_t dy = 0; dy < dest.height; ++dy) {
+            for (uint32_t dx = 0; dx < dest.width; ++dx) {
+                float x = dx - dcx;
+                float y = dy - dcy;
+
+                int sx = static_cast<int>(x * cos_a + y * sin_a + cx);
+                int sy = static_cast<int>(-x * sin_a + y * cos_a + cy);
+
+                if (sx >= 0 && sx < (int)src.width && sy >= 0 && sy < (int)src.height) {
+                    dest.buffer[dy * dest.width + dx] = src.buffer[sy * src.width + sx];
+                } else {
+                    dest.buffer[dy * dest.width + dx] = 0;
+                }
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // TGA load / save
+    // -------------------------------------------------------------------------
+    bool save_to_tga(const char* filename, const pixel_buffer& src) {
+        if (!src.buffer || src.width == 0 || src.height == 0) return false;
+
+        std::ofstream file(filename, std::ios::binary);
+        if (!file) return false;
+
+        uint8_t header[18] = { 0 };
+
+        header[2]  = 2;
+
+        header[12] = src.width & 0xFF;
+        header[13] = (src.width >> 8) & 0xFF;
+
+        header[14] = src.height & 0xFF;
+        header[15] = (src.height >> 8) & 0xFF;
+
+        header[16] = 32;
+        header[17] = 0x28;
+
+        file.write(reinterpret_cast<char*>(header), 18);
+
+        uint32_t num_pixels = src.width * src.height;
+        file.write(reinterpret_cast<const char*>(src.buffer), num_pixels * sizeof(uint32_t));
+
+        return file.good();
+    }
+
+    // -------------------------------------------------------------------------
+    bool load_from_tga(const char* filename, pixel_buffer& dest) {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file) return false;
+
+        uint8_t header[18];
+        file.read(reinterpret_cast<char*>(header), 18);
+        if (!file) return false;
+
+        if (header[2] != 2) return false;
+
+        uint32_t w = header[12] | (header[13] << 8);
+        uint32_t h = header[14] | (header[15] << 8);
+
+        if (header[16] != 32) return false;
+
+        if (dest.buffer) {
+            delete[] dest.buffer;
+        }
+
+        dest.width = w;
+        dest.height = h;
+        dest.buffer = new uint32_t[w * h];
+
+        bool flip_vertical = !(header[17] & 0x20);
+
+        if (!flip_vertical) {
+            file.read(reinterpret_cast<char*>(dest.buffer), w * h * sizeof(uint32_t));
+        }
+        else {
+            for (int32_t row = h - 1; row >= 0; --row) {
+                uint32_t* row_ptr = &dest.buffer[row * w];
+                file.read(reinterpret_cast<char*>(row_ptr), w * sizeof(uint32_t));
+            }
+        }
+        return file.good();
+    }
+
+    // -------------------------------------------------------------------------
     static inline void pixel(pixel_buffer* f, int x, int y, uint32_t c) {
         if (!f || x < 0 || x >= f->width || y < 0  || y >= f->height ) return;
         f->set(x,y,c);
     }
-
     // -------------------------------------------------------------------------
     // from drawing-c
     // -------------------------------------------------------------------------
@@ -216,6 +358,19 @@ namespace DreiZehn::Fenster {
          return 0; // success
      }
      // ------------------------------------------------------------------------
+     void draw_scaled_pixel(struct fenster *f, int x, int y, int scale, uint32_t color) {
+         for (int dy = 0; dy < scale; dy++) {
+             for (int dx = 0; dx < scale; dx++) {
+                 int screen_x = x * scale + dx;
+                 int screen_y = y * scale + dy;
+
+                 if (screen_x >= 0 && screen_x < f->width && screen_y >= 0 && screen_y < f->height) {
+                     f->buf[screen_y * f->width + screen_x] = color;
+                 }
+             }
+         }
+     }
+     // ------------------------------------------------------------------------
      void scale_buffer_to_window(struct fenster *f, uint32_t *src_buf, uint32_t src_w, uint32_t src_h) {
          if (!f || !f->buf || !src_buf || f->width == 0 || f->height == 0) return;
 
@@ -269,7 +424,8 @@ namespace DreiZehn {
         inline static ValueObjectProperty clearProp, lineProp;
         inline static ValueObjectProperty rectProp, circleProp, fillProp;
         inline static ValueObjectProperty textProp, sleepProp, exportProp;
-        inline static ValueObjectProperty printProp, setDataProp;
+        inline static ValueObjectProperty printProp, setDataProp, saveProp, loadProp;
+        inline static ValueObjectProperty cloneRotate90Prop, cloneRotateFreeProp;
 
         // properties
         inline static ValueObjectProperty widthProp, heightProp;
@@ -331,6 +487,21 @@ namespace DreiZehn {
 
             setDataProp = ValueObjectProperty("setData", 1,65536
             , "read number params to set the pixels (max: 65536 == 256*256)", TypePixelBuffer);
+
+            saveProp = ValueObjectProperty("save", 1,1
+            , "save buffer to tga file format. Usage: ->save filename", TypePixelBuffer);
+
+            loadProp = ValueObjectProperty("load", 1,1
+            , "load buffer from tga file format. Usage: ->load filename", TypePixelBuffer);
+
+            cloneRotate90Prop=ValueObjectProperty("cloneRotate90", 0,0
+            , "clone the current buffer and return it rotated 90 degree blockwise", TypePixelBuffer);
+
+            cloneRotateFreeProp=ValueObjectProperty("cloneRotateFree", 1,1
+            , "clone the current buffer and return it rotated  degree ", TypePixelBuffer);
+
+
+
 
 
             widthProp     = ValueObjectProperty("width","readonly", TypePixelBuffer);
@@ -441,6 +612,8 @@ namespace DreiZehn {
 
             // ------- export
             if (exportProp.matchMethod( methodId , args) == 1) {
+
+                std::string filename = args[0].getStringRef().c_str();
                 save_to_bmp(args[0].getStringRef().c_str(), &mBuffer);
                 return true;
             }
@@ -454,6 +627,69 @@ namespace DreiZehn {
                 }
                 Tools::printf("\n");
                 return true;
+            }
+            // ------- setData
+            if (setDataProp.matchMethod( methodId , args) == 1) {
+                if (!mBuffer.buffer) return false;
+
+                uint32_t buffercount = mBuffer.width * mBuffer.height;
+                uint32_t argscount = args.size();
+                if (argscount > buffercount) argscount = buffercount;
+                for (uint32_t i = 0 ; i < argscount; i++) {
+                    mBuffer.buffer[i] = args[i].getUInt();
+                }
+                ret = Value(argscount);
+                return true;
+            }
+
+            // ------- save (tga)
+            if (saveProp.matchMethod( methodId , args) == 1) {
+                if (!mBuffer.buffer) return false;
+
+                if (!args[0].isStringId()) {
+                    ret = Value(0);
+                    return true;
+                }
+
+                ret = Value(save_to_tga(args[0].getStringRef().c_str(), mBuffer));
+
+                return true;
+            }
+            // ------- load (tga)
+            if (loadProp.matchMethod( methodId , args) == 1) {
+                if (!mBuffer.buffer) return false;
+
+                if (!args[0].isStringId()) {
+                    ret = Value(0);
+                    return true;
+                }
+
+                ret = Value(load_from_tga(args[0].getStringRef().c_str(), mBuffer));
+
+                return true;
+            }
+            // ------- clone Rotate
+            if (cloneRotate90Prop.matchMethod( methodId , args) == 1) {
+                if (!mBuffer.buffer) return false;
+
+                PixelBufferObject* obj = new PixelBufferObject( mBuffer.width, mBuffer.height);
+                rotate90_clockwise(mBuffer, obj->mBuffer);
+                ret = Value(obj);
+
+                return true;
+            }
+
+            if (cloneRotateFreeProp.matchMethod( methodId , args) == 1) {
+                if (!mBuffer.buffer) return false;
+
+                PixelBufferObject* obj = new PixelBufferObject( mBuffer.width, mBuffer.height);
+                rotate_arbitrary(mBuffer, obj->mBuffer, args[0].getFloat());
+                ret = Value(obj);
+
+                return true;
+
+
+                return ValueObject::onMethodCall(methodId, args, ret);
             }
 
 
@@ -496,7 +732,7 @@ namespace DreiZehn {
 
         FensterObject(const char* title, int w, int h, float scale) : ValueObject(TypeFensterObject) {
             mFenster.title = title;
-            if (scale < 0.f) scale == 1.f;
+            if (scale < 0.f) scale = 1.f;
             mFenster.width =  (int)(w * scale);
             mFenster.height = (int)(h * scale);
             mScale = scale;
@@ -576,7 +812,7 @@ namespace DreiZehn {
             exportProp = ValueObjectProperty("export", 1,1
             , "export the picture to file, @param filename", TypeFensterObject);
 
-            drawBufferProp = ValueObjectProperty("drawbuffer", 3,3
+            drawBufferProp = ValueObjectProperty("drawBuffer", 3,3
             , "draw a pixel buffer object at position", TypeFensterObject);
 
 

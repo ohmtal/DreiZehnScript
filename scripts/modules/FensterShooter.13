@@ -30,7 +30,17 @@ Bullets = 0     # Array of Bullet Object
 Enemies = 0     # Array of Enemy Object
 Stars   = 0     # Array of Stars
 
+--- Graphics
+Ship     = 0     # TGA ship :)
+Boulders = 0     # TGA boulder Array :)
+
+-- Sound
+Audio    = 0     # FensterAudio Object
+
 loopCounter = 0 # a simple counter
+
+
+
 
 -- more consts
 enemyCount  = 20
@@ -69,9 +79,8 @@ end
 -- -----------------------------------------------------------------------------
 --      Enemy Script-Methods
 fn Enemy::init this
-    this.w = 12
-    this.r = this.w / 2
-    this.h = this.w
+    this.w = 16
+    this.h = 16
     this->spawn
     this.active = false
 end
@@ -82,6 +91,8 @@ fn Enemy::spawn this
     this.speed = 0.5 + math::randomf * 1.0
     this.color = (this.speed > 1.0) ? COLOR_RED : 0x884444
     this.active = true
+    id = math::random 0 (Boulders->size - 1)
+    this.boulderId = id
 end
 
 fn Enemy::process this
@@ -93,12 +104,13 @@ fn Enemy::process this
     end
 
     if doesCollide this Player
+        Audio->explo
         Game->gameOver
         return
     end
 
-    Fenster->circle (this.x + this.r) (this.y + this.r) this.r this.color
-    Fenster->rect (this.x + 4) this.y 4 12 0x555555
+    b = Boulders->at this.boulderId
+    Fenster->drawBuffer this.x this.y b
 
 end
 
@@ -128,6 +140,7 @@ fn Bullet::process this
                 Game.score += 10
                 enemy.active = false
                 this.active = false
+                Audio->explo
                 return
             end
         end
@@ -146,11 +159,11 @@ end
 --      Player Script-Methods
 
 fn Player::init this
-    this.w = 10
-    this.h = 12
+    this.w = 16
+    this.h = 16
     this.x = GAMEWIDTH / 2.0
     this.y = GAMEHEIGHT - this.h - 5
-    this.speed = 2.0
+    this.speed = 1.0
     this.shootDelay = 300
     this.lastshoot = 0
     this.releasedSpace = true
@@ -161,15 +174,12 @@ fn Player::process this
     if (Game.gameOver) return;;
 
 
-    Fenster->rect (this.x + this.w / 2 - 2) this.y 4 this.h 0x00FF00
-    Fenster->rect this.x (this.y + this.h - 6 ) this.w 4 0x0000FF
+    Fenster->drawBuffer this.x this.y Ship
 
     if (Fenster->isKeyDown KEY_LEFT)
-        Fenster->rect (this.x + this.w ) (this.y + this.h / 2) 3 3 COLOR_YELLOW
         this.x = math::max 0 (this.x - this.speed)
     end
     if (Fenster->isKeyDown KEY_RIGHT)
-        Fenster->rect (this.x - 1 ) (this.y + this.h / 2) 3 3 COLOR_YELLOW
         this.x = math::min (GAMEWIDTH - this.w )(this.x + this.speed)
     end
 
@@ -182,19 +192,13 @@ fn Player::process this
             bullet->spawn (this.x + this.w / 2) (this.y - this.h) true
             Bullets->push bullet
             this.lastshoot = Fenster.time
+            Audio->laser
         end
         this.releasedSpace = false
     else
         this.releasedSpace = true
     end
 
-
-
-    if (loopCounter % 2 == 0)
-        Fenster->rect (this.x  + this.w / 2 ) (this.y + this.h) 2 4 COLOR_YELLOW
-    else
-        Fenster->rect (this.x - 2 + this.w / 2 ) (this.y + this.h) 2 4 COLOR_YELLOW
-    end
 end
 -- -----------------------------------------------------------------------------
 --      Game Script-Methods
@@ -204,6 +208,7 @@ fn Game::init this
     this.spawnDelay = 100
     this.gameOverTime = 0
     this->reset
+    this.gameOver  = true
 
 end
 
@@ -245,6 +250,71 @@ fn Game::processEnemies this
     end
 end
 -- -----------------------------------------------------------------------------
+-- Audio
+-- -----------------------------------------------------------------------------
+fn Audio::laser this
+    this.laser_counter = 0
+    this.laserActive = true;
+end
+fn Audio::explo this
+    Audio.explo_counter = 0
+    Audio.exploActive = true
+end
+
+fn Audio::process this
+    n = this.avail
+    if n > 0
+
+        forRange i n
+            this.counter++
+            t = int::cast (this.counter * this.rate / 44100.0)
+
+            float_value = 0.0
+
+            -- music
+
+            if Game.gameOver
+                this.rate = 12000
+                music_sample = (((t & t ^ t >> 6 | t * 3) - t  ) & 255) * 0.2
+            else
+                this.rate = 8000
+                 music_sample  =  (t*(3+(1^t>>10&5))*(5+(3&t>>14))>>(t>>8&3) & 255) * 0.3
+            end
+            float_value += music_sample / 255.0
+
+
+
+            if this.laserActive
+                this.laser_counter++
+                lt = int::cast (this.laser_counter * this.rate / 44100.0)
+--                 laser_sample = ((lt * (64 - (lt >> 7 & 63)) & 128) >> (lt >> 10)) ;
+--                 laser_sample = ((lt * (32 - (lt >> 7 & 31)) & 255) >> (lt >> 8)) ;
+                laser_sample = ((lt * (16 - (lt >> 2 ))) & 64) >> (lt >> 8) ;
+                float_value += laser_sample / 255.0 ;
+                if this.laser_counter > 1584
+                    this.laserActive = false
+                end
+            end
+
+            if this.exploActive
+                this.explo_counter++
+                lt = int::cast (this.explo_counter * this.rate / 44100.0)
+                explo_sample = ((lt * (lt >> 7 | lt >> 9)) & 128) & (255 >> (lt >> 11));
+                float_value += explo_sample / 255.0;
+
+                if this.explo_counter > 2048
+                    this.exploActive = false
+                end
+            end
+
+
+            -- mix
+            this->set i (float_value  * this.vol)
+        end
+        this->write n
+    end
+end
+-- -----------------------------------------------------------------------------
 -- MAIN
 -- -----------------------------------------------------------------------------
 fn ModuleCreate
@@ -255,6 +325,24 @@ fn ModuleCreate
 
 
 
+    -- Ship --
+    Ship = PixelBuffer::new 16 16
+    file = "scripts/modules/ship.tga"
+    if (!Ship->load file) print "ERROR: failed to load Ship! must be uncompressed TGA." file; end
+
+    -- Boulder --
+    boulder = PixelBuffer::new 16 16
+    file = "scripts/modules/boulder1.tga"
+    if (!boulder->load file) print "ERROR: failed to load Boulder! must be uncompressed TGA." file; end
+
+    Boulders = Array::new
+    Boulders->push boulder
+    d = 0
+    while d <= 360.0
+        Boulders->push (boulder->cloneRotateFree d)
+        d += 15.0;
+    end
+    boulder = 0
 
     -- Player --
     Player = Object::new
@@ -288,6 +376,18 @@ fn ModuleCreate
     -- Bullets --
     Bullets = Array::new
 
+    -- Audio --
+    Audio   = FensterAudio::new
+    Audio->setClassName "Audio"
+    Audio.vol   = 0.5
+    Audio.rate  = 12000
+    Audio.counter = 0
+    Audio.laserActive = false
+    Audio.laser_counter = 0
+    Audio.exploActive = false
+    Audio.explo_counter = 0
+
+
     return true
 end
 
@@ -303,6 +403,12 @@ fn ModuleDelete
     Bullets = 0     # Array of Player Bullet Object
     Enemies = 0     # Array of Enemy Object
     Stars   = 0     # Array of Stars
+
+    Ship     = 0     # TGA ship :)
+    Boulders = 0     # TGA boulder Array :)
+
+    Audio->close
+    Audio    = 0
 
 end
 -- -----------------------------------------------------------------------------
@@ -342,11 +448,11 @@ fn ModuleLoop
    Fenster->text 20 (GAMEHEIGHT + 5) (str::format "Score: %04d  Hi: %04d" Game.score Game.hiScore) 2 0xFFFFFF
 
 
+   Audio->process
+
    if (!Fenster->loop )|| (Fenster->isKeyDown KEY_ESC)
        return false
    end
-
-
 
    loopCounter++
 

@@ -45,6 +45,16 @@ public:
         mParentFrame = parentFrame;
     }
     ~VariableFrame() {
+
+        //unassign objects
+        if (this != gMasterFrame) {
+            for(auto v: mVariables) {
+                if (v.second.isPointer()) {
+                    v.second.asPointerObject()->setAssigned(false);
+                }
+            }
+        }
+
         doGarbageCollection(true);
         gCurrentFrame = mParentFrame;
     }
@@ -193,6 +203,7 @@ public:
            }
            gMasterFrame->mGarbageCollection.clear();
        } else {
+
            auto it = std::remove_if(gMasterFrame->mGarbageCollection.begin()
                     , gMasterFrame->mGarbageCollection.end(), [](auto* obj) {
                if (obj->mAssigned < 1) {

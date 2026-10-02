@@ -27,7 +27,7 @@ namespace DreiZehn::Tools{
         vprintf(format, args);
         va_end(args);
     }
-
+    // -------------------------------------------------------------------------
     #if defined(_WIN32) || defined(__WIN32__) || defined(MSC_VER)
     #include <windows.h>
     #define platform_sleep(ms) Sleep(ms)
@@ -42,5 +42,15 @@ namespace DreiZehn::Tools{
     #else
     #error "UNKNOWN OS"
     #endif
+    // -------------------------------------------------------------------------
+    inline bool ends_with(const std::string& text, const std::string& suffix)
+    {
+        return text.size() >= suffix.size() &&
+        text.compare(
+            text.size() - suffix.size(),
+                     suffix.size(),
+                     suffix
+        ) == 0;
+    }
 
 }

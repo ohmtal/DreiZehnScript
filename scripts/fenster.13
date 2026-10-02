@@ -13,7 +13,61 @@ pb = PixelBuffer::new 8 8
 pb->circle 4 4 4 COLOR_RED
 pb->print
 
-circle = Array::new 0 0 0 0 0xffff0000 0 0 0 0 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0
+fenster->drawBuffer 10 10 pb
+pb->clear COLOR_WHITE
+fenster->drawBuffer 20 10 pb
+
+count = pb->setData \
+0 0 0 0 0 0 0 0 \
+0 0 0 0 0 0 0 0 \
+0 0 0 0 0 0 0 0 \
+0 0 0 0 0 0 0 0 \
+0 0 0 0xff00ff00 0 0 0 0 \
+0 0 0xff00ff00 0 0xff00ff00 0 0 0 \
+0 0xff00ff00 0 0 0 0xff00ff00 0 0 \
+0xff00ff00 0 0 0 0 0 0xff00ff00 0
+s
+print "PixelBuffer imported" count "bytes"
+fenster->drawBuffer 30 10 pb
+
+pb = PixelBuffer::new 16 16
+pb->clear 0x00000000
+if (pb->save "empty.tga")
+    print "empty.tga 16x16 exported"
+end
+
+file = "scripts/modules/ship.tga"
+if (!pb->load file) print "ERROR: failed to load" file; end
+fenster->drawBuffer 50 50 pb
+
+pb90 = pb->cloneRotate90
+pb180 = pb90->cloneRotate90
+pb270 = pb180->cloneRotate90
+
+fenster->drawBuffer 20 20 pb
+fenster->drawBuffer 60 20 pb90
+fenster->drawBuffer 100 20 pb180
+fenster->drawBuffer 140 20 pb270
+
+
+Boulders = Array::new
+d = 0
+while d <= 360.0
+    Boulders->push (pb->cloneRotateFree d)
+    d += 15.0;
+end
+
+x = 0
+y = 60
+forRange i Boulders->size
+    buff = Boulders->at i
+    fenster->drawBuffer x y buff
+    x += 32
+    if x > 320
+        x = 0
+        y += 32
+    end
+end
 
 while fenster->loop
     -- ESC

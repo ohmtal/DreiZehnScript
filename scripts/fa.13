@@ -15,12 +15,12 @@ fn MainLoop
                 global_time_total++ # i use double here
                 t = int::cast(global_time_total * rate / 44100.0)
     --               if melody == 0; byte_value = (t * ((t >> 8) | (t >> 9))) & 46 & (t >> 8)
-                if melody == 0; byte_value = (t * ((t >> 8) | (t >> 9))) & 46;;
-                if melody == 1; byte_value = (t * ((t >> 5) | (t >> 8))) & 64;;
-                if melody == 2; byte_value = ((t * 5 & t >> 7) | (t * 3 & t >> 10)) & 129;;
-                if melody == 3; byte_value = ((t >> 6 | t | t >> 5) * 10 + (t >> 11)) & 256;;
-                if melody == 4; byte_value = ((t * (t >> 8 | t >> 9) & 20 | (t >> 19) * 5));;
-                if melody == 5; byte_value = ((t * 9 & t >> 4) | (t * 5 & t >> 7)) & 256
+                if melody == 0; byte_value = (t * ((t >> 8) | (t >> 9))) & 46
+                elif melody == 1; byte_value = (t * ((t >> 5) | (t >> 8))) & 64
+                elif melody == 2; byte_value = ((t * 5 & t >> 7) | (t * 3 & t >> 10)) & 129
+                elif melody == 3; byte_value = ((t >> 6 | t | t >> 5) * 10 + (t >> 11)) & 256
+                elif melody == 4; byte_value = ((t * (t >> 8 | t >> 9) & 20 | (t >> 19) * 5))
+                elif melody == 5; byte_value = ((t * 9 & t >> 4) | (t * 5 & t >> 7)) & 256
                 else
     --                 byte_value = (t|(t*t>>13)>>2) &256
     --                 byte_value = (((t|t+(t>>8))^t>>8)/2&127)+((300000/((t&4095)+128))&128)
@@ -87,7 +87,7 @@ if (!fa)
     fa = FensterAudio::new
     global_time_total = 0.0
     rate = 8000
-    melody = 10
+    melody = 3
     vol = 0.5
     useFloat = false
     MainLoop

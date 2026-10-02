@@ -5,6 +5,7 @@
 // Core Commands
 //-----------------------------------------------------------------------------
 #pragma once
+#include <algorithm> // std::sort
 #include "core/FunctionMap.h"
 #include "ScriptLoader.h"
 
@@ -274,9 +275,10 @@ namespace DreiZehn {
         RegisterFunction("help", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- DreiZehn Help ------------------\n");
             Tools::printf(
-                "help::syntax  => print syntax informations.\n"
-                "help::fn      => print the available Function\n"
-                "help::objects => print the available Object-Types\n"
+                "help::syntax    => print syntax informations.\n"
+                "help::fn        => print the available Function\n"
+                "help::objects   => print the available Object-Types\n"
+                "help::const     => print the registered Constants\n"
             );
             return true;
         });
@@ -315,8 +317,8 @@ namespace DreiZehn {
             return true;
         });
 
-        #include <algorithm> // Für std::sort
 
+        // ---------------------------------------------------------------------
         RegisterFunction("help::fn", [](std::vector<Value>& args, Value& ret) -> bool {
             bool doFilter = false;
             std::string filter;
@@ -328,7 +330,7 @@ namespace DreiZehn {
             std::vector<std::string> nativeNames;
             for (const auto& [key, value] : RegisteredFunctions) {
                 std::string name = SymbolTable::getName(key);
-                if (!doFilter || name.find(filter) != std::string::npos) { // Teilstring-Suche
+                if (!doFilter || name.find(filter) != std::string::npos) {
                     nativeNames.push_back(name);
                 }
             }
@@ -359,25 +361,7 @@ namespace DreiZehn {
             return true;
         });
 
-
-        // RegisterFunction("help::fn", [](std::vector<Value>& args, Value& ret) -> bool {
-        //     Tools::printf("  --- Functions [%zu] --- \n", RegisteredFunctions.size());
-        //     bool doFilter = false;
-        //     std::string filter;
-        //     if ( args[0].isStringId() ) {
-        //         filter = args[0].getString();
-        //         if (!filter.empty()) doFilter = true;
-        //     }
-        //     for (const auto& [key, value] : RegisteredFunctions) {
-        //         Tools::printf("  - %s \n", SymbolTable::getName(key).c_str());
-        //     }
-        //     Tools::printf("  --- Script Function [%zu] --- \n",RegisteredScriptFunctions.size());
-        //     for (const auto& [key, value] : RegisteredScriptFunctions) {
-        //         Tools::printf("  - %s \n", SymbolTable::getName(key).c_str());
-        //     }
-        //
-        //     return true;
-        // });
+        // ---------------------------------------------------------------------
 
         RegisterFunction("help::objects", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- Object Types ------------------\n");
@@ -416,6 +400,41 @@ namespace DreiZehn {
             }
             return true;
         });
+        // ---------------------------------------------------------------------
+
+        RegisterFunction("help::const", [](std::vector<Value>& args, Value& ret) -> bool {
+            bool doFilter = false;
+            std::string filter;
+            if (!args.empty() && args[0].isStringId()) {
+                filter = args[0].getString();
+                if (!filter.empty()) doFilter = true;
+            }
+
+
+            std::vector<std::string> constNames;
+            for (const auto& [key, value] : RegisteredConstants) {
+                std::string name = SymbolTable::getName(key);
+                if (!doFilter || name.find(filter) != std::string::npos) {
+                    constNames.push_back(name);
+                }
+            }
+
+
+            std::sort(constNames.begin(), constNames.end());
+
+            Tools::printf("  --- Constants [%zu/%zu] --- \n", constNames.size(), RegisteredConstants.size());
+            for (const std::string& name : constNames) {
+                // lazy recover
+                const uint32_t id = SymbolTable::insert(name);
+                Value value = RegisteredConstants[id];
+                Tools::printf(" %20s = %s\n", name.c_str(), value.toString().c_str());
+            }
+
+
+
+            return true;
+        });
+
         // ---------------------------------------------------------------------
     } //RegisterCoreFunctions
 

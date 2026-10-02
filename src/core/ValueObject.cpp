@@ -26,10 +26,32 @@ namespace DreiZehn {
         return true;
     }
     // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     ValueObject::ValueObject(int t) : mType(t) {
         if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(this);
         mObjectTypeName = GetObjectTypeName(this);
     }
+    // -------------------------------------------------------------------------
+    FunctionMap::ScriptFunction* ValueObject::getScriptMethod(uint32_t methodId) {
+        FunctionMap::ScriptFunction* sf = nullptr;
+        auto it = mMethodMap.find(methodId);
+        if (it != mMethodMap.end()) {
+            sf = it->second;
+        } else {
+            // lookup Object name
+            std::string methodStr = SymbolTable::getName(methodId);
+            uint32_t fnId = SymbolTable::insert(std::string(mObjectTypeName + "::" + methodStr));
+            sf = FunctionMap::GetScriptFunction(fnId);
+            if (!sf && !mClassName.empty()) {
+                fnId = SymbolTable::insert(std::string(mClassName + "::" + methodStr));
+                sf = FunctionMap::GetScriptFunction(fnId);
+            }
+            // add to mMethodMap
+            if (sf) mMethodMap[methodId] = sf;
+        }
+        return sf;
+    }
+
     // -------------------------------------------------------------------------
     std::string  ValueObject::toString() {
         char buff[64];
@@ -55,51 +77,60 @@ namespace DreiZehn {
 
             Tools::printf("Dynamic Fields: %zu\n", mDynmaicFields.size());
             for ( auto& [key, value] : mDynmaicFields) {
-                Tools::printf("  - %s = %s\n"
+                Tools::printf("  . %s = %s\n"
                     , SymbolTable::getName(key).c_str()
                     , value.toString().c_str());
+            }
+
+            Tools::printf("Script Methods (cached): %zu\n", mMethodMap.size());
+            for ( auto& [key, method] : mMethodMap) {
+                Tools::printf("  -> %s\n"
+                , SymbolTable::getName(key).c_str()
+                );
             }
 
             ret = Value(1);
             return true;
         }
 
-        //FIXME need also to do the same as the calling code below so I should add a function
-        // if (methodNameSymbolId == sIsMethodId) {
-        //     if (args.size() != 1 || !args[0].isStringId()) {
-        //         Tools::errorf("Usage: isScriptMethod string MethodName\n");
-        //         ret = Value(0);
-        //         return true;
-        //     }
-        //     auto it = mMethodMap.find(StringTable::insert(args[0].getStringRef()));
-        //     if (it != mMethodMap.end()) {
-        //         ret = it->second;
-        //         ret = Value(1);
-        //         return true;
-        //     }
-        //     ret = Value(0);
-        //     return true;
-        // }
-        // ----- User defined methods ----
+        // -------- isScriptMethod ----
+        if (methodNameSymbolId == sIsMethodId) {
+            if (args.size() != 1 || !args[0].isStringId()) {
+                Tools::errorf("Usage: isScriptMethod string MethodName\n");
+                ret = Value(0);
+                return true;
+            }
+            uint32_t loopupSymbol = SymbolTable::insert(args[0].getStringRef());
+            if (getScriptMethod(loopupSymbol) != nullptr) {
+                ret = Value(1);
+            } else {
+                ret = Value(0);
+            }
+            return true;
+        }
 
+
+        // ----- User defined methods ----
         FunctionMap::ScriptFunction* sf;
         if (Globals::gCurEnv) {
             // try to fetch from mMethodMap
-            auto it = mMethodMap.find(methodNameSymbolId);
-            if (it != mMethodMap.end()) {
-                sf = it->second;
-            } else {
-                // lookup Object name
-                std::string methodStr = SymbolTable::getName(methodNameSymbolId);
-                uint32_t fnId = SymbolTable::insert(std::string(mObjectTypeName + "::" + methodStr));
-                sf = FunctionMap::GetScriptFunction(fnId);
-                if (!sf && !mClassName.empty()) {
-                    fnId = SymbolTable::insert(std::string(mClassName + "::" + methodStr));
-                    sf = FunctionMap::GetScriptFunction(fnId);
-                }
-                // add to mMethodMap
-                if (sf) mMethodMap[methodNameSymbolId] = sf;
-            }
+            // // auto it = mMethodMap.find(methodNameSymbolId);
+            // // if (it != mMethodMap.end()) {
+            // //     sf = it->second;
+            // // } else {
+            // //     // lookup Object name
+            // //     std::string methodStr = SymbolTable::getName(methodNameSymbolId);
+            // //     uint32_t fnId = SymbolTable::insert(std::string(mObjectTypeName + "::" + methodStr));
+            // //     sf = FunctionMap::GetScriptFunction(fnId);
+            // //     if (!sf && !mClassName.empty()) {
+            // //         fnId = SymbolTable::insert(std::string(mClassName + "::" + methodStr));
+            // //         sf = FunctionMap::GetScriptFunction(fnId);
+            // //     }
+            // //     // add to mMethodMap
+            // //     if (sf) mMethodMap[methodNameSymbolId] = sf;
+            // // }
+
+            sf = getScriptMethod(methodNameSymbolId);
 
             if (sf) {
                 args.insert(args.begin(), Value(this));

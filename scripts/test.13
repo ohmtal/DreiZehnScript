@@ -16,9 +16,11 @@ print o.bar
 
 print "Bar from fn is:" o->getBar
 
--- if o->isScriptMethod "getBar"; o->getBar; end
+o->dump
 
-while core::breath ;;
+if o->isScriptMethod "getBar"; print "getBar exits =>" (o->getBar); end
+
+while core::breath; core::sleep 16 ;;
 
 
 print "------ ELIF --------"

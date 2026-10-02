@@ -153,18 +153,24 @@ under 15 sec and beat python here without bytecode ;)
         was the "this" in function call - i decrement it again after call return 
 - [X] core::gc does not remove the not assigned objects ?? 
 
-- [ ] create ValueObject->isScriptMethod => need also to do the same as the calling code  so I should add a function 
-    - [ ] dump should also list the registered scriptMethods!
+- [X] create ValueObject->isScriptMethod => need also to do the same as the calling code  so I should add a function 
+    - [X] dump should also list the registered scriptMethods!
 
     
+    
+# Variable problematic
+
+At the moment it uses flat assignments Identifier = | Identifier.field = . this allows fast setup using Symbols
+varid and varid.fieldid. If I change this to a variable expression i need to parse it on runtime which is much 
+slower than on compile time. So at the moment only flat variables are allowed and i dont get the array assign
+working. I did add it as a "dummy" variable which is not the best idea anyway.
+
 - [ ] enhance AssignStatement, BinaryInlineExpression, AssignOPStatement to take a VariableExpression .. 
         which can be field+object and arr[0] and such ....
 - [ ] should i add this ? `o.array->print` calling a method from a object which is stored in a dynamic field ... 
     - [ ] lexer/parser
     - [ ] runtime lookup break in parts
 
-    
-    
 # still missing:
 - [ ] change printf errorf to a overwritable class or add a handler 
 

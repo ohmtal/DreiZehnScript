@@ -38,6 +38,7 @@ struct ValueObject {
     std::unordered_map<uint32_t, FunctionMap::ScriptFunction* > mMethodMap;
     std::unordered_map<uint32_t, Value > mDynmaicFields;
 
+    FunctionMap::ScriptFunction* getScriptMethod(uint32_t methodId);
 
     virtual ~ValueObject() = default;
 

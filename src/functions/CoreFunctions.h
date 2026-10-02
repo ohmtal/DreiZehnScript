@@ -113,40 +113,40 @@ namespace DreiZehn {
         });
 
         // ---------------------------------------------------------------------
-        RegisterFunction("int::reserve", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() < 2 || !args[0].isStringId() || !args[1].isInt()) {
-                Tools::errorf("Reserve int variables for array like usage.Usage: int::reserve string variablename int count [int defaultValue]");
-                return false;
-            }
-
-            const std::string& varname = args[0].getStringRef();
-
-            if (!isValidVariableName(varname)) {
-                Tools::errorf("Reserve int variable name %s invalid!\n", varname.c_str());
-                return true;
-            }
-
-            int count = args[1].getInt();
-
-            if (count < 1 || count > 100000) {
-                Tools::errorf("Count is out of bounds: %d  (min 0, max 100000)\n", count);
-                return true;
-
-            }
-
-            Value defaultVal = Value(0);
-            if (args.size() > 2 && args[2].isNumber()) {
-                defaultVal = Value(args[2].getInt());
-            }
-
-            for ( int i = 0; i < count; i++) {
-                uint32_t id = SymbolTable::insert(genArrayVar(varname,  Value(i)));
-                gCurrentFrame->setVariable(id, Value(defaultVal));
-            }
-
-
-            return true;
-        });
+        // RegisterFunction("int::reserve", [](std::vector<Value>& args, Value& ret) -> bool {
+        //     if (args.size() < 2 || !args[0].isStringId() || !args[1].isInt()) {
+        //         Tools::errorf("Reserve int variables for array like usage.Usage: int::reserve string variablename int count [int defaultValue]");
+        //         return false;
+        //     }
+        //
+        //     const std::string& varname = args[0].getStringRef();
+        //
+        //     if (!isValidVariableName(varname)) {
+        //         Tools::errorf("Reserve int variable name %s invalid!\n", varname.c_str());
+        //         return true;
+        //     }
+        //
+        //     int count = args[1].getInt();
+        //
+        //     if (count < 1 || count > 100000) {
+        //         Tools::errorf("Count is out of bounds: %d  (min 0, max 100000)\n", count);
+        //         return true;
+        //
+        //     }
+        //
+        //     Value defaultVal = Value(0);
+        //     if (args.size() > 2 && args[2].isNumber()) {
+        //         defaultVal = Value(args[2].getInt());
+        //     }
+        //
+        //     for ( int i = 0; i < count; i++) {
+        //         uint32_t id = SymbolTable::insert(genArrayVar(varname,  Value(i)));
+        //         gCurrentFrame->setVariable(id, Value(defaultVal));
+        //     }
+        //
+        //
+        //     return true;
+        // });
 
 
         // ---------------------------------------------------------------------
@@ -169,40 +169,40 @@ namespace DreiZehn {
         });
 
         // ---------------------------------------------------------------------
-        RegisterFunction("float::reserve", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() < 2 || !args[0].isStringId() || !args[1].isInt()) {
-                Tools::errorf("Reserve int variables for array like usage.Usage: int::reserve string variablename int count [int defaultValue]");
-                return false;
-            }
-
-            const std::string& varname = args[0].getStringRef();
-
-            if (!isValidVariableName(varname)) {
-                Tools::errorf("Reserve int variable name %s invalid!\n", varname.c_str());
-                return true;
-            }
-
-            int count = args[1].getInt();
-
-            if (count < 1 || count > 100000) {
-                Tools::errorf("Count is out of bounds: %d  (min 0, max 100000)\n", count);
-                return true;
-
-            }
-
-            Value defaultVal = Value(0.0);
-            if (args.size() > 2 && args[2].isNumber()) {
-                defaultVal = Value(args[2].getDouble());
-            }
-
-            for ( int i = 0; i < count; i++) {
-                uint32_t id = SymbolTable::insert(genArrayVar(varname,  Value(i)));
-                gCurrentFrame->setVariable(id, Value(defaultVal));
-            }
-
-
-            return true;
-        });
+        // RegisterFunction("float::reserve", [](std::vector<Value>& args, Value& ret) -> bool {
+        //     if (args.size() < 2 || !args[0].isStringId() || !args[1].isInt()) {
+        //         Tools::errorf("Reserve int variables for array like usage.Usage: int::reserve string variablename int count [int defaultValue]");
+        //         return false;
+        //     }
+        //
+        //     const std::string& varname = args[0].getStringRef();
+        //
+        //     if (!isValidVariableName(varname)) {
+        //         Tools::errorf("Reserve int variable name %s invalid!\n", varname.c_str());
+        //         return true;
+        //     }
+        //
+        //     int count = args[1].getInt();
+        //
+        //     if (count < 1 || count > 100000) {
+        //         Tools::errorf("Count is out of bounds: %d  (min 0, max 100000)\n", count);
+        //         return true;
+        //
+        //     }
+        //
+        //     Value defaultVal = Value(0.0);
+        //     if (args.size() > 2 && args[2].isNumber()) {
+        //         defaultVal = Value(args[2].getDouble());
+        //     }
+        //
+        //     for ( int i = 0; i < count; i++) {
+        //         uint32_t id = SymbolTable::insert(genArrayVar(varname,  Value(i)));
+        //         gCurrentFrame->setVariable(id, Value(defaultVal));
+        //     }
+        //
+        //
+        //     return true;
+        // });
 
         // ---------------------------------------------------------------------
         // CORE

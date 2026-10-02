@@ -268,8 +268,9 @@ public:
             if (peek() == '!') { advance(); tokens.push_back({TokenType::Not,   "!"}); continue; }
             if (peek() == '%') { advance(); tokens.push_back({TokenType::Modulo,"%"}); continue; }
 
-            if (peek() == '[') { advance(); tokens.push_back({TokenType::LSquare,"["}); continue; }
-            if (peek() == ']') { advance(); tokens.push_back({TokenType::RSquare,"]"}); continue; }
+            //FIXME disabled! ( is used for the failed ArrayVariableExpression)
+            // if (peek() == '[') { advance(); tokens.push_back({TokenType::LSquare,"["}); continue; }
+            // if (peek() == ']') { advance(); tokens.push_back({TokenType::RSquare,"]"}); continue; }
 
             // ----------------------------------------------------------------
             if (peek() == '-' && peekNext() == '>') {

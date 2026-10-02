@@ -472,9 +472,16 @@ namespace DreiZehn {
     // FLOW STATEMENTS execute
     // -------------------------------------------------------------------------
     FlowSignal ReturnStatement::execute(Environment& env) {
+        // getVariableFrame is gone when it return !!
+        VariableFrame* frame = env.getVariableFrame()->getParentFrame();
+        if (!frame) frame = env.getVariableFrame();
+        if (!frame)  return FlowSignal::Return;
+
         if (this->mExpression) {
             Value retVal = this->mExpression->evaluate(env);
-            env.getVariableFrame()->setVariable(SymbolTable::insert("__return_value__"), retVal);
+            frame->setVariable(SymbolTable::insert("__return_value__"), retVal);
+        } else {
+            frame->setVariable(SymbolTable::insert("__return_value__"), Value(0));
         }
         return FlowSignal::Return;
     };

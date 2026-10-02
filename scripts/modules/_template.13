@@ -1,0 +1,18 @@
+-- DreiZehn Module Template
+
+
+fn ModuleCreate
+    print "--- Create ---"
+
+    return true
+end
+
+fn ModuleDelete
+    print "--- Delete ---"
+end
+
+fn ModuleLoop
+   return true
+end
+
+

@@ -150,6 +150,20 @@ namespace DreiZehn {
             return true;
         });
         // ---------------------------------------------------------------------
+        RegisterFunction("math::min", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 2) return false;
+
+            ret = Value(std::min(args[0].getDouble(),args[1].getDouble()));
+            return true;
+        });
+        // ---------------------------------------------------------------------
+        RegisterFunction("math::max", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 2) return false;
+
+            ret = Value(std::max(args[0].getDouble(),args[1].getDouble()));
+            return true;
+        });
+        // ---------------------------------------------------------------------
     }
 
 } //namespace

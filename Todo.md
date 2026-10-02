@@ -157,7 +157,14 @@ under 15 sec and beat python here without bytecode ;)
     - [X] dump should also list the registered scriptMethods!
 
     
-    
+# 0.6d     
+- [X] bug return without value: __return_value__ << return 0 if not expression is found
+- [X] Fenster Scale 
+- [ ] help print constants 
+
+
+
+
 # Variable problematic
 
 At the moment it uses flat assignments Identifier = | Identifier.field = . this allows fast setup using Symbols
@@ -175,6 +182,11 @@ working. I did add it as a "dummy" variable which is not the best idea anyway.
 - [ ] change printf errorf to a overwritable class or add a handler 
 
 ## maybe:
+- [ ] Instead of hacking in slow array brackets i will add a **foreach**
+    - [ ] foreach need a interator information from the Object:
+        - bool support foreach
+        - int count
+        - getter with index 
 - [ ] Bytecode continue .... 
 - [ ] move more code to cpp because compiletime is raising - carefully do not break the speed
 - [ ] UserFunction object to call them like a lambda from a list... 

@@ -4,7 +4,7 @@ fenster = 0
 
 fn ModuleCreate
     print "--- Fenster Create ---"
-    fenster = Fenster::new "DreiZehn Fenster" 320 240 16
+    fenster = Fenster::new "DreiZehn Fenster" 320 240 2
     if !fenster; return false;;
 
     backcolor = 0x000CDD

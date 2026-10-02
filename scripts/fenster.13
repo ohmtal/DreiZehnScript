@@ -1,6 +1,6 @@
 -- DreiZehn Fenster Demo
 
-fenster = Fenster::new "DreiZehn Fenster" 320 240 16
+fenster = Fenster::new "DreiZehn Fenster" 320 240 2
 
 
 print fenster
@@ -8,6 +8,12 @@ backcolor = 0x000CDD
 fenster->clear backcolor
 fenster->line 0 210 320 210 0x00004400
 fenster->text 20 20 "Hello Fenster!" 4 0xFFFFFF
+
+pb = PixelBuffer::new 8 8
+pb->circle 4 4 4 COLOR_RED
+pb->print
+
+circle = Array::new 0 0 0 0 0xffff0000 0 0 0 0 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0 0 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0xffff0000 0
 
 while fenster->loop
     -- ESC

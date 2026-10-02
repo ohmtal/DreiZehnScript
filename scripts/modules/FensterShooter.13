@@ -1,0 +1,354 @@
+-- -----------------------------------------------------------------------------
+--     DreiZehn Fenster Shooter Module Demo
+--
+--     A simple shooter with objects:
+--     - Player { float x, y, w, h speed}
+--     - Bullet { float x, y, w, h, speed; int active; }
+--     - Enemy  { float x, y, w, h, color, speed; bool active; }
+--     - Star { float x, y, color, speed; }
+--
+--     - Game { bool gameOver; int intscore, hiScore; }
+--
+-- -----------------------------------------------------------------------------
+-- define global variables
+-- -----------------------------------------------------------------------------
+
+-- consts
+title = "DreiZehn Fenster Shooter"
+WIDTH  = 320
+HEIGHT = 200
+SCALE  = 2.4
+GAMEWIDTH  = 320
+GAMEHEIGHT = 180 # rest is for gui ;)
+backcolor = 0x050510
+
+-- Objects
+Fenster = 0     # The Fenster Object
+Game    = 0     # The Game Object
+Player  = 0     # Object
+Bullets = 0     # Array of Bullet Object
+Enemies = 0     # Array of Enemy Object
+Stars   = 0     # Array of Stars
+
+loopCounter = 0 # a simple counter
+
+-- more consts
+enemyCount  = 20
+starCount   = 30
+
+-- -----------------------------------------------------------------------------
+fn doesCollide objA objB
+    if not objA.active or not objB.active; return false; end
+
+    if (objA.x > objB.x + objB.w or \
+        objA.x + objA.w < objB.x or \
+        objA.y > objB.y + objB.h or \
+        objA.y + objA.h < objB.y)
+        return false
+    end
+
+    return true
+end
+-- -----------------------------------------------------------------------------
+--      Star Script-Methods
+
+fn Star::init this initial
+    this.x = math::randomf * GAMEWIDTH
+    this.y = initial ? math::randomf * GAMEHEIGHT : 0
+    this.speed = 0.40 + math::randomf * 1.5
+    this.color = (this.speed > 1.2) ? 0xFFFFFF : 0x888888
+end
+
+fn Star::process this
+    this.y += this.speed
+    if this.y > GAMEHEIGHT
+        this->init false
+    end
+    Fenster->setPixel this.x this.y this.color
+end
+-- -----------------------------------------------------------------------------
+--      Enemy Script-Methods
+fn Enemy::init this
+    this.w = 12
+    this.r = this.w / 2
+    this.h = this.w
+    this->spawn
+    this.active = false
+end
+
+fn Enemy::spawn this
+    this.x = math::randomf * (GAMEWIDTH - this.w)
+    this.y = 0
+    this.speed = 0.5 + math::randomf * 1.0
+    this.color = (this.speed > 1.0) ? COLOR_RED : 0x884444
+    this.active = true
+end
+
+fn Enemy::process this
+    if (not this.active) or Game.gameOver return;;
+
+    this.y += this.speed
+    if (this.y > GAMEHEIGHT + 40)
+        this.active = false
+    end
+
+    if doesCollide this Player
+        Game->gameOver
+        return
+    end
+
+    Fenster->circle (this.x + this.r) (this.y + this.r) this.r this.color
+    Fenster->rect (this.x + 4) this.y 4 12 0x555555
+
+end
+
+-- -----------------------------------------------------------------------------
+-- Bullets
+fn Bullet::spawn this x y isPlayer
+    this.x = x
+    this.y = y
+    this.w = 2
+    this.h = 4
+    this.isPlayer = isPlayer
+    this.speed = isPlayer ? 2.0 : 1.0
+    this.color = isPlayer ? COLOR_YELLOW : COLOR_RED
+    this.active = true
+end
+
+fn Bullet::process this
+    if not this.active return;;
+    if this.isPlayer
+        this.y -= this.speed
+        if this.y < 0
+            this.active = false
+        end
+        forRange i enemyCount
+            enemy = Enemies->at i
+            if (doesCollide this enemy )
+                Game.score += 10
+                enemy.active = false
+                this.active = false
+                return
+            end
+        end
+    else
+        this.y += this.speed
+        if (this.y > GAMEHEIGHT)
+            this.active = false
+        end
+        -- FIXME collision
+    end
+
+    Fenster->rect this.x this.y this.w this.h this.color
+end
+
+-- -----------------------------------------------------------------------------
+--      Player Script-Methods
+
+fn Player::init this
+    this.w = 10
+    this.h = 12
+    this.x = GAMEWIDTH / 2.0
+    this.y = GAMEHEIGHT - this.h - 5
+    this.speed = 2.0
+    this.shootDelay = 300
+    this.lastshoot = 0
+    this.releasedSpace = true
+    this.active = true
+end
+
+fn Player::process this
+    if (Game.gameOver) return;;
+
+
+    Fenster->rect (this.x + this.w / 2 - 2) this.y 4 this.h 0x00FF00
+    Fenster->rect this.x (this.y + this.h - 6 ) this.w 4 0x0000FF
+
+    if (Fenster->isKeyDown KEY_LEFT)
+        Fenster->rect (this.x + this.w ) (this.y + this.h / 2) 3 3 COLOR_YELLOW
+        this.x = math::max 0 (this.x - this.speed)
+    end
+    if (Fenster->isKeyDown KEY_RIGHT)
+        Fenster->rect (this.x - 1 ) (this.y + this.h / 2) 3 3 COLOR_YELLOW
+        this.x = math::min (GAMEWIDTH - this.w )(this.x + this.speed)
+    end
+
+    if (Fenster->isKeyDown KEY_SPACE)
+
+        Fenster->rect (this.x + this.w / 2 - 1) (this.y - 1) 3 3 COLOR_WHITE
+        if (this.releasedSpace && Fenster.time - this.lastshoot > this.shootDelay)
+            bullet = Object::new
+            bullet->setClassName "Bullet"
+            bullet->spawn (this.x + this.w / 2) (this.y - this.h) true
+            Bullets->push bullet
+            this.lastshoot = Fenster.time
+        end
+        this.releasedSpace = false
+    else
+        this.releasedSpace = true
+    end
+
+
+
+    if (loopCounter % 2 == 0)
+        Fenster->rect (this.x  + this.w / 2 ) (this.y + this.h) 2 4 COLOR_YELLOW
+    else
+        Fenster->rect (this.x - 2 + this.w / 2 ) (this.y + this.h) 2 4 COLOR_YELLOW
+    end
+end
+-- -----------------------------------------------------------------------------
+--      Game Script-Methods
+-- -----------------------------------------------------------------------------
+fn Game::init this
+    this.hiScore = 0
+    this.spawnDelay = 100
+    this.gameOverTime = 0
+    this->reset
+
+end
+
+fn Game::gameOver this
+    this.gameOverTime = Fenster.time
+    Bullets->clear
+    this.gameOver = true
+    if ( this.score > this.hiScore )
+        this.hiScore = this.score
+    end
+    forRange i enemyCount
+        enemy = Enemies->at i
+        enemy.active = false
+    end
+end
+
+fn Game::reset this
+    this.gameOver  = false
+    this.score     = 0
+    this.lastSpawn = Fenster.time
+    Player->init
+
+end
+
+fn Game::processEnemies this
+
+    doSpawn = Fenster.time - this.lastSpawn >  this.spawnDelay
+    forRange i enemyCount
+        enemy = Enemies->at i
+        if !enemy.active
+            if doSpawn
+                enemy->spawn
+                this.lastSpawn = Fenster.time
+                doSpawn = false
+            end
+        else
+            enemy->process
+        end
+    end
+end
+-- -----------------------------------------------------------------------------
+-- MAIN
+-- -----------------------------------------------------------------------------
+fn ModuleCreate
+    print "--- Fenster Create ---"
+    Fenster = Fenster::new title WIDTH HEIGHT SCALE
+    if !Fenster; return false;;
+--     Fenster.now = Fenster.time
+
+
+
+
+    -- Player --
+    Player = Object::new
+    Player->setClassName "Player"
+    Player->init
+
+    -- Enemies --
+    Enemies = Array::new
+    forRange i enemyCount
+        enemy = Object::new
+        enemy->setClassName "Enemy"
+        enemy->init true
+        Enemies->push enemy
+    end
+
+    -- Stars --
+    Stars = Array::new
+    forRange i starCount
+        star = Object::new
+        star->setClassName "Star"
+        star->init true
+        Stars->push star
+    end
+
+    -- Game --
+    Game = Object::new
+    Game->setClassName "Game"
+    Game->init
+
+
+    -- Bullets --
+    Bullets = Array::new
+
+    return true
+end
+
+-- -----------------------------------------------------------------------------
+fn ModuleDelete
+    print "--- Fenster Delete ---"
+    Fenster->close
+
+    -- release the Objects for garbage collection
+    Fenster = 0     # The Fenster Object
+    Game    = 0
+    Player  = 0     # Object
+    Bullets = 0     # Array of Player Bullet Object
+    Enemies = 0     # Array of Enemy Object
+    Stars   = 0     # Array of Stars
+
+end
+-- -----------------------------------------------------------------------------
+fn ModuleLoop
+    Fenster->clear backcolor
+
+    -- Stars --
+    forRange i starCount
+        star = Stars->at i
+        star->process
+    end
+
+    if Game.gameOver
+        Fenster->text 90 (GAMEHEIGHT / 2 - 20) "Game over" 4 0xFFFFFF
+
+        if (Fenster.time - Game.gameOverTime > 1000)
+            Fenster->text 70 (GAMEHEIGHT / 2 + 30) "press space to restart" 2 0xFFFFFF
+            if (Fenster->isKeyDown KEY_SPACE)
+                Game->reset
+            end
+        end
+
+    else
+        -- Player
+        Player->process
+
+        -- Enemies
+        Game->processEnemies
+
+        forRange i Bullets->size
+            bullet = Bullets->at i
+            bullet->process
+        end
+    end
+
+   Fenster->rect 0 GAMEHEIGHT 320 20 0x003000
+   Fenster->text 20 (GAMEHEIGHT + 5) (str::format "Score: %04d  Hi: %04d" Game.score Game.hiScore) 2 0xFFFFFF
+
+
+   if (!Fenster->loop )|| (Fenster->isKeyDown KEY_ESC)
+       return false
+   end
+
+
+
+   loopCounter++
+
+   return true
+end

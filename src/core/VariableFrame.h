@@ -62,6 +62,8 @@ private:
     }
 public:
     // -------------------------------------------------------------------------
+    inline VariableFrame* getParentFrame() {return mParentFrame;}
+    // -------------------------------------------------------------------------
     inline void setVariable(uint32_t id, Value val, bool forceScope = false) {
 
         // if (Globals::gShowVariableDebug) Tools::printf("DEBUG: setVariable :: name: %s id: %d, floatval: %f\n", SymbolTable::getName(id).c_str(), id, val.getFloat());

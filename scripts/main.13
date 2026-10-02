@@ -8,7 +8,7 @@
 # ------------------------------------------------------------------------------
 
 -- Avail Modules
-loader::Modules = Array::new "Fenster" "RayFirst"
+loader::Modules = Array::new "FensterShooter" "Fenster" "RayFirst"
 loader::ModuleIndex = -1
 loader::ModuleName = ""
 

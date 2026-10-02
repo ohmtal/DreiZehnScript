@@ -31,8 +31,9 @@
 
 W = 320
 H = 200
+SCALE = 2
 
-fenster = Fenster::new "DreiZehn Fenster Drawing Demo" W H
+fenster = Fenster::new "DreiZehn Fenster Drawing Demo" W H SCALE
 
 
 -- -----------------------------------------------------------------------------
@@ -154,11 +155,7 @@ while fenster->loop && core::breath
     -- ESC
    if fenster->isKeyDown KEY_ESC; break end
 
-   time = fenster.time
-   if time - now < 1000 / 60
-       fenster->sleep time - now;
-   end
-   now = time;
+
 
 end
 

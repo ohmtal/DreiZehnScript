@@ -389,6 +389,8 @@ public:
                 else if (id == "while") { tokens.push_back({TokenType::While, "while"});  }
                 else if (id == "forRange") { tokens.push_back({TokenType::forRange, "forRange"});  }
                 else if (id == "not") { tokens.push_back({TokenType::Not, "not"});  }
+                else if (id == "and") { tokens.push_back({TokenType::And, "and"});  }
+                else if (id == "or") { tokens.push_back({TokenType::Or, "or"});  }
                 else {
                     tokens.push_back({TokenType::Identifier, id});
                 }

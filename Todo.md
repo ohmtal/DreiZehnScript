@@ -165,6 +165,24 @@ under 15 sec and beat python here without bytecode ;)
 - [X] GC: on local var and function parameters: gc count up but is not decremented when frame is deleted 
 - [X] alot of stuff to FensterFunctions added
 
+# 0.6e
+- [ ] Attepmt: instead of hack in array[] with dummy variables try to add an assignment on methods!
+    - `a = Array::new (Object::new) "cow"`
+    - `a->at 1 = "Jo cow!"`
+    - `(a->at 0)->myMethod`
+    - `(a->at 0).foo = 1`
+    - what about a this `[a->at 1]="YES!"` - maybe
+    - object must return a methodValuePtr to get it work or nullptr if not supported 
+    - if i add the [] for this it could be parsed as a Variable Method Expression , then i also add a Variable Field Expression ?!
+    - At the moment the Field is hacked in special and does not allow nesting
+    - No idea if I get this work but i like it more then the `arr[0]` expression because i had affed arr____0 var for this .. 
+    - writing to a method directly would be much cooler using the ArrayObject or something else which would support it
+    - or to keep it simple it should be this => `(a->at 0) = "freitag"` parser must except this so the runtime can 
+      handle it. 
+    - same for getter. `a = Array::new Object::new; (a->at 0)->dump; and not tmp = a->at 0; tmp->dump`
+    `(a->at 0)` return the Value to it also can accept the method call or field access ... 
+    - i maybe get in trouble with my fast op variable lookup then, because it's runtime stuff not compiletime 
+
 
 # Variable problematic
 

@@ -290,25 +290,26 @@ namespace DreiZehn {
                 return true;
             }
             else
-                // --------- ->len
-                if (methodId == getLenProp.mSymbolId ) {
-                    if (!getLenProp.ValidateArgs(args)) return false;
-                    ret = Value(static_cast<int32_t>(mValue.getStringRef().length()));
-                    return true;
+            // --------- ->len
+            if (methodId == getLenProp.mSymbolId ) {
+                if (!getLenProp.ValidateArgs(args)) return false;
+                ret = Value(static_cast<int32_t>(mValue.getStringRef().length()));
+                return true;
 
+            }
+            else
+            // --------- char
+            if (methodId == getCharProp.mSymbolId ) {
+                if (!getCharProp.ValidateArgs(args)) return false;
+                int32_t offset = args[0].getInt();
+                std::string s = mValue.getStringRef();
+                if (offset >= 0 && offset < s.length()) {
+                    ret = Value(static_cast<int32_t>(s[offset]));
                 }
-                // --------- char
-                if (methodId == getCharProp.mSymbolId ) {
-                    if (!getCharProp.ValidateArgs(args)) return false;
-                    int32_t offset = args[0].getInt();
-                    std::string s = mValue.getStringRef();
-                    if (offset >= 0 && offset < s.length()) {
-                        ret = Value(static_cast<int32_t>(s[offset]));
-                    }
-                    return false;
-                }
+                return false;
+            }
 
-                return ValueObject::onMethodCall(methodId, args, ret);
+            return ValueObject::onMethodCall(methodId, args, ret);
         }
 
     };

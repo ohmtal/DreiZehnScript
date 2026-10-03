@@ -143,11 +143,12 @@ public:
             return mParentFrame->getVariablePtr(id);
         }
 
-        // not found we set a new one !
+        // ignore !
+        // std::string varName = SymbolTable::getName(id);
+        // Tools::errorf("Variable not found: %s\n", varName.c_str());
 
-        std::string varName = SymbolTable::getName(id);
+        // not found we set a new one !
         mVariables[id] = Value(0);
-        Tools::errorf("Variable not found: %s\n", varName.c_str());
         return &mVariables[id];
     }
     // -------------------------------------------------------------------------

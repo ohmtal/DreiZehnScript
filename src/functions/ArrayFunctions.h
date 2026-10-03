@@ -64,6 +64,24 @@ namespace DreiZehn {
         }
 
         // -------------------------------------------------------------------------
+        Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args) override{
+
+            if (mAtProp.matchMethod(methodNameSymbolId, args)) {
+                if (mElements.size() > args[0].getInt()) {
+                    return &mElements.at(args[0].getInt());
+                }
+                return nullptr;
+            }
+            else if (mGetProp.matchMethod(methodNameSymbolId, args)) {
+                if (mElements.size() > args[0].getInt()) {
+                    return &mElements.at(args[0].getInt());
+                }
+                return nullptr;
+            }
+
+            return nullptr;
+        }
+        // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
 
 

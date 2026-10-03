@@ -156,14 +156,15 @@ public:
             // --- Assign ---
             case NodeType::AssignStatement: {
                 if (auto* assign = dynamic_cast<AssignStatement*>(node)) {
-                    assign->execute(currentEnv);
+                    assign->evaluate(currentEnv);
+                    // assign->execute(currentEnv);
                 }
                 break;
             }
             case NodeType::AssignOPStatement:
             {
                 if (auto* assign = dynamic_cast<AssignOPStatement*>(node)) {
-                    assign->execute(currentEnv);
+                    assign->evaluate(currentEnv);
                 }
                 break;
             }

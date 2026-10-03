@@ -183,16 +183,47 @@ under 15 sec and beat python here without bytecode ;)
     `(a->at 0)` return the Value to it also can accept the method call or field access ... 
     - i maybe get in trouble with my fast op variable lookup then, because it's runtime stuff not compiletime 
 
-- [ ] Rewrite of =, ++,--, !, *=,... 
 
-- [X] added a evalute to get the pointer virtual Value* evaluatePtr(Environment& env)
+- [X] parseLine change from if to switch
+       - became slower ?! => 8.897u 0.005s 0:08.93 99.5%     0+0k 0+0io 0pf+0w 
+       - NOT i just checked 0.6 pre switch it's same speed i did add a break somewhere before! 
+- [X] Rewrite of =, ++,--, !, *=,... 
+    - [X] added a evalute to get the pointer virtual Value* evaluatePtr(Environment& env)
         - [X] VariableExpression
         - [X] ObjectFieldExpression
         - **NOTE** more to come if it works! 
         
-- [ ] add left expression and change the parser:
-    - [ ] BinaryInlineExpression (++/--)
+    - [X] add left expression and change the parser:
+        - [X] BinaryInlineExpression (++/--)
+            - [X] added to isMathType
+            - [X] added to getPrecedence
+            - [X] Definition
+            - [X] evaluate
+            - [X] parser (parseMath!)
+        - [X] Assignment     
+        - [X] OPAssignment     
+            
+    - [X] Benchmark .. will be slower i guess .. << NOT 
+        same as before: 8.947u 0.004s 0:08.97 99.6%     0+0k 0+0io 0pf+0w
     
+- [?] Else is broken ? => `b = !b; if !b; print "is not"; else; "it is"; end; print b`
+    => works `a = !a; if !a; print "ja"; else print "not not"; end; print a`
+    
+- [X] fixed variable and field must return a new Value(0) in getPtr if not found!
+    
+- [X] not we are in ... add ptr return to Array.at 
+    - [X] add a new method caller => onMethodCallGetAssignPtr
+    - [X] MethodExpression << Value* evaluatePtr(Environment& env) override;
+    - [X] Test: `a = Array::new 10 20;(a->at 0)++;print (a->at 0)` 
+    
+- [ ] did this also: `a = Object::new; a.o = Object::new;`    
+    - I guess i need a extra parser like the parse math ? 
+    - [ ] field: `a.o.x = 1` << Syntax-Error: Unexpected token 'Dot Object field access' (a.o.x = 1:1)
+    - [ ] method: `a.o->dump` << Syntax-Error: Unexpected token 'Arrow Object Method call' (a.o->dump:1)
+
+    
+- [ ] why is it slower ? i changed math a bit , when i workd on bytebeat << this ? 
+     
 ## Variable problematic
 
 At the moment it uses flat assignments Identifier = | Identifier.field = . this allows fast setup using Symbols

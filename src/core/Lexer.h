@@ -154,18 +154,18 @@ inline bool isMathOperatorType(const Token& op) {
 
 
 
-inline bool isMathAssignOperatorType(const Token& op) {
-    return op.mType == TokenType::AssignPlus
-    || op.mType == TokenType::AssignMinus
-    || op.mType == TokenType::AssignMul
-    || op.mType == TokenType::AssignDiv
+inline bool isMathAssignOperatorType(TokenType tokenType) {
+    return tokenType == TokenType::AssignPlus
+    || tokenType == TokenType::AssignMinus
+    || tokenType == TokenType::AssignMul
+    || tokenType == TokenType::AssignDiv
     ;
 }
 
-inline bool isInlineMathType(const Token& op) {
+inline bool isInlineMathType(const TokenType tokenType) {
     return
-    op.mType == TokenType::PlusPlus
-    || op.mType == TokenType::MinusMinus
+    tokenType == TokenType::PlusPlus
+    || tokenType == TokenType::MinusMinus
     ;
 }
 
@@ -188,7 +188,10 @@ inline bool isMathType(const Token& op) {
     || op.mType == TokenType::Modulo
     || op.mType == TokenType::Not
     || op.mType == TokenType::Question
-    //NOT || op.mType == TokenType::Colon
+
+    || op.mType == TokenType::Assign
+    || isInlineMathType(op.mType)
+    || isMathAssignOperatorType(op.mType)
     ;
 }
 

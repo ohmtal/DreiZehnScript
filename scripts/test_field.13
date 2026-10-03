@@ -1,4 +1,4 @@
-# Field Benchmark-Test for DreiZehn Script (0.4)
+print "Field Benchmark-Test for DreiZehn Script (0.7)"
 JLOOPS = 25
 ILOOPS = 1000000
 

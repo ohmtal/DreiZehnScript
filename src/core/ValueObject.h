@@ -47,6 +47,11 @@ struct ValueObject {
     virtual bool onSetField(uint32_t fieldSymbolId, const Value& value);
 
     virtual bool onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret);
+    virtual Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args) {
+        return nullptr;
+    }
+
+
     virtual std::string toString();
 
 

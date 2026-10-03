@@ -33,44 +33,28 @@ private:
     Token advance() { if (mPos + 1 < mTokens.size()) return mTokens[mPos++]; else return Token(TokenType::EOFToken);}
 
     // -------------------------------------------------------------------------
-/*
+
     int getPrecedence(TokenType type) {
+        if (isInlineMathType(type)) return 100;
         if (type == TokenType::Mul || type == TokenType::Div ||
-            type == TokenType::Modulo || type == TokenType::Not) return 8;
-        if (type == TokenType::Plus || type == TokenType::Minus) return 7;
-        if (type == TokenType::SHL || type == TokenType::SHR) return 6;
+            type == TokenType::Modulo || type == TokenType::Not) return 90;
+        if (type == TokenType::Plus || type == TokenType::Minus) return 80;
+        if (type == TokenType::SHL || type == TokenType::SHR) return 70;
 
         if (type == TokenType::Less || type == TokenType::Greater ||
-            type == TokenType::LowerEqual || type == TokenType::GreaterEqual) return 5;
+            type == TokenType::LowerEqual || type == TokenType::GreaterEqual) return 60;
 
-        if (type == TokenType::Equal || type == TokenType::NotEqual) return 4;
-        if (type == TokenType::BitAnd || type == TokenType::BitOr) return 3;
-        if (type == TokenType::And || type == TokenType::Or) return 2;
+        if (type == TokenType::Equal || type == TokenType::NotEqual) return 50;
 
-        //TODO short if / then
-        if (type == TokenType::Question) return 1;
-        if (type == TokenType::Colon) return 0;
+        if (type == TokenType::BitAnd) return 40;
+        if (type == TokenType::BitXOr) return 30;
+        if (type == TokenType::BitOr)  return 20;
 
-        return -1;
-    }*/
-    int getPrecedence(TokenType type) {
-        if (type == TokenType::Mul || type == TokenType::Div ||
-            type == TokenType::Modulo || type == TokenType::Not) return 9;
-        if (type == TokenType::Plus || type == TokenType::Minus) return 8;
-        if (type == TokenType::SHL || type == TokenType::SHR) return 7;
-
-        if (type == TokenType::Less || type == TokenType::Greater ||
-            type == TokenType::LowerEqual || type == TokenType::GreaterEqual) return 6;
-
-        if (type == TokenType::Equal || type == TokenType::NotEqual) return 5;
-
-        if (type == TokenType::BitAnd) return 4;
-        if (type == TokenType::BitXOr) return 3;
-        if (type == TokenType::BitOr)  return 2;
-
-        if (type == TokenType::And || type == TokenType::Or) return 1;
+        if (type == TokenType::And || type == TokenType::Or) return 10;
 
         if (type == TokenType::Question) return 0;
+        if (type == TokenType::Assign) return 0;
+        if (isMathAssignOperatorType(type)) return 0;
 
         return -1;
     }
@@ -118,11 +102,12 @@ private:
                 return std::make_unique<ValueExpression>((*constansPointer));
             }
             else
-            if (isInlineMathType(peek())) {
-                Token op = advance();
-                return std::make_unique<BinaryInlineExpression>(nameTokenSymbolId,0, op.mType);
-            }
-            else
+            // moved to parseMath
+            // if (isInlineMathType(peek().mType)) {
+            //     Token op = advance();
+            //     return std::make_unique<BinaryInlineExpression>(nameTokenSymbolId,0, op.mType);
+            // }
+            // else
             if (peek().mType  == TokenType::Arrow
                 && peekNext().mType == TokenType::Identifier
             ) {
@@ -153,28 +138,7 @@ private:
 
                 return std::make_unique<ObjectFieldExpression>(nameTokenSymbolId , SymbolTable::insert(fieldToken.mValue));
             }
-            // else
-            // if (peek().mType == TokenType::LSquare) {
-            //     advance();
-            //     std::unique_ptr<Expression> indexArg;
-            //     if (isContinueToken(peek())) {
-            //         indexArg = parseMath();
-            //     }
-            //
-            //     if (!indexArg.get()) {
-            //         Tools::PrintParseError("Missing index");
-            //         return nullptr;
-            //     }
-            //
-            //     if (peek().mType == TokenType::RSquare) {
-            //
-            //         advance();
-            //         return std::make_unique<ArrayVariableExpression>(nameToken.mValue, std::move(indexArg));
-            //     } else {
-            //         Tools::PrintParseError("Missing closing ]");
-            //         return nullptr;
-            //     }
-            // }
+
             else
             if (FunctionMap::IsFunction(nameTokenSymbolId)) {
                 std::vector<std::unique_ptr<Expression>> args;
@@ -191,13 +155,13 @@ private:
             }
 
             return std::make_unique<VariableExpression>(nameTokenSymbolId);
-        }
+        } // TokenType::Identifier
 
         return nullptr;
     }
 
     // -------------------------------------------------------------------------
-    // 0.6 added short if/then ? :
+    // 0.6 added short if/then
     std::unique_ptr<Expression> parseMath(int minPrecedence = 0) {
         auto left = parsePrimary();
 
@@ -210,16 +174,57 @@ private:
             }
             advance();
 
-            if (op.mType == TokenType::Question) {
+            if (op.mType == TokenType::Assign) {
+                if (!left) {
+                    Tools::PrintParseError("Assignment but no Variable Expression!");
+                    return nullptr;
+                }
+                auto rhs = parseMath(0);
+                if (!rhs) {
+                    Tools::PrintParseError("Assignment but no Assign Expression!");
+                    return nullptr;
+                }
+                left = std::make_unique<AssignStatement>(
+                    std::move(left), std::move(rhs)
+                );
+                continue;
+            }
+            else  if (isMathAssignOperatorType(op.mType)) {
+                if (!left) {
+                    Tools::PrintParseError("OP Assignment but no Expression!");
+                    return nullptr;
+                }
+                auto rhs = parseMath(0);
+                if (!rhs) {
+                    Tools::PrintParseError("Assignment but no Assign Expression!");
+                    return nullptr;
+                }
+                left = std::make_unique<AssignOPStatement>(
+                    std::move(left),op.mType, std::move(rhs)
+                );
+                continue;
+            }
+            else if (op.mType == TokenType::Question) {
                 auto trueBranch = parseMath(0);
 
                 if (peek().mType != TokenType::Colon) {
                     Tools::PrintParseError("Expect ':' after '?'");
+                    return nullptr;
                 }
                 advance();
                 auto falseBranch = parseMath(precedence);
                 left = std::make_unique<TernaryExpression>(
                     std::move(left), std::move(trueBranch), std::move(falseBranch)
+                );
+                continue;
+            }
+            else if (isInlineMathType(op.mType)) {
+                if (!left) {
+                    Tools::PrintParseError("Inline OP but no Expression!");
+                    return nullptr;
+                }
+                left = std::make_unique<BinaryInlineExpression>(
+                    std::move(left),op.mType
                 );
                 continue;
             }
@@ -234,28 +239,6 @@ private:
         }
         return left;
     }
-
-    // std::unique_ptr<Expression> parseMath(int minPrecedence = 0) {
-    //     auto left = parsePrimary();
-    //     while (isMathType(peek())) {
-    //         Token op = peek();
-    //         int precedence = getPrecedence(op.mType);
-    //
-    //         if (precedence < minPrecedence) {
-    //             break;
-    //         }
-    //         advance();
-    //
-    //         auto right = parseMath(precedence + 1);
-    //
-    //         if (isMathOperatorType(op)) {
-    //             left = std::make_unique<BinaryOpExpression>(std::move(left), op.mType, std::move(right));
-    //         } else {
-    //             left = std::make_unique<BinaryExpression>(std::move(left), op.mType, std::move(right));
-    //         }
-    //     }
-    //     return left;
-    // }
 
     // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parseComparison() {
@@ -332,7 +315,6 @@ public:
                 continue;
             }
 
-            // FIXME need a toggle command
             if (Globals::gDumpStateNodes) {
                 Tools::printf("---------- new statement ------ Pos:%d \n", (int)mPos);
                 for(size_t i = mPos; i < mTokens.size() ; i++) {
@@ -363,184 +345,386 @@ public:
     // -------------------------------------------------------------------------
     inline std::unique_ptr<ASTNode> parseLine() {
 
-        if (peek().mType == TokenType::Fn) {
-            advance(); //eat fn
 
-            if (peek().mType != TokenType::Identifier) {
-                Tools::errorf("Syntax-Error: function name required after fn\n");
-                return nullptr;
+        TokenType tokenType = peek().mType;
+        switch (tokenType) {
+            case TokenType::Fn: {
+                advance(); //eat fn
+
+                if (peek().mType != TokenType::Identifier) {
+                    Tools::errorf("Syntax-Error: function name required after fn\n");
+                    return nullptr;
+                }
+
+                std::string funcName = advance().mValue;
+                uint32_t funcNameSymbolId = SymbolTable::insert(funcName);
+                std::vector<std::string> params;
+
+                while (peek().mType == TokenType::Identifier) {
+                    params.push_back(advance().mValue);
+                }
+                FunctionMap::RegisteredScriptFunctions[funcNameSymbolId] = { params, {} };
+                return std::make_unique<FunctionDefineStartNode>(funcNameSymbolId);
             }
+            break;
 
-            std::string funcName = advance().mValue;
-            uint32_t funcNameSymbolId = SymbolTable::insert(funcName);
-            std::vector<std::string> params;
+            case TokenType::forRange: {
+                advance(); //eat range
 
-            while (peek().mType == TokenType::Identifier) {
-                params.push_back(advance().mValue);
-            }
-            FunctionMap::RegisteredScriptFunctions[funcNameSymbolId] = { params, {} };
-            return std::make_unique<FunctionDefineStartNode>(funcNameSymbolId);
-        }
-        else
-        if (peek().mType == TokenType::forRange) {
-            advance(); //eat range
+                if (peek().mType != TokenType::Identifier) {
+                    Tools::errorf("Syntax-Error: variable name after range expected\n");
+                    return nullptr;
+                }
+                std::string varName = advance().mValue;
 
-            if (peek().mType != TokenType::Identifier) {
-                Tools::errorf("Syntax-Error: variable name after range expected\n");
-                return nullptr;
-            }
-            std::string varName = advance().mValue;
+                auto countExpr = parseMath();
 
-            auto countExpr = parseMath();
-
-            return std::make_unique<ForRangeStatement>(SymbolTable::insert(varName)
+                return std::make_unique<ForRangeStatement>(SymbolTable::insert(varName)
                 , std::move(countExpr));
-        }
-        else
-        if (peek().mType == TokenType::For) {
-            advance();
-
-            if (peek().mType != TokenType::Identifier) {
-                Tools::errorf("Syntax-Error: variable name after for expected\n");
-                return nullptr;
             }
-            std::string varName = advance().mValue;
+            break;
 
-            auto start = parseMath();
-            auto end = parseMath();
+            case TokenType::For: {
+                advance();
 
-            return std::make_unique<ForStatement>(SymbolTable::insert(varName), std::move(start), std::move(end));
-        }
-        else
-        if (peek().mType == TokenType::While) {
-            advance();
-            auto condition = parseComparison();
-            return std::make_unique<WhileStatement>(std::move(condition));
-        }
-
-        else
-        if (peek().mType == TokenType::End) {
-            advance();
-            return std::make_unique<FunctionDefineEndNode>();
-        }
-        else
-        if (peek().mType == TokenType::If) {
-            advance(); // skip "if"
-            auto condition = parseComparison();
-            return std::make_unique<IfStatement>(std::move(condition));
-        }
-        else
-        if (peek().mType == TokenType::ElIf) {
-            advance(); // skip "if"
-            auto condition = parseComparison();
-            return std::make_unique<ElIfStatement>(std::move(condition));
-        }
-        else
-        if (peek().mType == TokenType::Else) {
-            advance(); // skip "else"
-            return std::make_unique<ElseMarkerNode>();
-        }
-        else
-        if (peek().mType == TokenType::Break) {
-            advance(); // eat 'break'
-            return std::make_unique<BreakStatement>();
-        }
-        else
-        if (peek().mType == TokenType::Continue) {
-            advance(); // eat
-            return std::make_unique<ContinueStatement>();
-        }
-        else if (peek().mType == TokenType::Return) {
-            advance(); // eat'return'
-
-            std::unique_ptr<Expression> rhs = nullptr;
-
-            if (peek().mType != TokenType::EOFToken &&
-                peek().mType != TokenType::End &&
-                peek().mType != TokenType::Semicolon &&
-                peek().mType != TokenType::RParen) {
-                rhs = parseComparison();
-            }
-
-            return std::make_unique<ReturnStatement>(std::move(rhs));
-        }
-        else
-            //TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME
-        //FIXME no idea how to add assign of ArrayVariableExpression ... i guess i need to
-            // enhance AssignStatement, BinaryInlineExpression, AssignOPStatement to
-            // take a VariableExpression --> so i also get `o.array->print` working ?!
-        if (peek().mType == TokenType::Identifier) {
-            Token nextToken = peekNext();
-            if (nextToken.mType == TokenType::Assign) {
+                if (peek().mType != TokenType::Identifier) {
+                    Tools::errorf("Syntax-Error: variable name after for expected\n");
+                    return nullptr;
+                }
                 std::string varName = advance().mValue;
-                advance(); // '='
-                auto rhs = parseComparison();
-                return std::make_unique<AssignStatement>(SymbolTable::insert( varName),0, std::move(rhs));
+
+                auto start = parseMath();
+                auto end = parseMath();
+
+                return std::make_unique<ForStatement>(SymbolTable::insert(varName), std::move(start), std::move(end));
             }
-            else if (nextToken.mType == TokenType::Dot) {
-                if (peekOffset(+2).mType == TokenType::Identifier
-                    && peekOffset(+3).mType == TokenType::Assign
-                ) {
-                    std::string varName = advance().mValue;
-                    advance(); // 'DOT'
-                    std::string fieldName = advance().mValue;
-                    advance(); // '='
-                    auto rhs = parseComparison();
-                    return std::make_unique<AssignStatement>(
-                        SymbolTable::insert( varName),
-                        SymbolTable::insert( fieldName), std::move(rhs));
-                }
-                else
-                if (peekOffset(+2).mType == TokenType::Identifier
-                    && isInlineMathType(peekOffset(+3))
-                ) {
-                    std::string varName = advance().mValue;
-                    advance(); // 'DOT'
-                    std::string fieldName = advance().mValue;
-                    Token op = advance();
-                    auto rhs = parseComparison();
-                    return std::make_unique<BinaryInlineExpression>(
-                        SymbolTable::insert( varName),
-                        SymbolTable::insert( fieldName), op.mType);
-                }
-                else
-                if (peekOffset(+2).mType == TokenType::Identifier
-                    && isMathAssignOperatorType(peekOffset(+3))
-                ) {
-                    std::string varName = advance().mValue;
-                    advance(); // 'DOT'
-                    std::string fieldName = advance().mValue;
-                    Token op = advance();
-                    auto rhs = parseComparison();
-                    return std::make_unique<AssignOPStatement>(
-                        SymbolTable::insert( varName),
-                        SymbolTable::insert( fieldName),
-                        op.mType,
-                        std::move(rhs));
-                }
-                else
-                return parsePrimary();
+            break;
+
+            case TokenType::While:  {
+                advance();
+                auto condition = parseComparison();
+                return std::make_unique<WhileStatement>(std::move(condition));
             }
-            else if (nextToken.mType == TokenType::Arrow) {
-                return parsePrimary();
+            break;
+
+            case TokenType::End:  {
+                advance();
+                return std::make_unique<FunctionDefineEndNode>();
             }
-            // else if (nextToken.mType == TokenType::LSquare) {
-            //     return parsePrimary();
+            break;
+
+            case TokenType::If:  {
+                advance(); // skip "if"
+                auto condition = parseComparison();
+                return std::make_unique<IfStatement>(std::move(condition));
+            }
+            break;
+
+            case TokenType::ElIf:  {
+                advance(); // skip "if"
+                auto condition = parseComparison();
+                return std::make_unique<ElIfStatement>(std::move(condition));
+            }
+            break;
+
+            case TokenType::Else:  {
+                advance(); // skip "else"
+                return std::make_unique<ElseMarkerNode>();
+            }
+            break;
+
+            case TokenType::Break:  {
+                advance(); // eat 'break'
+                return std::make_unique<BreakStatement>();
+            }
+            break;
+
+            case TokenType::Continue: {
+                advance(); // eat
+                return std::make_unique<ContinueStatement>();
+            }
+            break;
+
+            case TokenType::Return:  {
+                advance(); // eat'return'
+
+                std::unique_ptr<Expression> rhs = nullptr;
+
+                if (peek().mType != TokenType::EOFToken &&
+                    peek().mType != TokenType::End &&
+                    peek().mType != TokenType::Semicolon &&
+                    peek().mType != TokenType::RParen) {
+                    rhs = parseComparison();
+                    }
+
+                    return std::make_unique<ReturnStatement>(std::move(rhs));
+            }
+            break;
+
+            // -----------------------------------------------------------------
+            // case TokenType::Identifier:{
+            //     Token nextToken = peekNext();
+            //     if (nextToken.mType == TokenType::Assign) {
+            //         std::string varName = advance().mValue;
+            //         advance(); // '='
+            //         auto rhs = parseComparison();
+            //         return std::make_unique<AssignStatement>(SymbolTable::insert( varName),0, std::move(rhs));
+            //     }
+            //     // FIXME
+            //     // else if (nextToken.mType == TokenType::Dot) {
+            //     //     if (peekOffset(+2).mType == TokenType::Identifier
+            //     //         && peekOffset(+3).mType == TokenType::Assign
+            //     //     ) {
+            //     //         std::string varName = advance().mValue;
+            //     //         advance(); // 'DOT'
+            //     //         std::string fieldName = advance().mValue;
+            //     //         advance(); // '='
+            //     //         auto rhs = parseComparison();
+            //     //         return std::make_unique<AssignStatement>(
+            //     //             SymbolTable::insert( varName),
+            //     //                                                  SymbolTable::insert( fieldName), std::move(rhs));
+            //     //     }
+            //     //     else
+            //     //         if (peekOffset(+2).mType == TokenType::Identifier
+            //     //             && isInlineMathType(peekOffset(+3).mType)
+            //     //         ) {
+            //     //             std::string varName = advance().mValue;
+            //     //             advance(); // 'DOT'
+            //     //             std::string fieldName = advance().mValue;
+            //     //             Token op = advance();
+            //     //             auto rhs = parseComparison();
+            //     //             return std::make_unique<BinaryInlineExpression>(
+            //     //                 SymbolTable::insert( varName),
+            //     //                 SymbolTable::insert( fieldName), op.mType);
+            //     //         }
+            //     //         else
+            //     //             if (peekOffset(+2).mType == TokenType::Identifier
+            //     //                 && isMathAssignOperatorType(peekOffset(+3))
+            //     //             ) {
+            //     //                 std::string varName = advance().mValue;
+            //     //                 advance(); // 'DOT'
+            //     //                 std::string fieldName = advance().mValue;
+            //     //                 Token op = advance();
+            //     //                 auto rhs = parseComparison();
+            //     //                 return std::make_unique<AssignOPStatement>(
+            //     //                     SymbolTable::insert( varName),
+            //     //                     SymbolTable::insert( fieldName),
+            //     //                     op.mType,
+            //     //                     std::move(rhs));
+            //     //             }
+            //     //             else
+            //     //                 return parsePrimary();
+            //     // }
+            //     // else if (nextToken.mType == TokenType::Arrow) {
+            //     //     return parsePrimary();
+            //     // }
+            //     // else if (isInlineMathType( nextToken.mType)) {
+            //     //     return parsePrimary();
+            //     // }
+            //     // else if (isMathAssignOperatorType(nextToken)) {
+            //     //     std::string varName = advance().mValue;
+            //     //     Token op = advance();
+            //     //     auto rhs = parseComparison();
+            //     //     return std::make_unique<AssignOPStatement>(SymbolTable::insert(varName)
+            //     //     ,0,op.mType, std::move(rhs));
+            //     // }
             // }
-            else if (isInlineMathType( nextToken)) {
-                return parsePrimary();
+            // break;
+
+            // -----------------------------------------------------------------
+
+
+            default: {
+                 return parseComparison();
             }
-            else if (isMathAssignOperatorType(nextToken)) {
-                std::string varName = advance().mValue;
-                Token op = advance();
-                auto rhs = parseComparison();
-                return std::make_unique<AssignOPStatement>(SymbolTable::insert(varName)
-                        ,0,op.mType, std::move(rhs));
-            }
-        } //Identifier
+            break;
+
+
+
+
+        }
+
+        // if (peek().mType == TokenType::Fn) {
+        //     advance(); //eat fn
+        //
+        //     if (peek().mType != TokenType::Identifier) {
+        //         Tools::errorf("Syntax-Error: function name required after fn\n");
+        //         return nullptr;
+        //     }
+        //
+        //     std::string funcName = advance().mValue;
+        //     uint32_t funcNameSymbolId = SymbolTable::insert(funcName);
+        //     std::vector<std::string> params;
+        //
+        //     while (peek().mType == TokenType::Identifier) {
+        //         params.push_back(advance().mValue);
+        //     }
+        //     FunctionMap::RegisteredScriptFunctions[funcNameSymbolId] = { params, {} };
+        //     return std::make_unique<FunctionDefineStartNode>(funcNameSymbolId);
+        // }
+        // else
+        // if (peek().mType == TokenType::forRange) {
+        //     advance(); //eat range
+        //
+        //     if (peek().mType != TokenType::Identifier) {
+        //         Tools::errorf("Syntax-Error: variable name after range expected\n");
+        //         return nullptr;
+        //     }
+        //     std::string varName = advance().mValue;
+        //
+        //     auto countExpr = parseMath();
+        //
+        //     return std::make_unique<ForRangeStatement>(SymbolTable::insert(varName)
+        //         , std::move(countExpr));
+        // }
+        // else
+        // if (peek().mType == TokenType::For) {
+        //     advance();
+        //
+        //     if (peek().mType != TokenType::Identifier) {
+        //         Tools::errorf("Syntax-Error: variable name after for expected\n");
+        //         return nullptr;
+        //     }
+        //     std::string varName = advance().mValue;
+        //
+        //     auto start = parseMath();
+        //     auto end = parseMath();
+        //
+        //     return std::make_unique<ForStatement>(SymbolTable::insert(varName), std::move(start), std::move(end));
+        // }
+        // else
+        // if (peek().mType == TokenType::While) {
+        //     advance();
+        //     auto condition = parseComparison();
+        //     return std::make_unique<WhileStatement>(std::move(condition));
+        // }
+
+        // else
+        // if (peek().mType == TokenType::End) {
+        //     advance();
+        //     return std::make_unique<FunctionDefineEndNode>();
+        // }
+        // else
+        // if (peek().mType == TokenType::If) {
+        //     advance(); // skip "if"
+        //     auto condition = parseComparison();
+        //     return std::make_unique<IfStatement>(std::move(condition));
+        // }
+        // else
+        // if (peek().mType == TokenType::ElIf) {
+        //     advance(); // skip "if"
+        //     auto condition = parseComparison();
+        //     return std::make_unique<ElIfStatement>(std::move(condition));
+        // }
+        // else
+        // if (peek().mType == TokenType::Else) {
+        //     advance(); // skip "else"
+        //     return std::make_unique<ElseMarkerNode>();
+        // }
+        // else
+        // if (peek().mType == TokenType::Break) {
+        //     advance(); // eat 'break'
+        //     return std::make_unique<BreakStatement>();
+        // }
+        // else
+        // if (peek().mType == TokenType::Continue) {
+        //     advance(); // eat
+        //     return std::make_unique<ContinueStatement>();
+        // }
+        // else if (peek().mType == TokenType::Return) {
+        //     advance(); // eat'return'
+        //
+        //     std::unique_ptr<Expression> rhs = nullptr;
+        //
+        //     if (peek().mType != TokenType::EOFToken &&
+        //         peek().mType != TokenType::End &&
+        //         peek().mType != TokenType::Semicolon &&
+        //         peek().mType != TokenType::RParen) {
+        //         rhs = parseComparison();
+        //     }
+        //
+        //     return std::make_unique<ReturnStatement>(std::move(rhs));
+        // }
+        // else
+        //     //TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME
+        // //FIXME no idea how to add assign of ArrayVariableExpression ... i guess i need to
+        //     // enhance AssignStatement, BinaryInlineExpression, AssignOPStatement to
+        //     // take a VariableExpression --> so i also get `o.array->print` working ?!
+        // if (peek().mType == TokenType::Identifier) {
+        //     Token nextToken = peekNext();
+        //     if (nextToken.mType == TokenType::Assign) {
+        //         std::string varName = advance().mValue;
+        //         advance(); // '='
+        //         auto rhs = parseComparison();
+        //         return std::make_unique<AssignStatement>(SymbolTable::insert( varName),0, std::move(rhs));
+        //     }
+        //     else if (nextToken.mType == TokenType::Dot) {
+        //         if (peekOffset(+2).mType == TokenType::Identifier
+        //             && peekOffset(+3).mType == TokenType::Assign
+        //         ) {
+        //             std::string varName = advance().mValue;
+        //             advance(); // 'DOT'
+        //             std::string fieldName = advance().mValue;
+        //             advance(); // '='
+        //             auto rhs = parseComparison();
+        //             return std::make_unique<AssignStatement>(
+        //                 SymbolTable::insert( varName),
+        //                 SymbolTable::insert( fieldName), std::move(rhs));
+        //         }
+        //         else
+        //         if (peekOffset(+2).mType == TokenType::Identifier
+        //             && isInlineMathType(peekOffset(+3))
+        //         ) {
+        //             std::string varName = advance().mValue;
+        //             advance(); // 'DOT'
+        //             std::string fieldName = advance().mValue;
+        //             Token op = advance();
+        //             auto rhs = parseComparison();
+        //             return std::make_unique<BinaryInlineExpression>(
+        //                 SymbolTable::insert( varName),
+        //                 SymbolTable::insert( fieldName), op.mType);
+        //         }
+        //         else
+        //         if (peekOffset(+2).mType == TokenType::Identifier
+        //             && isMathAssignOperatorType(peekOffset(+3))
+        //         ) {
+        //             std::string varName = advance().mValue;
+        //             advance(); // 'DOT'
+        //             std::string fieldName = advance().mValue;
+        //             Token op = advance();
+        //             auto rhs = parseComparison();
+        //             return std::make_unique<AssignOPStatement>(
+        //                 SymbolTable::insert( varName),
+        //                 SymbolTable::insert( fieldName),
+        //                 op.mType,
+        //                 std::move(rhs));
+        //         }
+        //         else
+        //         return parsePrimary();
+        //     }
+        //     else if (nextToken.mType == TokenType::Arrow) {
+        //         return parsePrimary();
+        //     }
+        //     // else if (nextToken.mType == TokenType::LSquare) {
+        //     //     return parsePrimary();
+        //     // }
+        //     else if (isInlineMathType( nextToken)) {
+        //         return parsePrimary();
+        //     }
+        //     else if (isMathAssignOperatorType(nextToken)) {
+        //         std::string varName = advance().mValue;
+        //         Token op = advance();
+        //         auto rhs = parseComparison();
+        //         return std::make_unique<AssignOPStatement>(SymbolTable::insert(varName)
+        //                 ,0,op.mType, std::move(rhs));
+        //     }
+        // } //Identifier
+        //
+        // return parseComparison();
+
 
         return parseComparison();
-    }
+    } //  inline std::unique_ptr<ASTNode> parseLine()
 
 };
 } //namespace

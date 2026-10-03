@@ -119,6 +119,27 @@ namespace DreiZehn {
         return returnValue;
 
     }
+
+
+    Value* MethodExpression::evaluatePtr(Environment& env) {
+        Value objectPointer = env.getVariableFrame()->getVariable(mPointerNameSymbolId);
+        if (!objectPointer.isPointer()) {
+            // Tools::errorf("RunTime Error: Object %s not found.\n", mPointerName.c_str());
+            Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(mPointerNameSymbolId).c_str());
+            return nullptr;
+        }
+        ValueObject* obj = objectPointer.asPointerObject();
+        if (!obj) {
+            Tools::errorf("RunTime Error: Invalid Object: %s.\n", SymbolTable::getName(mPointerNameSymbolId).c_str());
+            return nullptr;
+        }
+        std::vector<Value> evaluatedArgs;
+        for (auto& argExpr : mArguments) {
+            if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
+        }
+
+        return obj->onMethodCallGetAssignPtr(mMethodNameSymbolId, evaluatedArgs);
+    }
     // -------------------------------------------------------------------------
     Value CallExpression::evaluate(Environment& env) {
         FunctionMap::CallBack* cb = nullptr;
@@ -178,7 +199,7 @@ namespace DreiZehn {
         }
         Value lVal = mLeft->evaluate(env);
         Value rVal = mRight->evaluate(env);
-        if (lVal.isInt() && rVal.isInt()) {
+            if (lVal.isInt() && rVal.isInt()) {
             switch (mOp) {
                 case TokenType::Plus:  return Value(lVal.asFastInt() + rVal.asFastInt());
                 case TokenType::Minus: return Value(lVal.asFastInt() - rVal.asFastInt());
@@ -245,24 +266,14 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // ++ --
     Value BinaryInlineExpression::evaluate(Environment& env)  {
-        if ( mVarNameSymbolId == 0 ) {
-            Tools::PrintParseError("variable is missing:");
-            return Value();
-        }
-        Value* valPtr = nullptr;
-        Value* variablePtr = env.getVariableFrame()->getVariablePtr(mVarNameSymbolId);
-        if (!variablePtr) {
-            Tools::errorf("Invalid operation: %s\n",tokenTypeToString(mOp));
-            return Value();
-        }
-        if (variablePtr->isPointer() && mFieldSymbolId > 0) {
-            valPtr = variablePtr->asPointerObject()->onGetFieldPtr(mFieldSymbolId);
-            if (!valPtr) return Value();
-        } else {
-            valPtr = variablePtr;
-        }
 
-        // NOTE: should i cast it to int?!
+        Value * valPtr = mExpr->evaluatePtr(env);
+
+
+        if ( !valPtr  ) {
+            Tools::PrintParseError("variable is missing or invalid");
+            return Value();
+        }
 
         if (valPtr->isInt() ) {
             int32_t lCurInt = valPtr->asInt();
@@ -422,39 +433,56 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // STATEMENTS execute
     // -------------------------------------------------------------------------
-    void AssignStatement::execute(Environment& env) {
-        if(this->mFieldSymbolId > 0) {
-            Value varValue = env.getVariableFrame()->getVariable(this->mVarNameSymbolId);
-            if (!varValue.isPointer()) {
-                Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(this->mVarNameSymbolId).c_str());
-                return;
-            }
+    Value AssignStatement::evaluate(Environment& env) {
 
-            ValueObject* obj = dynamic_cast<ValueObject*>(varValue.asPointerObject());
-            if (!obj->onSetField(this->mFieldSymbolId, this->mRhs->evaluate(env))) {
-                Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
-                                SymbolTable::getName(this->mVarNameSymbolId).c_str(),
-                                SymbolTable::getName(this->mFieldSymbolId).c_str()
-                );
-            }
+        Value * valPtr = mVarExpr->evaluatePtr(env);
 
-        } else {
-            env.getVariableFrame()->setVariable(this->mVarNameSymbolId, this->mRhs->evaluate(env));
+        if ( !valPtr  ) {
+            Tools::PrintParseError("Assign: variable is missing or invalid");
+            return Value(0);
         }
+
+        // since i set it with pointer i need to check assignment here !!!!!!
+
+        Value& pre = *valPtr;
+        Value post = this->mRhs->evaluate(env);
+        if (pre.isPointer())  pre.asPointerObject()->setAssigned(false);
+        if (post.isPointer()) post.asPointerObject()->setAssigned(true);
+
+        *valPtr = post;
+
+
+
+
+         return *valPtr;
+
+        // if(this->mFieldSymbolId > 0) {
+        //     Value varValue = env.getVariableFrame()->getVariable(this->mVarNameSymbolId);
+        //     if (!varValue.isPointer()) {
+        //         Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(this->mVarNameSymbolId).c_str());
+        //         return;
+        //     }
+        //
+        //     ValueObject* obj = dynamic_cast<ValueObject*>(varValue.asPointerObject());
+        //     if (!obj->onSetField(this->mFieldSymbolId, this->mRhs->evaluate(env))) {
+        //         Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
+        //                         SymbolTable::getName(this->mVarNameSymbolId).c_str(),
+        //                         SymbolTable::getName(this->mFieldSymbolId).c_str()
+        //         );
+        //     }
+        //
+        // } else {
+        //     env.getVariableFrame()->setVariable(this->mVarNameSymbolId, this->mRhs->evaluate(env));
+        // }
     }
     // -------------------------------------------------------------------------
-    void AssignOPStatement::execute(Environment& env) {
-        Value* valuePtr = nullptr;
-        Value* variablePtr = env.getVariableFrame()->getVariablePtr(this->mVarNameSymbolId);
-        if (!variablePtr) {
-            Tools::errorf("Invalid Pointer operation: %s\n",tokenTypeToString(this->mOp));
-            return;
-        }
-        if (variablePtr->isPointer() ) {
-            valuePtr = variablePtr->asPointerObject()->onGetFieldPtr(this->mFieldSymbolId);
-            if (!valuePtr) return;
-        } else {
-            valuePtr = variablePtr;
+    Value AssignOPStatement::evaluate(Environment& env) {
+
+        Value * valuePtr = mVarExpr->evaluatePtr(env);
+
+        if ( !valuePtr  ) {
+            Tools::PrintParseError("AssignOP: variable is missing or invalid");
+            return Value(0);
         }
         Value rightHand = this->mRhs->evaluate(env);
         if (valuePtr->isInt() && rightHand.isInt()) {
@@ -474,13 +502,13 @@ namespace DreiZehn {
                 case TokenType::AssignMinus: doubleval -= rightHand.asFastDouble(); break;
                 case TokenType::AssignMul:   doubleval *= rightHand.asFastDouble(); break;
                 case TokenType::AssignDiv:  if (rightHand.asFastDouble() != 0.0) {doubleval /= rightHand.asFastDouble();} break;
-                default: return;
+                default: return Value(0);
             }
             *valuePtr = Value(doubleval);
 
         } else if (valuePtr->isStringId() && rightHand.isStringId()) {
             if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (std::string( valuePtr->getStringRef() +  rightHand.getStringRef() ));
-            else return;
+            else return Value(0);
         } else {
             double doubleval = valuePtr->getDouble();
             switch(this->mOp) {
@@ -488,10 +516,12 @@ namespace DreiZehn {
                 case TokenType::AssignMinus: doubleval -= rightHand.getDouble(); break;
                 case TokenType::AssignMul:   doubleval *= rightHand.getDouble(); break;
                 case TokenType::AssignDiv:  if (rightHand.getDouble() != 0.0) {doubleval /= rightHand.getDouble();} break;
-                default: return;
+                default: return Value(0);
             }
             *valuePtr = Value(doubleval);
         }
+
+         return Value(0);
     }
 
     // -------------------------------------------------------------------------

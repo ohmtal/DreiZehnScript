@@ -162,8 +162,11 @@ namespace DreiZehn {
         if (it != mDynmaicFields.end()) {
             return  &it->second;
         }
-        Tools::errorf("Runtime Error GetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
-        return nullptr;
+
+        // not found we set a new dynamic one !
+        mDynmaicFields[fieldSymbolId] = Value(0);
+        return &mDynmaicFields[fieldSymbolId];
+
     }
     // -------------------------------------------------------------------------
 

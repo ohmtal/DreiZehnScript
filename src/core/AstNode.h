@@ -107,10 +107,6 @@ struct Expression : public ASTNode {
     }
 };
 
-// AssignBaseStatement --------------------------------------------------------
-struct AssignBaseStatement: public ASTNode {
-    virtual void execute(Environment& env) = 0;
-};
 
 // FlowBaseStatement --------------------------------------------------------
 struct FlowBaseStatement: public ASTNode {
@@ -220,20 +216,24 @@ struct MethodExpression : public Expression {
     }
 
     Value evaluate(Environment& env) override;
+    Value* evaluatePtr(Environment& env) override;
 };
 // Assingment ------------------------------------------------------------------
 
-struct AssignStatement : public AssignBaseStatement {
-    uint32_t mVarNameSymbolId;
-    uint32_t mFieldSymbolId = 0;
+// struct AssignStatement : public AssignBaseStatement {
+struct AssignStatement : public Expression {
+    // uint32_t mVarNameSymbolId;
+    // uint32_t mFieldSymbolId = 0;
+
+    std::unique_ptr<Expression> mVarExpr; //left variable expression
     std::unique_ptr<Expression> mRhs; // Right-Hand Side
 
-    AssignStatement(uint32_t varNameSymId, uint32_t fieldSymbolId, std::unique_ptr<Expression> expr)
-    : mVarNameSymbolId(varNameSymId), mFieldSymbolId(fieldSymbolId), mRhs(std::move(expr)) {
+    AssignStatement( std::unique_ptr<Expression> varExpr, std::unique_ptr<Expression> rightExpr)
+    : mVarExpr(std::move(varExpr)), mRhs(std::move(rightExpr)) {
         mNodeType  = NodeType::AssignStatement;
     }
 
-    void execute(Environment& env) override;
+    Value evaluate(Environment& env) override;
 
 };
 // Binary ----------------------------------------------------------------------
@@ -279,30 +279,31 @@ struct BinaryOpExpression : public Expression {
 };
 // BinaryInline ----------------------------------------------------------------------
 struct BinaryInlineExpression : public Expression {
-    uint32_t mVarNameSymbolId;
-    uint32_t mFieldSymbolId;
+    std::unique_ptr<Expression> mExpr;
     TokenType mOp;
 
-    BinaryInlineExpression(uint32_t varId,uint32_t fieldId, TokenType o)
-    : mVarNameSymbolId(varId), mFieldSymbolId(fieldId), mOp(o) {
+    BinaryInlineExpression(std::unique_ptr<Expression> expr, TokenType o)
+    :  mExpr(std::move(expr)), mOp(o) {
         mNodeType  = NodeType::BinaryInlineExpression;
     }
-
     Value evaluate(Environment& env) override;
 };
 
 // AssingmentOP ------------------------------------------------------------------
-struct AssignOPStatement : public AssignBaseStatement {
-    uint32_t mVarNameSymbolId;
-    uint32_t mFieldSymbolId;
+// struct AssignOPStatement : public AssignBaseStatement {
+struct AssignOPStatement : public Expression {
+    std::unique_ptr<Expression> mVarExpr;
     TokenType mOp;
     std::unique_ptr<Expression> mRhs; // Right-Hand Side
 
-    AssignOPStatement(uint32_t varNameSymId, uint32_t fieldId, TokenType op, std::unique_ptr<Expression> expr)
-    : mVarNameSymbolId(varNameSymId),mFieldSymbolId(fieldId),mOp(op),  mRhs(std::move(expr)) {
+
+    AssignOPStatement( std::unique_ptr<Expression> varExpr, TokenType op, std::unique_ptr<Expression> rightExpr)
+    : mVarExpr(std::move(varExpr)), mOp(op),mRhs(std::move(rightExpr)) {
         mNodeType  = NodeType::AssignOPStatement;
     }
-    void execute(Environment& env) override;
+
+    // void execute(Environment& env) override;
+     Value evaluate(Environment& env) override;
 };
 // short if => ? : ---------------------------------------------------------------
 struct TernaryExpression : public Expression {

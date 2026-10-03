@@ -101,6 +101,10 @@ struct Expression : public ASTNode {
         mNodeType  = NodeType::Expression;
     }
     virtual Value evaluate(Environment& env) = 0;
+    // fetch a Ptr to a value instead of a value
+    virtual Value* evaluatePtr(Environment& env) {
+        return nullptr;
+    }
 };
 
 // AssignBaseStatement --------------------------------------------------------
@@ -163,6 +167,7 @@ struct VariableExpression : public Expression {
         mNodeType  = NodeType::VariableExpression;
     }
     Value evaluate(Environment& env) override;
+    Value* evaluatePtr(Environment& env) override;
 };
 
 struct ArrayVariableExpression : public Expression {
@@ -185,6 +190,7 @@ struct ObjectFieldExpression : public Expression {
         mNodeType  = NodeType::ObjectFieldExpression;
     }
     Value evaluate(Environment& env) override;
+    Value* evaluatePtr(Environment& env) override;
 };
 // function calls --------------------------------------------------------------
 struct CallExpression : public Expression {

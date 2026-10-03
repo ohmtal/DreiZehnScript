@@ -43,6 +43,10 @@ namespace DreiZehn {
         return env.getVariableFrame()->getVariable(mVariableNameSymbolId);
     }
     // -------------------------------------------------------------------------
+    Value* VariableExpression::evaluatePtr(Environment& env) {
+        return env.getVariableFrame()->getVariablePtr(mVariableNameSymbolId);
+    }
+    // -------------------------------------------------------------------------
     Value ArrayVariableExpression::evaluate(Environment& env) {
         Value indexValue = mIndexExpr->evaluate(env);
         if (!indexValue.isInt()) {
@@ -72,6 +76,24 @@ namespace DreiZehn {
                       SymbolTable::getName(mFieldSymbolId).c_str()
                       );
         return returnValue;
+    }
+    // -------------------------------------------------------------------------
+    Value* ObjectFieldExpression::evaluatePtr(Environment& env) {
+        Value varValue = env.getVariableFrame()->getVariable(mVariableNameSymbolId);
+        if (!varValue.isPointer()) {
+            Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(mVariableNameSymbolId).c_str());
+            return nullptr;
+        }
+
+        ValueObject* obj = varValue.asPointerObject();
+        Value* valPtr= obj->onGetFieldPtr(mFieldSymbolId);
+        if (!valPtr) {
+            Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
+                        SymbolTable::getName(mVariableNameSymbolId).c_str(),
+                        SymbolTable::getName(mFieldSymbolId).c_str()
+            );
+        }
+        return valPtr;
     }
     // -------------------------------------------------------------------------
     Value MethodExpression::evaluate(Environment& env) {
@@ -230,7 +252,7 @@ namespace DreiZehn {
         Value* valPtr = nullptr;
         Value* variablePtr = env.getVariableFrame()->getVariablePtr(mVarNameSymbolId);
         if (!variablePtr) {
-            Tools::errorf("Invalid Pointer operation: %s\n",tokenTypeToString(mOp));
+            Tools::errorf("Invalid operation: %s\n",tokenTypeToString(mOp));
             return Value();
         }
         if (variablePtr->isPointer() && mFieldSymbolId > 0) {

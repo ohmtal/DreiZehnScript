@@ -122,7 +122,7 @@ under 15 sec and beat python here without bytecode ;)
 - [X] fixed math order again and added BitXOr to order
 
 
-# 0.6c
+## 0.6c
 - [X] BUG: my mIsImplicit addon not became bad !
         - cant add an if inside an else statement!!
     
@@ -157,7 +157,7 @@ under 15 sec and beat python here without bytecode ;)
     - [X] dump should also list the registered scriptMethods!
 
     
-# 0.6d     
+## 0.6d     
 - [X] bug return without value: __return_value__ << return 0 if not expression is found
 - [X] Fenster Scale 
 - [X] help print constants 
@@ -165,8 +165,8 @@ under 15 sec and beat python here without bytecode ;)
 - [X] GC: on local var and function parameters: gc count up but is not decremented when frame is deleted 
 - [X] alot of stuff to FensterFunctions added
 
-# 0.7
-- [ ] Attepmt: instead of hack in array[] with dummy variables try to add an assignment on methods!
+## 0.7
+### Attepmt: instead of hack in array[] with dummy variables try to add an assignment on methods!
     - `a = Array::new (Object::new) "cow"`
     - `a->at 1 = "Jo cow!"`
     - `(a->at 0)->myMethod`
@@ -183,8 +183,17 @@ under 15 sec and beat python here without bytecode ;)
     `(a->at 0)` return the Value to it also can accept the method call or field access ... 
     - i maybe get in trouble with my fast op variable lookup then, because it's runtime stuff not compiletime 
 
+- [ ] Rewrite of =, ++,--, !, *=,... 
 
-# Variable problematic
+- [X] added a evalute to get the pointer virtual Value* evaluatePtr(Environment& env)
+        - [X] VariableExpression
+        - [X] ObjectFieldExpression
+        - **NOTE** more to come if it works! 
+        
+- [ ] add left expression and change the parser:
+    - [ ] BinaryInlineExpression (++/--)
+    
+## Variable problematic
 
 At the moment it uses flat assignments Identifier = | Identifier.field = . this allows fast setup using Symbols
 varid and varid.fieldid. If I change this to a variable expression i need to parse it on runtime which is much 
@@ -197,7 +206,7 @@ working. I did add it as a "dummy" variable which is not the best idea anyway.
     - [ ] lexer/parser
     - [ ] runtime lookup break in parts
 
-# still missing:
+## still missing:
 - [ ] change printf errorf to a overwritable class or add a handler 
 
 ## maybe:

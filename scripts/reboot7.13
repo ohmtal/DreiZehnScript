@@ -1,0 +1,4 @@
+print "----- Assignment redesign attempt 0.7 -----"
+
+
+while core::breath; core::sleep 16 ;;

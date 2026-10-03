@@ -165,7 +165,7 @@ under 15 sec and beat python here without bytecode ;)
 - [X] GC: on local var and function parameters: gc count up but is not decremented when frame is deleted 
 - [X] alot of stuff to FensterFunctions added
 
-# 0.6e
+# 0.7
 - [ ] Attepmt: instead of hack in array[] with dummy variables try to add an assignment on methods!
     - `a = Array::new (Object::new) "cow"`
     - `a->at 1 = "Jo cow!"`

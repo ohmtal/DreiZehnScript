@@ -153,28 +153,28 @@ private:
 
                 return std::make_unique<ObjectFieldExpression>(nameTokenSymbolId , SymbolTable::insert(fieldToken.mValue));
             }
-            else
-            if (peek().mType == TokenType::LSquare) {
-                advance();
-                std::unique_ptr<Expression> indexArg;
-                if (isContinueToken(peek())) {
-                    indexArg = parseMath();
-                }
-
-                if (!indexArg.get()) {
-                    Tools::PrintParseError("Missing index");
-                    return nullptr;
-                }
-
-                if (peek().mType == TokenType::RSquare) {
-
-                    advance();
-                    return std::make_unique<ArrayVariableExpression>(nameToken.mValue, std::move(indexArg));
-                } else {
-                    Tools::PrintParseError("Missing closing ]");
-                    return nullptr;
-                }
-            }
+            // else
+            // if (peek().mType == TokenType::LSquare) {
+            //     advance();
+            //     std::unique_ptr<Expression> indexArg;
+            //     if (isContinueToken(peek())) {
+            //         indexArg = parseMath();
+            //     }
+            //
+            //     if (!indexArg.get()) {
+            //         Tools::PrintParseError("Missing index");
+            //         return nullptr;
+            //     }
+            //
+            //     if (peek().mType == TokenType::RSquare) {
+            //
+            //         advance();
+            //         return std::make_unique<ArrayVariableExpression>(nameToken.mValue, std::move(indexArg));
+            //     } else {
+            //         Tools::PrintParseError("Missing closing ]");
+            //         return nullptr;
+            //     }
+            // }
             else
             if (FunctionMap::IsFunction(nameTokenSymbolId)) {
                 std::vector<std::unique_ptr<Expression>> args;
@@ -524,9 +524,9 @@ public:
             else if (nextToken.mType == TokenType::Arrow) {
                 return parsePrimary();
             }
-            else if (nextToken.mType == TokenType::LSquare) {
-                return parsePrimary(); //FIXME ...
-            }
+            // else if (nextToken.mType == TokenType::LSquare) {
+            //     return parsePrimary();
+            // }
             else if (isInlineMathType( nextToken)) {
                 return parsePrimary();
             }
@@ -537,7 +537,7 @@ public:
                 return std::make_unique<AssignOPStatement>(SymbolTable::insert(varName)
                         ,0,op.mType, std::move(rhs));
             }
-        }
+        } //Identifier
 
         return parseComparison();
     }

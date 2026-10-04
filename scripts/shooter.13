@@ -1,0 +1,142 @@
+-- DreiZehn 0.7b
+WIDTH = 320
+HEIGHT = 240
+
+Player = struct "x" "y"
+Bullets = Vector::new; Bullets->fill 10 (struct "x" "y" "active")
+Enemies = Vector::new; Enemies->fill 6 (struct "x" "y" "active" "speed")
+Stars = Vector::new; Stars->fill 30 (struct "x" "y" "speed")
+
+Fenster = Fenster::new "Retro Space Shooter" WIDTH HEIGHT 1.5
+if (!Fenster) return ;;
+
+Player->set (WIDTH / 2 - 8) (HEIGHT - 20)
+
+forEach star Stars
+    star.x = math::random 0 WIDTH
+    star.y = math::random 0 HEIGHT
+    star.speed = 0.5 + math::randomf * 1.5
+end
+
+score = 0
+game_over = 0
+shoot_cooldown = 0
+
+while Fenster->loop && core::breath
+    Fenster->clear 0x050510
+    forEach star Stars
+        star.y += star.speed
+        if (star.y > HEIGHT)
+            star.y = 0
+            star.x = math::random 0 WIDTH
+        end
+        star_color = star.speed > 1.2 ? 0xFFFFFF : 0x888888
+        Fenster->setPixel star.x star.y star_color
+    end
+    if (!game_over)
+        -- player controls
+        if (Fenster->isKeyDown KEY_A) || (Fenster->isKeyDown KEY_LEFT) Player.x -= 3.0 end
+        if (Fenster->isKeyDown KEY_D) || (Fenster->isKeyDown KEY_RIGHT) Player.x += 3.0 end
+        if (Fenster->isKeyDown KEY_W) || (Fenster->isKeyDown KEY_UP) Player.y -= 3.0 end
+        if (Fenster->isKeyDown KEY_S) || (Fenster->isKeyDown KEY_DOWN) Player.y += 3.0 end
+        -- player borders
+        if (Player.x < 0) Player.x = 0;;
+        if (Player.x > WIDTH - 16 ) Player.x = WIDTH - 16;;
+        if (Player.y < 0) Player.y = 0;;
+        if (Player.y > HEIGHT - 16 ) Player.x = HEIGHT - 16;;
+        if (shoot_cooldown > 0 ) shoot_cooldown--;;
+
+        -- player bullets
+        if (Fenster->isKeyDown KEY_SPACE) && (shoot_cooldown <= 0)
+            forEach b Bullets
+                if (!b.active)
+                    b.x = Player.x + 7
+                    b.y = Player.y
+                    b.active = 1
+                    shoot_cooldown = 12
+                    break
+                end
+            end
+        end
+
+        -- logic
+        forEach b Bullets
+            if b.active
+                b.y -= 5
+                if b.y < 0 ; b.active = false;;
+            end
+        end
+
+        forEach e Enemies
+            if not e.active
+                e.x = math::random 0 (WIDTH - 16);
+                e.y = -16;
+                e.speed = 1.0 + math::randomf * 1.5;
+                e.active = 1;
+            else
+                e.y += e.speed
+                if (e.y > HEIGHT); e.active = 0;;
+                -- collision
+                if (e.y + 12 >= Player.y && e.y <= Player.y + 12 \
+                    && e.x + 12 >= Player.x && e.x <= Player.x + 12)
+                        game_over = 1;
+                end
+            end
+        end
+
+        -- bullets
+        forEach b Bullets
+            if (not b.active) continue;;
+            forEach e Enemies
+                if (not e.active) continue;;
+                if b.x >= e.x && b.x <= e.x + 16 && \
+                   b.y >= e.y && b.y <= e.y + 16
+                   b.active = 0
+                   e.active = 0
+                   score += 10
+                end
+            end
+        end
+
+        -- render Bullets
+        forEach b Bullets
+            if b.active
+                Fenster->rect b.x b.y 2 4 0xFFFF00
+            end
+        end
+        -- Enemies
+        forEach e Enemies
+            if e.active
+                Fenster->rect (e.x + 4) e.y 8 12 0xFF0055
+                Fenster->rect e.x (e.y + 4) 16 4 0xDD0033
+            end
+        end
+        -- render player
+        Fenster->rect (Player.x + 6) Player.y 4 12 0x00FF00
+        Fenster->rect Player.x (Player.y + 6) 16 4 0x00AA00
+
+    else
+        Fenster->text 90 100 "game over" 4 COLOR_RED
+        Fenster->text 80 140 "press [R] to restart" 2 COLOR_ORANGE
+        if ( Fenster->isKeyDown KEY_R )
+            game_over = 0
+            score = 0;
+            Player.x = WIDTH / 2 - 8;
+            Player.y = HEIGHT - 20;
+            forEach e Enemies; e.active = 0;;
+            forEach b Bullets; b.active = 0;;
+        end
+    end # Game over
+
+    Fenster->text 10 9 (str::concat "Score:" score) 1 COLOR_WHITE
+    if (Fenster->isKeyDown KEY_ESC) break end
+end
+
+-- close and release all object ..
+Fenster->close
+Fenster = 0
+Player  = 0
+Bullets = 0
+Enemies = 0
+Stars   = 0
+

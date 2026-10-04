@@ -31,6 +31,8 @@ namespace DreiZehn {
     struct StructObject : public ValueObject {
         std::vector<uint32_t> mFieldOrder;
 
+        inline static ValueObjectProperty mSetProp;
+
         StructObject() : ValueObject(TypeStructObject) {
             mSupportClone = true;
         }
@@ -48,6 +50,7 @@ namespace DreiZehn {
                 this->mDynmaicFields[id] = Value(0);
             }
         }
+        // -------------------------------------------------------------------------
 
         virtual ValueObject* clone() override {
             StructObject* clone = new StructObject();
@@ -56,7 +59,28 @@ namespace DreiZehn {
 
             return clone;
         }
+        // -------------------------------------------------------------------------
+        inline static void RegisterSymbols() {
+            static bool mSymbolsLoaded = false;
+            if (mSymbolsLoaded) return;
+            mSetProp   = ValueObjectProperty("set", 1,999,  "set struct Values.Usage ->set value ... ", TypeStructObject);
+            mSymbolsLoaded = true;
+        }
+        // -------------------------------------------------------------------------
+        inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
+            if (mSetProp.matchMethod(methodId, args)) {
+                size_t count = std::min(args.size(), mFieldOrder.size());
 
+                for(size_t i = 0; i < count; i++) {
+                    mDynmaicFields[mFieldOrder[i]] = args[i];
+                }
+
+                ret =  Value((uint32_t)count);
+                return true;
+            }
+
+            return ValueObject::onMethodCall(methodId, args, ret);
+        }
         // -------------------------------------------------------------------------
         // override to keep the order
         Value* onGetFieldPtr(uint32_t fieldSymbolId) override{
@@ -77,9 +101,6 @@ namespace DreiZehn {
             }
             return false;
         }
-        // -------------------------------------------------------------------------
-        //TODO ASSIGN {1,2,3}
-        //TODO OVERRIDE SETTER/GETPTR TO DENY NEW DYNAMIC FIELDS !
     };
     // =============================================================================
     // --- RegisterCoreFunctions ---
@@ -103,6 +124,7 @@ namespace DreiZehn {
         });
 
         // ---------------------------------------------------------------------
+        StructObject::RegisterSymbols();
         RegisterFunction("struct", [&env](std::vector<Value>& args, Value& ret) -> bool {
             if(args.size() == 0) {
                 Tools::errorf("Usage struct [string field] [string field] ...\n");

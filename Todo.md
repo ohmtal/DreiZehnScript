@@ -268,19 +268,25 @@ Struct [0x5576cc6a5440]
 
 - [X] forEach with ValueObject iter call `v = Vector::new 10 20; foreach item v; print item; end`
 
-- [ ] MiniAudio
-
 - [X] why is it slower ? i changed math a bit , when i worked on bytebeat << this ?
     yes it's the math. after long time trying to make it faster - i give up here!
    AssignOPStatement maybe changed like I did on normal math but i guess it's not faster
 
+   
+   
+## 0.7c
+- [ ] Syntax complete for 1.0 ? ... think so - Handbook 
+
+---
+
 
 ## still missing:
 - [ ] change printf errorf to a overwritable class or add a handler 
-- [ ] fix memleaks fenster_audio .... it's closed but still leak and crash after some starts
+- [ ] fix memleaks fenster_audio .... it's "fixed" but still leak 
 
 ## maybe:
 - [ ] Bytecode continue .... 
+- [ ] MiniAudio bindings (cmake already prepared)
 - [ ] move more code to cpp because compiletime is raising - carefully do not break the speed
 - [ ] UserFunction object to call them like a lambda from a list... 
 - [ ] finish Raylib importer << stuck at structs inside structs and pointer returns 

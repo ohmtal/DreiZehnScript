@@ -55,7 +55,6 @@ enum class NodeType {
     ,ForEachStatement
 };
 
-#include <string>
 
 constexpr const char* NodeTypeToString(NodeType type) {
     switch (type) {

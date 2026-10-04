@@ -31,12 +31,12 @@ namespace DreiZehn {
                 Tools::errorf("usage: math::random min max\n");
                 return false;
             }
-            int min = static_cast<int>(args[0].getDouble());
-            int max = static_cast<int>(args[1].getDouble());
+            int min = args[0].getInt();
+            int max = args[1].getInt();
             if (min > max) std::swap(min, max);
 
             int range = max - min + 1;
-            ret = Value(static_cast<double>(min + (std::rand() % range)));
+            ret = Value((min + (std::rand() % range)));
             return true;
         });
 

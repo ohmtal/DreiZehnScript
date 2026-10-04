@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
 
     RegisterDebugFunctions();
     RegisterVectorFunctions();
-    RegisterArrayFunctions();
+    // RegisterArrayFunctions();
     RegisterPointVectorObjectFunctions();
     #ifdef DREIZEHN_FENSTER
     RegisterFensterFunctions();

@@ -14,6 +14,7 @@
 // c = a->back; debug.garbage
 //-----------------------------------------------------------------------------
 #pragma once
+#if 0
 
 #include <vector>
 #include "core/Value.h"
@@ -66,7 +67,16 @@ namespace DreiZehn {
             mPrintProp   = ValueObjectProperty("print", 0,0,  "print the values", TypeArrayObject);
             mSymbolsLoaded = true;
         }
-
+        // -------------------------------------------------------------------------
+        inline size_t onGetArraySize() override{
+            return mElements.size();
+        }
+        inline Value* onGetArrayIndexPtr(size_t arrayIndex) override{
+            if (mElements.size() > arrayIndex) {
+                return  &mElements.at(arrayIndex);
+            }
+            return nullptr;
+        }
         // -------------------------------------------------------------------------
         Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args) override{
 
@@ -186,7 +196,8 @@ namespace DreiZehn {
 
         using namespace FunctionMap;
 
-        RegisterFunction("Array::new", [](std::vector<Value>& args, Value& ret) -> bool {
+        //FIXME disabled at the moment use Vector!
+        RegisterFunction("__Array::new", [](std::vector<Value>& args, Value& ret) -> bool {
             ArrayValueObject* arr = new ArrayValueObject();
             ret = Value(arr);
 
@@ -202,3 +213,4 @@ namespace DreiZehn {
     }
 
 }
+#endif

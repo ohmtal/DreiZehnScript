@@ -94,7 +94,7 @@ fn Enemy::spawn this
     this.color = (this.speed > 1.0) ? COLOR_RED : 0x884444
     this.active = true
     id = math::random 0 (Boulders->size - 1)
-    this.boulderId = id
+    this.boulderId = int::cast id
 end
 
 fn Enemy::process this
@@ -111,8 +111,9 @@ fn Enemy::process this
         return
     end
 
-    b = Boulders->at this.boulderId
-    Fenster->drawBuffer this.x this.y b
+--     b = Boulders->at this.boulderId
+--     Fenster->drawBuffer this.x this.y b
+    Fenster->drawBuffer this.x this.y Boulders[this.boulderId]
 
 end
 
@@ -222,8 +223,9 @@ fn Game::gameOver this
         this.hiScore = this.score
     end
     forRange i enemyCount
-        enemy = Enemies->at i
-        enemy.active = false
+--         enemy = Enemies->at i
+--         enemy.active = false
+        Enemies[i].active = false
     end
 end
 
@@ -418,8 +420,11 @@ fn ModuleLoop
 
     -- Stars --
     forRange i starCount
-        star = Stars->at i
-        star->process
+--         star = Stars->at i
+--         star->process
+        -- 0.7 rocks :)
+        Stars[i]->process
+
     end
 
     if Game.gameOver
@@ -440,8 +445,9 @@ fn ModuleLoop
         Game->processEnemies
 
         forRange i Bullets->size
-            bullet = Bullets->at i
-            bullet->process
+--             bullet = Bullets->at i
+--             bullet->process
+            Bullets[i]->process
         end
     end
 

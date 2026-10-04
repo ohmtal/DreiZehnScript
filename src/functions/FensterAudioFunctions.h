@@ -18,7 +18,6 @@
 #include "core/FunctionMap.h"
 #include "core/VariableFrame.h"
 #include "Globals.h"
-#include "ArrayFunctions.h"
 
 namespace DreiZehn::Fenster {
 #include "ext/fenster/fenster_audio.h"
@@ -120,45 +119,45 @@ namespace DreiZehn {
                 return true;
             }
 
-            static uint32_t testId = SymbolTable::insert("test");
-            if (methodId == testId) {
-                // //  C4, D4, E4, F4, G4, A4, B4, C5
-                // //  60, 62, 64, 65, 67, 69, 71, 72
-
-                // FENSTER_SAMPLE_RATE
-                uint32_t  byteCount = 0;
-                float amplitute = 0.2f;
-                float* noteBuffer =  MelodyMaker::generateNoteF(
-                        60, 0.3f, &byteCount, amplitute
-                        ,FENSTER_SAMPLE_RATE
-                );
-                uint32_t sampleCount = byteCount / sizeof(float);
-                ArrayValueObject* array = new ArrayValueObject();
-                 array->mElements.reserve(sampleCount);
-                for (uint32_t i = 0; i < sampleCount; i++) {
-                    float f = noteBuffer[i];
-                    Value v = Value(static_cast<double>(f));
-                    array->mElements.push_back(v);
-                }
-                std::free(noteBuffer);
-                ret = Value(array);
-                return true;
-
-
-                // // MelodyMaker::Melody melody;
-                // // melody.push_back({10, {60, 0.3f}}); // C
-                // // melody.push_back({20, {64, 0.3f}}); // E
-                // // melody.push_back({30, {67, 0.3f}}); // G
-                // // melody.push_back({40, { 0, 0.3f}}); // silence
-                // // melody.push_back({50, {67, 0.3f}}); // G
-                // // melody.push_back({60, {64, 0.3f}}); // E
-                // // melody.push_back({70, {60, 0.3f}}); // C
-                // //
-                // //     return Audio::GenerateMelody(melody);
-                // //     return true;
-            }
-
-            else
+            // // static uint32_t testId = SymbolTable::insert("test");
+            // // if (methodId == testId) {
+            // //     // //  C4, D4, E4, F4, G4, A4, B4, C5
+            // //     // //  60, 62, 64, 65, 67, 69, 71, 72
+            // //
+            // //     // FENSTER_SAMPLE_RATE
+            // //     uint32_t  byteCount = 0;
+            // //     float amplitute = 0.2f;
+            // //     float* noteBuffer =  MelodyMaker::generateNoteF(
+            // //             60, 0.3f, &byteCount, amplitute
+            // //             ,FENSTER_SAMPLE_RATE
+            // //     );
+            // //     uint32_t sampleCount = byteCount / sizeof(float);
+            // //     VectorValueObject* vec = new VectorValueObject();
+            // //      vec->mElements.reserve(sampleCount);
+            // //     for (uint32_t i = 0; i < sampleCount; i++) {
+            // //         float f = noteBuffer[i];
+            // //         Value v = Value(static_cast<double>(f));
+            // //         vec->mElements.push_back(v);
+            // //     }
+            // //     std::free(noteBuffer);
+            // //     ret = Value(vec);
+            // //     return true;
+            // //
+            // //
+            // //     // // MelodyMaker::Melody melody;
+            // //     // // melody.push_back({10, {60, 0.3f}}); // C
+            // //     // // melody.push_back({20, {64, 0.3f}}); // E
+            // //     // // melody.push_back({30, {67, 0.3f}}); // G
+            // //     // // melody.push_back({40, { 0, 0.3f}}); // silence
+            // //     // // melody.push_back({50, {67, 0.3f}}); // G
+            // //     // // melody.push_back({60, {64, 0.3f}}); // E
+            // //     // // melody.push_back({70, {60, 0.3f}}); // C
+            // //     // //
+            // //     // //     return Audio::GenerateMelody(melody);
+            // //     // //     return true;
+            // // }
+            // //
+            // // else
             // ------- close
             if (closeProp.matchMethod( methodId , args) == 1) {
                 fenster_audio_close(&mFensterAudio);

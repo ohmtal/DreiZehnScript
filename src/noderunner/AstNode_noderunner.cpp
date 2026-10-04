@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Ast Noded for NodeRunner - i use different code:
+// Ast for NodeRunner (AST-Interpreter)- i use different code:
 // - NodeRunner => evaluate
 // - ByteCode => compile
 //-----------------------------------------------------------------------------
@@ -58,8 +58,8 @@ namespace DreiZehn {
         }
         Value varValue = mVarExpr->evaluate(env);
         Value indexValue = mIndexExpr->evaluate(env);
-        if (!indexValue.isInt()) {
-            Tools::errorf("RunTime Error: Array Variable: %s. Only integer keys allowed\n",varValue.toString().c_str());
+        if (!indexValue.isNumber()) {
+            Tools::errorf("RunTime Error: Array Variable: %s. Only number keys allowed\n",varValue.toString().c_str());
             return Value(0);
         }
 
@@ -80,7 +80,7 @@ namespace DreiZehn {
         }
         Value varValue = mVarExpr->evaluate(env);
         Value indexValue = mIndexExpr->evaluate(env);
-        if (!indexValue.isInt()) {
+        if (!indexValue.isNumber()) {
             Tools::errorf("RunTime Error: Array Variable: %s. Only integer keys allowed\n",varValue.toString().c_str());
             return nullptr;
         }

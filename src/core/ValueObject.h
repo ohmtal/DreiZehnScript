@@ -26,7 +26,10 @@ struct ValueObject {
     int mType;
     int mAssigned = 0;
 
+    bool mSupportClone = false;
+
     std::string mClassName = "";
+
 
     static inline uint32_t sClassNameMethodId = SymbolTable::insert("setClassName");
     static inline uint32_t sDumpMethodId = SymbolTable::insert("dump");
@@ -50,12 +53,32 @@ struct ValueObject {
     virtual inline Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args) {
         return nullptr;
     }
+
+    virtual inline size_t onGetArraySize() {
+        return 0;
+    }
     virtual inline Value* onGetArrayIndexPtr(size_t arrayIndex) {
         return nullptr;
     }
 
-
     virtual std::string toString();
+
+    virtual ValueObject* clone() {
+        return nullptr;
+    }
+    bool cloneBase(ValueObject* theClone) {
+        if (! mSupportClone ){
+            Tools::errorf("Cloning call but not set mSupportClone!");
+            return false;
+        }
+        theClone->mClassName = this->mClassName;
+
+        theClone->mMethodMap = this->mMethodMap;
+        theClone->mDynmaicFields = this->mDynmaicFields;
+
+
+        return true;
+    }
 
 
     static void RegisterSymbols() {}

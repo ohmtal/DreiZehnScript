@@ -43,6 +43,7 @@ namespace DreiZehn {
         inline static ValueObjectProperty mAppendProp;
         inline static ValueObjectProperty mClearProp;
         inline static ValueObjectProperty mPrintProp;
+        inline static ValueObjectProperty mFillProp;
 
         inline static void RegisterSymbols() {
             static bool mSymbolsLoaded = false;
@@ -60,6 +61,8 @@ namespace DreiZehn {
 
             mClearProp   = ValueObjectProperty("clear", 0,0,  "clear the list.", TypeVectorObject);
             mPrintProp   = ValueObjectProperty("print", 0,0,  "print the values", TypeVectorObject);
+
+            mFillProp   = ValueObjectProperty("fill", 2,2,  "fill the vector with n values", TypeVectorObject);
             mSymbolsLoaded = true;
         }
 
@@ -82,6 +85,9 @@ namespace DreiZehn {
             return nullptr;
         }
         // -------------------------------------------------------------------------
+        inline size_t onGetArraySize() override{
+            return mElements.size();
+        }
         inline Value* onGetArrayIndexPtr(size_t arrayIndex) override{
             if (mElements.size() > arrayIndex) {
                 return  &mElements.at(arrayIndex);
@@ -131,8 +137,6 @@ namespace DreiZehn {
                 // slowdown a bit but need it for GarbageCollection
                 Value pre = mElements[args[0].getInt()];
                 if (pre.isPointer()) static_cast<ValueObject*>(pre.asPointer())->setAssigned(false);
-                // ------- i guess i need a assinged counter !!!
-
                 mElements[args[0].getInt()] = args[1];
                 ret =  args[1];
                 if (ret.isPointer()) static_cast<ValueObject*>(ret.asPointer())->setAssigned(true);
@@ -177,6 +181,52 @@ namespace DreiZehn {
                 ret = Value(1);
                 return true;
             }
+            else
+            if (mFillProp.matchMethod(methodId, args)) {
+                if (!args[0].isNumber()) {
+                    Tools::errorf("Usage ->fill count value");
+                    ret = Value(0);
+                    return true;
+                }
+                ValueObject* cloneParent = nullptr;
+                if (args[1].isPointer()) {
+                    cloneParent = args[1].asPointerObject();
+                    if (!cloneParent->mSupportClone) {
+                        Tools::errorf("Sorry the object %s does not support cloneing!"
+                            , cloneParent->mClassName.c_str());
+                        ret = Value(0);
+                        return true;
+                    }
+                }
+
+                uint32_t count = args[0].getUInt();
+
+                mElements.clear();
+                mElements.reserve(count);
+                if (cloneParent != nullptr) {
+                    ValueObject* clone = nullptr;
+                    for (uint32_t i = 0; i < count; i++){
+                        clone = cloneParent->clone();
+                        if (!clone) {
+                            Tools::errorf("Runtime Error: fill Vector: Cloning of %s failed!"
+                                , cloneParent->mClassName.c_str());
+                            ret = Value(0);
+                            return false;
+                        }
+
+                        mElements.push_back(clone);
+                        clone->setAssigned(true);
+                    }
+                } else {
+                    for (uint32_t i = 0; i < count; i++){
+                        mElements.push_back(args[1]);
+                    }
+                }
+
+                ret = Value(count);
+                return true;
+            }
+
 
             return ValueObject::onMethodCall(methodId, args, ret);
         }
@@ -195,6 +245,9 @@ namespace DreiZehn {
 
             // add args!
             for (auto& arg: args) {
+                if (arg.isPointer()) {
+                    arg.asPointerObject()->setAssigned(true);
+                }
                 arr->mElements.push_back(arg);
             }
 

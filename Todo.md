@@ -182,7 +182,9 @@ under 15 sec and beat python here without bytecode ;)
     - same for getter. `a = Array::new Object::new; (a->at 0)->dump; and not tmp = a->at 0; tmp->dump`
     `(a->at 0)` return the Value to it also can accept the method call or field access ... 
     - i maybe get in trouble with my fast op variable lookup then, because it's runtime stuff not compiletime 
-
+    - **FINALLY** `(a->at 0)->dump` does NOT work! but `a[0]->dump` does :) and i renamed Array to Vector
+    - **FINALLY** `(a->at 0).x = 0` does NOT work! but `a[0].x=0` does :) and i renamed Array to Vector
+    - **FINALLY** `a = Vector::new 0; a[0] = Vector::new 10 20` and `print a[0][1]` does work! 
 
 - [X] parseLine change from if to switch
        - became slower ?! => 8.897u 0.005s 0:08.93 99.5%     0+0k 0+0io 0pf+0w 
@@ -222,11 +224,16 @@ under 15 sec and beat python here without bytecode ;)
     - [X] method: `a.o->dump` << Syntax-Error: Unexpected token 'Arrow Object Method call' (a.o->dump:1)
     - YAY!
     
+    
+## 0.7b    
+    
 - [ ] Vector, Array, [] and = { }
     - [X] rename VectorObjectFunctions => VectorObjectFunctions
     - [X] copy ArrayFunctions to VectorObjectFunctions
     - [X] ValueObject add getIndexPtr for ArrayVariable Expression 
     - [X] Add this to Vector 
+    - [ ] something is wrong the index expression does not work correctly!
+    
     - [ ] StructObject add a assign like {1 ,2 ,3} THIS SHOULD NOT override the 
           Objects content it should set the first 3 fields - unordered_map save? -
           - [X] vector mFieldOrder
@@ -235,10 +242,30 @@ under 15 sec and beat python here without bytecode ;)
           - [ ] parser + ast expression
           - [ ] Value object method to support this 
           - [ ] assign special handling 
-          
+    
+    - [ ] ValueObject: virtual clone where  the dynamic fields and className
+          is cloned when mSupportClone is true and it's called from child with 
+          ValueObject::clone (if overwritten)
+          ```
+            foo = struct "x" "y" "z"
+            v = Vector::new
+            v->fill 10 foo
+            forRange i 10; print v[i];;
+            Struct [0x5576cc6a4380] 
+            Struct [0x5576cc6a4540] 
+            Struct [0x5576cc6a4720] 
+            Struct [0x5576cc6a4900] 
+            Struct [0x5576cc6a4ae0] 
+            Struct [0x5576cc6a4cc0] 
+            Struct [0x5576cc6a4ea0] 
+            Struct [0x5576cc6a5080] 
+            Struct [0x5576cc6a5260] 
+            Struct [0x5576cc6a5440] 
+
+          ```
     - [ ] Array::reserve (see also ArrayFunctions.h) 
     - [ ] foreach with ValueObject iter call 
-    
+        
     
 - [ ] why is it slower ? i changed math a bit , when i workd on bytebeat << this ? 
      

@@ -17,11 +17,28 @@ namespace DreiZehn {
     const int TypeBaseObject =  RegisterUserObjectType("Object");
     const int TypeStructObject =  RegisterUserObjectType("Struct");
     struct BaseValueObject : public ValueObject {
-        BaseValueObject() : ValueObject(TypeBaseObject) {  }
+        BaseValueObject() : ValueObject(TypeBaseObject) {
+            mSupportClone = true;
+        }
+        virtual ValueObject* clone() override {
+            BaseValueObject* clone = new BaseValueObject();
+            ValueObject::cloneBase(clone);
+            return clone;
+        }
     };
     struct StructObject : public ValueObject {
         std::vector<uint32_t> mFieldOrder;
-        StructObject() : ValueObject(TypeStructObject) {  }
+        StructObject() : ValueObject(TypeStructObject) {
+            mSupportClone = true;
+        }
+        virtual ValueObject* clone() override {
+            StructObject* clone = new StructObject();
+            ValueObject::cloneBase(clone);
+            clone->mFieldOrder = this->mFieldOrder;
+
+            return clone;
+        }
+
         //TODO ASSIGN {1,2,3}
         //TODO OVERRIDE SETTER/GETPTR TO DENY NEW DYNAMIC FIELDS !
     };

@@ -19,6 +19,7 @@ namespace DreiZehn {
     struct BaseValueObject : public ValueObject {
         BaseValueObject() : ValueObject(TypeBaseObject) {
             mSupportClone = true;
+
         }
         virtual ValueObject* clone() override {
             BaseValueObject* clone = new BaseValueObject();
@@ -26,11 +27,28 @@ namespace DreiZehn {
             return clone;
         }
     };
+    // -------------------------------------------------------------------------
     struct StructObject : public ValueObject {
         std::vector<uint32_t> mFieldOrder;
+
         StructObject() : ValueObject(TypeStructObject) {
             mSupportClone = true;
         }
+
+        StructObject(std::vector<Value>& args) : ValueObject(TypeStructObject) {
+            mSupportClone = true;
+
+            for(size_t i = 0; i < args.size(); i++) {
+
+                const std::string &fieldName = args[i].getStringRef();
+                if (!isValidVariableName(fieldName)) continue;
+
+                uint32_t id = SymbolTable::insert(fieldName);
+                this->mFieldOrder.push_back(id);
+                this->mDynmaicFields[id] = Value(0);
+            }
+        }
+
         virtual ValueObject* clone() override {
             StructObject* clone = new StructObject();
             ValueObject::cloneBase(clone);
@@ -39,6 +57,27 @@ namespace DreiZehn {
             return clone;
         }
 
+        // -------------------------------------------------------------------------
+        // override to keep the order
+        Value* onGetFieldPtr(uint32_t fieldSymbolId) override{
+            auto it = mDynmaicFields.find(fieldSymbolId);
+            if (it != mDynmaicFields.end()) {
+                return  &it->second;
+            }
+
+            return nullptr;
+
+        }
+        // -------------------------------------------------------------------------
+        bool onSetField(uint32_t fieldSymbolId, const Value& value) override{
+            auto it = mDynmaicFields.find(fieldSymbolId);
+            if (it != mDynmaicFields.end()) {
+                it->second = value;
+                return true;
+            }
+            return false;
+        }
+        // -------------------------------------------------------------------------
         //TODO ASSIGN {1,2,3}
         //TODO OVERRIDE SETTER/GETPTR TO DENY NEW DYNAMIC FIELDS !
     };
@@ -62,26 +101,24 @@ namespace DreiZehn {
             ret = Value(obj);
             return true;
         });
+
+        // ---------------------------------------------------------------------
         RegisterFunction("struct", [&env](std::vector<Value>& args, Value& ret) -> bool {
+            if(args.size() == 0) {
+                Tools::errorf("Usage struct [string field] [string field] ...\n");
+                return true;
+            }
+
             for(size_t i = 0; i < args.size(); i++) {
                 if (!args[i].isStringId() ) {
                     Tools::errorf("Usage struct [string field] [string field] ...\n");
                     return true;
                 }
             }
-            StructObject* obj = new StructObject();
+            StructObject* obj = new StructObject(args);
             ret = Value(obj);
 
-            for(size_t i = 0; i < args.size(); i++) {
 
-                const std::string &fieldName = args[i].getStringRef();
-                if (!isValidVariableName(fieldName)) continue;
-
-                uint32_t id = SymbolTable::insert(fieldName);
-                obj->mFieldOrder.push_back(id);
-                obj->mDynmaicFields[id] = Value(0);
-
-            }
             return true;
         });
         // ---------------------------------------------------------------------

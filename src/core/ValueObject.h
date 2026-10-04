@@ -13,15 +13,9 @@ namespace DreiZehn{
 class Value;
 namespace FunctionMap{ struct  ScriptFunction; }
 
-
-
-
 // =============================================================================
 // --- ValueObject ---
 // =============================================================================
-
-
-
 struct ValueObject {
     int mType;
     int mAssigned = 0;

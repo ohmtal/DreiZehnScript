@@ -22,6 +22,7 @@ enum class TokenType {
     , LParen
     , RParen
     , LSquare, RSquare
+    // , LCurly, RCurly
     // math
     , Plus , Minus , Mul , Div
 
@@ -75,6 +76,9 @@ inline const char* tokenTypeToString(TokenType type) {
         case TokenType::RParen:        return "RParen )";
         case TokenType::LSquare:        return "LSquare [";
         case TokenType::RSquare:        return "RSquare ]";
+        // case TokenType::LCurly:        return "LCurly {";
+        // case TokenType::RCurly:        return "RCurly }";
+
         // math
         case TokenType::Plus:          return "Plus";
         case TokenType::PlusPlus:      return "PlusPlus";
@@ -205,8 +209,7 @@ inline bool isContinueToken(const Token& op) {
     && op.mType != TokenType::Else
     && op.mType != TokenType::ElIf
     && op.mType != TokenType::RSquare
-
-
+    // && op.mType != TokenType::RCurly
     && !isMathType(op)
     ;
 }
@@ -273,6 +276,10 @@ public:
 
             if (peek() == '[') { advance(); tokens.push_back({TokenType::LSquare,"["}); continue; }
             if (peek() == ']') { advance(); tokens.push_back({TokenType::RSquare,"]"}); continue; }
+
+
+            // if (peek() == '{') { advance(); tokens.push_back({TokenType::LCurly,"{"}); continue; }
+            // if (peek() == '}') { advance(); tokens.push_back({TokenType::RCurly,"}"}); continue; }
 
             // ----------------------------------------------------------------
             if (peek() == '-' && peekNext() == '>') {

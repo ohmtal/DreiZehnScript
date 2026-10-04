@@ -266,17 +266,9 @@ Struct [0x5576cc6a5440]
 
 - [X] fix memleaks fenster
 
-- [ ] StructObject add a assign like {1 ,2 ,3} THIS SHOULD NOT override the 
-        Objects content it should set the first 3 fields - unordered_map save? -
-    - [X] vector mFieldOrder
-    - [ ] overwrite setfield/getfieldptr to deny new fields 
-    - [ ] Lexer {}
-    - [ ] parser + ast expression
-    - [ ] Value object method to support this 
-    - [ ] assign special handling 
-        
 - [ ] foreach with ValueObject iter call `forEach item myVector...` 
 
+- [ ] MiniAudio
 
 - [X] why is it slower ? i changed math a bit , when i worked on bytebeat << this ?
     yes it's the math. after long time trying to make it faster - i give up here!
@@ -295,4 +287,16 @@ Struct [0x5576cc6a5440]
 - [ ] validate if there is a usable SDL3 auto bind script parser
 - [ ] switch / case
  
+## aborted but still in code:
+ 
+- [~] StructObject add a assign like {1 ,2 ,3} THIS SHOULD NOT override the 
+        Objects content it should set the first 3 fields - unordered_map save? -
+    - *ROLLBACK* RCurly/LCurly/CurlyArgumentsExpression - was nonsence! 
+    - [X] vector mFieldOrder
+    - [X] overwrite setfield/getfieldptr to deny new fields 
+    - [X] Lexer {}
+    - [.] parser + ast expression
+    - [~] Value object method to support this 
+    - [~] assign special handling 
+        
     

@@ -18,14 +18,14 @@ namespace DreiZehn{
 
 
 constexpr uint64_t QNAN_MASK        = 0x7FF8000000000000ULL;
-constexpr uint64_t TAG_INT          = 0x0001000000000000ULL; // 1 (binär 001) =>  Integer
-constexpr uint64_t TAG_PTR          = 0x0002000000000000ULL; // 2 (binär 010) =>  Pointer
-constexpr uint64_t TAG_VALUE_PTR    = 0x0003000000000000ULL; // 3 (binär 011) =>  Pointer to a Value - will be used in byte code
-constexpr uint64_t TAG_STRING_ID    = 0x0004000000000000ULL; // 4 (binär 100) =>  StringTable uint32_t Identifier
+constexpr uint64_t TAG_INT          = 0x0001000000000000ULL; // 1 (binary 001) =>  Integer
+constexpr uint64_t TAG_PTR          = 0x0002000000000000ULL; // 2 (binary 010) =>  Pointer
+constexpr uint64_t TAG_VALUE_PTR    = 0x0003000000000000ULL; // 3 (binary 011) =>  Pointer to a Value - will be used in byte code
+constexpr uint64_t TAG_STRING_ID    = 0x0004000000000000ULL; // 4 (binary 100) =>  StringTable uint32_t Identifier
 
-constexpr uint64_t TAG_DUMMY_5       = 0x0005000000000000ULL; // 5 (binär 101)
-constexpr uint64_t TAG_DUMMY_6       = 0x0006000000000000ULL; // 6 (binär 110)
-constexpr uint64_t TAG_DUMMY_7       = 0x0007000000000000ULL; // 7 (binär 111)
+constexpr uint64_t TAG_DUMMY_5       = 0x0005000000000000ULL; // 5 (binary 101)
+constexpr uint64_t TAG_DUMMY_6       = 0x0006000000000000ULL; // 6 (binary 110)
+constexpr uint64_t TAG_DUMMY_7       = 0x0007000000000000ULL; // 7 (binary 111)
 // ----
 constexpr uint64_t TAG_MASK         = 0x0007000000000000ULL; // for type safty - last type
 

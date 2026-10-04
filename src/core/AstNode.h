@@ -51,6 +51,7 @@ enum class NodeType {
     ObjectFieldExpression,
     RangeStatement,
     TernaryExpression
+    // ,CurlyArgumentsExpression
 };
 
 #include <string>
@@ -85,6 +86,8 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::ObjectFieldExpression:   return "ObjectFieldExpression";
         case NodeType::RangeStatement:          return "RangeStatement";
         case NodeType::TernaryExpression:       return "TernaryExpression";
+
+        // case NodeType::CurlyArgumentsExpression: return "CurlyArgumentsExpression";
     }
     return "UnknownNodeType";
 }
@@ -222,21 +225,25 @@ struct MethodExpression : public Expression {
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
 };
-// struct MethodExpression : public Expression {
-//     uint32_t mPointerNameSymbolId;
-//     uint32_t mMethodNameSymbolId;
+
+
+// CurlyArgumentsExpression  --------------------------------------------------------------
+// Nonsense !!
+// struct CurlyArgumentsExpression : public Expression {
+//     std::vector<std::unique_ptr<Expression>> arguments;
 //
-//     std::vector<std::unique_ptr<Expression>> mArguments;
-//
-//     MethodExpression(uint32_t pointerNameSymId, uint32_t methodNameSymId, std::vector<std::unique_ptr<Expression>> args)
-//     : mPointerNameSymbolId(pointerNameSymId),
-//     mMethodNameSymbolId(methodNameSymId), mArguments(std::move(args)) {
-//         mNodeType  = NodeType::MethodExpression;
+//     CurlyArgumentsExpression( std::vector<std::unique_ptr<Expression>> args)
+//     :  arguments(std::move(args)) {
+//         mNodeType  = NodeType::CurlyArgumentsExpression;
 //     }
 //
-//     Value evaluate(Environment& env) override;
-//     Value* evaluatePtr(Environment& env) override;
+//     Value evaluate(Environment& env) override {
+//         //FIXME
+//         Tools::errorf("FIXME CurlyArgumentsExpression evaluate\n");
+//         return Value();
+//     }
 // };
+
 // Assingment ------------------------------------------------------------------
 
 // struct AssignStatement : public AssignBaseStatement {

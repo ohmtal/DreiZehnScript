@@ -68,8 +68,8 @@ private:
             auto expr = parseMath(9);
             return std::make_unique<UnaryMinusExpression>(std::move(expr));
 
-        } else
-        if (peek().mType == TokenType::LParen) {
+        }
+        else if (peek().mType == TokenType::LParen) {
             advance();
 
             auto expr = parseMath();
@@ -82,19 +82,41 @@ private:
             }
             return expr;
         }
-        else
-        if (peek().mType == TokenType::Not) {
+        // else if (peek().mType == TokenType::LCurly) {
+        //     advance();
+        //
+        //     // while (peek().mType != TokenType::RCurly || peek().mType == TokenType::EOFToken)
+        //     // {
+        //     // }
+        //     std::vector<std::unique_ptr<Expression>> args;
+        //     while (isContinueToken(peek())) {
+        //         size_t lastPos = mPos;
+        //         args.push_back(parseMath());
+        //         if (lastPos == mPos) {
+        //             Tools::PrintParseError("In Curly Brackets:");
+        //             break;
+        //         }
+        //     }
+        //
+        //     if (peek().mType == TokenType::RCurly) {
+        //         advance();
+        //
+        //         return std::make_unique<CurlyArgumentsExpression>(std::move(args));
+        //     } else {
+        //         Tools::PrintParseError("Error: Missing closing curly bracket\n");
+        //     }
+        //     return nullptr;
+        // }
+        else if (peek().mType == TokenType::Not) {
             advance(); //eat Not
             auto expr = parseMath();
             return std::make_unique<BinarySingleRightOpExpression>( TokenType::Not, std::move(expr));
         }
-        else
-        if (peek().mType == TokenType::Number || peek().mType == TokenType::StringLiteral) {
+        else if (peek().mType == TokenType::Number || peek().mType == TokenType::StringLiteral) {
             Token t = advance();
             return std::make_unique<LiteralExpression>(t.mType, t.mValue);
         }
-        else
-        if (peek().mType == TokenType::Identifier) {
+        else if (peek().mType == TokenType::Identifier) {
             std::unique_ptr<Expression> currentExpression = nullptr;
             Token nameToken = advance();
             uint32_t nameTokenSymbolId = SymbolTable::insert( nameToken.mValue);
@@ -277,7 +299,7 @@ private:
     std::unique_ptr<Expression> parseExpression() {
 
         if (peek().mType == TokenType::LParen) {
-            advance(); // skik '('
+            advance(); // skip '('
             auto expr = parseExpression(); // inner statement
 
             if (peek().mType == TokenType::RParen) {

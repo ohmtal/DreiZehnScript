@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Vector Objects: Vector3,
+// Point Vector Objects: Vector3,
 //-----------------------------------------------------------------------------
 #pragma once
 
@@ -99,7 +99,7 @@ namespace DreiZehn {
         }
     };
     // -------------------------------------------------------------------------
-    void RegisterVectorObjectFunctions() {
+    void RegisterPointVectorObjectFunctions() {
         using namespace FunctionMap;
 
         Vector3Object::RegisterSymbols();

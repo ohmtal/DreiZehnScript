@@ -9,7 +9,8 @@
 #include "DreiZehn.h"
 #include "functions/DebugFunctions.h"
 #include "functions/ArrayFunctions.h"
-#include "functions/VectorObjectFunctions.h"
+#include "functions/VectorFunctions.h"
+#include "functions/PointVectorObjectFunctions.h"
 
 #ifdef DREIZEHN_FENSTER
 #include "functions/FensterFunctions.h"
@@ -140,8 +141,9 @@ int main(int argc, char* argv[]) {
     RegisterUserFunc();
 
     RegisterDebugFunctions();
-    RegisterArrayFunctions(env);
-    RegisterVectorObjectFunctions();
+    RegisterVectorFunctions();
+    RegisterArrayFunctions();
+    RegisterPointVectorObjectFunctions();
     #ifdef DREIZEHN_FENSTER
     RegisterFensterFunctions();
     RegisterFensterAudioFunctions();

@@ -165,7 +165,7 @@ under 15 sec and beat python here without bytecode ;)
 - [X] GC: on local var and function parameters: gc count up but is not decremented when frame is deleted 
 - [X] alot of stuff to FensterFunctions added
 
-## 0.7
+## 0.7a
 ### Attepmt: instead of hack in array[] with dummy variables try to add an assignment on methods!
     - `a = Array::new (Object::new) "cow"`
     - `a->at 1 = "Jo cow!"`
@@ -216,11 +216,29 @@ under 15 sec and beat python here without bytecode ;)
     - [X] MethodExpression << Value* evaluatePtr(Environment& env) override;
     - [X] Test: `a = Array::new 10 20;(a->at 0)++;print (a->at 0)` 
     
-- [ ] did this also: `a = Object::new; a.o = Object::new;`    
+- [X] did this also: `a = Object::new; a.o = Object::new;`    
     - I guess i need a extra parser like the parse math ? 
-    - [ ] field: `a.o.x = 1` << Syntax-Error: Unexpected token 'Dot Object field access' (a.o.x = 1:1)
-    - [ ] method: `a.o->dump` << Syntax-Error: Unexpected token 'Arrow Object Method call' (a.o->dump:1)
-
+    - [X] field: `a.o.x = 1` << Syntax-Error: Unexpected token 'Dot Object field access' (a.o.x = 1:1)
+    - [X] method: `a.o->dump` << Syntax-Error: Unexpected token 'Arrow Object Method call' (a.o->dump:1)
+    - YAY!
+    
+- [ ] Vector, Array, [] and = { }
+    - [X] rename VectorObjectFunctions => VectorObjectFunctions
+    - [X] copy ArrayFunctions to VectorObjectFunctions
+    - [X] ValueObject add getIndexPtr for ArrayVariable Expression 
+    - [X] Add this to Vector 
+    - [ ] StructObject add a assign like {1 ,2 ,3} THIS SHOULD NOT override the 
+          Objects content it should set the first 3 fields - unordered_map save? -
+          - [X] vector mFieldOrder
+          - [ ] overwrite setfield/getfieldptr to deny new fields 
+          - [ ] Lexer {}
+          - [ ] parser + ast expression
+          - [ ] Value object method to support this 
+          - [ ] assign special handling 
+          
+    - [ ] Array::reserve (see also ArrayFunctions.h) 
+    - [ ] foreach with ValueObject iter call 
+    
     
 - [ ] why is it slower ? i changed math a bit , when i workd on bytebeat << this ? 
      

@@ -20,7 +20,10 @@ namespace DreiZehn {
         BaseValueObject() : ValueObject(TypeBaseObject) {  }
     };
     struct StructObject : public ValueObject {
+        std::vector<uint32_t> mFieldOrder;
         StructObject() : ValueObject(TypeStructObject) {  }
+        //TODO ASSIGN {1,2,3}
+        //TODO OVERRIDE SETTER/GETPTR TO DENY NEW DYNAMIC FIELDS !
     };
     // =============================================================================
     // --- RegisterCoreFunctions ---
@@ -58,6 +61,7 @@ namespace DreiZehn {
                 if (!isValidVariableName(fieldName)) continue;
 
                 uint32_t id = SymbolTable::insert(fieldName);
+                obj->mFieldOrder.push_back(id);
                 obj->mDynmaicFields[id] = Value(0);
 
             }

@@ -32,7 +32,8 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/functions/MathFunctions.h
     ${CMAKE_CURRENT_LIST_DIR}/functions/DebugFunctions.h
     ${CMAKE_CURRENT_LIST_DIR}/functions/ArrayFunctions.h
-    ${CMAKE_CURRENT_LIST_DIR}/functions/VectorObjectFunctions.h
+    ${CMAKE_CURRENT_LIST_DIR}/functions/VectorFunctions.h
+    ${CMAKE_CURRENT_LIST_DIR}/functions/PointVectorObjectFunctions.h
 
 
     # ToolBox

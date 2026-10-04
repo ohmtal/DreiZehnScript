@@ -2,15 +2,11 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// TODO Array - with type - current only the old Array which is Vector now TODO
-//
-// fixed array of 100 integer: a = Array::reserve 0 100
-// fixed array of 100 floats:  a = Array::reserve 0.0 100
-// fixed array of 100 structs: a = Array::reserve (struct "x" "y" "z") 100
-// access: a[0] = { }
+// Vector - a simple one dimensional Vector
+
 //-----------------------------------------------------------------------------
 // GarbageCollection for objects works fine:
-// a = Array.new; b = Array.new; a->push b; b = 0;debug.garbage
+// a = Vector.new; b = Vector.new; a->push b; b = 0;debug.garbage
 // c = a->back; debug.garbage
 //-----------------------------------------------------------------------------
 #pragma once
@@ -23,13 +19,13 @@
 namespace DreiZehn {
 
 
-    const int TypeArrayObject =  RegisterUserObjectType("Array");
+    const int TypeVectorObject =  RegisterUserObjectType("Vector");
 
-    struct ArrayValueObject : public ValueObject {
+    struct VectorValueObject : public ValueObject {
         std::vector<Value> mElements;
 
-        ArrayValueObject() : ValueObject(TypeArrayObject) {  }
-        ~ArrayValueObject() {
+        VectorValueObject() : ValueObject(TypeVectorObject) {  }
+        ~VectorValueObject() {
             // GarbageCollection: cleanup assigned flags for object members
             for (auto e: mElements) {
                 if (e.isPointer())  static_cast<ValueObject*>(e.asPointer())->setAssigned(false);
@@ -52,18 +48,18 @@ namespace DreiZehn {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return;
             //  ValueObjectProperty(std::string name,  uint32_t minParams, uint32_t maxParams, std::string help)
-            mPushProp  = ValueObjectProperty("push", 1,1, "push a value to the end of the Array. @param Value", TypeArrayObject);
-            mPopProp   = ValueObjectProperty("pop", 0,0,  "pop the last value and return it", TypeArrayObject);
-            mSizeProp  = ValueObjectProperty("size", 0,0, "get to size (count)", TypeArrayObject);
-            mGetProp   = ValueObjectProperty("get", 1,1,  "get a value at index. @param index", TypeArrayObject);
-            mAtProp    = ValueObjectProperty("at", 1,1,   "get a value at index. @param index", TypeArrayObject);
-            mSetProp   = ValueObjectProperty("set", 2,2,  "set a value at index. @param index, @param Value", TypeArrayObject);
-            mFrontProp   = ValueObjectProperty("front", 0,0,  "get the first value", TypeArrayObject);
-            mBackProp   = ValueObjectProperty("back", 0,0,  "get the last value", TypeArrayObject);
-            mAppendProp   = ValueObjectProperty("append", 1,256,  "append up to 256 arguments to the end", TypeArrayObject);
+            mPushProp  = ValueObjectProperty("push", 1,1, "push a value to the end of the Vector. @param Value", TypeVectorObject);
+            mPopProp   = ValueObjectProperty("pop", 0,0,  "pop the last value and return it", TypeVectorObject);
+            mSizeProp  = ValueObjectProperty("size", 0,0, "get to size (count)", TypeVectorObject);
+            mGetProp   = ValueObjectProperty("get", 1,1,  "get a value at index. @param index", TypeVectorObject);
+            mAtProp    = ValueObjectProperty("at", 1,1,   "get a value at index. @param index", TypeVectorObject);
+            mSetProp   = ValueObjectProperty("set", 2,2,  "set a value at index. @param index, @param Value", TypeVectorObject);
+            mFrontProp   = ValueObjectProperty("front", 0,0,  "get the first value", TypeVectorObject);
+            mBackProp   = ValueObjectProperty("back", 0,0,  "get the last value", TypeVectorObject);
+            mAppendProp   = ValueObjectProperty("append", 1,256,  "append up to 256 arguments to the end", TypeVectorObject);
 
-            mClearProp   = ValueObjectProperty("clear", 0,0,  "clear the list.", TypeArrayObject);
-            mPrintProp   = ValueObjectProperty("print", 0,0,  "print the values", TypeArrayObject);
+            mClearProp   = ValueObjectProperty("clear", 0,0,  "clear the list.", TypeVectorObject);
+            mPrintProp   = ValueObjectProperty("print", 0,0,  "print the values", TypeVectorObject);
             mSymbolsLoaded = true;
         }
 
@@ -83,6 +79,13 @@ namespace DreiZehn {
                 return nullptr;
             }
 
+            return nullptr;
+        }
+        // -------------------------------------------------------------------------
+        inline Value* onGetArrayIndexPtr(size_t arrayIndex) override{
+            if (mElements.size() > arrayIndex) {
+                return  &mElements.at(arrayIndex);
+            }
             return nullptr;
         }
         // -------------------------------------------------------------------------
@@ -179,15 +182,15 @@ namespace DreiZehn {
         }
     };
     // -------------------------------------------------------------------------
-    void RegisterArrayFunctions() {
+    void RegisterVectorFunctions() {
         // init Methods:
-        ArrayValueObject::RegisterSymbols();
+        VectorValueObject::RegisterSymbols();
 
 
         using namespace FunctionMap;
 
-        RegisterFunction("Array::new", [](std::vector<Value>& args, Value& ret) -> bool {
-            ArrayValueObject* arr = new ArrayValueObject();
+        RegisterFunction("Vector::new", [](std::vector<Value>& args, Value& ret) -> bool {
+            VectorValueObject* arr = new VectorValueObject();
             ret = Value(arr);
 
             // add args!

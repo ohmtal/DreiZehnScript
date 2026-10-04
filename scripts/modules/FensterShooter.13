@@ -21,18 +21,20 @@ SCALE  = 2.4
 GAMEWIDTH  = 320
 GAMEHEIGHT = 180 # rest is for gui ;)
 backcolor = 0x050510
+soundRate8k  = 8000.0 / 44100.0
+soundRate12k = 12000.0 / 44100.0
 
 -- Objects
 Fenster = 0     # The Fenster Object
 Game    = 0     # The Game Object
 Player  = 0     # Object
-Bullets = 0     # Array of Bullet Object
-Enemies = 0     # Array of Enemy Object
-Stars   = 0     # Array of Stars
+Bullets = 0     # Vector of Bullet Object
+Enemies = 0     # Vector of Enemy Object
+Stars   = 0     # Vector of Stars
 
 --- Graphics
 Ship     = 0     # TGA ship :)
-Boulders = 0     # TGA boulder Array :)
+Boulders = 0     # TGA boulder Vector :)
 
 -- Sound
 Audio    = 0     # FensterAudio Object
@@ -267,17 +269,16 @@ fn Audio::process this
 
         forRange i n
             this.counter++
-            t = int::cast (this.counter * this.rate / 44100.0)
 
             float_value = 0.0
 
             -- music
 
             if Game.gameOver
-                this.rate = 12000
+                t = int::cast (this.counter * soundRate12k)
                 music_sample = (((t & t ^ t >> 6 | t * 3) - t  ) & 255) * 0.2
             else
-                this.rate = 8000
+                t = int::cast (this.counter * soundRate8k)
                  music_sample  =  (t*(3+(1^t>>10&5))*(5+(3&t>>14))>>(t>>8&3) & 255) * 0.3
             end
             float_value += music_sample / 255.0
@@ -286,7 +287,7 @@ fn Audio::process this
 
             if this.laserActive
                 this.laser_counter++
-                lt = int::cast (this.laser_counter * this.rate / 44100.0)
+                lt = int::cast (this.laser_counter * soundRate8k)
 --                 laser_sample = ((lt * (64 - (lt >> 7 & 63)) & 128) >> (lt >> 10)) ;
 --                 laser_sample = ((lt * (32 - (lt >> 7 & 31)) & 255) >> (lt >> 8)) ;
                 laser_sample = ((lt * (16 - (lt >> 2 ))) & 64) >> (lt >> 8) ;
@@ -298,7 +299,7 @@ fn Audio::process this
 
             if this.exploActive
                 this.explo_counter++
-                lt = int::cast (this.explo_counter * this.rate / 44100.0)
+                lt = int::cast (this.explo_counter * soundRate8k)
                 explo_sample = ((lt * (lt >> 7 | lt >> 9)) & 128) & (255 >> (lt >> 11));
                 float_value += explo_sample / 255.0;
 
@@ -335,7 +336,7 @@ fn ModuleCreate
     file = "scripts/modules/boulder1.tga"
     if (!boulder->load file) print "ERROR: failed to load Boulder! must be uncompressed TGA." file; end
 
-    Boulders = Array::new
+    Boulders = Vector::new
     Boulders->push boulder
     d = 0
     while d <= 360.0
@@ -350,7 +351,7 @@ fn ModuleCreate
     Player->init
 
     -- Enemies --
-    Enemies = Array::new
+    Enemies = Vector::new
     forRange i enemyCount
         enemy = Object::new
         enemy->setClassName "Enemy"
@@ -359,7 +360,7 @@ fn ModuleCreate
     end
 
     -- Stars --
-    Stars = Array::new
+    Stars = Vector::new
     forRange i starCount
         star = Object::new
         star->setClassName "Star"
@@ -374,7 +375,7 @@ fn ModuleCreate
 
 
     -- Bullets --
-    Bullets = Array::new
+    Bullets = Vector::new
 
     -- Audio --
     Audio   = FensterAudio::new
@@ -400,12 +401,12 @@ fn ModuleDelete
     Fenster = 0     # The Fenster Object
     Game    = 0
     Player  = 0     # Object
-    Bullets = 0     # Array of Player Bullet Object
-    Enemies = 0     # Array of Enemy Object
-    Stars   = 0     # Array of Stars
+    Bullets = 0     # Vector of Player Bullet Object
+    Enemies = 0     # Vector of Enemy Object
+    Stars   = 0     # Vector of Stars
 
     Ship     = 0     # TGA ship :)
-    Boulders = 0     # TGA boulder Array :)
+    Boulders = 0     # TGA boulder Vector :)
 
     Audio->close
     Audio    = 0

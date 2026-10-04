@@ -39,9 +39,9 @@ fn Init
     Renderer = SDL_CreateRenderer Window
     Event = SDL_CreateEvent
 
-    Points_X = Array::new
-    Points_Y = Array::new
-    Points_Z = Array::new
+    Points_X = Vector::new
+    Points_Y = Vector::new
+    Points_Z = Vector::new
 
     for i 1 STAR_COUNT
         Points_X->push  math::random minW maxW

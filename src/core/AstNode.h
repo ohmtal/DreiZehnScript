@@ -166,23 +166,26 @@ struct VariableExpression : public Expression {
     Value* evaluatePtr(Environment& env) override;
 };
 
+// ArrayVariableExpression --------------------------------------------------------------
 struct ArrayVariableExpression : public Expression {
-    std::string mVariableName;
+    std::unique_ptr<Expression> mVarExpr; //left variable expression
     std::unique_ptr<Expression> mIndexExpr;
 
-    ArrayVariableExpression(std::string vname, std::unique_ptr<Expression> idxExpr) :
-        mVariableName(vname),mIndexExpr(std::move(idxExpr)) {
+    ArrayVariableExpression(std::unique_ptr<Expression> varExpr, std::unique_ptr<Expression>  idxExpr) :
+        mVarExpr(std::move(varExpr)),mIndexExpr(std::move(idxExpr)) {
         mNodeType  = NodeType::ArrayVariableExpression;
     }
     Value evaluate(Environment& env) override;
+    Value* evaluatePtr(Environment& env) override;
 };
 
-
-
+// ObjectFieldExpression --------------------------------------------------------------
 struct ObjectFieldExpression : public Expression {
-    uint32_t mVariableNameSymbolId = 0;
+    std::unique_ptr<Expression> mVarExpr; //left variable expression
     uint32_t mFieldSymbolId = 0;
-    ObjectFieldExpression(uint32_t varId, uint32_t fieldId) : mVariableNameSymbolId(varId), mFieldSymbolId(fieldId) {
+    ObjectFieldExpression(std::unique_ptr<Expression> varExpr, uint32_t fieldId)
+        : mVarExpr(std::move(varExpr)), mFieldSymbolId(fieldId)
+    {
         mNodeType  = NodeType::ObjectFieldExpression;
     }
     Value evaluate(Environment& env) override;
@@ -204,20 +207,36 @@ struct CallExpression : public Expression {
 
 // method/field on Pointer  calls --------------------------------------------------------------
 struct MethodExpression : public Expression {
-    uint32_t mPointerNameSymbolId;
+    std::unique_ptr<Expression> mVarExpr; //left variable expression
     uint32_t mMethodNameSymbolId;
 
     std::vector<std::unique_ptr<Expression>> mArguments;
 
-    MethodExpression(uint32_t pointerNameSymId, uint32_t methodNameSymId, std::vector<std::unique_ptr<Expression>> args)
-    : mPointerNameSymbolId(pointerNameSymId),
-    mMethodNameSymbolId(methodNameSymId), mArguments(std::move(args)) {
+    MethodExpression(std::unique_ptr<Expression> varExpr, uint32_t methodNameSymId,
+        std::vector<std::unique_ptr<Expression>> args)
+        :mVarExpr(std::move(varExpr)), mMethodNameSymbolId(methodNameSymId), mArguments(std::move(args))
+    {
         mNodeType  = NodeType::MethodExpression;
     }
 
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
 };
+// struct MethodExpression : public Expression {
+//     uint32_t mPointerNameSymbolId;
+//     uint32_t mMethodNameSymbolId;
+//
+//     std::vector<std::unique_ptr<Expression>> mArguments;
+//
+//     MethodExpression(uint32_t pointerNameSymId, uint32_t methodNameSymId, std::vector<std::unique_ptr<Expression>> args)
+//     : mPointerNameSymbolId(pointerNameSymId),
+//     mMethodNameSymbolId(methodNameSymId), mArguments(std::move(args)) {
+//         mNodeType  = NodeType::MethodExpression;
+//     }
+//
+//     Value evaluate(Environment& env) override;
+//     Value* evaluatePtr(Environment& env) override;
+// };
 // Assingment ------------------------------------------------------------------
 
 // struct AssignStatement : public AssignBaseStatement {

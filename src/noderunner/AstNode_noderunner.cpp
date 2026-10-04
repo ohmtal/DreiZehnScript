@@ -39,31 +39,67 @@ namespace DreiZehn {
         return mEvaluatedValue;
     }
     // -------------------------------------------------------------------------
+    // VariableExpression
+    // -------------------------------------------------------------------------
     Value VariableExpression::evaluate(Environment& env) {
         return env.getVariableFrame()->getVariable(mVariableNameSymbolId);
     }
-    // -------------------------------------------------------------------------
+
     Value* VariableExpression::evaluatePtr(Environment& env) {
         return env.getVariableFrame()->getVariablePtr(mVariableNameSymbolId);
     }
     // -------------------------------------------------------------------------
+    // ArrayVariableExpression
+    // -------------------------------------------------------------------------
     Value ArrayVariableExpression::evaluate(Environment& env) {
-        Value indexValue = mIndexExpr->evaluate(env);
-        if (!indexValue.isInt()) {
-            Tools::errorf("RunTime Error: On Variable: %s. Only integer keys allowed\n",mVariableName.c_str());
+        if (!mVarExpr || !mIndexExpr ) {
+            Tools::errorf("RunTime Error: Array Field invalid Variable or index");
             return Value(0);
         }
-        // slow :(
-        std::string name = genArrayVar(mVariableName, indexValue);
-        uint32_t id = SymbolTable::insert(name);
-        return env.getVariableFrame()->getVariable(id);
+        Value varValue = mVarExpr->evaluate(env);
+        Value indexValue = mIndexExpr->evaluate(env);
+        if (!indexValue.isInt()) {
+            Tools::errorf("RunTime Error: Array Variable: %s. Only integer keys allowed\n",varValue.toString().c_str());
+            return Value(0);
+        }
+
+        // only works on objects which support onGetArrayIndexPtr
+        if (!varValue.isPointer() ) {
+            return Value(0);
+        }
+        Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
+        if (valPtr) return Value(*valPtr);
+
+        return Value(0);
+    }
+
+    Value* ArrayVariableExpression::evaluatePtr(Environment& env) {
+        if (!mVarExpr || !mIndexExpr ) {
+            Tools::errorf("RunTime Error: Array Field invalid Variable or index");
+            return nullptr;
+        }
+        Value varValue = mVarExpr->evaluate(env);
+        Value indexValue = mIndexExpr->evaluate(env);
+        if (!indexValue.isInt()) {
+            Tools::errorf("RunTime Error: Array Variable: %s. Only integer keys allowed\n",varValue.toString().c_str());
+            return nullptr;
+        }
+        // only works on objects which support onGetArrayIndexPtr
+        if (!varValue.isPointer() ) {
+            return nullptr;
+        }
+        Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
+        return valPtr;
     }
     // -------------------------------------------------------------------------
+    // ObjectFieldExpression
+    // -------------------------------------------------------------------------
     Value ObjectFieldExpression::evaluate(Environment& env) {
-        Value varValue = env.getVariableFrame()->getVariable(mVariableNameSymbolId);
+        // Value varValue = env.getVariableFrame()->getVariable(mVariableNameSymbolId);
+        Value varValue = mVarExpr->evaluate(env);
         Value returnValue = Value(0);
         if (!varValue.isPointer()) {
-            Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(mVariableNameSymbolId).c_str());
+            Tools::errorf("RunTime Error: Object %s not found.\n",varValue.toString().c_str());
             return returnValue;
         }
 
@@ -72,16 +108,17 @@ namespace DreiZehn {
             return returnValue;
         }
         Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
-                      SymbolTable::getName(mVariableNameSymbolId).c_str(),
+                      varValue.toString().c_str(),
                       SymbolTable::getName(mFieldSymbolId).c_str()
                       );
         return returnValue;
     }
     // -------------------------------------------------------------------------
     Value* ObjectFieldExpression::evaluatePtr(Environment& env) {
-        Value varValue = env.getVariableFrame()->getVariable(mVariableNameSymbolId);
+        Value varValue = mVarExpr->evaluate(env);
+        // Value varValue = env.getVariableFrame()->getVariable(mVariableNameSymbolId);
         if (!varValue.isPointer()) {
-            Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(mVariableNameSymbolId).c_str());
+            Tools::errorf("RunTime Error: Object %s not found.\n",varValue.toString().c_str());
             return nullptr;
         }
 
@@ -89,23 +126,26 @@ namespace DreiZehn {
         Value* valPtr= obj->onGetFieldPtr(mFieldSymbolId);
         if (!valPtr) {
             Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
-                        SymbolTable::getName(mVariableNameSymbolId).c_str(),
+                        varValue.toString().c_str(),
                         SymbolTable::getName(mFieldSymbolId).c_str()
             );
         }
         return valPtr;
     }
     // -------------------------------------------------------------------------
+    // MethodExpression
+    // -------------------------------------------------------------------------
     Value MethodExpression::evaluate(Environment& env) {
-        Value objectPointer = env.getVariableFrame()->getVariable(mPointerNameSymbolId);
+
+        // Value objectPointer = env.getVariableFrame()->getVariable(mPointerNameSymbolId);
+        Value objectPointer = mVarExpr->evaluate(env);
         if (!objectPointer.isPointer()) {
-            // Tools::errorf("RunTime Error: Object %s not found.\n", mPointerName.c_str());
-            Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(mPointerNameSymbolId).c_str());
+            Tools::errorf("RunTime Error: Object %s not found.\n", objectPointer.toString().c_str());
             return Value();
         }
         ValueObject* obj = objectPointer.asPointerObject();
         if (!obj) {
-            Tools::errorf("RunTime Error: Invalid Object: %s.\n", SymbolTable::getName(mPointerNameSymbolId).c_str());
+            Tools::errorf("RunTime Error: Invalid Object: %s.\n", objectPointer.toString().c_str());
             return Value();
         }
         std::vector<Value> evaluatedArgs;
@@ -122,15 +162,14 @@ namespace DreiZehn {
 
 
     Value* MethodExpression::evaluatePtr(Environment& env) {
-        Value objectPointer = env.getVariableFrame()->getVariable(mPointerNameSymbolId);
+        Value objectPointer = mVarExpr->evaluate(env);
         if (!objectPointer.isPointer()) {
-            // Tools::errorf("RunTime Error: Object %s not found.\n", mPointerName.c_str());
-            Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(mPointerNameSymbolId).c_str());
+           Tools::errorf("RunTime Error: Object %s not found.\n", objectPointer.toString().c_str());
             return nullptr;
         }
         ValueObject* obj = objectPointer.asPointerObject();
         if (!obj) {
-            Tools::errorf("RunTime Error: Invalid Object: %s.\n", SymbolTable::getName(mPointerNameSymbolId).c_str());
+            Tools::errorf("RunTime Error: Invalid Object: %s.\n", objectPointer.toString().c_str());
             return nullptr;
         }
         std::vector<Value> evaluatedArgs;
@@ -140,6 +179,8 @@ namespace DreiZehn {
 
         return obj->onMethodCallGetAssignPtr(mMethodNameSymbolId, evaluatedArgs);
     }
+    // -------------------------------------------------------------------------
+    // CallExpression
     // -------------------------------------------------------------------------
     Value CallExpression::evaluate(Environment& env) {
         FunctionMap::CallBack* cb = nullptr;
@@ -191,6 +232,8 @@ namespace DreiZehn {
 
     }
     // -------------------------------------------------------------------------
+    // BinaryOpExpression
+    // -------------------------------------------------------------------------
 
     Value BinaryOpExpression::evaluate(Environment& env)  {
         if (!mLeft.get() || !mRight.get()) {
@@ -199,7 +242,7 @@ namespace DreiZehn {
         }
         Value lVal = mLeft->evaluate(env);
         Value rVal = mRight->evaluate(env);
-            if (lVal.isInt() && rVal.isInt()) {
+        if (lVal.isInt() && rVal.isInt()) {
             switch (mOp) {
                 case TokenType::Plus:  return Value(lVal.asFastInt() + rVal.asFastInt());
                 case TokenType::Minus: return Value(lVal.asFastInt() - rVal.asFastInt());
@@ -234,13 +277,13 @@ namespace DreiZehn {
                 case TokenType::Minus: return Value(lVal.getDouble() - rVal.getDouble());
                 case TokenType::Mul:   return Value(lVal.getDouble() * rVal.getDouble());
                 case TokenType::Div:   {
-                    double r = rVal.asFastDouble();
+                    double r = rVal.getDouble();
                     if (r == 0.0) {
                         Tools::PrintRuntimeError("Division by 0.0!\n");
                         return Value(0.0);
                     }
 
-                    return Value(lVal.getDouble() / rVal.getDouble());
+                    return Value(lVal.getDouble() / r);
                 }
                 default: return Value(); // should not reached!
             }
@@ -333,8 +376,6 @@ namespace DreiZehn {
             case TokenType::Equal: {
                 if (lVal.isPointer() && rVal.isPointer()) {
                     return Value(lVal.asPointer() == rVal.asPointer() ? 1 : 0);
-                // } else if (lVal.isStringId() && rVal.isStringId()) {
-                //     return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) == 0;
                 } else if (lVal.isStringId() || rVal.isStringId()) {
                     std::string l = lVal.isStringId() ? lVal.getStringRef() : lVal.toString();
                     std::string r = rVal.isStringId() ? rVal.getStringRef() : rVal.toString();
@@ -408,13 +449,6 @@ namespace DreiZehn {
                     int64_t res = l % r;
 
                     return Value(static_cast<uint32_t>(res));
-
-                    // int r = rVal.getInt();
-                    // if (r == 0) {
-                    //     Tools::PrintRuntimeError("Modulo Division by 0!");
-                    //     return Value(0);
-                    // }
-                    // return Value( lVal.getInt() % rVal.getInt());
 
                 }
             }

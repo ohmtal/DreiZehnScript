@@ -95,67 +95,83 @@ private:
         }
         else
         if (peek().mType == TokenType::Identifier) {
+            std::unique_ptr<Expression> currentExpression = nullptr;
             Token nameToken = advance();
             uint32_t nameTokenSymbolId = SymbolTable::insert( nameToken.mValue);
             Value* constansPointer = FunctionMap::getConstants(nameTokenSymbolId);
             if (constansPointer != nullptr) {
                 return std::make_unique<ValueExpression>((*constansPointer));
             }
-            else
-            // moved to parseMath
-            // if (isInlineMathType(peek().mType)) {
-            //     Token op = advance();
-            //     return std::make_unique<BinaryInlineExpression>(nameTokenSymbolId,0, op.mType);
-            // }
-            // else
-            if (peek().mType  == TokenType::Arrow
-                && peekNext().mType == TokenType::Identifier
-            ) {
-
-                advance(); // eat ->
-                Token methodToken = advance();
-
+            else if (FunctionMap::IsFunction(nameTokenSymbolId)) {
                 std::vector<std::unique_ptr<Expression>> args;
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());
                     if (lastPos == mPos) {
-                        Tools::PrintParseError("In method call:");
+                        Tools::PrintParseError("In function call:");
                         break;
                     }
                 }
-                // return std::make_unique<MethodExpression>(nameToken.mValue, methodToken.mValue, std::move(args));
-                return std::make_unique<MethodExpression>(nameTokenSymbolId
-                    , SymbolTable::insert(methodToken.mValue), std::move(args));
-            }
-            else
-            if (peek().mType  == TokenType::Dot
-                && peekNext().mType == TokenType::Identifier
-            ) {
-
-                advance(); // eat DOT
-                Token fieldToken = advance();
-
-                return std::make_unique<ObjectFieldExpression>(nameTokenSymbolId , SymbolTable::insert(fieldToken.mValue));
+                return std::make_unique<CallExpression>(nameTokenSymbolId, std::move(args));
+            } else {
+                // we got a variable
+                currentExpression = std::make_unique<VariableExpression>(nameTokenSymbolId);
             }
 
-            else
-            if (FunctionMap::IsFunction(nameTokenSymbolId)) {
-                std::vector<std::unique_ptr<Expression>> args;
-                while (isContinueToken(peek())) {
-                    size_t lastPos = mPos;
-                    args.push_back(parseMath());
-                    if (lastPos == mPos) {
-                       Tools::PrintParseError("In function call:");
-                       break;
+            while (true) {
+                if (peek().mType  == TokenType::Dot && peekNext().mType == TokenType::Identifier ) {
+                    advance(); // eat DOT
+                    Token fieldToken = advance();
+                    uint32_t fieldSymbolId = SymbolTable::insert(fieldToken.mValue);
+                    currentExpression = std::make_unique<ObjectFieldExpression>(std::move(currentExpression), fieldSymbolId);
+                }
+                else  if (peek().mType  == TokenType::Arrow && peekNext().mType == TokenType::Identifier ) {
+                    advance(); // eat ->
+                    Token methodToken = advance();
+                    uint32_t methodSymbolId = SymbolTable::insert(methodToken.mValue);
+
+                    std::vector<std::unique_ptr<Expression>> args;
+                    while (isContinueToken(peek())) {
+                        size_t lastPos = mPos;
+                        args.push_back(parseMath());
+                        if (lastPos == mPos) {
+                            Tools::PrintParseError("In method call:");
+                            break;
+                        }
                     }
+                    currentExpression = std::make_unique<MethodExpression>(std::move(currentExpression), methodSymbolId, std::move(args));
+                }
+                else if (peek().mType == TokenType::Dot) {
+                    Tools::PrintParseError("Field expected after  '.'");
+                    advance();
+                    break;
+                }
+                else if (peek().mType == TokenType::Arrow) {
+                    Tools::PrintParseError("Method expected after '->'");
+                    advance(); // eat '->'
+                    break;
+                }
+                else if (peek().mType == TokenType::LSquare) {
+                      advance(); // eat '['
+                     std::unique_ptr<Expression> indexExpr = parseMath();
+
+                     if (peek().mType != TokenType::RSquare) {
+                         Tools::PrintParseError("expected ']' after array index!");
+                         break;
+                     }
+                     advance(); // eat ']'
+                     currentExpression = std::make_unique<ArrayVariableExpression>(
+                         std::move(currentExpression), std::move(indexExpr));
 
                 }
-                return std::make_unique<CallExpression>(nameTokenSymbolId, std::move(args));
+                else {
+                    break;
+                }
             }
+            return currentExpression;
 
-            return std::make_unique<VariableExpression>(nameTokenSymbolId);
         } // TokenType::Identifier
+
 
         return nullptr;
     }

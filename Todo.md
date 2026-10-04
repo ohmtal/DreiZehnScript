@@ -224,6 +224,13 @@ under 15 sec and beat python here without bytecode ;)
     - [X] method: `a.o->dump` << Syntax-Error: Unexpected token 'Arrow Object Method call' (a.o->dump:1)
     - YAY!
     
+## SOLVED in 0.7a :) => Variable problematic 
+
+At the moment it uses flat assignments Identifier = | Identifier.field = . this allows fast setup using Symbols
+varid and varid.fieldid. If I change this to a variable expression i need to parse it on runtime which is much 
+slower than on compile time. So at the moment only flat variables are allowed and i dont get the array assign
+working. I did add it as a "dummy" variable which is not the best idea anyway.
+
     
 ## 0.7b    
     
@@ -232,8 +239,29 @@ under 15 sec and beat python here without bytecode ;)
     - [X] copy ArrayFunctions to VectorObjectFunctions
     - [X] ValueObject add getIndexPtr for ArrayVariable Expression 
     - [X] Add this to Vector 
-    - [ ] something is wrong the index expression does not work correctly!
     
+    
+    - [X] ValueObject: virtual clone where  the dynamic fields and className
+          is cloned when mSupportClone is true and it's called from child with 
+          ValueObject::clone (if overwritten)
+```
+foo = struct "x" "y" "z"
+v = Vector::new
+v->fill 10 foo
+forRange i 10; print v[i];;
+Struct [0x5576cc6a4380] 
+Struct [0x5576cc6a4540] 
+Struct [0x5576cc6a4720] 
+Struct [0x5576cc6a4900] 
+Struct [0x5576cc6a4ae0] 
+Struct [0x5576cc6a4cc0] 
+Struct [0x5576cc6a4ea0] 
+Struct [0x5576cc6a5080] 
+Struct [0x5576cc6a5260] 
+Struct [0x5576cc6a5440] 
+```
+          **Also GC is fine**
+
     - [ ] StructObject add a assign like {1 ,2 ,3} THIS SHOULD NOT override the 
           Objects content it should set the first 3 fields - unordered_map save? -
           - [X] vector mFieldOrder
@@ -242,45 +270,13 @@ under 15 sec and beat python here without bytecode ;)
           - [ ] parser + ast expression
           - [ ] Value object method to support this 
           - [ ] assign special handling 
-    
-    - [ ] ValueObject: virtual clone where  the dynamic fields and className
-          is cloned when mSupportClone is true and it's called from child with 
-          ValueObject::clone (if overwritten)
-          ```
-            foo = struct "x" "y" "z"
-            v = Vector::new
-            v->fill 10 foo
-            forRange i 10; print v[i];;
-            Struct [0x5576cc6a4380] 
-            Struct [0x5576cc6a4540] 
-            Struct [0x5576cc6a4720] 
-            Struct [0x5576cc6a4900] 
-            Struct [0x5576cc6a4ae0] 
-            Struct [0x5576cc6a4cc0] 
-            Struct [0x5576cc6a4ea0] 
-            Struct [0x5576cc6a5080] 
-            Struct [0x5576cc6a5260] 
-            Struct [0x5576cc6a5440] 
-
-          ```
-    - [ ] Array::reserve (see also ArrayFunctions.h) 
+          
     - [ ] foreach with ValueObject iter call 
         
     
 - [ ] why is it slower ? i changed math a bit , when i workd on bytebeat << this ? 
      
-## Variable problematic
 
-At the moment it uses flat assignments Identifier = | Identifier.field = . this allows fast setup using Symbols
-varid and varid.fieldid. If I change this to a variable expression i need to parse it on runtime which is much 
-slower than on compile time. So at the moment only flat variables are allowed and i dont get the array assign
-working. I did add it as a "dummy" variable which is not the best idea anyway.
-
-- [ ] enhance AssignStatement, BinaryInlineExpression, AssignOPStatement to take a VariableExpression .. 
-        which can be field+object and arr[0] and such ....
-- [ ] should i add this ? `o.array->print` calling a method from a object which is stored in a dynamic field ... 
-    - [ ] lexer/parser
-    - [ ] runtime lookup break in parts
 
 ## still missing:
 - [ ] change printf errorf to a overwritable class or add a handler 

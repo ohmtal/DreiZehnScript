@@ -276,7 +276,11 @@ Struct [0x5576cc6a5440]
     - [ ] assign special handling 
         
 - [ ] foreach with ValueObject iter call `forEach item myVector...` 
-- [ ] why is it slower ? i changed math a bit , when i worked on bytebeat << this ? 
+
+
+- [X] why is it slower ? i changed math a bit , when i worked on bytebeat << this ?
+    yes it's the math. after long time trying to make it faster - i give up here!
+   AssignOPStatement maybe changed like I did on normal math but i guess it's not faster
 
 
 ## still missing:

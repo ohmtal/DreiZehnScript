@@ -1,9 +1,10 @@
 # Benchmark-Test for DreiZehn Script (0.6)
 JLOOPS = 25
 ILOOPS = 1000000
-HLOOPS = 1000000 / 2
+-- ILOOPS = 2
+HLOOPS = ILOOPS / 2
 
-globalX = 0
+globalX = 0.0
 
 forRange j JLOOPS
     forRange i ILOOPS
@@ -16,12 +17,12 @@ forRange j JLOOPS
     end
     print  "SUM (--) IS: " globalX
 
-    globalX = 66
+    globalX = 66.0
     print  "set Sum to 66 == " (globalX * 1)
 
     forRange i ILOOPS
-        globalX *= (i + 1)
-        globalX /= (i + 1)
+        globalX *= (i + 1.0)
+        globalX /= (i + 1.0)
     end
     print  "SUM (*/ %i+1) IS: " globalX
 
@@ -35,7 +36,7 @@ forRange j JLOOPS
     print  "SUM (rand +-) IS: " globalX
 end
 
-globalX = globalX - 33
+globalX = globalX - 33.0
 print "---------------------"
 print "---------------------"
 print  "Final sum should be 33 == " globalX

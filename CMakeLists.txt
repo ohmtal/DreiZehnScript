@@ -19,6 +19,10 @@ set(BUILD_WITH_FENSTER ${WITH_FENSTER_DEFAULT} CACHE BOOL "Build Application wit
 set(WITH_RAYLIB_DEFAULT ON)
 set(BUILD_WITH_RAYLIB ${WITH_RAYLIB_DEFAULT} CACHE BOOL "Build Application with Raylib Demo")
 
+set(WITH_MA_DEFAULT OFF)
+set(BUILD_WITH_MA ${WITH_MA_DEFAULT} CACHE BOOL "Build Application with MiniAudio")
+
+
 set(SANITIZE_DEFAULT OFF)
 set(BUILD_WITH_SANITIZE ${SANITIZE_DEFAULT} CACHE BOOL "Build Application with -fsanitize=address -g")
 
@@ -75,6 +79,25 @@ if (BUILD_WITH_RAYLIB)
     add_compile_definitions(DREIZEHN_RAYLIB)
 endif()
 
+# ------------- MiniAudio
+set(MA_LINKLIB "")
+if (BUILD_WITH_MINIAUDIO)
+    set(MA_SRC
+        ${CMAKE_CURRENT_LIST_DIR}/ext/miniaudio/miniaudio.c
+        ${CMAKE_CURRENT_LIST_DIR}/ext/miniaudio/miniaudio.h
+    )
+    list(APPEND PROJECT_SRC ${MA_SRC})
+
+    if (WIN32)
+        # set(MA_LINKLIB "winmm")
+    elseif (APPLE)
+        set(MA_LINKLIB "-framework CoreAudio" "-framework CoreFoundation" "-framework AudioToolbox")
+    else()
+        set(MA_LINKLIB pthread m dl)
+    endif()
+
+endif()
+
 # ------------- Main
 add_executable(${PROJECT_NAME}
     ${PROJECT_SRC}
@@ -97,6 +120,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${SDL3_LINKLIB}
     ${FENSTER_LINKLIB}
     ${RAYLIB_LINKLIB}
+    ${MA_LINKLIB}
 )
 
 if (BUILD_WITH_SANITIZE)

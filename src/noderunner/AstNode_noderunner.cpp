@@ -242,66 +242,109 @@ namespace DreiZehn {
         }
         Value lVal = mLeft->evaluate(env);
         Value rVal = mRight->evaluate(env);
-        if (lVal.isInt() && rVal.isInt()) {
-            switch (mOp) {
-                case TokenType::Plus:  return Value(lVal.asFastInt() + rVal.asFastInt());
-                case TokenType::Minus: return Value(lVal.asFastInt() - rVal.asFastInt());
-                case TokenType::Mul:   {
-                    double d = lVal.getDouble()  * rVal.getDouble();
-                    if (d >= INT32_MIN && d <= INT32_MAX) {
-                        return Value(static_cast<uint32_t>(d));
-                    }
-                    return d;
-                }
-                case TokenType::Div: {
-                    if (rVal.asFastInt() == 0) {
-                        Tools::errorf("Runtime Error Division by 0! ( %d / %d )\n", lVal.asFastInt(), rVal.asFastInt());
-                        return Value(0);
-                    }
-                    double l = lVal.getDouble();
-                    double r = rVal.getDouble();
-                    double res = l / r;
 
-                    return Value(static_cast<int32_t>(res));
-                }
-                default: return Value(); // should not reached!
-            }
-        } else if (lVal.isStringId() && rVal.isStringId()) {
-            switch (mOp) {
-                case TokenType::Plus:  return Value(std::string(lVal.getStringRef() + rVal.getStringRef()));
-                default: return Value(); // return empty invalid operation
-            }
-        } else {
-            switch (mOp) {
-                case TokenType::Plus:  return Value(lVal.getDouble() + rVal.getDouble());
-                case TokenType::Minus: return Value(lVal.getDouble() - rVal.getDouble());
-                case TokenType::Mul:   return Value(lVal.getDouble() * rVal.getDouble());
-                case TokenType::Div:   {
-                    double r = rVal.getDouble();
-                    if (r == 0.0) {
-                        Tools::PrintRuntimeError("Division by 0.0!\n");
-                        return Value(0.0);
-                    }
+        int mode = 0; //double
+        if (lVal.isInt() && rVal.isInt()) mode = 1; //int
+        else if (lVal.isStringId() || rVal.isStringId()) mode = 2; //string
 
-                    return Value(lVal.getDouble() / r);
-                }
-                default: return Value(); // should not reached!
+        switch (mOp) {
+            case TokenType::Plus: {
+                if (mode == 0) return Value(lVal.getDouble() + rVal.getDouble());
+                else if (mode == 1) return Value(lVal.getInt() + rVal.getInt());
+                else  return Value(std::string(lVal.toString() + rVal.toString()));
+                break;
             }
+            case TokenType::Minus:{
+                if (mode == 0) return Value(lVal.getDouble() - rVal.getDouble());
+                else if (mode == 1) return Value(lVal.getInt() - rVal.getInt());
+                else  return Value(0);
+                break;
+
+            }
+            case TokenType::Mul:{
+                double d = lVal.getDouble() * rVal.getDouble();
+                if (mode == 0) return (Value(d));
+                else if (mode == 1) return (Value(static_cast<int32_t>(d)));
+                else  return Value(0);
+                break;
+
+            }
+
+            case TokenType::Div: {
+                double r = rVal.getDouble();
+                if (r == 0.0) return Value(0);
+                double d = lVal.getDouble() / r;
+                if (mode == 0) return (Value(d));
+                else if (mode == 1) return (Value(static_cast<int32_t>(d)));
+                else  return Value(0);
+                break;
+
+            }
+            default: return Value(); // should not reached!
         }
 
-        // if (lVal.isInt() && rVal.isInt()) {
-        //     if (mOp == TokenType::Plus) return Value(lVal.asInt() + rVal.asInt());
-        //     if (mOp == TokenType::Minus) return Value(lVal.asInt() - rVal.asInt());
-        //     if (mOp == TokenType::Mul) return Value(lVal.asInt() * rVal.asInt());
-        //     if (mOp == TokenType::Div) return Value(lVal.asInt() / rVal.asInt());
-        // }
-        // double lNum = lVal.getDouble();
-        // double rNum = rVal.getDouble();
+        // if (lVal.isDouble() || rVal.isDouble()) {
+        //     switch (mOp) {
+        //         case TokenType::Plus:  return Value(lVal.getDouble() + rVal.getDouble());
+        //         case TokenType::Minus: return Value(lVal.getDouble() - rVal.getDouble());
+        //         case TokenType::Mul:   return Value (lVal.getDouble() * rVal.getDouble());
+        //         case TokenType::Div: {
+        //             double r = rVal.getDouble();
+        //             if (r == 0) {
+        //                 Tools::errorf("Runtime Error Division by 0! ( %d / %d )\n", lVal.getDouble(), rVal.getDouble());
+        //                 return Value(0);
+        //             }
+        //              return Value (lVal.getDouble()  / r);
+        //         }
+        //         default: return Value(); // should not reached!
+        //     }
+        // } else  if (lVal.isInt() && rVal.isInt()) {
+        //     switch (mOp) {
+        //         case TokenType::Plus:  return Value(lVal.asFastInt() + rVal.asFastInt());
+        //         case TokenType::Minus: return Value(lVal.asFastInt() - rVal.asFastInt());
+        //         case TokenType::Mul:   {
+        //             double d = lVal.getDouble()  * rVal.getDouble();
+        //             if (d >= INT32_MIN && d <= INT32_MAX) {
+        //                 return Value(static_cast<uint32_t>(d));
+        //             }
+        //             return d;
+        //         }
+        //         case TokenType::Div: {
+        //             if (rVal.asFastInt() == 0) {
+        //                 Tools::errorf("Runtime Error Division by 0! ( %d / %d )\n", lVal.asFastInt(), rVal.asFastInt());
+        //                 return Value(0);
+        //             }
+        //             double l = lVal.getDouble();
+        //             double r = rVal.getDouble();
+        //             double res = l / r;
         //
-        // if (mOp == TokenType::Plus) return Value(lNum + rNum);
-        // if (mOp == TokenType::Minus) return Value(lNum - rNum);
-        // if (mOp == TokenType::Mul) return Value(lNum * rNum);
-        // if (mOp == TokenType::Div) return Value(lNum / rNum);
+        //             return Value(static_cast<int32_t>(res));
+        //         }
+        //         default: return Value(); // should not reached!
+        //     }
+        // } else if (lVal.isStringId() || rVal.isStringId()) {
+        //     switch (mOp) {
+        //         case TokenType::Plus:  return Value(std::string(lVal.toString() + rVal.toString()));
+        //         default: return Value(); // return empty invalid operation
+        //     }
+        // } else {
+        //     switch (mOp) {
+        //         case TokenType::Plus:  return Value(lVal.getDouble() + rVal.getDouble());
+        //         case TokenType::Minus: return Value(lVal.getDouble() - rVal.getDouble());
+        //         case TokenType::Mul:   return Value(lVal.getDouble() * rVal.getDouble());
+        //         case TokenType::Div:   {
+        //             double r = rVal.getDouble();
+        //             if (r == 0.0) {
+        //                 Tools::PrintRuntimeError("Division by 0.0!\n");
+        //                 return Value(0.0);
+        //             }
+        //
+        //             return Value(lVal.getDouble() / r);
+        //         }
+        //         default: return Value(); // should not reached!
+        //     }
+        // }
+
 
         return Value();
 
@@ -490,24 +533,6 @@ namespace DreiZehn {
 
          return *valPtr;
 
-        // if(this->mFieldSymbolId > 0) {
-        //     Value varValue = env.getVariableFrame()->getVariable(this->mVarNameSymbolId);
-        //     if (!varValue.isPointer()) {
-        //         Tools::errorf("RunTime Error: Object %s not found.\n", SymbolTable::getName(this->mVarNameSymbolId).c_str());
-        //         return;
-        //     }
-        //
-        //     ValueObject* obj = dynamic_cast<ValueObject*>(varValue.asPointerObject());
-        //     if (!obj->onSetField(this->mFieldSymbolId, this->mRhs->evaluate(env))) {
-        //         Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
-        //                         SymbolTable::getName(this->mVarNameSymbolId).c_str(),
-        //                         SymbolTable::getName(this->mFieldSymbolId).c_str()
-        //         );
-        //     }
-        //
-        // } else {
-        //     env.getVariableFrame()->setVariable(this->mVarNameSymbolId, this->mRhs->evaluate(env));
-        // }
     }
     // -------------------------------------------------------------------------
     Value AssignOPStatement::evaluate(Environment& env) {
@@ -519,40 +544,47 @@ namespace DreiZehn {
             return Value(0);
         }
         Value rightHand = this->mRhs->evaluate(env);
-        if (valuePtr->isInt() && rightHand.isInt()) {
-            int32_t intval = valuePtr->asFastInt();
-            switch(this->mOp) {
-                case TokenType::AssignPlus:  intval += rightHand.asFastInt(); break;
-                case TokenType::AssignMinus: intval -= rightHand.asFastInt(); break;
-                case TokenType::AssignMul:   intval *= rightHand.asFastInt(); break;
-                case TokenType::AssignDiv:  if (rightHand.asFastInt() != 0) {intval /= rightHand.asFastInt();} break;
-                default: break;
-            }
-            *valuePtr = Value(intval);
-        } else if (valuePtr->isDouble() && rightHand.isDouble()) {
+
+
+        if (valuePtr->isDouble() && rightHand.isDouble()) {
             double doubleval = valuePtr->asFastDouble();
             switch(this->mOp) {
                 case TokenType::AssignPlus:  doubleval += rightHand.asFastDouble(); break;
                 case TokenType::AssignMinus: doubleval -= rightHand.asFastDouble(); break;
                 case TokenType::AssignMul:   doubleval *= rightHand.asFastDouble(); break;
-                case TokenType::AssignDiv:  if (rightHand.asFastDouble() != 0.0) {doubleval /= rightHand.asFastDouble();} break;
+                case TokenType::AssignDiv:  rightHand.asFastDouble() != 0.0 ? doubleval /= rightHand.asFastDouble() : doubleval = 0; break;
                 default: return Value(0);
             }
             *valuePtr = Value(doubleval);
+            return *valuePtr;
 
-        } else if (valuePtr->isStringId() && rightHand.isStringId()) {
-            if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (std::string( valuePtr->getStringRef() +  rightHand.getStringRef() ));
+        } else if (valuePtr->isInt() && rightHand.isInt()) {
+            int32_t intval = valuePtr->asFastInt();
+            switch(this->mOp) {
+                case TokenType::AssignPlus:  intval += rightHand.asFastInt(); break;
+                case TokenType::AssignMinus: intval -= rightHand.asFastInt(); break;
+                case TokenType::AssignMul:   intval *= rightHand.asFastInt(); break;
+                case TokenType::AssignDiv:  rightHand.asFastInt() != 0 ? intval /= rightHand.asFastInt() : intval = 0; break;
+                default: break;
+            }
+            *valuePtr = Value(intval);
+            return *valuePtr;
+
+        } else if (valuePtr->isStringId() || rightHand.isStringId()) {
+            if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (std::string( valuePtr->toString() +  rightHand.toString() ));
             else return Value(0);
+            return *valuePtr;
         } else {
             double doubleval = valuePtr->getDouble();
             switch(this->mOp) {
                 case TokenType::AssignPlus:  doubleval += rightHand.getDouble(); break;
                 case TokenType::AssignMinus: doubleval -= rightHand.getDouble(); break;
                 case TokenType::AssignMul:   doubleval *= rightHand.getDouble(); break;
-                case TokenType::AssignDiv:  if (rightHand.getDouble() != 0.0) {doubleval /= rightHand.getDouble();} break;
+                case TokenType::AssignDiv:  rightHand.getDouble() != 0.0 ? doubleval /= rightHand.getDouble() : doubleval = 0.0; break;
                 default: return Value(0);
             }
             *valuePtr = Value(doubleval);
+            return *valuePtr;
         }
 
          return Value(0);

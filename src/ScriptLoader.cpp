@@ -84,17 +84,15 @@ namespace DreiZehn {
                     continue;
                 }
 
-                // bool isIf = dynamic_cast<IfStatement*>(ast.get()) != nullptr;
-                // bool isFor = dynamic_cast<ForStatement*>(ast.get()) != nullptr;
-                // bool isWhile = dynamic_cast<WhileStatement*>(ast.get()) != nullptr;
-                // bool isRange = dynamic_cast<ForRangeStatement*>(ast.get()) != nullptr;
+
                 bool isIf    = ast->mNodeType == NodeType::IfStatement;
-                bool isFor   = ast->mNodeType == NodeType::ForStatement;
+                bool isFor   = ast->mNodeType == NodeType::ForStatement
+                            || ast->mNodeType == NodeType::RangeStatement
+                            || ast->mNodeType == NodeType::ForEachStatement;
                 bool isWhile = ast->mNodeType == NodeType::WhileStatement;
-                bool isRange = ast->mNodeType == NodeType::RangeStatement;
 
 
-                if (isFor || isWhile || isIf || isRange) {
+                if (isFor || isWhile || isIf ) {
                     std::shared_ptr<ASTNode> sharedBase = std::move(ast);
                     std::shared_ptr<BlockStatement> sharedLoop = std::static_pointer_cast<BlockStatement>(sharedBase);
 
@@ -119,7 +117,9 @@ namespace DreiZehn {
                         }
                     } else
                     // ForLoop / WhileLoop
-                    if (outerBlock.mType == BlockType::ForLoop || outerBlock.mType == BlockType::WhileLoop) {
+                    if (outerBlock.mType == BlockType::ForLoop
+                        || outerBlock.mType == BlockType::WhileLoop
+                    ) {
                         outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
                     }
 

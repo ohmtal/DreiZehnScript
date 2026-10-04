@@ -422,6 +422,22 @@ public:
             }
             break;
 
+            case TokenType::forEach: {
+                advance(); //eat
+
+                if (peek().mType != TokenType::Identifier) {
+                    Tools::errorf("Syntax-Error: variable name after range expected\n");
+                    return nullptr;
+                }
+                std::string varName = advance().mValue;
+
+                auto varExpr = parseMath();
+
+                return std::make_unique<ForEachStatement>(SymbolTable::insert(varName)
+                , std::move(varExpr));
+            }
+            break;
+
             case TokenType::For: {
                 advance();
 

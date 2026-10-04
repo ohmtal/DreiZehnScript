@@ -528,10 +528,7 @@ namespace DreiZehn {
 
         *valPtr = post;
 
-
-
-
-         return *valPtr;
+        return *valPtr;
 
     }
     // -------------------------------------------------------------------------
@@ -737,7 +734,49 @@ namespace DreiZehn {
         }
         return FlowSignal::None;
     }
+    // -------------------------------------------------------------------------
+    FlowSignal ForEachStatement::execute(Environment& env){
+        if (!this->mVarExpr ) {
+            Tools::errorf("Runtime Error: foreach need a list expression!\n");
+            return FlowSignal::None;
+        }
 
+        Value varValue = this->mVarExpr->evaluate(env);
+
+        if (!varValue.isPointer()) {
+            Tools::errorf("Runtime Error: foreach need a object!\n");
+            return FlowSignal::None;
+        }
+        ValueObject* obj = varValue.asPointerObject();
+        size_t count = obj->onGetArraySize();
+        if (count == 0) {
+            return FlowSignal::None;
+        }
+
+        Environment loopEnv(&env);
+
+        if (count < 0 ) {
+            Tools::errorf("Runtime Error: range border must be >= 0 and is %d!\n", count);
+            return FlowSignal::None;
+        }
+        for (size_t itr = 0; itr < count; itr++) {
+            Value* curValue = obj->onGetArrayIndexPtr(itr);
+            loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, *curValue);
+
+            for (auto& statement : this->mBody) {
+                FlowSignal sig = env.execute(statement.get(), loopEnv);
+
+                if (sig == FlowSignal::Break) {
+                    return FlowSignal::None;
+                }
+                if (sig == FlowSignal::Return) {
+                    return FlowSignal::Return;
+                }
+                if (sig == FlowSignal::Continue) break;
+            }
+        }
+        return  FlowSignal::None;
+    }
     // -------------------------------------------------------------------------
     FlowSignal BlockStatement::execute(Environment& env){
         for (auto& statement : this->mBody) {

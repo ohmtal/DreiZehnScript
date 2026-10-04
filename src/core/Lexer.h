@@ -55,7 +55,7 @@ enum class TokenType {
 
     , Arrow, Dot
 
-    , forRange
+    , forRange, forEach
     , Not
     , Modulo
 
@@ -129,7 +129,8 @@ inline const char* tokenTypeToString(TokenType type) {
         case TokenType::Arrow:          return "Arrow Object Method call";
         case TokenType::Dot:            return "Dot Object field access";
 
-        case TokenType::forRange:       return "Range";
+        case TokenType::forRange:       return "forRange";
+        case TokenType::forEach:        return "forEach";
         case TokenType::Not:            return "Not";
 
         case TokenType::Question:       return "Question";
@@ -397,6 +398,9 @@ public:
                 else if (id == "continue") { tokens.push_back({TokenType::Continue, "continue"});  }
                 else if (id == "while") { tokens.push_back({TokenType::While, "while"});  }
                 else if (id == "forRange") { tokens.push_back({TokenType::forRange, "forRange"});  }
+                else if (id == "forrange") { tokens.push_back({TokenType::forRange, "forrange"});  }
+                else if (id == "forEach") { tokens.push_back({TokenType::forEach, "forEach"});  }
+                else if (id == "foreach") { tokens.push_back({TokenType::forEach, "foreach"});  }
                 else if (id == "not") { tokens.push_back({TokenType::Not, "not"});  }
                 else if (id == "and") { tokens.push_back({TokenType::And, "and"});  }
                 else if (id == "or") { tokens.push_back({TokenType::Or, "or"});  }

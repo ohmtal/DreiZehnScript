@@ -266,7 +266,7 @@ Struct [0x5576cc6a5440]
 
 - [X] fix memleaks fenster
 
-- [ ] foreach with ValueObject iter call `forEach item myVector...` 
+- [X] forEach with ValueObject iter call `v = Vector::new 10 20; foreach item v; print item; end`
 
 - [ ] MiniAudio
 

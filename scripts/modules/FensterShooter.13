@@ -128,6 +128,8 @@ fn Bullet::spawn this x y isPlayer
     this.speed = isPlayer ? 2.0 : 1.0
     this.color = isPlayer ? COLOR_YELLOW : COLOR_RED
     this.active = true
+
+--     print "Spawn bullet at " x y
 end
 
 fn Bullet::process this
@@ -137,8 +139,17 @@ fn Bullet::process this
         if this.y < 0
             this.active = false
         end
-        forRange i enemyCount
-            enemy = Enemies->at i
+--         forRange i enemyCount
+--             enemy = Enemies->at i
+--             if (doesCollide this enemy )
+--                 Game.score += 10
+--                 enemy.active = false
+--                 this.active = false
+--                 Audio->explo
+--                 return
+--             end
+--         end
+        forEach enemy Enemies
             if (doesCollide this enemy )
                 Game.score += 10
                 enemy.active = false
@@ -152,7 +163,6 @@ fn Bullet::process this
         if (this.y > GAMEHEIGHT)
             this.active = false
         end
-        -- FIXME collision
     end
 
     Fenster->rect this.x this.y this.w this.h this.color
@@ -222,10 +232,13 @@ fn Game::gameOver this
     if ( this.score > this.hiScore )
         this.hiScore = this.score
     end
-    forRange i enemyCount
---         enemy = Enemies->at i
---         enemy.active = false
-        Enemies[i].active = false
+--     forRange i enemyCount
+-- --         enemy = Enemies->at i
+-- --         enemy.active = false
+--         Enemies[i].active = false
+--     end
+    forEach e Enemies
+        e.active = false
     end
 end
 
@@ -240,8 +253,19 @@ end
 fn Game::processEnemies this
 
     doSpawn = Fenster.time - this.lastSpawn >  this.spawnDelay
-    forRange i enemyCount
-        enemy = Enemies->at i
+--     forRange i enemyCount
+--         enemy = Enemies->at i
+--         if !enemy.active
+--             if doSpawn
+--                 enemy->spawn
+--                 this.lastSpawn = Fenster.time
+--                 doSpawn = false
+--             end
+--         else
+--             enemy->process
+--         end
+--     end
+    forEach enemy Enemies
         if !enemy.active
             if doSpawn
                 enemy->spawn
@@ -419,12 +443,16 @@ fn ModuleLoop
     Fenster->clear backcolor
 
     -- Stars --
-    forRange i starCount
---         star = Stars->at i
---         star->process
-        -- 0.7 rocks :)
-        Stars[i]->process
-
+--     forRange i starCount
+-- --         star = Stars->at i
+-- --         star->process
+--         -- 0.7 rocks :)
+--         Stars[i]->process
+--
+--     end
+    -- 0.7b rocks more for this ;)
+    forEach s Stars
+        s->process
     end
 
     if Game.gameOver
@@ -444,10 +472,8 @@ fn ModuleLoop
         -- Enemies
         Game->processEnemies
 
-        forRange i Bullets->size
---             bullet = Bullets->at i
---             bullet->process
-            Bullets[i]->process
+        forEach bullet Bullets
+             bullet->process
         end
     end
 

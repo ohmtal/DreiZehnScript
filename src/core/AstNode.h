@@ -52,6 +52,7 @@ enum class NodeType {
     RangeStatement,
     TernaryExpression
     // ,CurlyArgumentsExpression
+    ,ForEachStatement
 };
 
 #include <string>
@@ -86,8 +87,8 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::ObjectFieldExpression:   return "ObjectFieldExpression";
         case NodeType::RangeStatement:          return "RangeStatement";
         case NodeType::TernaryExpression:       return "TernaryExpression";
-
         // case NodeType::CurlyArgumentsExpression: return "CurlyArgumentsExpression";
+        case NodeType::ForEachStatement:       return "ForEachStatement";
     }
     return "UnknownNodeType";
 }
@@ -443,6 +444,20 @@ struct ForRangeStatement : public BlockStatement {
 
     FlowSignal execute(Environment& env) override;
 };
+
+// forEach -------------------------------------------------------------------------
+struct ForEachStatement : public BlockStatement {
+    uint32_t mIteratorVarNameSymbolId = 0;
+    std::unique_ptr<Expression> mVarExpr;
+
+    ForEachStatement(uint32_t nameSymId, std::unique_ptr<Expression> varExpr)
+    : mIteratorVarNameSymbolId(nameSymId), mVarExpr(std::move(varExpr)) {
+        mNodeType  = NodeType::ForEachStatement;
+    }
+
+    FlowSignal execute(Environment& env) override;
+};
+
 // break -------------------------------------------------------------------------
 struct BreakStatement : public FlowBaseStatement {
     BreakStatement() {

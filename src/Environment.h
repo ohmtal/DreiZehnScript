@@ -64,7 +64,6 @@ namespace DreiZehn {
         BlockType mType;
         uint32_t mFuncNameSymbolId;
         BlockStatement* mBlockNodePointer;
-       //0.6c SUCKS !!!!  bool mIsImplicit = false; //NOTE nested if
     };
 
 
@@ -136,6 +135,11 @@ public:
             case NodeType::RangeStatement:
             {
                 auto* flowStmt = dynamic_cast<ForRangeStatement*>(node);
+                return flowStmt->execute(currentEnv);
+            }
+            case NodeType::ForEachStatement:
+            {
+                auto* flowStmt = dynamic_cast<ForEachStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
             case NodeType::ForStatement:

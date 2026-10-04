@@ -10,6 +10,7 @@
 //        Window is closed.
 //-----------------------------------------------------------------------------
 #pragma once
+
 #include <stdio.h>
 #include <stdint.h>
 
@@ -18,6 +19,8 @@
 #include "core/FunctionMap.h"
 #include "core/VariableFrame.h"
 #include "Globals.h"
+
+
 
 namespace DreiZehn::Fenster {
 #include "ext/fenster/fenster_audio.h"
@@ -49,10 +52,11 @@ namespace DreiZehn {
 
         FensterAudioObject() : ValueObject(TypeFensterAudioObject) {
             fenster_audio_open(&mFensterAudio);
+            mClosed = false;
         }
 
         ~FensterAudioObject() {
-            if (!mClosed) {
+            if   (!mClosed) {
                 fenster_audio_close(&mFensterAudio);
                 mClosed = true;
             }

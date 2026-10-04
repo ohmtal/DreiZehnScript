@@ -319,7 +319,18 @@ FENSTER_API int fenster_open(struct fenster *f) {
                         (char *)f->buf, f->width, f->height, 32, 0);
   return 0;
 }
-FENSTER_API void fenster_close(struct fenster *f) { XCloseDisplay(f->dpy); }
+FENSTER_API void fenster_close(struct fenster *f) {
+  //XXTH >>>>>>
+  if (f->img) {
+    f->img->data = NULL;
+    XDestroyImage(f->img);
+  }
+  if (f->gc) {
+    XFreeGC(f->dpy, f->gc);
+  }
+  // <<< XXTH
+  XCloseDisplay(f->dpy);
+}
 FENSTER_API int fenster_loop(struct fenster *f) {
   XEvent ev;
   XPutImage(f->dpy, f->w, f->gc, f->img, 0, 0, 0, 0, f->width, f->height);

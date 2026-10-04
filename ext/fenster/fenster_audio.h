@@ -141,6 +141,10 @@ int snd_pcm_avail(void *);
 int snd_pcm_writei(void *, const void *, unsigned long);
 int snd_pcm_recover(void *, int, int);
 int snd_pcm_close(void *);
+//XXTH >>>>
+int snd_pcm_drop(void *);
+int snd_config_update_free_global(void);
+//<<<<
 FENSTER_API int fenster_audio_open(struct fenster_audio *fa) {
   if (snd_pcm_open(&fa->pcm, "default", 0, 0))
     return -1;
@@ -165,7 +169,15 @@ FENSTER_API void fenster_audio_write(struct fenster_audio *fa, float *buf,
     snd_pcm_recover(fa->pcm, r, 0);
 }
 FENSTER_API void fenster_audio_close(struct fenster_audio *fa) {
-  snd_pcm_close(fa->pcm);
+  //XXTH savety :>>>>
+  if (fa->pcm) {
+    snd_pcm_drop(fa->pcm);
+    snd_pcm_close(fa->pcm);
+    fa->pcm = NULL;
+    snd_config_update_free_global();
+  }
+  //<<<<<<<
+  // snd_pcm_close(fa->pcm);
 }
 #endif
 

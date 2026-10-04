@@ -236,7 +236,7 @@ working. I did add it as a "dummy" variable which is not the best idea anyway.
     
 ## 0.7b    
     
-- [ ] Vector, Array, [] and = { }
+- [X] Vector, Array, [] 
     - [X] rename VectorObjectFunctions => VectorObjectFunctions
     - [X] copy ArrayFunctions to VectorObjectFunctions
     - [X] ValueObject add getIndexPtr for ArrayVariable Expression 
@@ -262,40 +262,33 @@ Struct [0x5576cc6a5080]
 Struct [0x5576cc6a5260] 
 Struct [0x5576cc6a5440] 
 ```
-          **Also GC is fine**
+**Also GC is fine**
 
-    - [ ] StructObject add a assign like {1 ,2 ,3} THIS SHOULD NOT override the 
-          Objects content it should set the first 3 fields - unordered_map save? -
-          - [X] vector mFieldOrder
-          - [ ] overwrite setfield/getfieldptr to deny new fields 
-          - [ ] Lexer {}
-          - [ ] parser + ast expression
-          - [ ] Value object method to support this 
-          - [ ] assign special handling 
-          
-    - [ ] foreach with ValueObject iter call 
+- [X] fix memleaks fenster
+
+- [ ] StructObject add a assign like {1 ,2 ,3} THIS SHOULD NOT override the 
+        Objects content it should set the first 3 fields - unordered_map save? -
+    - [X] vector mFieldOrder
+    - [ ] overwrite setfield/getfieldptr to deny new fields 
+    - [ ] Lexer {}
+    - [ ] parser + ast expression
+    - [ ] Value object method to support this 
+    - [ ] assign special handling 
         
-    
-- [ ] why is it slower ? i changed math a bit , when i workd on bytebeat << this ? 
-     
+- [ ] foreach with ValueObject iter call `forEach item myVector...` 
+- [ ] why is it slower ? i changed math a bit , when i worked on bytebeat << this ? 
 
 
 ## still missing:
 - [ ] change printf errorf to a overwritable class or add a handler 
+- [ ] fix memleaks fenster_audio .... it's closed but still leak and crash after some starts
 
 ## maybe:
-- [ ] Instead of hacking in slow array brackets i will add a **foreach**
-    - [ ] foreach need a interator information from the Object:
-        - bool support foreach
-        - int count
-        - getter with index 
 - [ ] Bytecode continue .... 
 - [ ] move more code to cpp because compiletime is raising - carefully do not break the speed
 - [ ] UserFunction object to call them like a lambda from a list... 
-- [ ] finish Raylib importer << stuck at structs inside stucts and pointer returns 
-- [ ] validate if there is a usable SDL3 auto bind script
+- [ ] finish Raylib importer << stuck at structs inside structs and pointer returns 
+- [ ] validate if there is a usable SDL3 auto bind script parser
 - [ ] switch / case
-- [ ] Operator callback for Objects
-    - [X] add OP "event" in ValueObject << simply insert script function symbol
  
     

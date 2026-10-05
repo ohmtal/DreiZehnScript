@@ -277,6 +277,7 @@ Struct [0x5576cc6a5440]
 ## 0.7c
 - [X] optimized for iter loops :)
 - [X] small optimize register ReturnValueSymbol once
+- [X] removed string concat from += !! tryed to optimize it but this is slow!
 
 - [ ] Syntax complete for 1.0 ? ... think so - CheatSheet (EBFN also ?) 
 

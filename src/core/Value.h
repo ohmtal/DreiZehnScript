@@ -17,6 +17,15 @@
 namespace DreiZehn{
 
 
+enum class ValueType : uint8_t {
+    Double,
+    Int,
+    Pointer,
+    ValuePointer,
+    StringId
+};
+
+
 constexpr uint64_t QNAN_MASK        = 0x7FF8000000000000ULL;
 constexpr uint64_t TAG_INT          = 0x0001000000000000ULL; // 1 (binary 001) =>  Integer
 constexpr uint64_t TAG_PTR          = 0x0002000000000000ULL; // 2 (binary 010) =>  Pointer
@@ -86,11 +95,28 @@ public:
     inline bool isStringId() const { return (mBits & (QNAN_MASK | TAG_MASK)) == (QNAN_MASK | TAG_STRING_ID); }
 
 
+    inline ValueType getType() const {
+        if ((mBits & QNAN_MASK) != QNAN_MASK) {
+            return ValueType::Double;
+        }
+        uint64_t tag = mBits & TAG_MASK;
+
+        switch (tag) {
+            case TAG_INT:          return ValueType::Int;
+            case TAG_PTR:          return ValueType::Pointer;
+            case TAG_VALUE_PTR:    return ValueType::ValuePointer;
+            case TAG_STRING_ID:    return ValueType::StringId;
+            default:
+                __builtin_unreachable();
+        }
+    }
+
+
     // inline bool isString() const {
     //     return (isPointer() && asPointerObject()->mType == ValueObjectType::String);
     // }
 
-    inline bool isNumber() {return  isInt() || isDouble();}
+    inline bool isNumber() {ValueType t = getType(); return (t == ValueType::Int || t == ValueType::Double);}
 
     // -------------------------------------------------------------------------
     // --- Getter (Unboxing) ---

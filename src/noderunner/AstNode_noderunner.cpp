@@ -252,7 +252,8 @@ namespace DreiZehn {
             case TokenType::Plus: {
                 if (mode == 0) return Value(lVal.getDouble() + rVal.getDouble());
                 else if (mode == 1) return Value(lVal.getInt() + rVal.getInt());
-                else  return Value(std::string(lVal.toString() + rVal.toString()));
+                else  if (mode == 2) return Value(std::string(lVal.toString() + rVal.toString()));
+                else  return Value(0);
                 break;
             }
             case TokenType::Minus:{
@@ -533,15 +534,17 @@ namespace DreiZehn {
 
     }
     // -------------------------------------------------------------------------
+
     Value AssignOPStatement::evaluate(Environment& env) {
 
         Value * valuePtr = mVarExpr->evaluatePtr(env);
 
-        if ( !valuePtr  ) {
-            Tools::PrintParseError("AssignOP: variable is missing or invalid");
+        if ( !valuePtr || !this->mRhs ) {
+            Tools::PrintParseError("AssignOP: variable or right is missing or invalid");
             return Value(0);
         }
         Value rightHand = this->mRhs->evaluate(env);
+
 
 
         if (valuePtr->isDouble() && rightHand.isDouble()) {
@@ -550,7 +553,10 @@ namespace DreiZehn {
                 case TokenType::AssignPlus:  doubleval += rightHand.asFastDouble(); break;
                 case TokenType::AssignMinus: doubleval -= rightHand.asFastDouble(); break;
                 case TokenType::AssignMul:   doubleval *= rightHand.asFastDouble(); break;
-                case TokenType::AssignDiv:  rightHand.asFastDouble() != 0.0 ? doubleval /= rightHand.asFastDouble() : doubleval = 0; break;
+                case TokenType::AssignDiv:  {
+                    double r = rightHand.asFastDouble();
+                    r != 0.0 ? doubleval /= r : doubleval = 0; break;
+                }
                 default: return Value(0);
             }
             *valuePtr = Value(doubleval);
@@ -562,23 +568,30 @@ namespace DreiZehn {
                 case TokenType::AssignPlus:  intval += rightHand.asFastInt(); break;
                 case TokenType::AssignMinus: intval -= rightHand.asFastInt(); break;
                 case TokenType::AssignMul:   intval *= rightHand.asFastInt(); break;
-                case TokenType::AssignDiv:  rightHand.asFastInt() != 0 ? intval /= rightHand.asFastInt() : intval = 0; break;
+                case TokenType::AssignDiv:  {
+                    int32_t r = rightHand.asFastInt();
+                    r != 0 ? intval /= r : intval = 0; break;
+                }
                 default: break;
             }
             *valuePtr = Value(intval);
             return *valuePtr;
 
-        } else if (valuePtr->isStringId() || rightHand.isStringId()) {
-            if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (std::string( valuePtr->toString() +  rightHand.toString() ));
-            else return Value(0);
-            return *valuePtr;
+        // this is like a handbreak !!
+        // } else if (valuePtr->isStringId() || rightHand.isStringId()) {
+        //     if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (std::string( valuePtr->toString() +  rightHand.toString() ));
+        //     else return Value(0);
+        //     return *valuePtr;
         } else {
             double doubleval = valuePtr->getDouble();
             switch(this->mOp) {
                 case TokenType::AssignPlus:  doubleval += rightHand.getDouble(); break;
                 case TokenType::AssignMinus: doubleval -= rightHand.getDouble(); break;
                 case TokenType::AssignMul:   doubleval *= rightHand.getDouble(); break;
-                case TokenType::AssignDiv:  rightHand.getDouble() != 0.0 ? doubleval /= rightHand.getDouble() : doubleval = 0.0; break;
+                case TokenType::AssignDiv: {
+                    double r = rightHand.asFastDouble();
+                    r != 0.0 ? doubleval /= r : doubleval = 0; break;
+                }
                 default: return Value(0);
             }
             *valuePtr = Value(doubleval);

@@ -4,7 +4,7 @@ I used my Benchmark Script from ElfScript:
 
 - Lua 5.5.1: 1.243u 0.002s 0:01.25 99.2%     0+0k 0+0io 0pf+0w
 - Elfscript 0.7c: 1.354u 0.002s 0:01.36 99.2%     0+0k 0+0io 0pf+0w
-- 🐢 DreiZehn(0.7c): 5.814u 0.004s 0:05.84 99.4%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.7c): 5.393u 0.006s 0:05.42 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.6b: 8.300u 0.002s 0:08.33 99.6%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.6a: 11.218u 0.012s 0:11.28 99.4%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.4c: 12.478u 0.002s 0:12.52 99.6%    0+0k 0+0io 0pf+0w
@@ -77,7 +77,7 @@ Note on 0.5b: While Variables  uses fast "++"/"--" fields only have the slower a
 
 Note on 0.5c: Added inline OP and OP assign :) Nearly as fast as global var
 
-- 🐢 DreiZehn(0.7c): 7.661u 0.008s 0:07.70 99.4%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.7c): 7.448u 0.005s 0:07.47 99.5%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.6b: 8.945u 0.003s 0:08.98 99.5%     0+0k 8+0io 0pf+0w
 - 🐢 DreiZehn 0.6a: 11.743u 0.004s 0:11.78 99.6%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.5c: 13.057u 0.004s 0:13.09 99.6%    0+0k 0+0io 0pf+0w
@@ -88,7 +88,7 @@ Note on 0.5c: Added inline OP and OP assign :) Nearly as fast as global var
 
 stupid iterator test ;)
 
-- 🐢 DreiZehn(0.7c): 0.203u 0.004s 0:00.20 100.0%    0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.7c): 0.334u 0.004s 0:00.34 97.0%     0+0k 0+0io 0pf+0w
 - ElfScript 0.7a: 2.688u 0.003s 0:02.69 99.6% 0+0k 0+0io 0pf+0w
 - Lua (5.5.0): 3.504u 0.003s 0:03.52 99.4% 0+0k 0+0io 0pf+0w
 - PHP (8.5.8): 3.644u 0.019s 0:03.66 99.7% 0+0k 0+0io 0pf+0w

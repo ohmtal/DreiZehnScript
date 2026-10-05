@@ -33,7 +33,8 @@ namespace DreiZehn::FunctionMap {
                 FlowSignal sig = env.execute(statement.get(), localEnv);
 
                 if (sig == FlowSignal::Return) {
-                    Value retVal = localEnv.getVariableFrame()->getVariable(SymbolTable::insert("__return_value__"));
+                    // Value retVal = localEnv.getVariableFrame()->getVariable(SymbolTable::insert("__return_value__"));
+                    Value retVal = localEnv.getVariableFrame()->getVariable(ReturnValueSymbol);
                     return retVal;
                 }
             }

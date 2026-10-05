@@ -276,6 +276,7 @@ Struct [0x5576cc6a5440]
    
 ## 0.7c
 - [X] optimized for iter loops :)
+- [X] small optimize register ReturnValueSymbol once
 
 - [ ] Syntax complete for 1.0 ? ... think so - CheatSheet (EBFN also ?) 
 

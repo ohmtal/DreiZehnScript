@@ -219,7 +219,8 @@ namespace DreiZehn {
                 FlowSignal sig = env.execute(statement.get(), localEnv);
 
                 if (sig == FlowSignal::Return) {
-                    Value retVal = localEnv.getVariableFrame()->getVariable(SymbolTable::insert("__return_value__"));
+                    // Value retVal = localEnv.getVariableFrame()->getVariable(SymbolTable::insert("__return_value__"));
+                    Value retVal = localEnv.getVariableFrame()->getVariable(ReturnValueSymbol);
                     return retVal;
                 }
             }
@@ -598,10 +599,16 @@ namespace DreiZehn {
 
         if (this->mExpression) {
             Value retVal = this->mExpression->evaluate(env);
-            frame->setVariable(SymbolTable::insert("__return_value__"), retVal);
+            frame->setVariable(ReturnValueSymbol, retVal);
         } else {
-            frame->setVariable(SymbolTable::insert("__return_value__"), Value(0));
+            frame->setVariable(ReturnValueSymbol, Value(0));
         }
+        // if (this->mExpression) {
+        //     Value retVal = this->mExpression->evaluate(env);
+        //     frame->setVariable(SymbolTable::insert("__return_value__"), retVal);
+        // } else {
+        //     frame->setVariable(SymbolTable::insert("__return_value__"), Value(0));
+        // }
         return FlowSignal::Return;
     };
 

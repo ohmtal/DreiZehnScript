@@ -92,6 +92,8 @@ constexpr const char* NodeTypeToString(NodeType type) {
     return "UnknownNodeType";
 }
 
+inline  uint32_t ReturnValueSymbol = SymbolTable::insert("__return_value__");
+
 // base node -------------------------------------------------------------------
 struct ASTNode {
     NodeType mNodeType = NodeType::BaseNode;

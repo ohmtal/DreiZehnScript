@@ -643,8 +643,10 @@ namespace DreiZehn {
             Tools::errorf("Runtime Error: range border must be >= 0 and is %d!\n", count);
             return FlowSignal::None;
         }
+        Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
         for (int i = 0; i < count; i++) {
-            loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
+            // loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
+            *iterValPtr = Value(i);
 
             for (auto& statement : this->mBody) {
                 FlowSignal sig = env.execute(statement.get(), loopEnv);
@@ -674,10 +676,11 @@ namespace DreiZehn {
         int end = endVal.getInt();
 
         Environment loopEnv(&env);
-
+        Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
         if (start > end ) {
             for (int i = start; i >= end; --i) {
-                loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
+                // loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
+                *iterValPtr = Value(i);
 
                 for (auto& statement : this->mBody) {
                     FlowSignal sig = env.execute(statement.get(), loopEnv);
@@ -694,7 +697,8 @@ namespace DreiZehn {
 
         } else {
             for (int i = start; i <= end; ++i) {
-                loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
+                // loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
+                *iterValPtr = Value(i);
 
                 for (auto& statement : this->mBody) {
                     FlowSignal sig = env.execute(statement.get(), loopEnv);
@@ -759,9 +763,12 @@ namespace DreiZehn {
             Tools::errorf("Runtime Error: range border must be >= 0 and is %d!\n", count);
             return FlowSignal::None;
         }
+
+        Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
         for (size_t itr = 0; itr < count; itr++) {
             Value* curValue = obj->onGetArrayIndexPtr(itr);
-            loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, *curValue);
+            *iterValPtr = *curValue;
+            // loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, *curValue);
 
             for (auto& statement : this->mBody) {
                 FlowSignal sig = env.execute(statement.get(), loopEnv);

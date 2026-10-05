@@ -17,12 +17,12 @@ forRange j JLOOPS
     end
     print  "SUM (--) IS: " globalX
 
-    globalX = 66.0
+    globalX = 66
     print  "set Sum to 66 == " (globalX * 1)
 
     forRange i ILOOPS
-        globalX *= (i + 1.0)
-        globalX /= (i + 1.0)
+        globalX *= (i + 1)
+        globalX /= (i + 1)
     end
     print  "SUM (*/ %i+1) IS: " globalX
 

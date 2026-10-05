@@ -1,4 +1,6 @@
 i = 0
+-- forRange i 1000000000
+-- end
 for i 1 1000000000
 end
 print "i=" i

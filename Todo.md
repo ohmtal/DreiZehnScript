@@ -275,7 +275,9 @@ Struct [0x5576cc6a5440]
    
    
 ## 0.7c
-- [ ] Syntax complete for 1.0 ? ... think so - Handbook 
+- [X] optimized for iter loops :)
+
+- [ ] Syntax complete for 1.0 ? ... think so - CheatSheet (EBFN also ?) 
 
 ---
 

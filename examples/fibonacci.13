@@ -8,6 +8,6 @@ fn fib n                              # define a user function with parameter 'n
     return (fib n - 1) + (fib n - 2)  # recursive function call. Brackets encapsulate the parameter scope
 end
 
-forRange i 13                         # forRange counts 'i' from 0 to 13
+forRange i 14                         # forRange counts 'i' from 0 to 13, it does 14 loops
     print "Fib" i "=" (fib i)
 end

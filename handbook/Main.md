@@ -56,7 +56,34 @@ fn fib n                              # define a user function with parameter 'n
     return (fib n - 1) + (fib n - 2)  # recursive function call. Brackets encapsulate the parameter scope
 end
 
-forRange i 13                         # forRange counts 'i' from 0 to 13
+forRange i 14                         # forRange counts 'i' from 0 to 13, it does 14 loops
     print "Fib" i "=" (fib i)
 end
+```
+
+### 99 Bottles of Beer
+
+```
+-- -----------------------------------------------------------------------------
+-- DreiZehn examples/99Bottles.13
+-- -----------------------------------------------------------------------------
+
+-- we count from 99 down to 1
+for i 99 1
+    if i > 2
+        -- demonstrating '\' usage for multiple lines in one statement
+        print i  "bottles of beer on the wall,"  i  "bottles of beer." \
+                 "\nTake one down and pass it around,"  i - 1 \
+                 "bottles of beer on the wall.\n";
+    elif i == 2
+        print "Two bottles of beer on the wall, Two bottles of beer." \
+            "\nTake one down and pass it around, One bottle of beer on the wall.\n";
+    else
+        print "One bottle of beer on the wall, One bottles of beer." \
+            "\nTake one down and pass it around, No bottles of beer on the wall.\n";
+    end
+end
+
+print  "No more bottles of beer on the wall, no more bottles of beer." \
+       "\nGo to the store and buy some more. 99 bottles of beer on the wall.\n";
 ```

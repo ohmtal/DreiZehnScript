@@ -2,9 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Ast for NodeRunner (AST-Interpreter)- i use different code:
-// - NodeRunner => evaluate
-// - ByteCode => compile
+// AST-Interpreter
 //-----------------------------------------------------------------------------
 #include <cmath>
 #include "Environment.h"
@@ -95,7 +93,6 @@ namespace DreiZehn {
     // ObjectFieldExpression
     // -------------------------------------------------------------------------
     Value ObjectFieldExpression::evaluate(Environment& env) {
-        // Value varValue = env.getVariableFrame()->getVariable(mVariableNameSymbolId);
         Value varValue = mVarExpr->evaluate(env);
         Value returnValue = Value(0);
         if (!varValue.isPointer()) {
@@ -116,7 +113,6 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     Value* ObjectFieldExpression::evaluatePtr(Environment& env) {
         Value varValue = mVarExpr->evaluate(env);
-        // Value varValue = env.getVariableFrame()->getVariable(mVariableNameSymbolId);
         if (!varValue.isPointer()) {
             Tools::errorf("RunTime Error: Object %s not found.\n",varValue.toString().c_str());
             return nullptr;
@@ -137,7 +133,6 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     Value MethodExpression::evaluate(Environment& env) {
 
-        // Value objectPointer = env.getVariableFrame()->getVariable(mPointerNameSymbolId);
         Value objectPointer = mVarExpr->evaluate(env);
         if (!objectPointer.isPointer()) {
             Tools::errorf("RunTime Error: Object %s not found.\n", objectPointer.toString().c_str());
@@ -284,68 +279,6 @@ namespace DreiZehn {
             }
             default: return Value(); // should not reached!
         }
-
-        // if (lVal.isDouble() || rVal.isDouble()) {
-        //     switch (mOp) {
-        //         case TokenType::Plus:  return Value(lVal.getDouble() + rVal.getDouble());
-        //         case TokenType::Minus: return Value(lVal.getDouble() - rVal.getDouble());
-        //         case TokenType::Mul:   return Value (lVal.getDouble() * rVal.getDouble());
-        //         case TokenType::Div: {
-        //             double r = rVal.getDouble();
-        //             if (r == 0) {
-        //                 Tools::errorf("Runtime Error Division by 0! ( %d / %d )\n", lVal.getDouble(), rVal.getDouble());
-        //                 return Value(0);
-        //             }
-        //              return Value (lVal.getDouble()  / r);
-        //         }
-        //         default: return Value(); // should not reached!
-        //     }
-        // } else  if (lVal.isInt() && rVal.isInt()) {
-        //     switch (mOp) {
-        //         case TokenType::Plus:  return Value(lVal.asFastInt() + rVal.asFastInt());
-        //         case TokenType::Minus: return Value(lVal.asFastInt() - rVal.asFastInt());
-        //         case TokenType::Mul:   {
-        //             double d = lVal.getDouble()  * rVal.getDouble();
-        //             if (d >= INT32_MIN && d <= INT32_MAX) {
-        //                 return Value(static_cast<uint32_t>(d));
-        //             }
-        //             return d;
-        //         }
-        //         case TokenType::Div: {
-        //             if (rVal.asFastInt() == 0) {
-        //                 Tools::errorf("Runtime Error Division by 0! ( %d / %d )\n", lVal.asFastInt(), rVal.asFastInt());
-        //                 return Value(0);
-        //             }
-        //             double l = lVal.getDouble();
-        //             double r = rVal.getDouble();
-        //             double res = l / r;
-        //
-        //             return Value(static_cast<int32_t>(res));
-        //         }
-        //         default: return Value(); // should not reached!
-        //     }
-        // } else if (lVal.isStringId() || rVal.isStringId()) {
-        //     switch (mOp) {
-        //         case TokenType::Plus:  return Value(std::string(lVal.toString() + rVal.toString()));
-        //         default: return Value(); // return empty invalid operation
-        //     }
-        // } else {
-        //     switch (mOp) {
-        //         case TokenType::Plus:  return Value(lVal.getDouble() + rVal.getDouble());
-        //         case TokenType::Minus: return Value(lVal.getDouble() - rVal.getDouble());
-        //         case TokenType::Mul:   return Value(lVal.getDouble() * rVal.getDouble());
-        //         case TokenType::Div:   {
-        //             double r = rVal.getDouble();
-        //             if (r == 0.0) {
-        //                 Tools::PrintRuntimeError("Division by 0.0!\n");
-        //                 return Value(0.0);
-        //             }
-        //
-        //             return Value(lVal.getDouble() / r);
-        //         }
-        //         default: return Value(); // should not reached!
-        //     }
-        // }
 
 
         return Value();
@@ -617,12 +550,6 @@ namespace DreiZehn {
         } else {
             frame->setVariable(ReturnValueSymbol, Value(0));
         }
-        // if (this->mExpression) {
-        //     Value retVal = this->mExpression->evaluate(env);
-        //     frame->setVariable(SymbolTable::insert("__return_value__"), retVal);
-        // } else {
-        //     frame->setVariable(SymbolTable::insert("__return_value__"), Value(0));
-        // }
         return FlowSignal::Return;
     };
 
@@ -666,7 +593,6 @@ namespace DreiZehn {
         }
         Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
         for (int i = 0; i < count; i++) {
-            // loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
             *iterValPtr = Value(i);
 
             for (auto& statement : this->mBody) {
@@ -700,7 +626,6 @@ namespace DreiZehn {
         Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
         if (start > end ) {
             for (int i = start; i >= end; --i) {
-                // loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
                 *iterValPtr = Value(i);
 
                 for (auto& statement : this->mBody) {
@@ -718,7 +643,6 @@ namespace DreiZehn {
 
         } else {
             for (int i = start; i <= end; ++i) {
-                // loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, Value(i));
                 *iterValPtr = Value(i);
 
                 for (auto& statement : this->mBody) {
@@ -744,8 +668,6 @@ namespace DreiZehn {
         auto checkCondition = [&]() -> bool {
             Value condVal = this->mCondition->evaluate(loopEnv);
             return (condVal.getInt() != 0);
-            // return (condVal.isInt() && condVal.asFastInt() != 0) ||
-            // (condVal.isDouble() && condVal.asFastDouble() != 0.0);
         };
 
         while (checkCondition()) {
@@ -789,7 +711,6 @@ namespace DreiZehn {
         for (size_t itr = 0; itr < count; itr++) {
             Value* curValue = obj->onGetArrayIndexPtr(itr);
             *iterValPtr = *curValue;
-            // loopEnv.getVariableFrame()->setVariable(this->mIteratorVarNameSymbolId, *curValue);
 
             for (auto& statement : this->mBody) {
                 FlowSignal sig = env.execute(statement.get(), loopEnv);

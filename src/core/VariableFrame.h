@@ -68,8 +68,6 @@ public:
     // -------------------------------------------------------------------------
 private:
     void internalSetVariable(Value& pre, Value& post) {
-        // if (pre.isPointer()) static_cast<ValueObject*>(pre.asPointer())->setAssigned(false);
-        // if (post.isPointer()) static_cast<ValueObject*>(post.asPointer())->setAssigned(true);
         if (pre.isPointer())  pre.asPointerObject()->setAssigned(false);
         if (post.isPointer()) post.asPointerObject()->setAssigned(true);
         pre = post;
@@ -108,7 +106,6 @@ public:
     inline bool tryUpdateVariable(uint32_t id, Value val) {
         auto it = mVariables.find(id);
         if (it != mVariables.end()) {
-            // it->second = val;
             internalSetVariable(it->second , val);
             return true;
         }
@@ -147,9 +144,6 @@ public:
             return mParentFrame->getVariablePtr(id);
         }
 
-        // ignore !
-        // std::string varName = SymbolTable::getName(id);
-        // Tools::errorf("Variable not found: %s\n", varName.c_str());
 
         // not found we set a new one !
         mVariables[id] = Value(0);
@@ -225,19 +219,10 @@ public:
        //DEBUG: if (!calledOnDestructor) listGarbageObjects();
     }
     // -------------------------------------------------------------------------
-
-
-
 };
 // -----------------------------------------------------------------------------
 // TOOLS
 // -----------------------------------------------------------------------------
-inline std::string genArrayVar(const std::string& varname, Value keyVal) {
-    if (keyVal.isInt()) return varname + "____" + std::to_string( keyVal.asFastInt());
-    if (keyVal.isDouble()) return varname + "____" + std::to_string( keyVal.getInt());
-    if (keyVal.isStringId()) return varname + "____" + keyVal.getStringRef();
-    return "";
-}
 
 inline bool isValidVariableName(const std::string& str) {
     if (str.empty()) return false; // Handle empty string if needed

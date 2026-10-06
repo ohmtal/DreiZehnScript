@@ -144,29 +144,11 @@ namespace DreiZehn {
         // ----- User defined methods ----
         FunctionMap::ScriptFunction* sf;
         if (Globals::gCurEnv) {
-            // try to fetch from mMethodMap
-            // // auto it = mMethodMap.find(methodNameSymbolId);
-            // // if (it != mMethodMap.end()) {
-            // //     sf = it->second;
-            // // } else {
-            // //     // lookup Object name
-            // //     std::string methodStr = SymbolTable::getName(methodNameSymbolId);
-            // //     uint32_t fnId = SymbolTable::insert(std::string(mObjectTypeName + "::" + methodStr));
-            // //     sf = FunctionMap::GetScriptFunction(fnId);
-            // //     if (!sf && !mClassName.empty()) {
-            // //         fnId = SymbolTable::insert(std::string(mClassName + "::" + methodStr));
-            // //         sf = FunctionMap::GetScriptFunction(fnId);
-            // //     }
-            // //     // add to mMethodMap
-            // //     if (sf) mMethodMap[methodNameSymbolId] = sf;
-            // // }
-
             sf = getScriptMethod(methodNameSymbolId);
 
             if (sf) {
                 args.insert(args.begin(), Value(this));
                 ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, args);
-                // must be done in Frame! this->setAssigned(false); //reset after call!
                 return true;
             }
         }

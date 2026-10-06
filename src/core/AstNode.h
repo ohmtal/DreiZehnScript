@@ -160,8 +160,8 @@ struct ValueExpression : public Expression {
 };
 
 // Variables -------------------------------------------------------------------
+
 struct VariableExpression : public Expression {
-    // std::string mName;
     uint32_t mVariableNameSymbolId = 0;
 
     VariableExpression(uint32_t n) : mVariableNameSymbolId(n) {
@@ -198,7 +198,6 @@ struct ObjectFieldExpression : public Expression {
 };
 // function calls --------------------------------------------------------------
 struct CallExpression : public Expression {
-    // std::string mFuncName;
     uint32_t mFuncSymbolId = 0;
     std::vector<std::unique_ptr<Expression>> arguments;
 
@@ -250,9 +249,6 @@ struct MethodExpression : public Expression {
 
 // struct AssignStatement : public AssignBaseStatement {
 struct AssignStatement : public Expression {
-    // uint32_t mVarNameSymbolId;
-    // uint32_t mFieldSymbolId = 0;
-
     std::unique_ptr<Expression> mVarExpr; //left variable expression
     std::unique_ptr<Expression> mRhs; // Right-Hand Side
 
@@ -330,7 +326,6 @@ struct AssignOPStatement : public Expression {
         mNodeType  = NodeType::AssignOPStatement;
     }
 
-    // void execute(Environment& env) override;
      Value evaluate(Environment& env) override;
 };
 // short if => ? : ---------------------------------------------------------------
@@ -375,15 +370,11 @@ struct UnaryMinusExpression : public Expression {
 };
 
 // If -------------------------------------------------------------------------
-// struct IfStatement : public ASTNode {
 struct IfStatement : public BlockStatement {
     std::unique_ptr<Expression> mCondition;
-    // body is defined in BlockStatement
+    // NOTE: body is defined in BlockStatement
 
     std::shared_ptr<BlockStatement> mElseBranch = nullptr;
-    // pre elif:
-    // // std::vector<std::shared_ptr<ASTNode>> mElseBody;
-    // //  bool mIsInElseBranch = false;
 
     IfStatement(std::unique_ptr<Expression> cond) : mCondition(std::move(cond)) {
         mNodeType  = NodeType::IfStatement;
@@ -405,23 +396,19 @@ struct ElIfStatement: public IfStatement {
 };
 // fn --------------------------------------------------------------------------
 struct FunctionDefineStartNode : public ASTNode {
-    // std::string mFnName;
     uint32_t mFnNameSymbolId;
     FunctionDefineStartNode(uint32_t symId) : mFnNameSymbolId(symId) {
         mNodeType  = NodeType::FunctionDefineStartNode;
     }
 };
-
 // end -------------------------------------------------------------------------
 struct FunctionDefineEndNode : public ASTNode {
    FunctionDefineEndNode() {
         mNodeType  = NodeType::EndNode;
   }
 };
-
 // for -------------------------------------------------------------------------
 struct ForStatement : public BlockStatement {
-    // std::string mIteratorVarName;
     uint32_t mIteratorVarNameSymbolId = 0;
     std::unique_ptr<Expression> mStartExpr;
     std::unique_ptr<Expression> mEndExpr;
@@ -467,7 +454,6 @@ struct BreakStatement : public FlowBaseStatement {
     inline FlowSignal execute(Environment& env) override {
         return FlowSignal::Break;
     };
-
 };
 // continue  -------------------------------------------------------------------------
 struct ContinueStatement : public FlowBaseStatement {
@@ -477,7 +463,6 @@ struct ContinueStatement : public FlowBaseStatement {
     inline FlowSignal execute(Environment& env) override {
         return FlowSignal::Continue;
     };
-
 };
 // return -------------------------------------------------------------------------
 struct ReturnStatement : public FlowBaseStatement {
@@ -486,10 +471,7 @@ struct ReturnStatement : public FlowBaseStatement {
         mNodeType  = NodeType::ReturnStatement;
     }
     FlowSignal execute(Environment& env) override;
-
-
 };
-
 // While -------------------------------------------------------------------------
 struct WhileStatement : public BlockStatement {
     std::unique_ptr<Expression> mCondition;

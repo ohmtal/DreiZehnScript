@@ -299,7 +299,8 @@ Struct [0x5576cc6a5440]
 - [X] move pixel_buffer to toolbox/
 - [X] printf errorf to a overwritable class or add a handler 
         ==> LogHandler
-
+- [X] cleaned up stuff
+- [~] Variable Cache attepmt - was fast but did not work so well.... 
 ---
 
 

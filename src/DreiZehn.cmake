@@ -9,6 +9,8 @@ set(DREIZEHN_SRC
 
     # core
     ${CMAKE_CURRENT_LIST_DIR}/core/AstNode.h
+    ${CMAKE_CURRENT_LIST_DIR}/core/AstNode.cpp
+
     ${CMAKE_CURRENT_LIST_DIR}/core/FunctionMap.h
     ${CMAKE_CURRENT_LIST_DIR}/core/FunctionMap.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/Lexer.h
@@ -23,8 +25,6 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/ScriptLoader.h
     ${CMAKE_CURRENT_LIST_DIR}/ScriptLoader.cpp
 
-    # Noderunner:
-    ${CMAKE_CURRENT_LIST_DIR}/noderunner/AstNode_noderunner.cpp
 
     # Functions and objects
     ${CMAKE_CURRENT_LIST_DIR}/functions/CoreFunctions.h

@@ -52,13 +52,7 @@ namespace DreiZehn {
                 continue;
             }
 
-            // handled by lexer/parser
-            // // Shell Script Style
-            // if (fullLine[firstRealChar] == '#') {
-            //     fullLine.clear();
-            //     continue;
-            // }
-            // Lua Style
+            // Lua Style for Kate with lua syntax highlight
             if (fullLine[firstRealChar] == '-' &&
                 firstRealChar + 1 < fullLine.length() &&
                 fullLine[firstRealChar + 1] == '-') {
@@ -109,9 +103,6 @@ namespace DreiZehn {
                     // ifBlock
                     if (outerBlock.mType == BlockType::IfBlock) {
                         auto* parentIf = dynamic_cast<IfStatement*>(outerBlock.mBlockNodePointer);
-                        // pre elif:
-                        // if (parentIf && parentIf->mIsInElseBranch) {
-                        //     parentIf->mElseBody.push_back(sharedLoop);
                         if (parentIf && parentIf->mElseBranch != nullptr) {
                             parentIf->mElseBranch->mBody.push_back(sharedLoop);
                         } else {
@@ -128,38 +119,18 @@ namespace DreiZehn {
                     blockStack.push_back({bType, 0, blockPtr});
                     continue;
                 }
-                else
                 // ---- end -----
-                // if (dynamic_cast<FunctionDefineEndNode*>(ast.get())) {
-                if (ast->mNodeType == NodeType::EndNode) {
+                else if (ast->mNodeType == NodeType::EndNode) {
                     if (blockStack.size() <= 1) {
                         Tools::PrintParseError("Syntax-Error: 'end' without starting statement.");
                         return nullptr;
                     }
 
-                    //NOTE nested if with less end :
-                    // 0.6c removed again !
-                    // while (blockStack.size() > 1 && blockStack.back().mIsImplicit) {
-                    //     blockStack.pop_back();
-                    // }
-
                     blockStack.pop_back();
 
                     continue;
                 }
-                else
-                // --- else ---
-                // pre elif:
-                // if (ast->mNodeType == NodeType::ElseMarkerNode) {
-                //     if (blockStack.empty() || blockStack.back().mType != BlockType::IfBlock) {
-                //         Tools::PrintParseError("Syntax-Error: 'else' without matching 'if'.");
-                //         return nullptr;
-                //     }
-                //     auto* actualIf = dynamic_cast<IfStatement*>(blockStack.back().mBlockNodePointer);
-                //     if (actualIf) actualIf->mIsInElseBranch = true;
-                //     continue;
-                // }
-                if (ast->mNodeType == NodeType::ElseMarkerNode) {
+                else if (ast->mNodeType == NodeType::ElseMarkerNode) {
                     if (blockStack.empty() || blockStack.back().mType != BlockType::IfBlock) {
                         Tools::PrintParseError("Syntax-Error: 'else' without matching 'if'.");
                         return nullptr;
@@ -171,8 +142,7 @@ namespace DreiZehn {
                     }
                     continue;
                 }
-                else
-                if (ast->mNodeType == NodeType::ElIfStatement) {
+                else if (ast->mNodeType == NodeType::ElIfStatement) {
                     if (blockStack.empty() || blockStack.back().mType != BlockType::IfBlock) {
                         Tools::PrintParseError("Syntax-Error: 'elif' without matching 'if'.");
                         return nullptr;
@@ -197,16 +167,14 @@ namespace DreiZehn {
                     FunctionMap::RegisteredScriptFunctions[currentBlock.mFuncNameSymbolId].body.push_back(sharedAst);
                 } else {
                     auto* actualIf = dynamic_cast<IfStatement*>(currentBlock.mBlockNodePointer);
-                    // if (currentBlock.mType == BlockType::IfBlock && actualIf && actualIf->mIsInElseBranch) {
-                    //     actualIf->mElseBody.push_back(sharedAst);
                     if (currentBlock.mType == BlockType::IfBlock && actualIf && actualIf->mElseBranch != nullptr) {
                         actualIf->mElseBranch->mBody.push_back(sharedAst);
                     } else {
                         currentBlock.mBlockNodePointer->mBody.push_back(sharedAst);
                     }
                 }
-            }
-        }
+            } // for statements
+        } // while lines ...
 
         if (blockStack.size() > 1) {
             Tools::PrintParseError("Syntax-Error: missing end");

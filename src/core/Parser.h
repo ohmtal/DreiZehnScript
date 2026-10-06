@@ -327,6 +327,7 @@ private:
                 {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());
+
                     if (lastPos == mPos) {
                         Tools::PrintParseError("In function call:");
                         break;
@@ -430,7 +431,6 @@ public:
                     return nullptr;
                 }
                 std::string varName = advance().mValue;
-
                 auto varExpr = parseMath();
 
                 return std::make_unique<ForEachStatement>(SymbolTable::insert(varName)
@@ -567,7 +567,7 @@ public:
                     FunctionMap::ModuleRegistry::LoadAll(*Globals::gCurEnv);
                 } else {
                     if (!FunctionMap::ModuleRegistry::Load(modname, *Globals::gCurEnv)) {
-                        Tools::errorf("Failed to load Module %s\n", modname);
+                        Tools::errorf("Failed to load Module %s\n", modname.c_str());
                     }
                 }
 

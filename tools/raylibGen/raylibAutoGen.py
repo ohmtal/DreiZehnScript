@@ -194,7 +194,6 @@ def generate_raylib_bindings(json_path, output_cpp_path):
         elif d_type == "COLOR":
             cpp.append(f"    {{")
             cpp.append(f"        ValueObjectColor* const_color = new ValueObjectColor({d_name});")
-            cpp.append(f"        const_color->mAssigned = 1;")
             cpp.append(f"        RegisterConstants(\"rl::{d_name}\", Value(const_color));")
             cpp.append(f"    }}")
         elif d_type == "STRING":

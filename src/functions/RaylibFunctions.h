@@ -35,7 +35,6 @@ namespace DreiZehn::Raylib {
         Value a;
 
         ValueObjectColor(const Color& val): ValueObject(TypeRaylibColor) {
-            mAssigned = 0;
             r = Value((double)val.r);
             g = Value((double)val.g);
             b = Value((double)val.b);
@@ -90,132 +89,132 @@ namespace DreiZehn::Raylib {
 
         {
             ValueObjectColor* const_color = new ValueObjectColor(LIGHTGRAY);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::LIGHTGRAY", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(GRAY);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::GRAY", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(DARKGRAY);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::DARKGRAY", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(YELLOW);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::YELLOW", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(GOLD);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::GOLD", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(ORANGE);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::ORANGE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(PINK);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::PINK", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(RED);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::RED", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(MAROON);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::MAROON", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(GREEN);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::GREEN", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(LIME);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::LIME", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(DARKGREEN);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::DARKGREEN", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(SKYBLUE);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::SKYBLUE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(BLUE);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::BLUE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(DARKBLUE);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::DARKBLUE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(PURPLE);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::PURPLE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(VIOLET);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::VIOLET", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(DARKPURPLE);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::DARKPURPLE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(BEIGE);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::BEIGE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(BROWN);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::BROWN", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(DARKBROWN);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::DARKBROWN", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(WHITE);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::WHITE", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(BLACK);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::BLACK", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(BLANK);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::BLANK", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(MAGENTA);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::MAGENTA", Value(const_color));
         }
         {
             ValueObjectColor* const_color = new ValueObjectColor(RAYWHITE);
-            const_color->mAssigned = 1;
+
             RegisterConstants("rl::RAYWHITE", Value(const_color));
         }
 

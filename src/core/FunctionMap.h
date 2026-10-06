@@ -72,6 +72,9 @@ namespace DreiZehn::FunctionMap {
     inline ConstantsLookupMap RegisteredConstants;
 
     inline void RegisterConstants(const std::string& name, Value value) {
+        if (value.isPointer()) {
+            value.asPointerObject()->setAssigned(true);
+        }
         RegisteredConstants[SymbolTable::insert( name )] = value;
     }
     inline Value* getConstants( uint32_t symbolId) {

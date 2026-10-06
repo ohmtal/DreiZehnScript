@@ -38,7 +38,7 @@ the ModuleRegistry when your Programm is loaded:
 
 so in script you can load it with:
 ```
-import Module::Foo
+import Foo
 ```
 
 if you don't need a import system you also can run `RegisterFooFunctions(env)` directly. 

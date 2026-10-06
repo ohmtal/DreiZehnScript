@@ -1,0 +1,13 @@
+-- -----------------------------------------------------------------------------
+-- DreiZehn Script: examples/helloworld.13
+-- -----------------------------------------------------------------------------
+
+-- famous hello world
+print "Hello World!"
+
+-- with string variable example:
+str1 = "Hello"
+str2 = "World"
+str  = str1 + " " + str2 + "!"
+print str
+

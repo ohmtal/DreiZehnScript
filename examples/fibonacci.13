@@ -1,0 +1,13 @@
+-- -----------------------------------------------------------------------------
+-- DreiZehn Script examples/fibonacci.13
+-- -----------------------------------------------------------------------------
+
+-- calculate fibonacci n number
+fn fib n                              # define a user function with parameter 'n'
+    if n <= 1; return n;;             # 2 statements separated by ';' using ';;' as 'end' alias
+    return (fib n - 1) + (fib n - 2)  # recursive function call. Brackets encapsulate the parameter scope
+end
+
+forRange i 13                         # forRange counts 'i' from 0 to 13
+    print "Fib" i "=" (fib i)
+end

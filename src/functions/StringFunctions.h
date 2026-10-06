@@ -319,7 +319,7 @@ namespace DreiZehn {
     // --- RegisterStringFunctions ---
     // =============================================================================
 
-    void RegisterStringFunctions( ) {
+    void RegisterStringFunctions(Environment& env ) {
         using namespace FunctionMap;
 
         // ---------------------------------------------------------------------

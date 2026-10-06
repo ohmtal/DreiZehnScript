@@ -232,13 +232,11 @@ namespace DreiZehn {
         }
     };
     // -------------------------------------------------------------------------
-    void RegisterVectorFunctions() {
+    void RegisterVectorFunctions(Environment& env) {
         // init Methods:
         VectorValueObject::RegisterSymbols();
 
-
         using namespace FunctionMap;
-
         RegisterFunction("Vector::new", [](std::vector<Value>& args, Value& ret) -> bool {
             VectorValueObject* arr = new VectorValueObject();
             ret = Value(arr);
@@ -250,11 +248,11 @@ namespace DreiZehn {
                 }
                 arr->mElements.push_back(arg);
             }
-
-
             return true;
         });
-
     }
+
+
+
 
 }

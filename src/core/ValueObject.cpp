@@ -18,6 +18,27 @@ namespace DreiZehn {
 
 
     // -------------------------------------------------------------------------
+    int RegisterUserObjectType(std::string typeName) {
+
+        gLastValueObjectType++;
+        gUserObjectTypes[gLastValueObjectType] = {typeName};
+        std::string typeIdent = "Type";
+        typeIdent = typeIdent + typeName;
+        FunctionMap::RegisterConstants(typeIdent, gLastValueObjectType);
+        return gLastValueObjectType;
+    }
+
+
+    const char* GetObjectTypeName(ValueObject* object) {
+        if (!object) return "";
+        auto it = gUserObjectTypes.find(object->mType);
+        if (it != gUserObjectTypes.end()) {
+            return it->second.mName.c_str();
+        }
+        return "";
+    }
+
+    // -------------------------------------------------------------------------
     bool ValueObjectProperty::ValidateArgs( std::vector<Value>& args) {
         if (args.size() < mMinParams || args.size() > mMaxParams) {
             Tools::errorf("Method %s parameter error. min:%d max:%d\n%s\n", mName.c_str(),mMinParams, mMaxParams, mHelp.c_str());
@@ -109,6 +130,16 @@ namespace DreiZehn {
             return true;
         }
 
+        // ----------- getType ---------------
+        if (methodNameSymbolId == sGetTypeId) {
+            if (args.size() != 0 ) {
+                Tools::errorf("return the type id. Usage: getType\n");
+            }
+            ret = Value(mType);
+            return true;
+        }
+
+
 
         // ----- User defined methods ----
         FunctionMap::ScriptFunction* sf;
@@ -163,9 +194,13 @@ namespace DreiZehn {
             return  &it->second;
         }
 
-        // not found we set a new dynamic one !
-        mDynmaicFields[fieldSymbolId] = Value(0);
-        return &mDynmaicFields[fieldSymbolId];
+        if (mAutoCreateDynamicFields) {
+            // not found we set a new dynamic one !
+            mDynmaicFields[fieldSymbolId] = Value(0);
+            return &mDynmaicFields[fieldSymbolId];
+        }
+
+        return nullptr;
 
     }
     // -------------------------------------------------------------------------
@@ -175,13 +210,14 @@ namespace DreiZehn {
         if (it != mDynmaicFields.end()) {
             it->second = value;
             return true;
-        } else {
+        }
+        else if (mAutoCreateDynamicFields)  {
             // insert
             mDynmaicFields[fieldSymbolId] = value;
             return true;
         }
 
-        // Tools::errorf("Runtime Error SetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
+        Tools::errorf("Runtime Error SetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
         return false;
     }
 }

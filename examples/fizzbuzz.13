@@ -1,0 +1,54 @@
+-- -----------------------------------------------------------------------------
+-- DreiZehn examples/fizzbuzz.13
+-- -----------------------------------------------------------------------------
+
+-- Example with script functions:
+
+-- FizzBuzz while - well formed
+fn doWhile
+    i = 1
+    while i <= 100
+        if i % 15 == 0
+            print "FizzBuzz"
+        elif i % 3 == 0
+            print "Fizz"
+        elif i % 5 == 0
+            print "Buzz"
+        else
+            print i;
+        end
+        i++
+    end
+end
+
+-- FizzBuzz for - well formed
+fn doFor
+    for i 1 100
+        if i % 15 == 0
+            print "FizzBuzz"
+        elif i % 3 == 0
+            print "Fizz"
+        elif i % 5 == 0
+            print "Buzz"
+        else
+            print i;
+        end
+    end
+end
+
+-- FizzBuzz for - short written using ';' and 'end' alias ';;'
+-- writing all to a string with '+' concat
+fn doForShort
+    result = ""
+    for i 1 100
+        if i % 15 == 0;  result = result + "FizzBuzz "
+        elif i % 3 == 0; result = result + "Fizz "
+        elif i % 5 == 0; result = result + "Buzz "
+        else result = result + i + " ";;
+    end
+    print result
+end
+
+-- doWhile
+-- doFor
+doForShort

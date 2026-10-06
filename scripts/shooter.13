@@ -2,10 +2,10 @@
 WIDTH = 320
 HEIGHT = 240
 
-Player = struct "x" "y"
-Bullets = Vector::new; Bullets->fill 10 (struct "x" "y" "active")
-Enemies = Vector::new; Enemies->fill 6 (struct "x" "y" "active" "speed")
-Stars = Vector::new; Stars->fill 30 (struct "x" "y" "speed")
+Player = Struct::new "x" "y"
+Bullets = Vector::new; Bullets->fill 10 (Struct::new "x" "y" "active")
+Enemies = Vector::new; Enemies->fill 6 (Struct::new "x" "y" "active" "speed")
+Stars = Vector::new; Stars->fill 30 (Struct::new "x" "y" "speed")
 
 Fenster = Fenster::new "Retro Space Shooter" WIDTH HEIGHT 1.5
 if (!Fenster) return ;;

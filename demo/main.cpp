@@ -7,10 +7,6 @@
 
 
 #include "DreiZehn.h"
-#include "functions/DebugFunctions.h"
-#include "functions/ArrayFunctions.h"
-#include "functions/VectorFunctions.h"
-#include "functions/PointVectorObjectFunctions.h"
 
 #ifdef DREIZEHN_FENSTER
 #include "functions/FensterFunctions.h"
@@ -26,15 +22,6 @@
 #endif
 
 #include "linenoise/linenoise.h"
-
-void RegisterUserFunc() {
-    using namespace DreiZehn;
-    // // FunctionMap::RegisterFunction("fnFoo", [](std::vector<Value>& args, Value& ret) -> bool {
-    // //     printf("The Foo was here ...\n");
-    // //     ret = Value(4711.0815);
-    // //     return true;
-    // // });
-}
 
 
 
@@ -134,27 +121,22 @@ int main(int argc, char* argv[]) {
     using namespace DreiZehn;
 
     Environment env;
+    Init(env);
 
-    RegisterCoreFunctions(env);
-    RegisterStringFunctions();
-    RegisterMathFunctions();
-    RegisterUserFunc();
-
-    RegisterDebugFunctions();
-    RegisterVectorFunctions();
-    // RegisterArrayFunctions();
-    RegisterPointVectorObjectFunctions();
     #ifdef DREIZEHN_FENSTER
-    RegisterFensterFunctions();
-    RegisterFensterAudioFunctions();
+    FunctionMap::ModuleRegistry::Register("Fenster", RegisterFensterFunctions);
+    FunctionMap::ModuleRegistry::Register("FensterAudio", RegisterFensterAudioFunctions);
     #endif
     #ifdef DREIZEHN_SDL3
-    RegisterSDL3Functions();
+    FunctionMap::ModuleRegistry::Register("SDL3", RegisterSDL3Functions);
     #endif
 
     #ifdef DREIZEHN_RAYLIB
-    Raylib::RegisterRaylibFunctions();
+    FunctionMap::ModuleRegistry::Register("Raylib", Raylib::RegisterRaylibFunctions);
     #endif
+
+    // using ModuleRegistry for testing -  i load all!
+    FunctionMap::ModuleRegistry::LoadAll(env);
 
 
     OnBreath = [&env]() -> bool {

@@ -99,7 +99,7 @@ namespace DreiZehn {
         }
     };
     // -------------------------------------------------------------------------
-    void RegisterPointVectorObjectFunctions() {
+    void RegisterPointVectorObjectFunctions(Environment& env) {
         using namespace FunctionMap;
 
         Vector3Object::RegisterSymbols();

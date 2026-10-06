@@ -506,6 +506,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
 
     Value BinarySingleRightOpExpression::evaluate(Environment& env)  {
+        if (!mRight) return Value();
         Value rVal = mRight->evaluate(env);
         return Value(!rVal.getInt());
     }

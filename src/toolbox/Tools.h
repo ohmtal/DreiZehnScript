@@ -43,6 +43,13 @@ namespace DreiZehn::Tools{
     #error "UNKNOWN OS"
     #endif
     // -------------------------------------------------------------------------
+    inline bool begins_with(const std::string& text, const std::string& prefix)
+    {
+        return text.size() >= prefix.size() &&
+               text.compare(0, prefix.size(), prefix
+        ) == 0;
+    }
+    // -------------------------------------------------------------------------
     inline bool ends_with(const std::string& text, const std::string& suffix)
     {
         return text.size() >= suffix.size() &&

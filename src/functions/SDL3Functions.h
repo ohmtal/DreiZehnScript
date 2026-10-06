@@ -42,7 +42,7 @@ namespace DreiZehn {
     };
 
 
-    void RegisterSDL3Functions( ) {
+    void RegisterSDL3Functions(Environment& env) {
 
         using namespace FunctionMap;
 

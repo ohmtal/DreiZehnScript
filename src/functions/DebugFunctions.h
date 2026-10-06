@@ -11,7 +11,7 @@
 namespace DreiZehn {
 
 
-    void RegisterDebugFunctions( ) {
+    void RegisterDebugFunctions(Environment& env ) {
          using namespace FunctionMap;
         // ---------------------------------------------------------------------
         RegisterFunction("debug::toggle", [](std::vector<Value>& args, Value& ret) -> bool {

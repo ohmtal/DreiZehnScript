@@ -74,7 +74,7 @@ namespace DreiZehn::Raylib {
 
     };
     // -------------------------------------------------------------------------
-    void RegisterRaylibFunctions() {
+    void RegisterRaylibFunctions(Environment& env) {
 
         using namespace FunctionMap;
 

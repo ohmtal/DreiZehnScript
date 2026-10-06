@@ -215,7 +215,7 @@ namespace DreiZehn {
     }; //  struct FensterAudioObject
 
     // -------------------------------------------------------------------------
-    void RegisterFensterAudioFunctions() {
+    void RegisterFensterAudioFunctions(Environment& env) {
 
         using namespace FunctionMap;
 

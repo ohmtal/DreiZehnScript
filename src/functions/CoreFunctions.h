@@ -35,10 +35,12 @@ namespace DreiZehn {
 
         StructObject() : ValueObject(TypeStructObject) {
             mSupportClone = true;
+            mAutoCreateDynamicFields = false;
         }
 
         StructObject(std::vector<Value>& args) : ValueObject(TypeStructObject) {
             mSupportClone = true;
+            mAutoCreateDynamicFields = false;
 
             for(size_t i = 0; i < args.size(); i++) {
 
@@ -82,33 +84,31 @@ namespace DreiZehn {
             return ValueObject::onMethodCall(methodId, args, ret);
         }
         // -------------------------------------------------------------------------
-        // override to keep the order
-        Value* onGetFieldPtr(uint32_t fieldSymbolId) override{
-            auto it = mDynmaicFields.find(fieldSymbolId);
-            if (it != mDynmaicFields.end()) {
-                return  &it->second;
-            }
-
-            return nullptr;
-
-        }
-        // -------------------------------------------------------------------------
-        bool onSetField(uint32_t fieldSymbolId, const Value& value) override{
-            auto it = mDynmaicFields.find(fieldSymbolId);
-            if (it != mDynmaicFields.end()) {
-                it->second = value;
-                return true;
-            }
-            return false;
-        }
+        // // override to keep the order
+        // Value* onGetFieldPtr(uint32_t fieldSymbolId) override{
+        //     auto it = mDynmaicFields.find(fieldSymbolId);
+        //     if (it != mDynmaicFields.end()) {
+        //         return  &it->second;
+        //     }
+        //
+        //     return nullptr;
+        //
+        // }
+        // // -------------------------------------------------------------------------
+        // bool onSetField(uint32_t fieldSymbolId, const Value& value) override{
+        //     auto it = mDynmaicFields.find(fieldSymbolId);
+        //     if (it != mDynmaicFields.end()) {
+        //         it->second = value;
+        //         return true;
+        //     }
+        //     return false;
+        // }
     };
     // =============================================================================
     // --- RegisterCoreFunctions ---
     // =============================================================================
-
-
-
     void RegisterCoreFunctions( Environment& env) {
+
         using namespace FunctionMap;
 
         // ---------------------------------------------------------------------
@@ -125,7 +125,7 @@ namespace DreiZehn {
 
         // ---------------------------------------------------------------------
         StructObject::RegisterSymbols();
-        RegisterFunction("struct", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("Struct::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
             if(args.size() == 0) {
                 Tools::errorf("Usage struct [string field] [string field] ...\n");
                 return true;

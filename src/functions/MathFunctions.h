@@ -11,7 +11,7 @@
 #include "ScriptLoader.h"
 
 namespace DreiZehn {
-    void RegisterMathFunctions() {
+    void RegisterMathFunctions(Environment& env) {
         std::srand(std::time(nullptr)); // setup random seed
 
         using namespace FunctionMap;

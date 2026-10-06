@@ -1051,7 +1051,7 @@ namespace DreiZehn {
     }; //  struct FensterObject
 
     // -------------------------------------------------------------------------
-    void RegisterFensterFunctions() {
+    void RegisterFensterFunctions(Environment& env) {
 
         using namespace FunctionMap;
 

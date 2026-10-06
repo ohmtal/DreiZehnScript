@@ -278,9 +278,15 @@ Struct [0x5576cc6a5440]
 - [X] optimized for iter loops :)
 - [X] small optimize register ReturnValueSymbol once
 - [X] removed string concat from += !! tryed to optimize it but this is slow!
+- [X] Added FunctionMap::ModuleRegistry using `modules` and `import`
+- [X] Syntax complete for 1.0 ? 
+    - [X] added some examples in examples/
+    - [X] inital handbook and examples
 
-- [ ] Syntax complete for 1.0 ? ... think so - CheatSheet (EBFN also ?) 
+    
+## 0.7d 
 
+    
 ---
 
 
@@ -288,8 +294,10 @@ Struct [0x5576cc6a5440]
 - [ ] change printf errorf to a overwritable class or add a handler 
 - [ ] fix memleaks fenster_audio .... it's "fixed" but still leak 
 
+
 ## maybe:
 - [ ] Bytecode continue .... 
+- [ ] Handbook - CheatSheet (EBFN also ?) 
 - [ ] MiniAudio bindings (cmake already prepared)
 - [ ] move more code to cpp because compiletime is raising - carefully do not break the speed
 - [ ] UserFunction object to call them like a lambda from a list... 

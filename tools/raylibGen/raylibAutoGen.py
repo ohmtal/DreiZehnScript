@@ -157,7 +157,7 @@ def generate_raylib_bindings(json_path, output_cpp_path):
     cpp.append("// ==========================================")
     cpp.append("// INITIALIZATION AND REGISTRATION")
     cpp.append("// ==========================================\n")
-    cpp.append("void RegisterRaylibFunctions() {")
+    cpp.append("void RegisterRaylibFunctions(Environment& env) {")
     cpp.append("    using namespace FunctionMap;\n")
 
     cpp.append("    // Register User Object Types and Field Symbols")

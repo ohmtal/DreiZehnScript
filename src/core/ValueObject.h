@@ -20,7 +20,8 @@ struct ValueObject {
     int mType;
     int mAssigned = 0;
 
-    bool mSupportClone = false;
+    bool mSupportClone = false; // you need to add a clone override to your class (see also struct)
+    bool mAutoCreateDynamicFields = true; // you can deny autocreate (see also struct)
 
     std::string mClassName = "";
 
@@ -28,6 +29,7 @@ struct ValueObject {
     static inline uint32_t sClassNameMethodId = SymbolTable::insert("setClassName");
     static inline uint32_t sDumpMethodId = SymbolTable::insert("dump");
     static inline uint32_t sIsMethodId = SymbolTable::insert("isScriptMethod");
+    static inline uint32_t sGetTypeId = SymbolTable::insert("getType");
 
     // cache the type name for user methods
     std::string mObjectTypeName = "";
@@ -158,23 +160,9 @@ struct ValueObjectProperty {
 // --- RegisterUserObjectType ---
 // =============================================================================
 
-inline int RegisterUserObjectType(std::string typeName, bool initial = false) {
+int RegisterUserObjectType(std::string typeName);
+const char* GetObjectTypeName(ValueObject* object);
 
-    gLastValueObjectType++;
-    gUserObjectTypes[gLastValueObjectType] = {typeName};
-    return gLastValueObjectType;
-}
-
-
-inline const char* GetObjectTypeName(ValueObject* object) {
-    if (!object) return "";
-    auto it = gUserObjectTypes.find(object->mType);
-    if (it != gUserObjectTypes.end()) {
-        return it->second.mName.c_str();
-    }
-    return "";
-
-}
 // =============================================================================
 // --- RegisterObjectProperty ---
 // =============================================================================

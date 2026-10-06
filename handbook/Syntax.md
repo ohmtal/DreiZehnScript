@@ -72,7 +72,8 @@ end of each line you want to continue.
 - On Math to force the order : `( x + 5 ) * 10` 
 - To capsulate a function call: `print (myVec->at 10) player.x` 
 This is imporant so the parser known when the parameter input of `->at` end. 
-
+- To capsulate a negativ number in a function call: `print str::substr "NoteBook" (-4)`. Else math thinks you want to calculate "NoteBook" - 4
+- To capsulate a `not` : `print  (!true) ? "jo" : "ne"` 
 
 
 ## 2. Data Types & Literals

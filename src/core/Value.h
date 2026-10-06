@@ -240,6 +240,11 @@ public:
         if (!isStringId()) return empty;
         return StringTable::get(asStringId());
     }
+    inline const char * getStringChars() {
+        if (!isStringId()) return "";
+        return StringTable::get(asStringId()).c_str();
+    }
+
 
     inline const std::string getString() {
         if (!isStringId()) return "";

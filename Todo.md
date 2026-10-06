@@ -301,6 +301,12 @@ Struct [0x5576cc6a5440]
         ==> LogHandler
 - [X] cleaned up stuff
 - [~] Variable Cache attepmt - was fast but did not work so well.... 
+
+## 0.7e
+- [ ] working on "str::" functions - why do i need the String object ?! 
+- [ ] -4 and !true must be capsulate by () ,,,mhh
+
+
 ---
 
 
@@ -315,7 +321,9 @@ Struct [0x5576cc6a5440]
 - [ ] move more code to cpp because compiletime is raising - carefully do not break the speed
 - [ ] UserFunction object to call them like a lambda from a list... 
 - [ ] finish Raylib importer << stuck at structs inside structs and pointer returns 
-- [ ] validate if there is a usable SDL3 auto bind script parser
+- [ ] validate if there is a usable SDL3 auto bind script parser 
+    - maybe https://github.com/TerensTare/SDL_parser
+    - or https://deepwiki.com/ppy/SDL3-CS/2.1-c-binding-generation
 - [ ] switch / case
  
 ## aborted but still in code:

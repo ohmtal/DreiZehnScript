@@ -37,6 +37,23 @@ namespace DreiZehn::FunctionMap {
             return nullptr;
     }
 
+    // ---------------------------------------------------------------------
+    inline bool ArgsCheckString( const char* command,std::vector<Value>& args, uint32_t count) {
+        if (args.size() < count ) {
+            Tools::errorf("Usage: %s  [string value] %d times",command, count);
+            return false;
+        }
+
+        for (int i = 0; i < count; i++) {
+            if (!args[i].isStringId() ) {
+                Tools::errorf("Usage: %s  [string value] %d times",command, count);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // --------------- SCRIPT FUNCTION ----------------------
 
     struct ScriptFunction {

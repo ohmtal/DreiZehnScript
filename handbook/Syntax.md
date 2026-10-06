@@ -1,12 +1,15 @@
 # DreiZehn-Script: Syntax
 
 ## 1. Syntax 
+
 - The ';' spearator is only needed if you write multiple statements in one line.
+
 - Compare: 
     - Or: ||
     - And: &&
     - Equal: ==
     - Non Equal: !=
+    
 - Supported operations: 
     - Add: +, ++, +=
     - Sub: -, --, -=
@@ -18,6 +21,26 @@
     - Bitwise XOr: ^
     - Bitwise And: &
     - Strings can be concat with `+` and compared with `==`/`!=`
+    
+- Keywords
+    - if        Conditional if
+    - else      Conditional else
+    - elif      Conditional elif
+    - fn        start a function definition
+    - end       end a if,else,elif,for, forRange, forEach the short alias is `;;`
+    - for       Start a loop `for i 1 10` count from 1 to 10 (inclusive)
+    - break     break a loop 
+    - return    return [value] from a function optional a return value
+    - continue  continue a loop 
+    - while     while condion - loop 
+    - forRange  start `forRange i 10` count from 0 to 9 - alias forrange
+    - forEach   start `forEach item myVector` iterate - alias foreach 
+    - not       logical not alias for `!`
+    - and       logical and alias for `&&`
+    - or        logical or alias for `||`   
+    - import    import one module `import Math` or `import All` to import all modules
+    - define    define a constants `define HALF_PI 3.14159265358979323846 / 2.0`
+    
 - Note Object fields only allow assign Inline Operation (`++`) or Operation Assign (`+=`) is not 
 implemented so far.
 - If: `if i == 5; print "is 5"; else print "is not 5"; end` 
@@ -39,7 +62,7 @@ You always need a end at the end. Same for loops.
 
 - Uncomment: 
     - Full Line at the start of a line: `#` or `--`
-    - Inline `x = 6 # this is a inline commend # + 3` ==> x become 9
+    - Inline `x = 6 # this is a inline commend # + 3` ==> x is 9
     
 - NewLine The parser was inital designed to parse line by line. If you like to 
 add a linebreak for one statement `if` for example use the Backslash `\` at the 

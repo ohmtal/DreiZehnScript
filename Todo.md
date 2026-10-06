@@ -297,13 +297,13 @@ Struct [0x5576cc6a5440]
 - [X] add a `#define name value` for constanted also in lexer/parser to setup constants 
 - [X] update scripts with import
 - [X] move pixel_buffer to toolbox/
-
+- [X] printf errorf to a overwritable class or add a handler 
+        ==> LogHandler
 
 ---
 
 
 ## still missing:
-- [ ] change printf errorf to a overwritable class or add a handler 
 - [ ] fix memleaks fenster_audio .... it's "fixed" but still leak 
 
 

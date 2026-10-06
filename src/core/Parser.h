@@ -533,7 +533,7 @@ public:
                 }
 
                 if (!Globals::gCurEnv) {
-                    Tools::PrintParseError("System-Error: current eviroment not set!\n");
+                    Tools::PrintParseError("System-Error: current enviroment not set!\n");
                     return nullptr;
                 }
 
@@ -555,12 +555,15 @@ public:
                 std::string modname = advance().mValue;
 
                 if (!Globals::gCurEnv) {
-                    Tools::PrintParseError("System-Error: current eviroment not set!\n");
+                    Tools::PrintParseError("System-Error: current enviroment not set!\n");
                     return nullptr;
                 }
-
+                if (modname.empty()) {
+                    Tools::PrintParseError("System-Error: module name empty.\n");
+                    return nullptr;
+                }
                 // direct import
-                if (modname == "All") {
+                if ( modname == "All") {
                     FunctionMap::ModuleRegistry::LoadAll(*Globals::gCurEnv);
                 } else {
                     if (!FunctionMap::ModuleRegistry::Load(modname, *Globals::gCurEnv)) {

@@ -38,13 +38,21 @@ void Init(Environment& env) {
     // -------- print --------------
     // ---------------------------------------------------------------------
     RegisterFunction("print", [](std::vector<Value>& args, Value& ret) -> bool {
+        std::string line = "";
         for ( auto& value : args) {
-            value.print();
+            line = line + value.toString() + " ";
         }
-        Tools::printf("\n");
+        Tools::printf("%s\n", line.c_str());
         return true;
     });
-
+    RegisterFunction("error", [](std::vector<Value>& args, Value& ret) -> bool {
+        std::string line = "";
+        for ( auto& value : args) {
+            line = line + value.toString() + " ";
+        }
+        Tools::errorf("%s\n", line.c_str());
+        return true;
+    });
     // ---------------------------------------------------------------------
     // run
     // ---------------------------------------------------------------------

@@ -1,5 +1,11 @@
 -- DreiZehn Fenster Demo
 
+import Core
+import Math
+import String
+import Fenster
+import Vector
+
 fenster = Fenster::new "DreiZehn Fenster" 320 240 2
 
 
@@ -26,7 +32,7 @@ count = pb->setData \
 0 0 0xff00ff00 0 0xff00ff00 0 0 0 \
 0 0xff00ff00 0 0 0 0xff00ff00 0 0 \
 0xff00ff00 0 0 0 0 0 0xff00ff00 0
-s
+
 print "PixelBuffer imported" count "bytes"
 fenster->drawBuffer 30 10 pb
 

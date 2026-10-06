@@ -1,4 +1,7 @@
 # Test for DreiZehn Script
+import Core
+import Debug
+
 print "--- Run Engine-Test ---"
 
 print "at start:"; debug::printenv

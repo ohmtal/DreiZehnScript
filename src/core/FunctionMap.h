@@ -90,19 +90,18 @@ namespace DreiZehn::FunctionMap {
     private:
         struct ModuleDef {
             std::string name = "";
-            uint32_t    symbolId  = 0;
             ModuleCallback callback = nullptr;
             bool isLoaded = false;
 
-            bool load(Environment& env) {
-                if (isLoaded) return true;
-                if (!callback) return false;
+            int load(Environment& env) {
+                if (isLoaded) return 2;
+                if (!callback) return 0;
                 callback(env);
                 isLoaded = true;
-                return true;
+                return 1;
             }
         };
-        std::unordered_map<uint32_t, ModuleDef> modules;
+        std::unordered_map<std::string, ModuleDef> modules;
 
         static ModuleRegistry& get() {
             static ModuleRegistry instance;
@@ -117,8 +116,8 @@ namespace DreiZehn::FunctionMap {
             return get().internalPrint();
         }
 
-        inline static bool Load(uint32_t moduleSymbolId,  Environment& env) {
-            return get().internalLoad(moduleSymbolId, env);
+        inline static bool Load(std::string moduleName,  Environment& env) {
+            return get().internalLoad(moduleName, env);
         }
 
         inline static bool LoadAll(Environment& env) {
@@ -126,34 +125,33 @@ namespace DreiZehn::FunctionMap {
         }
 
 
-        inline static bool isLoaded(uint32_t moduleSymbolId) {
-            return get().internalIsLoaded(moduleSymbolId);
+        inline static bool isLoaded(std::string moduleName) {
+            return get().internalIsLoaded(moduleName);
         }
 
     protected:
-        uint32_t internalRegister(const std::string& name, ModuleCallback callback) {
+        bool internalRegister(const std::string& name, ModuleCallback callback) {
             uint32_t symId = SymbolTable::insert(name);
-            assert(!internalIsRegistered(symId) && "Module already registered!");
+            if (internalIsRegistered(name)) {
+                Tools::errorf("Module %s already registered!", name.c_str());
+                return false;
+            }
 
             ModuleDef def;
-            std::string constantName = "Module::";
-            constantName = constantName + name;
-            RegisterConstants(constantName, symId);
-            def.name = constantName;
-            def.symbolId = symId;
+            def.name = name;
             def.callback = callback;
             def.isLoaded = false;
-            modules[symId] = def;
+            modules[name] = def;
             return symId;
         }
 
-        bool internalIsRegistered(uint32_t moduleSymbolId) {
-            auto it = modules.find(moduleSymbolId);
+        bool internalIsRegistered(std::string moduleName) {
+            auto it = modules.find(moduleName);
             return  ( it != modules.end() );
         }
 
-        bool internalIsLoaded(uint32_t moduleSymbolId) {
-            auto it = modules.find(moduleSymbolId);
+        bool internalIsLoaded(std::string moduleName) {
+            auto it = modules.find(moduleName);
             return  (it != modules.end() && it->second.isLoaded);
         }
 
@@ -168,23 +166,23 @@ namespace DreiZehn::FunctionMap {
         bool internalLoadAll( Environment& env) {
             Tools::printf("Import all modules:\n");
             for ( auto& [key, value] : modules)  {
-                Tools::printf("     - %s: %s\n", value.name.c_str(), value.load(env)? "OK": "FAIL");
+                int res = value.load(env);
+                if (res == 1) Tools::printf("     - %s: %s\n", value.name.c_str(), "OK");
+                else if (res == 0) Tools::printf("     - %s: %s\n", value.name.c_str(), "FAIL");
             }
             return true;
         }
-        bool internalLoad(uint32_t moduleSymbolId, Environment& env) {
-            auto it = modules.find(moduleSymbolId);
+        bool internalLoad(std::string moduleName, Environment& env) {
+            auto it = modules.find(moduleName);
             if (it != modules.end()) {
-                bool result = it->second.load(env);
-                Tools::printf("Import: %s: %s\n", it->second.name.c_str(), result ? "OK": "FAIL");
-                return result;
+                int res = it->second.load(env);
+                if (res == 1)  Tools::printf("Import: %s: %s\n", it->second.name.c_str(), "OK");
+                else if (res == 0) Tools::printf("Import: %s: %s\n", it->second.name.c_str(), "FAIL");
+                return res != 0;
             }
             return false;
         }
     };
-
-
-
 
 } //namespace DreiZehn::FunctionMap
 

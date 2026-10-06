@@ -2,6 +2,12 @@
 --  ported from raylib-elfScript to BaseElf / NativSDL to CrazyElf to DreiZehn
 --  original: BSD-License, Copyright (c) 2025 JP Mortiboys (@themushroompirates)
 --  -----------------------------------------------------------------------------
+import Core
+import Math
+import String
+import SDL3
+import Vector
+
 print " StarField v2 @13 startup...."
 -- DreiZehn global variables are also available by the functions
 -- if you want to make clear it's global you may use a prefix separated by ':'
@@ -12,7 +18,7 @@ maxW = W / 2
 minW = maxW * -1
 maxH = H / 2
 minH = maxH * -1
-STAR_COUNT  = 8200
+STAR_COUNT  = 420
 START_DIV   = 0.03125
 Speed       = 0.4
 fontScale   = 1.2

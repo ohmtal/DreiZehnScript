@@ -1,3 +1,4 @@
+import Core
 i = 0
 -- forRange i 1000000000
 -- end

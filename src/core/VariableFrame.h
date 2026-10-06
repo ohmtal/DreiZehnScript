@@ -14,6 +14,10 @@
 #include "ValueObject.h"
 #include "toolbox/Tools.h"
 
+#ifndef DREIZEHN_INITIAL_GARBAGE_SIZE
+#define DREIZEHN_INITIAL_GARBAGE_SIZE 2048
+#endif
+
 namespace DreiZehn {
 
 
@@ -40,7 +44,7 @@ public:
         gCurrentFrame = this;
         if (parentFrame == nullptr) {
             gMasterFrame = this;
-            mGarbageCollection.reserve(2048);
+            mGarbageCollection.reserve(DREIZEHN_INITIAL_GARBAGE_SIZE);
         }
         mParentFrame = parentFrame;
     }
@@ -158,7 +162,7 @@ public:
         assert(gMasterFrame && "addToGarbageCollection but Frame have not MasterFrame!!!");
         gMasterFrame->mGarbageCollection.push_back(obj);
         _GarbageCheckCounter++;
-        if (_GarbageCheckCounter > 512) {
+        if (_GarbageCheckCounter > DREIZEHN_INITIAL_GARBAGE_SIZE / 2) {
             _GarbageCheckCounter = 0;
             doGarbageCollection(false);
         }

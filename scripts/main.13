@@ -6,6 +6,7 @@
 #   - ModuleLoop
 #   - ModuleDelete
 # ------------------------------------------------------------------------------
+import All
 
 -- Avail Modules
 loader::Modules = Vector::new "FensterShooter" "Fenster" "RayFirst"

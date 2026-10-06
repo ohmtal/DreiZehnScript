@@ -1,4 +1,9 @@
 # Test for DreiZehn Script
+import Core
+import Debug
+import Math
+import String
+
 print "--- Run Engine-Test ---"
 print "------ UserMethods and BaseObject --------"
 fn Foo::Bar this; print "Foo::Bar this=" this; end

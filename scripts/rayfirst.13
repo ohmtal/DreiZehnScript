@@ -1,3 +1,7 @@
+import Core
+import Math
+import Raylib
+
 screenWidth    = 800
 screenHeight   = 450
 

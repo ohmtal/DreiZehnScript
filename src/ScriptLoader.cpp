@@ -52,11 +52,12 @@ namespace DreiZehn {
                 continue;
             }
 
-            // Shell Script Style
-            if (fullLine[firstRealChar] == '#') {
-                fullLine.clear();
-                continue;
-            }
+            // handled by lexer/parser
+            // // Shell Script Style
+            // if (fullLine[firstRealChar] == '#') {
+            //     fullLine.clear();
+            //     continue;
+            // }
             // Lua Style
             if (fullLine[firstRealChar] == '-' &&
                 firstRealChar + 1 < fullLine.length() &&

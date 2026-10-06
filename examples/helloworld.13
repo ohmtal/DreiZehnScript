@@ -1,7 +1,7 @@
 -- -----------------------------------------------------------------------------
 -- DreiZehn Script: examples/helloworld.13
 -- -----------------------------------------------------------------------------
-#import Module::Core
+import Core
 
 -- famous hello world
 print "Hello World!"

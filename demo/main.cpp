@@ -136,10 +136,7 @@ int main(int argc, char* argv[]) {
     #endif
 
     #ifdef DREIZEHN_LOADALL_MODULES
-    // using ModuleRegistry for testing -  i load all!
     FunctionMap::ModuleRegistry::LoadAll(env);
-    #else
-    FunctionMap::ModuleRegistry::Load(SymbolTable::insert("Core"), env);
     #endif
 
 
@@ -165,7 +162,9 @@ int main(int argc, char* argv[]) {
 
     linenoiseSetCompletionCallback(completion_callback);
 
-
+    // #ifndef DREIZEHN_LOADALL_MODULES
+    // FunctionMap::ModuleRegistry::Load("Core", env);
+    // #endif
     std::vector<OpenBlock> blockStack;
     Tools::printf(">> Console ready .. type quit or exit to escape <<\n");
     while (true) {

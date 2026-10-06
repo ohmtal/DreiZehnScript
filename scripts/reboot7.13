@@ -1,4 +1,4 @@
 print "----- Assignment redesign attempt 0.7 -----"
-
+#import Core
 
 while core::breath; core::sleep 16 ;;

@@ -61,6 +61,7 @@ enum class TokenType {
 
     , Question, Colon //short if then
 
+    , Define, Import
 
     , NoToken // for peekPrev pos < 1
     , EOFToken
@@ -136,9 +137,12 @@ inline const char* tokenTypeToString(TokenType type) {
         case TokenType::Question:       return "Question";
         case TokenType::Colon:          return "Colon";
 
-        case TokenType::EOFToken:      return "EOFToken";
+        case TokenType::Import:         return "Import";
+        case TokenType::Define:         return "Define";
 
-        default:                       return "UnknownToken";
+        case TokenType::EOFToken:       return "EOFToken";
+
+        default:                        return "UnknownToken";
     }
 }
 
@@ -404,6 +408,8 @@ public:
                 else if (id == "not") { tokens.push_back({TokenType::Not, "not"});  }
                 else if (id == "and") { tokens.push_back({TokenType::And, "and"});  }
                 else if (id == "or") { tokens.push_back({TokenType::Or, "or"});  }
+                else if (id == "import") { tokens.push_back({TokenType::Import, "import"});  }
+                else if (id == "define") { tokens.push_back({TokenType::Define, "define"});  }
                 else {
                     tokens.push_back({TokenType::Identifier, id});
                 }

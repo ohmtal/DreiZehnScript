@@ -27,45 +27,89 @@ void Init(Environment& env) {
     ModuleRegistry::Register("Debug", RegisterDebugFunctions);
     ModuleRegistry::Register("PointVector", RegisterPointVectorObjectFunctions);
 
+
+    // ---------------------------------------------------------------------
+    // also push some CORE Constants here:
+    RegisterConstants("true", Value(1));
+    RegisterConstants("false", Value(0));
+    // ---------------------------------------------------------------------
+
+    // ---------------------------------------------------------------------
+    // -------- print --------------
+    // ---------------------------------------------------------------------
+    RegisterFunction("print", [](std::vector<Value>& args, Value& ret) -> bool {
+        for ( auto& value : args) {
+            value.print();
+        }
+        Tools::printf("\n");
+        return true;
+    });
+
+    // ---------------------------------------------------------------------
+    // run
+    // ---------------------------------------------------------------------
+    RegisterFunction("run", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        if (args.size() != 1) {
+            Tools::errorf("file name requires for run, Usage: run filename\n");
+            ret = Value(0);
+            return true;
+        }
+
+        if (args[0].isStringId() ) {
+            Tools::printf("Loading Script: %s\n", args[0].getStringRef().c_str());
+            bool success = RunScriptFile(args[0].getStringRef(), env);
+            ret = Value(success ? 1 : 0);
+            return success;
+        }
+
+
+        Tools::errorf("file name requires for run\n");
+        ret = Value(0);
+        return true;
+    });
+
+    // ---------------------------------------------------------------------
+    // list modules
+    // ---------------------------------------------------------------------
     RegisterFunction("modules", [&env](std::vector<Value>& args, Value& ret) -> bool {
         ModuleRegistry::Print();
         return true;
     });
-
-    // FIXME move import to lexer and call it when it's found there !!
-    RegisterFunction("import", [&env](std::vector<Value>& args, Value& ret) -> bool {
-        if (args.size() == 0) {
-            Tools::errorf("Usage example: import Module::Core Module::Math...");
+    // ---------------------------------------------------------------------
+    // int
+    // ---------------------------------------------------------------------
+    RegisterFunction("int::cast", [](std::vector<Value>& args, Value& ret) -> bool {
+        if (args.size() != 1) {
+            Tools::errorf("Usage: int::cast value\n");
             return false;
         }
+        if (args[0].isInt()) ret =  args[0];
+        else
+            if (args[0].isDouble()) ret = Value(args[0].getInt());
+            else
+                if (args[0].isStringId()) ret = Value( std::atoi( args[0].getStringRef().c_str()));
+                else
+                    Tools::PrintRuntimeError("Cant cast pointer to integer!\n");
+
+        return true;
+    });
 
 
-        ret = Value(1);
-
-        for (auto& arg: args) {
-            if (arg.isStringId()) {
-                std::string str = arg.getStringRef();
-                if (str.compare("Module::All") == 0 || str.compare("All") == 0) {
-                    ret = Value(ModuleRegistry::LoadAll(env));
-                    return true;
-                } else {
-                    uint32_t lookupId = 0;
-                    if (!Tools::begins_with(str,"Module::")) str = "Module::" + str;
-                    lookupId = SymbolTable::insert(str);
-                    if (!ModuleRegistry::Load(lookupId,env)) {
-                        ret = Value(0);
-                        Tools::errorf("Failed to load module named: %s\n", str.c_str());
-                    }
-                }
-            } else if (arg.isNumber()) {
-                uint32_t id = arg.getUInt();
-                if (!ModuleRegistry::Load(id,env)) {
-                    ret = Value(0);
-                    Tools::errorf("Failed to load module %d\n", id);
-                }
-            }
+    // ---------------------------------------------------------------------
+    // float
+    // ---------------------------------------------------------------------
+    RegisterFunction("float::cast", [](std::vector<Value>& args, Value& ret) -> bool {
+        if (args.size() != 1) {
+            Tools::errorf("Usage: float::cast value\n");
+            return false;
         }
-
+        if (args[0].isDouble()) ret =  args[0];
+        else
+            if (args[0].isInt()) ret = Value(args[0].getDouble());
+            else
+                if (args[0].isStringId()) ret = Value( std::atof( args[0].getStringRef().c_str()));
+                else
+                    Tools::PrintRuntimeError("Cant cast pointer to float!\n");
 
         return true;
     });
@@ -73,3 +117,4 @@ void Init(Environment& env) {
 }
 
 } //namespace
+

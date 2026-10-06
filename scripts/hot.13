@@ -1,4 +1,6 @@
 -- DreiZehn HOT Reload Testscript
+import Core
+
 fn rl
     # reload itself....
     run "scripts/hot.13"
@@ -14,7 +16,7 @@ end
 
 
 if !foo
-    foo = String::new "running...."
+    foo = "running...."
     i = 0
     Main
 end

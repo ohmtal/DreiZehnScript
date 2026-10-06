@@ -26,6 +26,8 @@ set(BUILD_WITH_MA ${WITH_MA_DEFAULT} CACHE BOOL "Build Application with MiniAudi
 set(SANITIZE_DEFAULT OFF)
 set(BUILD_WITH_SANITIZE ${SANITIZE_DEFAULT} CACHE BOOL "Build Application with -fsanitize=address -g")
 
+set(LOADALL_DEFAULT ON)
+set(BUILD_WITH_LOADALL ${LOADALL_DEFAULT} CACHE BOOL "Build Application with load all available modules at start")
 # -----------------------------------------------------------------------------
 project(DreiZehn C CXX)
 
@@ -96,6 +98,12 @@ if (BUILD_WITH_MINIAUDIO)
         set(MA_LINKLIB pthread m dl)
     endif()
 
+    add_compile_definitions(DREIZEHN_MINIAUDIO)
+
+endif()
+
+if (BUILD_WITH_LOADALLc)
+    add_compile_definitions(DREIZEHN_LOADALL_MODULES)
 endif()
 
 # ------------- Main

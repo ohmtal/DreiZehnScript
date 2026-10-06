@@ -135,8 +135,12 @@ int main(int argc, char* argv[]) {
     FunctionMap::ModuleRegistry::Register("Raylib", Raylib::RegisterRaylibFunctions);
     #endif
 
+    #ifdef DREIZEHN_LOADALL_MODULES
     // using ModuleRegistry for testing -  i load all!
     FunctionMap::ModuleRegistry::LoadAll(env);
+    #else
+    FunctionMap::ModuleRegistry::Load(SymbolTable::insert("Core"), env);
+    #endif
 
 
     OnBreath = [&env]() -> bool {
@@ -163,7 +167,7 @@ int main(int argc, char* argv[]) {
 
 
     std::vector<OpenBlock> blockStack;
-
+    Tools::printf(">> Console ready .. type quit or exit to escape <<\n");
     while (true) {
 
         if (!ConsoleCall(env)) break;

@@ -285,8 +285,16 @@ Struct [0x5576cc6a5440]
 
     
 ## 0.7d 
-
-    
+- [ ] import does not work when it's running :
+    lol the function is looked up while parsing so the Interpreter do not 
+    get a function and it's intepreted as unknown variable!
+    The lookup on parsing is the best for speed so my Module system is useless!
+    ===> the whole script needs to be parsed again since it's in the wrong
+         token type or i need to change the preparser ... looking for import 
+    THIS => add `#import` to lexer/parser and call it directly , as function was nice but 
+            it sucks because of the lookup before the rest of the tokens is generated!!!
+- [ ] add `--` and `#` fully to lexer/parser and remove it from preparser  (ScriptLoader)    
+- [ ] add a `#define name value` for constanted also in lexer/parser to setup constants 
 ---
 
 

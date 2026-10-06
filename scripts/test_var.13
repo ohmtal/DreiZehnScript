@@ -1,4 +1,6 @@
-# Benchmark-Test for DreiZehn Script (0.6)
+# Benchmark-Test for DreiZehn Script (0.8)
+#import Module::Core Module::Math
+
 JLOOPS = 25
 ILOOPS = 1000000
 -- ILOOPS = 2

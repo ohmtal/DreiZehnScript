@@ -32,29 +32,37 @@ void Init(Environment& env) {
         return true;
     });
 
+    // FIXME move import to lexer and call it when it's found there !!
     RegisterFunction("import", [&env](std::vector<Value>& args, Value& ret) -> bool {
         if (args.size() == 0) {
             Tools::errorf("Usage example: import Module::Core Module::Math...");
             return false;
         }
 
+
+        ret = Value(1);
+
         for (auto& arg: args) {
             if (arg.isStringId()) {
                 std::string str = arg.getStringRef();
                 if (str.compare("Module::All") == 0 || str.compare("All") == 0) {
-                    ModuleRegistry::LoadAll(env);
+                    ret = Value(ModuleRegistry::LoadAll(env));
                     return true;
                 } else {
                     uint32_t lookupId = 0;
                     if (!Tools::begins_with(str,"Module::")) str = "Module::" + str;
                     lookupId = SymbolTable::insert(str);
-                    if (!ModuleRegistry::Load(lookupId,env))
-                        Tools::errorf("Failed to load module named: %s", str.c_str());
+                    if (!ModuleRegistry::Load(lookupId,env)) {
+                        ret = Value(0);
+                        Tools::errorf("Failed to load module named: %s\n", str.c_str());
+                    }
                 }
             } else if (arg.isNumber()) {
                 uint32_t id = arg.getUInt();
-                if (!ModuleRegistry::Load(id,env))
-                    Tools::errorf("Failed to load module %d", id);
+                if (!ModuleRegistry::Load(id,env)) {
+                    ret = Value(0);
+                    Tools::errorf("Failed to load module %d\n", id);
+                }
             }
         }
 

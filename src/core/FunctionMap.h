@@ -166,7 +166,7 @@ namespace DreiZehn::FunctionMap {
         }
 
         bool internalLoadAll( Environment& env) {
-            Tools::printf("Load all modules:\n");
+            Tools::printf("Import all modules:\n");
             for ( auto& [key, value] : modules)  {
                 Tools::printf("     - %s: %s\n", value.name.c_str(), value.load(env)? "OK": "FAIL");
             }
@@ -174,9 +174,9 @@ namespace DreiZehn::FunctionMap {
         }
         bool internalLoad(uint32_t moduleSymbolId, Environment& env) {
             auto it = modules.find(moduleSymbolId);
-            if (it != modules.end() && !it->second.isLoaded) {
+            if (it != modules.end()) {
                 bool result = it->second.load(env);
-                Tools::printf("Load: %s: %s\n", it->second.name.c_str(), result ? "OK": "FAIL");
+                Tools::printf("Import: %s: %s\n", it->second.name.c_str(), result ? "OK": "FAIL");
                 return result;
             }
             return false;

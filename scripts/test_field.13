@@ -1,4 +1,6 @@
-print "Dynamic Field Benchmark-Test for DreiZehn Script (0.7)"
+print "Dynamic Field Benchmark-Test for DreiZehn Script (0.8)"
+#import Module::Core Module::Math
+
 JLOOPS = 25
 ILOOPS = 1000000
 

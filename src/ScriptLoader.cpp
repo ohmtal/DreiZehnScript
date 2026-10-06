@@ -66,6 +66,7 @@ namespace DreiZehn {
             }
 
             Globals::currentScriptLine = fullLine;
+
             Lexer lexer(fullLine);
             fullLine.clear();
 

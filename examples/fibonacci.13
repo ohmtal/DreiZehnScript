@@ -1,6 +1,7 @@
 -- -----------------------------------------------------------------------------
 -- DreiZehn Script examples/fibonacci.13
 -- -----------------------------------------------------------------------------
+#import Module::Core
 
 -- calculate fibonacci n number
 fn fib n                              # define a user function with parameter 'n'

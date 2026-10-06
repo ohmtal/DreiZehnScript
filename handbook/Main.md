@@ -71,7 +71,15 @@ end
 -- we count from 99 down to 1
 for i 99 1
     if i > 2
+        -- print: simply write all parameters you want to print separated by a blank.
+        --   Only if you want to print a function call you need to
+        --   encapsulate the parameter scope by brackets like (myvec->at 0).
+        --   Don't care about if it's float or int or string. DreiZehn does the
+        --   convert for you.
+        --   Note: If you add an object to print, it print the pointer number and type.
+        --
         -- demonstrating '\' usage for multiple lines in one statement
+        
         print i  "bottles of beer on the wall,"  i  "bottles of beer." \
                  "\nTake one down and pass it around,"  i - 1 \
                  "bottles of beer on the wall.\n";

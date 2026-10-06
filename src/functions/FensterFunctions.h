@@ -98,7 +98,7 @@ namespace DreiZehn::Fenster {
     void rotate90_clockwise(const pixel_buffer& src, pixel_buffer& dest) {
         dest.width = src.height;
         dest.height = src.width;
-        const uint32_t TILE_SIZE = 32; // Passt gut in den L1-Cache
+        const uint32_t TILE_SIZE = 32;
 
         for (uint32_t ty = 0; ty < src.height; ty += TILE_SIZE) {
             for (uint32_t tx = 0; tx < src.width; tx += TILE_SIZE) {
@@ -112,7 +112,7 @@ namespace DreiZehn::Fenster {
             }
         }
     }
-    // OpenMP
+    // OpenMP << not used so far
     void rotate_arbitrary(const pixel_buffer& src, pixel_buffer& dest, float angle_rad) {
         float cos_a = std::cos(angle_rad);
         float sin_a = std::sin(angle_rad);

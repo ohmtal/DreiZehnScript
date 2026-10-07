@@ -512,10 +512,10 @@ namespace DreiZehn {
             return *valuePtr;
 
         // this is like a handbreak !!
-        // } else if (valuePtr->isStringId() || rightHand.isStringId()) {
-        //     if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (std::string( valuePtr->toString() +  rightHand.toString() ));
-        //     else return Value(0);
-        //     return *valuePtr;
+        } else if (valuePtr->isStringId() && rightHand.isStringId()) {
+            if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (std::string( valuePtr->getStringRef() +  rightHand.getStringRef() ));
+            else return Value(0);
+            return *valuePtr;
         } else {
             double doubleval = valuePtr->getDouble();
             switch(this->mOp) {

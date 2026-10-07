@@ -201,6 +201,11 @@ struct CallExpression : public Expression {
     uint32_t mFuncSymbolId = 0;
     std::vector<std::unique_ptr<Expression>> arguments;
 
+
+    FunctionMap::CallBack* cbCache = nullptr;
+    FunctionMap::ScriptFunction* sfCache = nullptr;
+
+
     CallExpression(uint32_t funcSymbolID, std::vector<std::unique_ptr<Expression>> args)
     : mFuncSymbolId(funcSymbolID), arguments(std::move(args)) {
         mNodeType  = NodeType::CallExpression;

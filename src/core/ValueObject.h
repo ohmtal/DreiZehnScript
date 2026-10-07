@@ -6,12 +6,13 @@
 
 #include <string>
 #include <iostream>
+#include <functional>
 #include "toolbox/Tools.h"
 #include "toolbox/SymbolTable.h"
 
 namespace DreiZehn{
 class Value;
-namespace FunctionMap{ struct  ScriptFunction; }
+namespace FunctionMap{ struct  ScriptFunction; using CallBack = std::function< bool ( std::vector<Value>&, Value& )>; }
 
 // =============================================================================
 // --- ValueObject ---

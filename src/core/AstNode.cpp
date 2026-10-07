@@ -177,12 +177,68 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // CallExpression
     // -------------------------------------------------------------------------
+#define FUNC_CACHE // about 200ms faster
+#ifdef FUNC_CACHE
+    Value CallFunc(Environment& env, const FunctionMap::CallBack* cb
+        , std::vector<std::unique_ptr<Expression>>& arguments, uint32_t symid) {
+        std::vector<Value> evaluatedArgs;
+        for (auto& argExpr : arguments) {
+            if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
+        }
+
+        Value returnValue = Value(0);
+        bool success = (*cb)(evaluatedArgs, returnValue);
+
+        if (!success) {
+            Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
+        }
+        return returnValue;
+    }
+
+    Value CallScriptFunc(Environment& env, const FunctionMap::ScriptFunction* sf
+    , std::vector<std::unique_ptr<Expression>>& arguments) {
+        auto& func = *(sf);
+        Environment localEnv(&env);
+
+        for (size_t i = 0; i < func.parameterNames.size(); ++i) {
+            if (i < arguments.size()) {
+                Value evaluatedArg = arguments[i]->evaluate(env);
+                localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), evaluatedArg, true);
+            }
+        }
+        Value functionResult = Value(0);
+        for (auto& statement : func.body) {
+            FlowSignal sig = env.execute(statement.get(), localEnv);
+
+            if (sig == FlowSignal::Return) {
+                Value retVal = localEnv.getVariableFrame()->getVariable(ReturnValueSymbol);
+                return retVal;
+            }
+        }
+
+        return functionResult;
+    }
+    // -------------------------------------------------------------------------
     Value CallExpression::evaluate(Environment& env) {
-        FunctionMap::CallBack* cb = nullptr;
+        // test_fibo (33) 6.488u
+        if (cbCache) return CallFunc(env,cbCache,arguments,mFuncSymbolId);
+        if (sfCache) return CallScriptFunc(env,sfCache, arguments);
 
-        cb = FunctionMap::GetCFunction(mFuncSymbolId);
+        cbCache = FunctionMap::GetCFunction(mFuncSymbolId);
+        if (cbCache) return CallFunc(env,cbCache,arguments,mFuncSymbolId);
+
+        sfCache =  FunctionMap::GetScriptFunction(mFuncSymbolId);
+        if (sfCache) return CallScriptFunc(env,sfCache, arguments);
+
+        Tools::errorf("Unknown command: %s\n", SymbolTable::getName(mFuncSymbolId).c_str());
+        return Value();
+
+    }
+#else
+    Value CallExpression::evaluate(Environment& env) {
+
+         FunctionMap::CallBack* cb = FunctionMap::GetCFunction(mFuncSymbolId);
         if (cb) {
-
             std::vector<Value> evaluatedArgs;
             for (auto& argExpr : arguments) {
                 if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
@@ -197,8 +253,7 @@ namespace DreiZehn {
             return returnValue;
         }
 
-        const FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFuncSymbolId);
-
+        FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFuncSymbolId);
         if (sf) {
             auto& func = *(sf);
             Environment localEnv(&env);
@@ -214,7 +269,6 @@ namespace DreiZehn {
                 FlowSignal sig = env.execute(statement.get(), localEnv);
 
                 if (sig == FlowSignal::Return) {
-                    // Value retVal = localEnv.getVariableFrame()->getVariable(SymbolTable::insert("__return_value__"));
                     Value retVal = localEnv.getVariableFrame()->getVariable(ReturnValueSymbol);
                     return retVal;
                 }
@@ -227,6 +281,7 @@ namespace DreiZehn {
         return Value();
 
     }
+#endif
     // -------------------------------------------------------------------------
     // BinaryOpExpression
     // -------------------------------------------------------------------------

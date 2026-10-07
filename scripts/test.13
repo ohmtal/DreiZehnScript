@@ -4,6 +4,18 @@ import Debug
 import Math
 import String
 
+-- calculate fibonacci n number
+fn fib n
+    if n <= 1; return n;;
+    return (fib n - 1) + (fib n - 2)
+end
+
+i = 5
+print "running fib with number:" i
+print "Fib" i "=" (fib i)
+
+
+
 print "--- Run Engine-Test ---"
 print "------ UserMethods and BaseObject --------"
 fn Foo::Bar this; print "Foo::Bar this=" this; end

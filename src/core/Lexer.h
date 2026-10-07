@@ -195,7 +195,7 @@ inline bool isMathType(const Token& op) {
     || op.mType == TokenType::SHL
     || op.mType == TokenType::SHR
     || op.mType == TokenType::Modulo
-    || op.mType == TokenType::Not
+    // || op.mType == TokenType::Not
     || op.mType == TokenType::Question
 
     || op.mType == TokenType::Assign

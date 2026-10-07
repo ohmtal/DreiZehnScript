@@ -303,8 +303,10 @@ Struct [0x5576cc6a5440]
 - [~] Variable Cache attepmt - was fast but did not work so well.... 
 
 ## 0.7e
-- [ ] working on "str::" functions - why do i need the String object ?! 
-- [ ] -4 and !true must be capsulate by () ,,,mhh
+- [X] working on "str::" functions - disabled String object ?! 
+- [X] -4 and !true must be capsulate by () ,,,mhh
+    - not fixed
+    - `-` must be encapsulate 
 
 
 ---

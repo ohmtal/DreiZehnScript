@@ -29,6 +29,7 @@ inline VariableFrame* gCurrentFrame = nullptr;
 // GarbageCollection !!!
 inline VariableFrame* gMasterFrame = nullptr;
 inline size_t _GarbageCheckCounter = 0;
+inline bool GarbageCollectionLocked = false;
 // -----------------------------------------------------------------------------
 class VariableFrame {
 private:
@@ -152,15 +153,47 @@ public:
     // -------------------------------------------------------------------------
     // GarbageCollection
     // -------------------------------------------------------------------------
+    // inline void addToGarbageCollection(ValueObject* obj) {
+    //     assert(gMasterFrame && "addToGarbageCollection but Frame have not MasterFrame!!!");
+    //     gMasterFrame->mGarbageCollection.push_back(obj);
+    //     _GarbageCheckCounter++;
+    //     if (!GarbageCollectionLocked && _GarbageCheckCounter > DREIZEHN_INITIAL_GARBAGE_SIZE / 2) {
+    //         _GarbageCheckCounter = 0;
+    //         doGarbageCollection(false);
+    //     }
+    //
+    // }
+    inline size_t getNextGcPrimeSize(size_t currentCapacity) {
+        static const size_t primeSizes[] = {
+            2048, 4099, 8209, 16411, 32771, 65537, 131101,
+            262147, 524309, 1048583, 2097169, 4194319, 8388617
+        };
+        const size_t numPrimes = sizeof(primeSizes) / sizeof(primeSizes[0]);
+
+        for (size_t i = 0; i < numPrimes; ++i) {
+            if (primeSizes[i] > currentCapacity) {
+                return primeSizes[i];
+            }
+        }
+        return currentCapacity * 2; // Fallback
+    }
     inline void addToGarbageCollection(ValueObject* obj) {
         assert(gMasterFrame && "addToGarbageCollection but Frame have not MasterFrame!!!");
-        gMasterFrame->mGarbageCollection.push_back(obj);
+
+        auto& gcVector = gMasterFrame->mGarbageCollection;
+
+        if (gcVector.size() >= gcVector.capacity()) {
+            size_t newCapacity = getNextGcPrimeSize(gcVector.capacity());
+            gcVector.reserve(newCapacity);
+        }
+
+        gcVector.push_back(obj);
         _GarbageCheckCounter++;
-        if (_GarbageCheckCounter > DREIZEHN_INITIAL_GARBAGE_SIZE / 2) {
+
+        if (!GarbageCollectionLocked && _GarbageCheckCounter > (gcVector.capacity() / 2)) {
             _GarbageCheckCounter = 0;
             doGarbageCollection(false);
         }
-
     }
 
 
@@ -186,6 +219,7 @@ public:
 
            i++;
        }
+       if (GarbageCollectionLocked) Tools::warnf("\n ---- GarbageCollection is locked!!! ----\n");
     }
 
     inline void doGarbageCollection(bool calledOnDestructor) {

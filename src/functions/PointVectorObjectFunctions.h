@@ -26,8 +26,17 @@ namespace DreiZehn {
         Vector3 mVec = {0};
 
 
-        Vector3Object() : ValueObject(TypeVector3Object) { }
+        Vector3Object() : ValueObject(TypeVector3Object) {
+            mSupportClone = true;
+        }
         ~Vector3Object() { }
+
+        virtual ValueObject* clone() override {
+            Vector3Object* clone = new Vector3Object();
+            ValueObject::cloneBase(clone);
+            clone->mVec = this->mVec;
+            return clone;
+        }
 
         inline static ValueObjectProperty mToStringProp;
         inline static ValueObjectProperty mSetProp;

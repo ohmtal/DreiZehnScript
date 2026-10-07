@@ -183,6 +183,12 @@ namespace DreiZehn {
             }
             else
             if (mFillProp.matchMethod(methodId, args)) {
+
+                struct LockGuard {
+                    LockGuard() { GarbageCollectionLocked = true; }
+                    ~LockGuard() { GarbageCollectionLocked = false; }
+                } guard;
+
                 if (!args[0].isNumber()) {
                     Tools::errorf("Usage ->fill count value");
                     ret = Value(0);

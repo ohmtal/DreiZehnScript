@@ -26,9 +26,7 @@ fontScale   = 1.2
 Window      = 0
 Renderer    = 0
 Event       = 0
-Points_X    = 0
-Points_Y    = 0
-Points_Z    = 0
+Points      = 0
 
 
 fn Init
@@ -46,16 +44,14 @@ fn Init
     Renderer = SDL_CreateRenderer Window
     Event = SDL_CreateEvent
 
-    Points_X = Vector::new
-    Points_Y = Vector::new
-    Points_Z = Vector::new
-
-    for i 1 STAR_COUNT
-        Points_X->push  math::random minW maxW
-        Points_Y->push  math::random minH maxH
-        Points_Z->push  math::randomf
+    Points = Vector::new
+    Points->fill STAR_COUNT (Vector3::new)
+    forEach p Points
+        p.x =  math::random minW maxW
+        p.y =  math::random minH maxH
+        p.z =  math::randomf
+        print p
     end
-
     return true
 end
 
@@ -94,38 +90,28 @@ if Init
         SDL_SetRenderDrawColor Renderer 20 20 40 255
         SDL_RenderClear Renderer
 
-        i = 0
-        while i < STAR_COUNT
-            pX = Points_X->get i
-            pY = Points_Y->get i
-            pZ = Points_Z->get i
+        forEach p Points
+            p.z -= Dt * Speed
 
-            pZ -= Dt * Speed
-
-            invZ = 1.0 / pZ
-            screenX = (W * 0.5) + (pX * invZ)
-            screenY = (H * 0.5) + (pY * invZ)
+            invZ = 1.0 / p.z
+            screenX = (W * 0.5) + (p.x * invZ)
+            screenY = (H * 0.5) + (p.y * invZ)
 
 
-            if (pZ < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
-                pX = math::random minW maxW
-                pY = math::random minH maxH
-                pZ = 1.0
+            if (p.z < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
+                p.x = math::random minW maxW
+                p.y = math::random minH maxH
+                p.z = 1.0
 
-                screenX = W + pX
-                screenY = H + pY
+                screenX = W + p.x
+                screenY = H + p.y
             end
 
 
-            radius = math::lerp 2.0 0.3 pZ
+            radius = math::lerp 2.0 0.3 p.z
             SDL_SetRenderDrawColor Renderer 255 255 255 255
             SDL_RenderFillRect Renderer screenX screenY radius radius
 
-            Points_X->set i pX
-            Points_Y->set i pY
-            Points_Z->set i pZ
-
-            i = i + 1
         end
 
 
@@ -150,15 +136,7 @@ SDL_Quit
 Window      = 0
 Renderer    = 0
 Event       = 0
-Points_X    = 0
-Points_Y    = 0
-Points_Z    = 0
+Points      = 0
 
-print "Starfield shutdown completed, running Garbage Collection manually..."
--- Manually Call Garbage Collection:
-core::gc
-
--- you can use:
---  core::listgc
--- to check it worked - if you did use ´run "scripts/StarField.13"´ this on console
-
+print "Starfield shutdown completed"
+--

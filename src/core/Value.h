@@ -176,6 +176,7 @@ public:
         if (!isDouble()) {
             if (isInt()) return (double) getInt();
             else if (isPointer()) return (double) (asPointer() != nullptr);
+            else if (isStringId()) return (double)( getStringRef().length() > 0  );
             else return 0;
         }
         return std::bit_cast<double>(mBits);
@@ -186,6 +187,7 @@ public:
         if (!isDouble()) {
             if (isInt()) return (float) getInt();
             else if (isPointer()) return (float) (asPointer() != nullptr);
+            else if (isStringId()) return (float)( getStringRef().length() > 0  );
             else return 0;
         }
         return (float)std::bit_cast<double>(mBits);
@@ -194,8 +196,9 @@ public:
     inline int64_t getInt64() const {
 
         if (isDouble()) return static_cast<int64_t>(asFastDouble());
-        if (isInt()) return (int64_t)(asFastInt());
-        if (isPointer()) return (int64_t)(asPointer());
+        else if (isInt()) return (int64_t)(asFastInt());
+        else if (isPointer()) return (int64_t)(asPointer());
+        else if (isStringId()) return (int64_t)( getStringRef().length() > 0  );
         return 0;
     }
     // -------------------------------------------------------------------------
@@ -203,6 +206,7 @@ public:
         if (!isInt()) {
             if (isDouble()) return (int32_t) getDouble();
             else if (isPointer()) return (int32_t)(asPointer() != nullptr);
+            else if (isStringId()) return (int32_t)( getStringRef().length() > 0  );
             else return 0;
         }
         return static_cast<int32_t>(mBits & 0xFFFFFFFFULL);
@@ -212,6 +216,7 @@ public:
         if (!isInt()) {
             if (isDouble()) return (uint32_t) getDouble();
             else if (isPointer()) return (uint32_t)(asPointer() != nullptr);
+            else if (isStringId()) return (uint32_t)( getStringRef().length() > 0  );
             else return 0;
         }
         return static_cast<uint32_t>(mBits & 0xFFFFFFFFULL);
@@ -221,6 +226,7 @@ public:
         if (!isInt()) {
             if (isDouble()) return ((uint32_t) getDouble() == 1);
             else if (isPointer()) return (uint32_t)(asPointer() != nullptr);
+            else if (isStringId()) return (uint32_t)( getStringRef().length() > 0  );
             else return 0;
         }
         return (static_cast<uint32_t>(mBits & 0xFFFFFFFFULL) == 1);
@@ -235,7 +241,7 @@ public:
 
     // -------------------------------------------------------------------------
     // by reference
-    inline const std::string& getStringRef() {
+    inline const std::string& getStringRef() const {
         static const std::string empty = "";
         if (!isStringId()) return empty;
         return StringTable::get(asStringId());

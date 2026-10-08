@@ -97,15 +97,15 @@ public:
     inline bool isStringId() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_STRING_ID); }
 
 
-    inline bool bothDouble(const Value& other) const {
-        return ((mBits | other.mBits) & QNAN_MASK) != QNAN_MASK;
-    }
-    inline bool bothInt(const Value& other) const {
-        return ((mBits | other.mBits) & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_INT);
-    }
-    inline bool bothString(const Value& other) const {
-        return ((mBits | other.mBits) & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_STRING_ID);
-    }
+    // // inline bool bothDouble(const Value& other) const {
+    // //     return ((mBits & other.mBits) & QNAN_MASK) != QNAN_MASK;
+    // // }
+    // // inline bool bothInt(const Value& other) const {
+    // //     return ((mBits & other.mBits) & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_INT);
+    // // }
+    // // inline bool bothString(const Value& other) const {
+    // //     return ((mBits & other.mBits) & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_STRING_ID);
+    // // }
 
     // inline bool isInt()     const { return (mBits & (QNAN_MASK | TAG_MASK)) == (QNAN_MASK | TAG_INT); }
     // inline bool isPointer() const { return (mBits & (QNAN_MASK | TAG_MASK)) == (QNAN_MASK | TAG_PTR); }

@@ -294,7 +294,7 @@ namespace DreiZehn {
         Value rVal = mRight->evaluate(env);
 
         int mode = 0; //double
-        if (lVal.bothInt(rVal)) mode = 1; //int
+        if (lVal.isInt() && rVal.isInt()) mode = 1; //int
         else if (lVal.isStringId() || rVal.isStringId()) mode = 2; //string
 
         switch (mOp) {
@@ -534,7 +534,7 @@ namespace DreiZehn {
         Value rightHand = this->mRhs->evaluate(env);
 
 
-        if (valuePtr->bothDouble(rightHand)) {
+        if (valuePtr->isDouble() && rightHand.isDouble()) {
             double doubleval = valuePtr->asFastDouble();
             switch(this->mOp) {
                 case TokenType::AssignPlus:  doubleval += rightHand.asFastDouble(); break;
@@ -549,7 +549,7 @@ namespace DreiZehn {
             *valuePtr = Value(doubleval);
             return *valuePtr;
 
-        } else if (valuePtr->bothInt( rightHand )) {
+        } else if (valuePtr->isInt( ) && rightHand.isInt()) {
             int32_t intval = valuePtr->asFastInt();
             switch(this->mOp) {
                 case TokenType::AssignPlus:  intval += rightHand.asFastInt(); break;
@@ -568,6 +568,7 @@ namespace DreiZehn {
             if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (valuePtr->getStringRef() +  rightHand.toString() );
             else return Value(0);
             return *valuePtr;
+
         } else {
             double doubleval = valuePtr->getDouble();
             switch(this->mOp) {

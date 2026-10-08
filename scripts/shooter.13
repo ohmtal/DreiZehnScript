@@ -41,7 +41,7 @@ while Fenster->loop && core::breath
     end
     if (!game_over)
         -- player controls
-        if (Fenster->isKeyDown KEY_A) || (Fenster->isKeyDown KEY_LEFT) Player.x -= 3.0 end
+        if (Fenster->isKeyDown KEY_A) || (Fenster->isKeyDown KEY_LEFT);  Player.x -= 3.0 ;  end
         if (Fenster->isKeyDown KEY_D) || (Fenster->isKeyDown KEY_RIGHT) Player.x += 3.0 end
         if (Fenster->isKeyDown KEY_W) || (Fenster->isKeyDown KEY_UP) Player.y -= 3.0 end
         if (Fenster->isKeyDown KEY_S) || (Fenster->isKeyDown KEY_DOWN) Player.y += 3.0 end

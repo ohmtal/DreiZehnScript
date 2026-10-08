@@ -18,7 +18,7 @@ maxW = W / 2
 minW = maxW * -1
 maxH = H / 2
 minH = maxH * -1
-STAR_COUNT  = 420
+STAR_COUNT  = 4200
 START_DIV   = 0.03125
 Speed       = 0.4
 fontScale   = 1.2
@@ -122,7 +122,7 @@ if Init
         SDL_SetRenderDrawColor Renderer 200 200 255 255
         SDL_SetRenderScale Renderer  fontScale fontScale
         SDL_RenderDebugText Renderer 10 10 \
-            str::concat "StarField @13-Script Stars:" STAR_COUNT " FPS:" FPS
+            str::concat "StarField v8 @13-Script Stars:" STAR_COUNT " FPS:" FPS
         SDL_SetRenderScale Renderer  1 1
 
 

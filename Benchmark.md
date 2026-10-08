@@ -131,7 +131,6 @@ stupid iterator test ;)
 - Duktape (2.7.0 RelWithDeb): 179.464u 0.000s 2:59.77 99.8% 0+0k 0+0io 0pf+0w
 - 🌩️ ChaiScript ( v6.1.0 RelWithDeb (*5)): Segmentation fault (core dumped) after: 190.456u 0.148s 3:11.52 99.5% 0+0k 1312+0io 9pf+0w
 
-DreiZehn beat Python 3 and Ruby here *lol*. 
 
 ```
 i = 0

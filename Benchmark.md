@@ -106,6 +106,8 @@ print "Fib recursiv" num "=" (fib num)
 - 🐢 DreiZehn(0.7f): 2.339u 0.001s 0:02.34 99.5%     0+0k 0+0io 0pf+0w
 - 💩 ElfScript 0.8: 4.446u 0.003s 0:04.46 99.5%     0+0k 0+0io 0pf+0w
 
+DreiZehn 0.7f very cool for a AST-Interpreter :D 
+
 ElfScript 0.8 sucks here must be optimized for script function calls! 
 
 ElfScript 0.8a all night long hackfest for inline function call, damn i hoped i get

@@ -45,6 +45,13 @@ void Init(Environment& env) {
         Tools::printf("%s\n", line.c_str());
         return true;
     });
+    RegisterFunction("printraw", [](std::vector<Value>& args, Value& ret) -> bool {
+        for ( auto& value : args) {
+            value.print();
+        }
+        return true;
+    });
+
     RegisterFunction("error", [](std::vector<Value>& args, Value& ret) -> bool {
         std::string line = "";
         for ( auto& value : args) {

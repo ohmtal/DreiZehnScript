@@ -104,8 +104,8 @@ public:
     // -------------------------------------------------------------------------
     // EXECUTE :D - currentEnv for function calls
     // -------------------------------------------------------------------------
-    inline FlowSignal execute(ASTNode* node, Environment& currentEnv) {
-        if (!node) return FlowSignal::None;
+    inline FlowStatus execute(ASTNode* node, Environment& currentEnv) {
+        if (!node) return FlowStatus(FlowSignal::None);
 
         if (Globals::gDumpStateNodes) Tools::printf("EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
 
@@ -243,13 +243,13 @@ public:
 
         } // ... SWITCH ...
 
-        return FlowSignal::None;
+        return FlowStatus(FlowSignal::None);
     }
 
 
     // -------------------------------------------------------------------------
     // main execute
-    inline FlowSignal execute(ASTNode* node) {
+    inline FlowStatus execute(ASTNode* node) {
          return execute(node, *this);
     }
     // -------------------------------------------------------------------------

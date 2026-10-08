@@ -30,12 +30,10 @@ namespace DreiZehn::FunctionMap {
             }
 
             for (auto& statement : func.body) {
-                FlowSignal sig = env.execute(statement.get(), localEnv);
+                FlowStatus status= env.execute(statement.get(), localEnv);
 
-                if (sig == FlowSignal::Return) {
-                    // Value retVal = localEnv.getVariableFrame()->getVariable(SymbolTable::insert("__return_value__"));
-                    Value retVal = localEnv.getVariableFrame()->getVariable(ReturnValueSymbol);
-                    return retVal;
+                if (status.signal == FlowSignal::Return) {
+                    return status.returnValue;
                 }
             }
             return Value(0);

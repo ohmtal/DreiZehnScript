@@ -8,10 +8,8 @@ import String
 import SDL3
 import Vector
 
-print " StarField v2 @13 startup...."
+print " StarField v7 @13 startup...."
 -- DreiZehn global variables are also available by the functions
--- if you want to make clear it's global you may use a prefix separated by ':'
--- log Glob::Window = ...
 W = 640
 H = 320
 maxW = W / 2
@@ -65,18 +63,23 @@ if Init
     Time_Last = SDL_GetTicks
     counter = 0
     fpsSum  = 0.0
-    FPS = 0
+    FPS = 0.0
 
     while Running
-        counter++
         Time_Now = SDL_GetTicks
         Dt = (Time_Now - Time_Last) / 1000.0
         Time_Last = Time_Now
 
-        fpsSum += 1.0 / Dt
-        if (counter % 200 == 0)
-            FPS = int::cast fpsSum / 200
+        if (Dt > 0.0 )
+            counter++
+            fpsSum += 1.0 / Dt
+
+        end
+
+        if (counter == 200 )
+            FPS = int::cast (fpsSum / 200.0)
             fpsSum = 0.0
+            counter = 0
         end
 
         while SDL_PollEvent Event

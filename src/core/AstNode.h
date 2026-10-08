@@ -23,6 +23,11 @@ enum class FlowSignal {
     Continue
 };
 
+struct FlowStatus {
+    FlowSignal signal = FlowSignal::None;
+    Value returnValue = Value(0);
+};
+
 enum class NodeType {
     BaseNode,
     Expression,
@@ -92,7 +97,6 @@ constexpr const char* NodeTypeToString(NodeType type) {
     return "UnknownNodeType";
 }
 
-inline  uint32_t ReturnValueSymbol = SymbolTable::insert("__return_value__");
 
 // base node -------------------------------------------------------------------
 struct ASTNode {
@@ -115,7 +119,7 @@ struct Expression : public ASTNode {
 
 // FlowBaseStatement --------------------------------------------------------
 struct FlowBaseStatement: public ASTNode {
-    virtual FlowSignal execute(Environment& env) = 0;
+    virtual FlowStatus execute(Environment& env) = 0;
 };
 
 
@@ -126,7 +130,7 @@ public:
     BlockStatement() {
         mNodeType = NodeType::BlockStatement;
     }
-    FlowSignal execute(Environment& env) override;
+    FlowStatus execute(Environment& env) override;
 };
 
 
@@ -385,7 +389,7 @@ struct IfStatement : public BlockStatement {
         mNodeType  = NodeType::IfStatement;
     }
 
-    FlowSignal execute(Environment& env) override;
+    FlowStatus execute(Environment& env) override;
 
 };
 struct ElseMarkerNode: public ASTNode {
@@ -423,7 +427,7 @@ struct ForStatement : public BlockStatement {
             mNodeType  = NodeType::ForStatement;
     }
 
-    FlowSignal execute(Environment& env) override;
+    FlowStatus execute(Environment& env) override;
 };
 // forRange -------------------------------------------------------------------------
 struct ForRangeStatement : public BlockStatement {
@@ -435,7 +439,7 @@ struct ForRangeStatement : public BlockStatement {
         mNodeType  = NodeType::RangeStatement;
     }
 
-    FlowSignal execute(Environment& env) override;
+    FlowStatus execute(Environment& env) override;
 };
 
 // forEach -------------------------------------------------------------------------
@@ -448,7 +452,7 @@ struct ForEachStatement : public BlockStatement {
         mNodeType  = NodeType::ForEachStatement;
     }
 
-    FlowSignal execute(Environment& env) override;
+    FlowStatus execute(Environment& env) override;
 };
 
 // break -------------------------------------------------------------------------
@@ -456,8 +460,8 @@ struct BreakStatement : public FlowBaseStatement {
     BreakStatement() {
         mNodeType  = NodeType::BreakStatement;
     }
-    inline FlowSignal execute(Environment& env) override {
-        return FlowSignal::Break;
+    inline FlowStatus execute(Environment& env) override {
+        return FlowStatus (FlowSignal::Break);
     };
 };
 // continue  -------------------------------------------------------------------------
@@ -465,8 +469,8 @@ struct ContinueStatement : public FlowBaseStatement {
     ContinueStatement() {
         mNodeType  = NodeType::ContinueStatement;
     }
-    inline FlowSignal execute(Environment& env) override {
-        return FlowSignal::Continue;
+    inline FlowStatus execute(Environment& env) override {
+        return FlowStatus (FlowSignal::Continue);
     };
 };
 // return -------------------------------------------------------------------------
@@ -475,7 +479,7 @@ struct ReturnStatement : public FlowBaseStatement {
     ReturnStatement(std::unique_ptr<Expression> expr) : mExpression(std::move(expr)) {
         mNodeType  = NodeType::ReturnStatement;
     }
-    FlowSignal execute(Environment& env) override;
+    FlowStatus execute(Environment& env) override;
 };
 // While -------------------------------------------------------------------------
 struct WhileStatement : public BlockStatement {
@@ -483,6 +487,6 @@ struct WhileStatement : public BlockStatement {
     WhileStatement(std::unique_ptr<Expression> cond) : mCondition(std::move(cond)) {
         mNodeType  = NodeType::WhileStatement;
     }
-    FlowSignal execute(Environment& env) override;
+    FlowStatus execute(Environment& env) override;
 };
 } //namespace

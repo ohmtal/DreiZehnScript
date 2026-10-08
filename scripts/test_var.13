@@ -41,6 +41,6 @@ end
 globalX = globalX - 33.0
 print "---------------------"
 print "---------------------"
-print  "Final sum should be 33 == " globalX
+print  "Final sum should be -33.0 == " globalX
 print "---------------------"
 print "---------------------"

@@ -208,11 +208,10 @@ namespace DreiZehn {
         }
         Value functionResult = Value(0);
         for (auto& statement : func.body) {
-            FlowSignal sig = env.execute(statement.get(), localEnv);
+            FlowStatus status = env.execute(statement.get(), localEnv);
 
-            if (sig == FlowSignal::Return) {
-                Value retVal = localEnv.getVariableFrame()->getVariable(ReturnValueSymbol);
-                return retVal;
+            if (status.signal == FlowSignal::Return) {
+                return status.returnValue;
             }
         }
 
@@ -266,12 +265,12 @@ namespace DreiZehn {
             }
             Value functionResult = Value(0);
             for (auto& statement : func.body) {
-                FlowSignal sig = env.execute(statement.get(), localEnv);
+                FlowStatus status = env.execute(statement.get(), localEnv);
 
-                if (sig == FlowSignal::Return) {
-                    Value retVal = localEnv.getVariableFrame()->getVariable(ReturnValueSymbol);
-                    return retVal;
+                if (status.signal == FlowSignal::Return) {
+                    return status.returnValue;
                 }
+
             }
 
             return functionResult;
@@ -295,7 +294,7 @@ namespace DreiZehn {
         Value rVal = mRight->evaluate(env);
 
         int mode = 0; //double
-        if (lVal.isInt() && rVal.isInt()) mode = 1; //int
+        if (lVal.bothInt(rVal)) mode = 1; //int
         else if (lVal.isStringId() || rVal.isStringId()) mode = 2; //string
 
         switch (mOp) {
@@ -535,8 +534,7 @@ namespace DreiZehn {
         Value rightHand = this->mRhs->evaluate(env);
 
 
-
-        if (valuePtr->isDouble() && rightHand.isDouble()) {
+        if (valuePtr->bothDouble(rightHand)) {
             double doubleval = valuePtr->asFastDouble();
             switch(this->mOp) {
                 case TokenType::AssignPlus:  doubleval += rightHand.asFastDouble(); break;
@@ -551,7 +549,7 @@ namespace DreiZehn {
             *valuePtr = Value(doubleval);
             return *valuePtr;
 
-        } else if (valuePtr->isInt() && rightHand.isInt()) {
+        } else if (valuePtr->bothInt( rightHand )) {
             int32_t intval = valuePtr->asFastInt();
             switch(this->mOp) {
                 case TokenType::AssignPlus:  intval += rightHand.asFastInt(); break;
@@ -566,9 +564,8 @@ namespace DreiZehn {
             *valuePtr = Value(intval);
             return *valuePtr;
 
-        // this is like a handbreak !!
-        } else if (valuePtr->isStringId() && rightHand.isStringId()) {
-            if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (std::string( valuePtr->getStringRef() +  rightHand.getStringRef() ));
+        } else if (valuePtr->isStringId( )) {
+            if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (valuePtr->getStringRef() +  rightHand.toString() );
             else return Value(0);
             return *valuePtr;
         } else {
@@ -593,23 +590,22 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // FLOW STATEMENTS execute
     // -------------------------------------------------------------------------
-    FlowSignal ReturnStatement::execute(Environment& env) {
+    FlowStatus ReturnStatement::execute(Environment& env) {
         // getVariableFrame is gone when it return !!
         VariableFrame* frame = env.getVariableFrame()->getParentFrame();
         if (!frame) frame = env.getVariableFrame();
-        if (!frame)  return FlowSignal::Return;
+        if (!frame)  return FlowStatus (FlowSignal::Return);
 
+
+        FlowStatus flowResult = {FlowSignal::Return};
         if (this->mExpression) {
-            Value retVal = this->mExpression->evaluate(env);
-            frame->setVariable(ReturnValueSymbol, retVal);
-        } else {
-            frame->setVariable(ReturnValueSymbol, Value(0));
+            flowResult.returnValue = this->mExpression->evaluate(env);
         }
-        return FlowSignal::Return;
+        return flowResult;
     };
 
     // -------------------------------------------------------------------------
-    FlowSignal IfStatement::execute(Environment& env){
+    FlowStatus IfStatement::execute(Environment& env){
         Value condVal = this->mCondition->evaluate(env);
 
         double condNum = condVal.getDouble();
@@ -619,24 +615,24 @@ namespace DreiZehn {
         if (isTrue) {
             for (auto& childNode : this->mBody) {
                 if (!childNode) continue;
-                FlowSignal sig = env.execute(childNode.get(), env);
-                if (sig != FlowSignal::None) return sig;
+                FlowStatus status = env.execute(childNode.get(), env);
+                if (status.signal != FlowSignal::None) return status;
             }
         } else {
             if (mElseBranch != nullptr) {
-                FlowSignal sig = env.execute(mElseBranch.get(), env);
-                 if (sig != FlowSignal::None) return sig;
+                FlowStatus status  = env.execute(mElseBranch.get(), env);
+                 if (status.signal != FlowSignal::None) return status;
 
             }
         }
-        return  FlowSignal::None;
+        return  FlowStatus (FlowSignal::None);
     }
 
     // -------------------------------------------------------------------------
-    FlowSignal ForRangeStatement::execute(Environment& env){
+    FlowStatus ForRangeStatement::execute(Environment& env){
         if (!this->mCountExpr ) {
             Tools::errorf("Runtime Error: range need a count border!\n");
-            return FlowSignal::None;
+            return FlowStatus (FlowSignal::None);
         }
         Value countVal = this->mCountExpr->evaluate(env);
         Environment loopEnv(&env);
@@ -644,32 +640,32 @@ namespace DreiZehn {
         int32_t count = countVal.getInt();
         if (count < 0 ) {
             Tools::errorf("Runtime Error: range border must be >= 0 and is %d!\n", count);
-            return FlowSignal::None;
+            return FlowStatus (FlowSignal::None);
         }
         Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
         for (int i = 0; i < count; i++) {
             *iterValPtr = Value(i);
 
             for (auto& statement : this->mBody) {
-                FlowSignal sig = env.execute(statement.get(), loopEnv);
+                FlowStatus status = env.execute(statement.get(), loopEnv);
 
-                if (sig == FlowSignal::Break) {
-                    return FlowSignal::None;
+                if (status.signal == FlowSignal::Break) {
+                    return FlowStatus (FlowSignal::None);
                 }
-                if (sig == FlowSignal::Return) {
-                    return FlowSignal::Return;
+                if (status.signal == FlowSignal::Return) {
+                    return status;
                 }
-                if (sig == FlowSignal::Continue) break;
+                if (status.signal == FlowSignal::Continue) break;
             }
         }
-        return  FlowSignal::None;
+        return  FlowStatus (FlowSignal::None);
     }
 
     // -------------------------------------------------------------------------
-    FlowSignal ForStatement::execute(Environment& env){
+    FlowStatus ForStatement::execute(Environment& env){
         if (!this->mStartExpr || !this->mEndExpr ) {
             Tools::errorf("Runtime Error: invalid for borders!\n");
-            return FlowSignal::None;
+            return FlowStatus (FlowSignal::None)  ;
         }
         Value startVal = this->mStartExpr->evaluate(env);
         Value endVal = this->mEndExpr->evaluate(env);
@@ -684,15 +680,15 @@ namespace DreiZehn {
                 *iterValPtr = Value(i);
 
                 for (auto& statement : this->mBody) {
-                    FlowSignal sig = env.execute(statement.get(), loopEnv);
+                    FlowStatus status = env.execute(statement.get(), loopEnv);
 
-                    if (sig == FlowSignal::Break) {
-                        return FlowSignal::None;
+                    if (status.signal == FlowSignal::Break) {
+                        return FlowStatus (FlowSignal::None);
                     }
-                    if (sig == FlowSignal::Return) {
-                        return FlowSignal::Return;
+                    if (status.signal == FlowSignal::Return) {
+                        return status;
                     }
-                    if (sig == FlowSignal::Continue) break;
+                    if (status.signal == FlowSignal::Continue) break;
                 }
             }
 
@@ -701,23 +697,23 @@ namespace DreiZehn {
                 *iterValPtr = Value(i);
 
                 for (auto& statement : this->mBody) {
-                    FlowSignal sig = env.execute(statement.get(), loopEnv);
+                    FlowStatus status = env.execute(statement.get(), loopEnv);
 
-                    if (sig == FlowSignal::Break) {
-                        return FlowSignal::None;
+                    if (status.signal == FlowSignal::Break) {
+                        return FlowStatus (FlowSignal::None);
                     }
-                    if (sig == FlowSignal::Return) {
-                        return FlowSignal::Return;
+                    if (status.signal == FlowSignal::Return) {
+                        return status;
                     }
-                    if (sig == FlowSignal::Continue) break;
+                    if (status.signal == FlowSignal::Continue) break;
                 }
             }
         }
-        return FlowSignal::None;
+        return FlowStatus (FlowSignal::None)  ;
     }
 
     // -------------------------------------------------------------------------
-    FlowSignal WhileStatement::execute(Environment& env){
+    FlowStatus WhileStatement::execute(Environment& env){
         Environment loopEnv(&env);
 
         auto checkCondition = [&]() -> bool {
@@ -727,39 +723,44 @@ namespace DreiZehn {
 
         while (checkCondition()) {
             for (auto& statement : this->mBody) {
-                FlowSignal sig = env.execute(statement.get(), loopEnv);
+                FlowStatus status = env.execute(statement.get(), loopEnv);
 
-                if (sig == FlowSignal::Break) return FlowSignal::None;
-                if (sig == FlowSignal::Return) return FlowSignal::Return;
-                if (sig == FlowSignal::Continue) break;
+                if (status.signal == FlowSignal::Break) {
+                    return FlowStatus (FlowSignal::None);
+                }
+                if (status.signal == FlowSignal::Return) {
+                    return status;
+                }
+                if (status.signal == FlowSignal::Continue) break;
+
             }
         }
-        return FlowSignal::None;
+        return FlowStatus (FlowSignal::None)  ;
     }
     // -------------------------------------------------------------------------
-    FlowSignal ForEachStatement::execute(Environment& env){
+    FlowStatus ForEachStatement::execute(Environment& env){
         if (!this->mVarExpr ) {
             Tools::errorf("Runtime Error: foreach need a list expression!\n");
-            return FlowSignal::None;
+            return FlowStatus (FlowSignal::None)  ;
         }
 
         Value varValue = this->mVarExpr->evaluate(env);
 
         if (!varValue.isPointer()) {
             Tools::errorf("Runtime Error: foreach need a object!\n");
-            return FlowSignal::None;
+            return FlowStatus (FlowSignal::None)  ;
         }
         ValueObject* obj = varValue.asPointerObject();
         size_t count = obj->onGetArraySize();
         if (count == 0) {
-            return FlowSignal::None;
+            return FlowStatus (FlowSignal::None)  ;
         }
 
         Environment loopEnv(&env);
 
         if (count < 0 ) {
             Tools::errorf("Runtime Error: range border must be >= 0 and is %d!\n", count);
-            return FlowSignal::None;
+            return FlowStatus (FlowSignal::None)  ;
         }
 
         Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
@@ -768,26 +769,27 @@ namespace DreiZehn {
             *iterValPtr = *curValue;
 
             for (auto& statement : this->mBody) {
-                FlowSignal sig = env.execute(statement.get(), loopEnv);
+                FlowStatus status = env.execute(statement.get(), loopEnv);
 
-                if (sig == FlowSignal::Break) {
-                    return FlowSignal::None;
+                if (status.signal == FlowSignal::Break) {
+                    return FlowStatus (FlowSignal::None);
                 }
-                if (sig == FlowSignal::Return) {
-                    return FlowSignal::Return;
+                if (status.signal == FlowSignal::Return) {
+                    return status;
                 }
-                if (sig == FlowSignal::Continue) break;
+                if (status.signal == FlowSignal::Continue) break;
+
             }
         }
-        return  FlowSignal::None;
+        return  FlowStatus (FlowSignal::None)  ;
     }
     // -------------------------------------------------------------------------
-    FlowSignal BlockStatement::execute(Environment& env){
+    FlowStatus BlockStatement::execute(Environment& env){
         for (auto& statement : this->mBody) {
             if (!statement) continue;
-            FlowSignal sig = env.execute(statement.get(), env);
-            if (sig != FlowSignal::None) return sig;
+            FlowStatus status = env.execute(statement.get(), env);
+            if (status.signal != FlowSignal::None) return status;
         }
-        return FlowSignal::None;
+        return FlowStatus (FlowSignal::None) ;
     }
 }

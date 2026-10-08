@@ -102,10 +102,15 @@ print "Fib recursiv" num "=" (fib num)
 - lua (Lua 5.5.1): 0.325u 0.002s 0:00.33 96.9%     0+0k 0+0io 0pf+0w
 - ruby (3.4.10): 0.447u 0.013s 0:00.48 93.7%     0+0k 3392+0io 67pf+0w
 - Python (3.14.7): 0.649u 0.006s 0:00.65 98.4%     0+0k 0+0io 0pf+0w
+- ElfScript 0.8a: 1.199u 0.001s 0:01.20 99.1%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7f): 2.339u 0.001s 0:02.34 99.5%     0+0k 0+0io 0pf+0w
 - 💩 ElfScript 0.8: 4.446u 0.003s 0:04.46 99.5%     0+0k 0+0io 0pf+0w
 
 ElfScript 0.8 sucks here must be optimized for script function calls! 
+
+ElfScript 0.8a all night long hackfest for inline function call, damn i hoped i get
+under 0.5 sec ;)
+
 
 ## Counting to one Billion 
 

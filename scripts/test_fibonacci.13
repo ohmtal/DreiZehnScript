@@ -1,12 +1,13 @@
-
+counter = 0
 fn fib n
     if n <= 1; return n;;
+    counter++
     return (fib (n - 1)) + (fib (n - 2))
 end
 
 num = 33
 print "running fib with number:" num
-print "Fib recursiv" num "=" (fib num)
+print "Fib recursiv" num "=" (fib num) "loops:" counter
 
 
 

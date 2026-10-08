@@ -8,7 +8,7 @@ import String
 import SDL3
 import Vector
 
-print " StarField v7f @13 startup...."
+print " StarField v7g ptr @13 startup...."
 -- DreiZehn global variables are also available by the functions
 -- if you want to make clear it's global you may use a prefix separated by ':'
 -- log Glob::Window = ...
@@ -95,24 +95,28 @@ if Init
         SDL_RenderClear Renderer
 
         forEach p Points
-            p.z -= Dt * Speed
+            ptrX = (&p.x)
+            ptrY = (&p.y)
+            ptrZ = (&p.z)
 
-            invZ = 1.0 / p.z
-            screenX = (W * 0.5) + (p.x * invZ)
-            screenY = (H * 0.5) + (p.y * invZ)
+            (*ptrZ) -= Dt * Speed
+
+            invZ = 1.0 / (*ptrZ)
+            screenX = (W * 0.5) + ((*ptrX) * invZ)
+            screenY = (H * 0.5) + ((*ptrY) * invZ)
 
 
-            if (p.z < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
-                p.x = math::random minW maxW
-                p.y = math::random minH maxH
-                p.z = 1.0
+            if ((*ptrZ) < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
+                (*ptrX) = math::random minW maxW
+                (*ptrY) = math::random minH maxH
+                (*ptrZ) = 1.0
 
-                screenX = W + p.x
-                screenY = H + p.y
+                screenX = W + (*ptrX)
+                screenY = H + (*ptrY)
             end
 
 
-            radius = math::lerp 2.0 0.3 p.z
+            radius = math::lerp 2.0 0.3 (*ptrZ)
             SDL_SetRenderDrawColor Renderer 255 255 255 255
             SDL_RenderFillRect Renderer screenX screenY radius radius
 
@@ -122,7 +126,7 @@ if Init
         SDL_SetRenderDrawColor Renderer 200 200 255 255
         SDL_SetRenderScale Renderer  fontScale fontScale
         SDL_RenderDebugText Renderer 10 10 \
-            str::concat "StarField v7f @13-Script Stars:" STAR_COUNT " FPS:" FPS
+            str::concat "StarField v7g ptr @13-Script Stars:" STAR_COUNT " FPS:" FPS
         SDL_SetRenderScale Renderer  1 1
 
 

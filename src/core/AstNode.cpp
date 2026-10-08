@@ -46,6 +46,45 @@ namespace DreiZehn {
     Value* VariableExpression::evaluatePtr(Environment& env) {
         return env.getVariableFrame()->getVariablePtr(mVariableNameSymbolId);
     }
+
+    // -------------------------------------------------------------------------
+    // VariableReferenceExpression
+    // -------------------------------------------------------------------------
+    Value VariableReferenceExpression::evaluate(Environment& env) {
+        if (!mVarExpr) return Value();
+        Value* varValuePtr = mVarExpr->evaluatePtr(env);
+        return Value(varValuePtr);
+    }
+    Value* VariableReferenceExpression::evaluatePtr(Environment& env) {
+        if (!mVarExpr) return nullptr;
+        return mVarExpr->evaluatePtr(env);
+    }
+    // -------------------------------------------------------------------------
+    // VariablePointerExpression
+    // -------------------------------------------------------------------------
+    Value VariablePointerExpression::evaluate(Environment& env) {
+
+        Value* varValuePtr = this->evaluatePtr(env);
+
+        if (varValuePtr) {
+            return *varValuePtr;
+        }
+        return Value();
+    }
+    Value* VariablePointerExpression::evaluatePtr(Environment& env) {
+        if (!mVarExpr) return nullptr;
+
+        // TODO TESTME - same shit as i did on Variable cache test ?!
+        // if (mCachedPtr) return mCachedPtr;
+
+        Value* mCachedPtr = mVarExpr->evaluatePtr(env);
+        if (mCachedPtr->isValuePointer()) {
+            return mCachedPtr->asValuePointer();
+        }
+        mCachedPtr  = nullptr;
+
+        return mCachedPtr;
+    }
     // -------------------------------------------------------------------------
     // ArrayVariableExpression
     // -------------------------------------------------------------------------
@@ -360,7 +399,7 @@ namespace DreiZehn {
             *valPtr = Value(lCurInt);
             return *valPtr;
         } else  { // must be a Double!
-            double lCurDouble = valPtr->asDouble();
+            double lCurDouble = valPtr->getDouble();
             switch (mOp) {
                 case TokenType::PlusPlus: lCurDouble += 1.0 ; break;
                 case TokenType::MinusMinus: lCurDouble -= 1.0 ; break;

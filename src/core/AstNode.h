@@ -35,6 +35,8 @@ enum class NodeType {
     LiteralExpression,
     ValueExpression,
     VariableExpression,
+    VariableReferenceExpression,
+    VariablePointerExpression,
     ArrayVariableExpression,
     CallExpression,
     MethodExpression,
@@ -69,6 +71,8 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::LiteralExpression:       return "LiteralExpression";
         case NodeType::ValueExpression:         return "ValueExpression";
         case NodeType::VariableExpression:      return "VariableExpression";
+        case NodeType::VariableReferenceExpression:      return "VariableReferenceExpression";
+        case NodeType::VariablePointerExpression:      return "VariablePointerExpression";
         case NodeType::ArrayVariableExpression:   return "ArrayVariableExpression";
         case NodeType::CallExpression:          return "CallExpression";
         case NodeType::MethodExpression:        return "MethodExpression";
@@ -170,6 +174,33 @@ struct VariableExpression : public Expression {
 
     VariableExpression(uint32_t n) : mVariableNameSymbolId(n) {
         mNodeType  = NodeType::VariableExpression;
+    }
+    Value evaluate(Environment& env) override;
+    Value* evaluatePtr(Environment& env) override;
+};
+
+
+// VariableReferenceExpression  (&foo)----------------------------------------------------------
+struct VariableReferenceExpression : public Expression {
+     std::unique_ptr<Expression> mVarExpr;
+
+    VariableReferenceExpression(std::unique_ptr<Expression> varExpr)
+    : mVarExpr(std::move(varExpr)) {
+        mNodeType  = NodeType::VariableReferenceExpression;
+    }
+    Value evaluate(Environment& env) override;
+    Value* evaluatePtr(Environment& env) override;
+};
+
+// VariablePointerExpression  (*fooptr)----------------------------------------------------------
+struct VariablePointerExpression : public Expression {
+    std::unique_ptr<Expression> mVarExpr;
+
+    Value* mCachedPtr = nullptr;
+
+    VariablePointerExpression(std::unique_ptr<Expression> varExpr)
+    : mVarExpr(std::move(varExpr)) {
+        mNodeType  = NodeType::VariablePointerExpression;
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;

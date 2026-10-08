@@ -116,7 +116,33 @@ private:
             Token t = advance();
             return std::make_unique<LiteralExpression>(t.mType, t.mValue);
         }
-        else if (peek().mType == TokenType::Identifier) {
+        else if (peek().mType == TokenType::BitAnd ) {
+            Token t = advance();
+            auto expr = parseMath();
+            if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
+                expr.get()->mNodeType != NodeType::ObjectFieldExpression)
+            ) {
+                Tools::PrintParseError("Get by Reference (&) need a Variable!");
+                return nullptr;
+            }
+
+            return std::make_unique<VariableReferenceExpression>(std::move(expr));
+        } else
+        if (peek().mType == TokenType::Mul ) {
+            Token t = advance();
+            auto expr = parseExpression();
+            if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
+                expr.get()->mNodeType != NodeType::ObjectFieldExpression)
+            ) {
+                Tools::PrintParseError("Get by Reference (&) need a Variable!");
+                return nullptr;
+            }
+
+            return std::make_unique<VariablePointerExpression>(std::move(expr));
+
+
+        } else
+        if (peek().mType == TokenType::Identifier) {
             std::unique_ptr<Expression> currentExpression = nullptr;
             Token nameToken = advance();
             uint32_t nameTokenSymbolId = SymbolTable::insert( nameToken.mValue);

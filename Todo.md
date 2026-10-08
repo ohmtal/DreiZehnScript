@@ -311,6 +311,14 @@ Struct [0x5576cc6a5440]
 ## 0.7f    
 - [X] added FlowStatus with return value .. good boost and fixed bug :)
 
+
+## 0.7g
+- [X] Value Reference
+    - [X] '&' Tokenizer / Parser => `foo = 1; print (& foo)`
+    - [X] '*' Tokenizer / Parser => `foo = 1; ptr = & foo; print ptr (*ptr)`
+    - [X] `foo = Struct::new "x" "y"; ptr = &foo.x; *ptr = 99; print foo.x`
+    - [X] StarField3.13 with pointer! << not faster - a bit slower ! than StarField2
+    - conclusion: not faster but funny
 ---
 
 

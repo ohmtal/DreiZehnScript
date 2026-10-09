@@ -332,7 +332,7 @@ Struct [0x5576cc6a5440]
 
 
 ## 0.8b
-
+- [X] guarded all Register functions 
 - [X] nailed gcc Release build to -02. Some tests run slower but StarField2 for example result in much better FPS (260 instead of 230)
 
 ---

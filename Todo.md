@@ -325,6 +325,7 @@ Struct [0x5576cc6a5440]
 - added copyright note zserge/fenster because of used parts in PixelBuffer
 - replaced the fill algo with a fast save fill_scanline 
 - a bit cleanup
+- [X] GarbageCollection as Singleton Class (removed from VariableFrame)
 - [ ] VariableFrame pool
 
 

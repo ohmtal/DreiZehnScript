@@ -8,6 +8,7 @@
 #include <algorithm> // std::sort
 #include "core/FunctionMap.h"
 #include "ScriptLoader.h"
+#include "core/GarbageCollection.h"
 
 namespace DreiZehn {
 
@@ -173,15 +174,12 @@ namespace DreiZehn {
         // Garbage collection
         // ---------------------------------------------------------------------
         RegisterFunction("core::gc", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (gCurrentFrame) {
-                gCurrentFrame->doGarbageCollection(false);
-                return true;
-            }
-            return false;
+            GarbageCollection::run();
+            return true;
         });
         RegisterFunction("core::printgc", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- Garbage Collection ------------------\n");
-            if (gCurrentFrame) gCurrentFrame->listGarbageObjects();
+            GarbageCollection::print();
             Tools::printf("------------------------------------------------------\n");
             return true;
         });

@@ -164,19 +164,5 @@ struct ValueObjectProperty {
 int RegisterUserObjectType(std::string typeName);
 const char* GetObjectTypeName(ValueObject* object);
 
-// =============================================================================
-// --- RegisterObjectProperty ---
-// =============================================================================
-
-// inline uint32_t RegisterObjectProperty(int valueObjectTypeId, ValueObjectProperty property) {
-//     auto it = gUserObjectTypes.find(valueObjectTypeId);
-//     if (it != gUserObjectTypes.end()) {
-//         it->second.mProperties.push_back(property);
-//         return property.mSymbolId;
-//     }
-//     assert(true && "registerObjectProperty impossible on unknown valueObjectTypeId");
-//     return 0;
-// }
-
 
 } //namespace

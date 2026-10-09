@@ -13,6 +13,8 @@ set(DREIZEHN_SRC
 
     ${CMAKE_CURRENT_LIST_DIR}/core/FunctionMap.h
     ${CMAKE_CURRENT_LIST_DIR}/core/FunctionMap.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/core/GarbageCollection.h
+    ${CMAKE_CURRENT_LIST_DIR}/core/GarbageCollection.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/Lexer.h
     ${CMAKE_CURRENT_LIST_DIR}/core/Parser.h
     ${CMAKE_CURRENT_LIST_DIR}/core/Value.h

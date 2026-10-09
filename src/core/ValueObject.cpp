@@ -49,7 +49,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     ValueObject::ValueObject(int t) : mType(t) {
-        if (gCurrentFrame) gCurrentFrame->addToGarbageCollection(this);
+        GarbageCollection::insert(this);
         mObjectTypeName = GetObjectTypeName(this);
     }
     // -------------------------------------------------------------------------

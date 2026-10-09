@@ -36,7 +36,7 @@ namespace DreiZehn {
 
             Tools::printf("SymbolTable count: %zu\n", SymbolTable::size());
             Tools::printf("StringTable count: %zu\n", StringTable::size());
-            Tools::printf("Garbage count    : %zu\n", gMasterFrame->getGarbageSize());
+            Tools::printf("Garbage count    : %zu\n", GarbageCollection::size());
             return true;
         });
 

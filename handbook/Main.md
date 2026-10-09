@@ -16,6 +16,8 @@ need to be registered - without it's the pure script language.
 
 [Syntax Informations](./Syntax.md) 
 
+[Build in Functions](./BuildIn.md) 
+
 [How to Bind function and objects](./Bindings.md) 
 
 [Examples Folder](../examples) 

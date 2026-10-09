@@ -8,17 +8,23 @@
 # ------------------------------------------------------------------------------
 import All
 
--- Avail Modules
+-- Avail Modules in subfolder modules:
 loader::Modules = Vector::new "FensterShooter" "Fenster" "RayFirst"
 loader::ModuleIndex = -1
 loader::ModuleName = ""
 
--- inital setup the call back function
--- so it can be overridden
+-- inital setup the call back functions,
+-- so it can be overridden: when the script is parsed it lookup registered
+-- functions. If none found it's set as an variable type. So we need to tell
+-- there parser we have this function. The "run" loader override them later.
+-- So they are basically "virual":
 fn ModuleCreate end
 fn ModuleLoop end
 fn ModuleDelete end
 
+# ------------------------------------------------------------------------------
+-- since i had the namespace object call not in place when i designed this
+-- script, the following functions are static.
 # ------------------------------------------------------------------------------
 fn loader::Load moduleIndex
     if moduleIndex < 0 || moduleIndex >= loader::Modules->size
@@ -32,7 +38,7 @@ fn loader::Load moduleIndex
 
     loader::ModuleIndex = -1
     loader::ModuleName = loader::Modules->at moduleIndex
-    runRes = run str::concat "scripts/modules/" loader::ModuleName ".13"
+    runRes = run str::format "scripts/modules/%s.13" loader::ModuleName
     if (!runRes)
         print "Loader Error: unable to load module" loader::ModuleName
         return false
@@ -65,4 +71,7 @@ loader::Load 0
 loader::MainLoop
 if loader::ModuleIndex >= 0
     ModuleDelete
+    loader::ModuleIndex = -1
+    loader::ModuleName = 0
 end
+loader::Modules = 0         # release the vector object

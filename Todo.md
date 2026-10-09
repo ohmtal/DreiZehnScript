@@ -319,11 +319,16 @@ Struct [0x5576cc6a5440]
     - [X] `foo = Struct::new "x" "y"; ptr = &foo.x; *ptr = 99; print foo.x`
     - [X] StarField3.13 with pointer! << not faster - a bit slower ! than StarField2
     - conclusion: not faster but funny
+
+## 0.8a
+- worked on handbook and added buildin functions description
+- added copyright note zserge/fenster because of used parts in PixelBuffer
+- replaced the fill algo with a fast save fill_scanline 
+
+
 ---
-
-
 ## still missing:
-- [ ] fix memleaks fenster_audio .... it's "fixed" but still leak 
+- [ ] fix memleaks fenster_audio .... it's "fixed" but still leak << i guess i will replace it with MiniAudio! 
 
 
 ## maybe:
@@ -331,12 +336,14 @@ Struct [0x5576cc6a5440]
 - [ ] Handbook - CheatSheet (EBFN also ?) 
 - [ ] MiniAudio bindings (cmake already prepared)
 - [ ] move more code to cpp because compiletime is raising - carefully do not break the speed
-- [ ] UserFunction object to call them like a lambda from a list... 
-- [ ] finish Raylib importer << stuck at structs inside structs and pointer returns 
-- [ ] validate if there is a usable SDL3 auto bind script parser 
+
+## maybe maybe
+- finish Raylib importer << stuck at structs inside structs and pointer returns 
+- validate if there is a usable SDL3 auto bind script parser 
     - maybe https://github.com/TerensTare/SDL_parser
     - or https://deepwiki.com/ppy/SDL3-CS/2.1-c-binding-generation
-- [ ] switch / case
+- UserFunction object to call them like a lambda from a list... 
+- switch / case
  
 ## aborted but still in code:
  

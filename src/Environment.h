@@ -254,7 +254,7 @@ public:
     }
     // -------------------------------------------------------------------------
     void shutDown() {
-        // done be destuctor: doGarbageCollection();
+        // done be destructor: doGarbageCollection();
     }
 }; //Class
 } //Namespace

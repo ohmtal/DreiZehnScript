@@ -148,7 +148,7 @@ end
 
 ## 6. Loops & Iteration (For Statement)
 
-The `for` loop introduces an isolated nested environment. Loop iterators are local and automatically cleaned up upon exit. Supports safe early termination via `break`.
+The `for` loop introduces an isolated nested environment. Loop iterators are local and automatically cleaned up upon exit. Supports safe early termination via `break` and `continue` to skip and iteration.
 
 ```
 # Simple increment loop (Start to End, inclusive)
@@ -158,9 +158,12 @@ end
 
 # Loop with early break conditions
 for i 1 100
-    if i == 5
+    if i == 50
         print "Target reached, breaking loop."
         break
+    elif i == 25
+        print "25 we skip here ..."
+        continue
     end
 end
 
@@ -221,6 +224,6 @@ player->init
 ## 8. Built-in Safety Features
 * **Infinite Loop Prevention:** Parser-level locks intercept stalled index trackers and throw non-blocking compiler alerts.
 * **String Memory Safety:** The lexer forces automatic emergency lookbehinds on unclosed string sequences (`"hello...`) to prevent state corruption.
-* **Garbage Collection (GC):** Destructors walks through all dynamically tracked memory nodes upon exit to prevent memory leaks in the host C++ application. You can trigger a Garbage Collection with: "core:gc" and check it with "debug:garbage"
+* **Garbage Collection (GC):** Destructors walks through all dynamically tracked memory nodes upon exit to prevent memory leaks in the host C++ application. You can trigger a Garbage Collection with: "core:gc" and check it with "core:printgc"
 
 

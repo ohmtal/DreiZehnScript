@@ -26,7 +26,7 @@ void RegisterFooFunctions(Environment& env) {
         ret = Value(4711.0815);
         return true;
     });
-    
+}
 ```
 
 DreiZehn uses a registry system so you have to add the RegisterFooFunctions to 
@@ -85,6 +85,6 @@ myFoo->dump
 ```
 
 
-For more informations and example i suggest to look at 
+For more informations and examples I suggest to look at 
 **src/functions/CoreFunctions.h**, **src/functions/VectorFunctions.h**
-or any other in there ;) 
+or any other in the functions folder ;) 

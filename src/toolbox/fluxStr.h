@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // String Helpers
-// Subset of Ohmflux FluxStr (c++17 compatiple)
+// Subset  of Ohmflux FluxStr + some new
 //-----------------------------------------------------------------------------
 #pragma once
 

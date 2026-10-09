@@ -20,7 +20,7 @@ namespace Globals {
 
     // i want to track the current Env!
     inline Environment* gCurEnv = nullptr;
-    // inline const std::string gEmptyString = ""; unused!
+
     inline  bool gDumpStateNodes = false; //Debug
     inline  bool gShowVariableDebug = false; //Debug
 }

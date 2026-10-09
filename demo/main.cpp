@@ -1,3 +1,11 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2012 Thomas Hühn (XXTH)
+// SPDX-License-Identifier: MIT
+//-----------------------------------------------------------------------------
+// DreiZehn Implementation with Console
+// demo and showcase how to add DreiZehn to you project.
+//-----------------------------------------------------------------------------
+
 #include <vector>
 #include <iostream>
 #include <sstream>

@@ -13,10 +13,10 @@ It needs to be done in "end"
 ## 0.3 
 
 - add some basic SDL3 bindings ;) Test if i can use my ElfScript macros - but i 
-don't have to PoD Types here at the moment. 
-- [X] setup projecct Simply Added to current CMake
+don't have  PoD Types here at the moment. 
+- [X] setup project Simply added to current CMake
 - [X] add some basic bindings
-- [X] fixed if statement broken afer while inserted
+- [X] fixed if statement broken after while inserted
 - [X] added getDouble/getInt for auto type convert
 - [X] BinaryExpression::evaluate uses getDouble
 - [X] Added else and finally fixed If as BlockStatement - run in a own execute !! .. variables ?!?
@@ -85,7 +85,7 @@ under 15 sec and beat python here without bytecode ;)
 - [X] added Not `!` or `not` and Module `%` - when both are float it's an fmod
 - [X] added `;;` for lazy end
 - [X] added export to Fenster 
-- [X] changed the register system to only line per prop
+- [X] changed the register system to only one line per prop
 - [X] added one line func for method or field match (matchMethod/matchField)
 - [X] Fenster added to the Register System 
 - [X] Fenster audio
@@ -123,7 +123,7 @@ under 15 sec and beat python here without bytecode ;)
 
 
 ## 0.6c
-- [X] BUG: my mIsImplicit addon not became bad !
+- [X] BUG: my mIsImplicit addon `not` became bad `!`
         - cant add an if inside an else statement!!
     
 - [X] need continue!!! 
@@ -215,7 +215,7 @@ under 15 sec and beat python here without bytecode ;)
     
 - [X] fixed variable and field must return a new Value(0) in getPtr if not found!
     
-- [X] not we are in ... add ptr return to Array.at 
+- [X] now we are in ... add ptr return to Array.at 
     - [X] add a new method caller => onMethodCallGetAssignPtr
     - [X] MethodExpression << Value* evaluatePtr(Environment& env) override;
     - [X] Test: `a = Array::new 10 20;(a->at 0)++;print (a->at 0)` 
@@ -237,7 +237,7 @@ working. I did add it as a "dummy" variable which is not the best idea anyway.
 ## 0.7b    
     
 - [X] Vector, Array, [] 
-    - [X] rename VectorObjectFunctions => VectorObjectFunctions
+    - [X] rename VectorObjectFunctions => PointVectorFunctions
     - [X] copy ArrayFunctions to VectorObjectFunctions
     - [X] ValueObject add getIndexPtr for ArrayVariable Expression 
     - [X] Add this to Vector 
@@ -245,7 +245,7 @@ working. I did add it as a "dummy" variable which is not the best idea anyway.
     
     - [X] ValueObject: virtual clone where  the dynamic fields and className
           is cloned when mSupportClone is true and it's called from child with 
-          ValueObject::clone (if overwritten)
+          ValueObject::clone 
 ```
 foo = struct "x" "y" "z"
 v = Vector::new
@@ -275,7 +275,7 @@ Struct [0x5576cc6a5440]
    
    
 ## 0.7c
-- [X] optimized for iter loops :)
+- [X] optimized iter loops :)
 - [X] small optimize register ReturnValueSymbol once
 - [X] removed string concat from += !! tryed to optimize it but this is slow!
 - [X] Added FunctionMap::ModuleRegistry using `modules` and `import`
@@ -324,9 +324,14 @@ Struct [0x5576cc6a5440]
 - worked on handbook and added buildin functions description
 - added copyright note zserge/fenster because of used parts in PixelBuffer
 - replaced the fill algo with a fast save fill_scanline 
+- a bit cleanup
+- [ ] VariableFrame pool
+
+
 
 
 ---
+
 ## still missing:
 - [ ] fix memleaks fenster_audio .... it's "fixed" but still leak << i guess i will replace it with MiniAudio! 
 

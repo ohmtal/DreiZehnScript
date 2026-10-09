@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Function Map , TODO lookup by std::string is not the fastest!
+// Function Map
 //-----------------------------------------------------------------------------
 #pragma once
 

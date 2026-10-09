@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     }
 
     // -------------------------------------------------------------------------
-    // Console Mode - handling multi line input for "for" and "fn"
+    // Console Mode
     // -------------------------------------------------------------------------
     std::string line;
 

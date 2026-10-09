@@ -684,8 +684,9 @@ namespace DreiZehn {
             if (cloneRotateFreeProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer) return false;
 
+                float angle = args[0].getFloat();
                 PixelBufferObject* obj = new PixelBufferObject( mBuffer.width, mBuffer.height);
-                rotate_arbitrary(mBuffer, obj->mBuffer, args[0].getFloat());
+                rotate_arbitrary(mBuffer, obj->mBuffer, angle);
                 ret = Value(obj);
 
                 return true;

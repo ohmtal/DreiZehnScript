@@ -326,9 +326,9 @@ Struct [0x5576cc6a5440]
 - replaced the fill algo with a fast save fill_scanline 
 - a bit cleanup
 - [X] GarbageCollection as Singleton Class (removed from VariableFrame)
-- [ ] VariableFrame pool
-
-
+- [~] VariableFrame pool --- **rolled changes back it was slower than before!!!!!!**
+- [X] VariableExpression cache 
+- [~] Object Field cache **only works on dynamic fields!!!!**
 
 
 ---

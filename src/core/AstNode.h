@@ -168,9 +168,12 @@ struct ValueExpression : public Expression {
 };
 
 // Variables -------------------------------------------------------------------
-
+class VariableFrame;
 struct VariableExpression : public Expression {
     uint32_t mVariableNameSymbolId = 0;
+
+    uint32_t mCacheFrameID = 0;
+    Value* mCacheValue = nullptr;
 
     VariableExpression(uint32_t n) : mVariableNameSymbolId(n) {
         mNodeType  = NodeType::VariableExpression;
@@ -222,6 +225,11 @@ struct ArrayVariableExpression : public Expression {
 // ObjectFieldExpression --------------------------------------------------------------
 struct ObjectFieldExpression : public Expression {
     std::unique_ptr<Expression> mVarExpr; //left variable expression
+
+    // NOTE: only works on dynamic fields so NOT!
+    // Value* mCachedFieldValue = nullptr;
+    // ValueObject* mCachedObject = nullptr;
+
     uint32_t mFieldSymbolId = 0;
     ObjectFieldExpression(std::unique_ptr<Expression> varExpr, uint32_t fieldId)
         : mVarExpr(std::move(varExpr)), mFieldSymbolId(fieldId)

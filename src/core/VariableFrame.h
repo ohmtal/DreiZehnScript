@@ -29,6 +29,11 @@ inline VariableFrame* gCurrentFrame = nullptr;
 
 inline VariableFrame* gMasterFrame = nullptr;
 // -----------------------------------------------------------------------------
+#ifndef DREIZEHN_INITIAL_VARIABLE_MASTERFRAME_SIZE
+#define DREIZEHN_INITIAL_VARIABLE_MASTERFRAME_SIZE 256
+#define DREIZEHN_INITIAL_VARIABLE_CHILDFRAME_SIZE 8
+#endif
+// // -----------------------------------------------------------------------------
 
 class VariableFrame {
 private:
@@ -36,11 +41,18 @@ private:
     std::unordered_map<uint32_t, Value> mVariables;
     VariableFrame* mParentFrame = nullptr;
 
+    static inline uint32_t gFrameCounter = 0;
+    uint32_t mFrameId = 0;
 public:
+
     VariableFrame( VariableFrame* parentFrame ) {
+        mFrameId = (gFrameCounter++);
         gCurrentFrame = this;
         if (parentFrame == nullptr) {
             gMasterFrame = this;
+            mVariables.reserve(DREIZEHN_INITIAL_VARIABLE_MASTERFRAME_SIZE);
+        } else {
+            mVariables.reserve(DREIZEHN_INITIAL_VARIABLE_CHILDFRAME_SIZE);
         }
         mParentFrame = parentFrame;
     }
@@ -53,6 +65,9 @@ public:
         GarbageCollection::run();
         gCurrentFrame = mParentFrame;
     }
+
+    inline uint32_t getFrameId() {return mFrameId;}
+
 private:
     void internalSetVariable(Value& pre, Value& post) {
         if (pre.isPointer())  pre.asPointerObject()->setAssigned(false);
@@ -110,20 +125,25 @@ public:
         }
 
         std::string varName = SymbolTable::getName(id);
-        Tools::errorf("Variable not found: %s\n", varName.c_str());
+        Tools::warnf("Variable not found: %s\n", varName.c_str());
         return Value();
     }
 
-    inline Value* getVariablePtr(uint32_t id) {
+    inline Value* getVariablePtr(uint32_t id, bool isAssignVar = false) {
         auto it = mVariables.find(id);
         if (it != mVariables.end()) {
             return &it->second;
         }
 
         if (mParentFrame != nullptr) {
-            return mParentFrame->getVariablePtr(id);
+            return mParentFrame->getVariablePtr(id, isAssignVar);
         }
         // not found we set a new one !
+        // warning is bad, when it's an assign!
+        if (!isAssignVar) {
+            std::string varName = SymbolTable::getName(id);
+            Tools::warnf("Variable not found: %s\n", varName.c_str());
+        }
         mVariables[id] = Value(0);
         return &mVariables[id];
     }

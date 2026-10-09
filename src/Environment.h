@@ -67,10 +67,6 @@ namespace DreiZehn {
     };
 
 
-
-
-
-
 class Environment {
 private:
 

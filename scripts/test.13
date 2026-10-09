@@ -4,6 +4,26 @@ import Debug
 import Math
 import String
 
+foo = Object::new;
+bar = Object::new;
+fn p obj name
+    print obj name
+end;
+
+fn Object::p this name;
+    print this name;
+    end;
+
+print "--- cached with fn --- "
+p foo  "foo"; p bar "bar";
+print "--- cached with method --- "
+foo->p "foo"; bar->p "bar"
+
+-- v = Vector::new
+
+
+while core::breath; core::sleep 16 ;;
+
 -- calculate fibonacci n number
 fn fib n
     if n <= 1; return n;;
@@ -37,7 +57,7 @@ o->dump
 
 if o->isScriptMethod "getBar"; print "getBar exits =>" (o->getBar); end
 
-while core::breath; core::sleep 16 ;;
+
 
 
 print "------ ELIF --------"

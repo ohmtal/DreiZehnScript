@@ -12,6 +12,10 @@
 
 namespace DreiZehn {
     // -------------------------------------------------------------------------
+    // i need this for variable lookup not found warning
+    // to not show up when it's an assign
+    bool AssignActive = false;
+    // -------------------------------------------------------------------------
     // LiteralExpression :: optimized
     Value LiteralExpression::evaluate(Environment& env) {
 
@@ -40,11 +44,19 @@ namespace DreiZehn {
     // VariableExpression
     // -------------------------------------------------------------------------
     Value VariableExpression::evaluate(Environment& env) {
-        return env.getVariableFrame()->getVariable(mVariableNameSymbolId);
+        return *this->evaluatePtr(env);
+        // return env.getVariableFrame()->getVariablePtr(mVariableNameSymbolId);
     }
 
     Value* VariableExpression::evaluatePtr(Environment& env) {
-        return env.getVariableFrame()->getVariablePtr(mVariableNameSymbolId);
+
+        uint32_t frameID = gCurrentFrame->getFrameId();
+        if (mCacheValue && mCacheFrameID == frameID) {
+            return mCacheValue;
+        }
+        mCacheFrameID = frameID;
+        mCacheValue =  gCurrentFrame->getVariablePtr(mVariableNameSymbolId, AssignActive);
+        return mCacheValue;
     }
 
     // -------------------------------------------------------------------------
@@ -148,8 +160,12 @@ namespace DreiZehn {
                       SymbolTable::getName(mFieldSymbolId).c_str()
                       );
         return returnValue;
+
+        // Value* retValuePtr = this->evaluatePtr(env);
+        // if (retValuePtr) return *retValuePtr;
+        // return Value(0);
+
     }
-    // -------------------------------------------------------------------------
     Value* ObjectFieldExpression::evaluatePtr(Environment& env) {
         Value varValue = mVarExpr->evaluate(env);
         if (!varValue.isPointer()) {
@@ -158,6 +174,15 @@ namespace DreiZehn {
         }
 
         ValueObject* obj = varValue.asPointerObject();
+
+        // NOTE cool speedup but only works on dynamic fields so => NOT!!!!
+        // if (mCachedFieldValue && mCachedObject == obj) {
+        //     return mCachedFieldValue;
+        // }
+        //
+        // mCachedFieldValue = nullptr;
+        // mCachedObject = nullptr;
+
         Value* valPtr= obj->onGetFieldPtr(mFieldSymbolId);
         if (!valPtr) {
             Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
@@ -165,6 +190,10 @@ namespace DreiZehn {
                         SymbolTable::getName(mFieldSymbolId).c_str()
             );
         }
+        // else {
+        //     mCachedFieldValue = valPtr;
+        //     mCachedObject = obj;
+        // }
         return valPtr;
     }
     // -------------------------------------------------------------------------
@@ -541,7 +570,9 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     Value AssignStatement::evaluate(Environment& env) {
 
+        AssignActive = true;
         Value * valPtr = mVarExpr->evaluatePtr(env);
+        AssignActive = false;
 
         if ( !valPtr  ) {
             Tools::PrintParseError("Assign: variable is missing or invalid");
@@ -624,8 +655,72 @@ namespace DreiZehn {
             return *valuePtr;
         }
 
-         return Value(0);
+        return Value(0);
     }
+
+    // Value AssignOPStatement::evaluate(Environment& env) {
+    //
+    //     Value * valuePtr = mVarExpr->evaluatePtr(env);
+    //
+    //     if ( !valuePtr || !this->mRhs ) {
+    //         Tools::PrintParseError("AssignOP: variable or right is missing or invalid");
+    //         return Value(0);
+    //     }
+    //     Value rightHand = this->mRhs->evaluate(env);
+    //
+    //     int mode = 0;
+    //     if (valuePtr->isDouble()) mode = 0; //double
+    //     if (valuePtr->isInt() && rightHand.isInt()) mode = 1; //int
+    //     else if (valuePtr->isStringId() ) mode = 2; //string
+    //
+    //     switch(this->mOp) {
+    //         case TokenType::AssignPlus: {
+    //             if (mode == 0) {
+    //                 *valuePtr = Value(valuePtr->asFastDouble() + rightHand.getDouble());
+    //                 return *valuePtr;
+    //             } else if (mode == 1) {
+    //                 *valuePtr = Value(valuePtr->asFastInt() + rightHand.getInt());
+    //                 return *valuePtr;
+    //             } else {
+    //                 *valuePtr = Value (valuePtr->getStringRef() +  rightHand.toString() );
+    //                 return *valuePtr;
+    //             }
+    //         }
+    //         case TokenType::AssignMinus: {
+    //             if (mode == 0) {
+    //                 *valuePtr = Value(valuePtr->asFastDouble() - rightHand.getDouble());
+    //                 return *valuePtr;
+    //             } else if (mode == 1) {
+    //                 *valuePtr = Value(valuePtr->asFastInt() - rightHand.getInt());
+    //                 return *valuePtr;
+    //             }
+    //         }
+    //         case TokenType::AssignMul: {
+    //             if (mode == 0) {
+    //                 *valuePtr = Value(valuePtr->asFastDouble() * rightHand.getDouble());
+    //                 return *valuePtr;
+    //             } else if (mode == 1) {
+    //                 *valuePtr = Value(valuePtr->asFastInt() * rightHand.getInt());
+    //                 return *valuePtr;
+    //             }
+    //         }
+    //         case TokenType::AssignDiv:  {
+    //             if (mode == 0) {
+    //                 double rh = rightHand.getDouble();
+    //                 *valuePtr = Value(valuePtr->asFastDouble() / (rh == 0.0 ? EPSILON : rh));
+    //                 return *valuePtr;
+    //             } else if (mode == 1) {
+    //                 int32_t rh = rightHand.getDouble();
+    //                 if (rh == 0) *valuePtr  = Value(0);
+    //                 else *valuePtr = Value(valuePtr->asFastInt() / rh);
+    //                 return *valuePtr;
+    //             }
+    //         }
+    //         default: return Value(0);
+    //     }
+    //
+    //     return Value(0);
+    // }
 
     // -------------------------------------------------------------------------
     // FLOW STATEMENTS execute
@@ -682,7 +777,9 @@ namespace DreiZehn {
             Tools::errorf("Runtime Error: range border must be >= 0 and is %d!\n", count);
             return FlowStatus (FlowSignal::None);
         }
+        AssignActive = true;
         Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
+        AssignActive = false;
         for (int i = 0; i < count; i++) {
             *iterValPtr = Value(i);
 
@@ -714,7 +811,9 @@ namespace DreiZehn {
         int end = endVal.getInt();
 
         Environment loopEnv(&env);
+        AssignActive = true;
         Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
+        AssignActive = false;
         if (start > end ) {
             for (int i = start; i >= end; --i) {
                 *iterValPtr = Value(i);
@@ -803,7 +902,9 @@ namespace DreiZehn {
             return FlowStatus (FlowSignal::None)  ;
         }
 
+        AssignActive = true;
         Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
+        AssignActive = false;
         for (size_t itr = 0; itr < count; itr++) {
             Value* curValue = obj->onGetArrayIndexPtr(itr);
             *iterValPtr = *curValue;

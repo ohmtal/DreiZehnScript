@@ -777,9 +777,7 @@ namespace DreiZehn {
             Tools::errorf("Runtime Error: range border must be >= 0 and is %d!\n", count);
             return FlowStatus (FlowSignal::None);
         }
-        AssignActive = true;
-        Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
-        AssignActive = false;
+        Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
         for (int i = 0; i < count; i++) {
             *iterValPtr = Value(i);
 
@@ -811,9 +809,7 @@ namespace DreiZehn {
         int end = endVal.getInt();
 
         Environment loopEnv(&env);
-        AssignActive = true;
-        Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
-        AssignActive = false;
+        Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
         if (start > end ) {
             for (int i = start; i >= end; --i) {
                 *iterValPtr = Value(i);
@@ -902,9 +898,7 @@ namespace DreiZehn {
             return FlowStatus (FlowSignal::None)  ;
         }
 
-        AssignActive = true;
-        Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId);
-        AssignActive = false;
+        Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
         for (size_t itr = 0; itr < count; itr++) {
             Value* curValue = obj->onGetArrayIndexPtr(itr);
             *iterValPtr = *curValue;

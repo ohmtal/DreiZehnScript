@@ -19,6 +19,8 @@
 namespace DreiZehn {
 
 void Init(Environment& env) {
+    static bool registered = false; if (registered) return; registered = true;
+
     using namespace FunctionMap;
     ModuleRegistry::Register("Core", RegisterCoreFunctions);
     ModuleRegistry::Register("Math", RegisterMathFunctions);

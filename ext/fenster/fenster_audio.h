@@ -157,6 +157,7 @@ FENSTER_API int fenster_audio_open(struct fenster_audio *fa) {
   return snd_pcm_set_params(fa->pcm, fmt, 3, 1, FENSTER_SAMPLE_RATE, 1, 100000);
 }
 FENSTER_API int fenster_audio_available(struct fenster_audio *fa) {
+  if (!fa->pcm) return 0; //XXTH
   int n = snd_pcm_avail(fa->pcm);
   if (n < 0)
     snd_pcm_recover(fa->pcm, n, 0);
@@ -164,6 +165,7 @@ FENSTER_API int fenster_audio_available(struct fenster_audio *fa) {
 }
 FENSTER_API void fenster_audio_write(struct fenster_audio *fa, float *buf,
                                      size_t n) {
+  if (!fa->pcm) return; //XXTH
   int r = snd_pcm_writei(fa->pcm, buf, n);
   if (r < 0)
     snd_pcm_recover(fa->pcm, r, 0);

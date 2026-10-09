@@ -56,7 +56,7 @@ namespace DreiZehn {
         }
 
         ~FensterAudioObject() {
-            if   (!mClosed) {
+            if  (!mClosed) {
                 fenster_audio_close(&mFensterAudio);
                 mClosed = true;
             }
@@ -164,8 +164,10 @@ namespace DreiZehn {
             // // else
             // ------- close
             if (closeProp.matchMethod( methodId , args) == 1) {
-                fenster_audio_close(&mFensterAudio);
-                mClosed = true;
+                if (!mClosed) {
+                    fenster_audio_close(&mFensterAudio);
+                    mClosed = true;
+                }
                 ret = Value(1);
                 return true;
             }
@@ -216,6 +218,7 @@ namespace DreiZehn {
 
     // -------------------------------------------------------------------------
     void RegisterFensterAudioFunctions(Environment& env) {
+        static bool registered = false; if (registered) return; registered = true;
 
         using namespace FunctionMap;
 

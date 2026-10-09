@@ -1055,7 +1055,7 @@ namespace DreiZehn {
 
     // -------------------------------------------------------------------------
     void RegisterFensterFunctions(Environment& env) {
-
+        static bool registered = false; if (registered) return; registered = true;
         using namespace FunctionMap;
 
         // --- most used KEY CODES ----

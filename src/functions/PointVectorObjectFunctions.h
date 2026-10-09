@@ -109,6 +109,8 @@ namespace DreiZehn {
     };
     // -------------------------------------------------------------------------
     void RegisterPointVectorObjectFunctions(Environment& env) {
+        static bool registered = false; if (registered) return; registered = true;
+
         using namespace FunctionMap;
 
         Vector3Object::RegisterSymbols();

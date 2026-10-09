@@ -12,6 +12,8 @@
 
 namespace DreiZehn {
     void RegisterMathFunctions(Environment& env) {
+         static bool registered = false; if (registered) return; registered = true;
+
         std::srand(std::time(nullptr)); // setup random seed
 
         using namespace FunctionMap;

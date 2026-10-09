@@ -237,6 +237,9 @@ namespace DreiZehn {
     };
     // -------------------------------------------------------------------------
     void RegisterVectorFunctions(Environment& env) {
+        static bool registered = false;
+        if (registered) return;
+        registered = true;
         // init Methods:
         VectorValueObject::RegisterSymbols();
 

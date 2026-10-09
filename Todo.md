@@ -331,6 +331,10 @@ Struct [0x5576cc6a5440]
 - [~] Object Field cache **only works on dynamic fields!!!!**
 
 
+## 0.8b
+
+- [X] nailed gcc Release build to -02. Some tests run slower but StarField2 for example result in much better FPS (260 instead of 230)
+
 ---
 
 ## still missing:

@@ -90,7 +90,7 @@ namespace DreiZehn {
     // --- RegisterCoreFunctions ---
     // =============================================================================
     void RegisterCoreFunctions( Environment& env) {
-
+        static bool registered = false; if (registered) return; registered = true;
         using namespace FunctionMap;
 
 

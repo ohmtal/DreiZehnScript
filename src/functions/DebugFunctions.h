@@ -12,6 +12,7 @@ namespace DreiZehn {
 
 
     void RegisterDebugFunctions(Environment& env ) {
+         static bool registered = false; if (registered) return; registered = true;
          using namespace FunctionMap;
         // ---------------------------------------------------------------------
         RegisterFunction("debug::toggle", [](std::vector<Value>& args, Value& ret) -> bool {

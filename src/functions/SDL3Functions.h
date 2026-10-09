@@ -43,6 +43,7 @@ namespace DreiZehn {
 
 
     void RegisterSDL3Functions(Environment& env) {
+        static bool registered = false; if (registered) return; registered = true;
 
         using namespace FunctionMap;
 

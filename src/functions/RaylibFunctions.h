@@ -74,6 +74,9 @@ namespace DreiZehn::Raylib {
     };
     // -------------------------------------------------------------------------
     void RegisterRaylibFunctions(Environment& env) {
+        static bool registered = false;
+        if (registered) return;
+        registered = true;
 
         using namespace FunctionMap;
 

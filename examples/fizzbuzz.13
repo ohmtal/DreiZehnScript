@@ -10,31 +10,33 @@ fn doWhile
     i = 1
     while i <= 100
         if i % 15 == 0
-            print "FizzBuzz"
+            printraw "FizzBuzz "
         elif i % 3 == 0
-            print "Fizz"
+            printraw "Fizz "
         elif i % 5 == 0
-            print "Buzz"
+            printraw "Buzz "
         else
-            print i;
+            printraw i " ";
         end
         i++
     end
+    printraw "\n"
 end
 
 -- FizzBuzz for - well formed
 fn doFor
     for i 1 100
         if i % 15 == 0
-            print "FizzBuzz"
+            printraw "FizzBuzz "
         elif i % 3 == 0
-            print "Fizz"
+            printraw "Fizz "
         elif i % 5 == 0
-            print "Buzz"
+            printraw "Buzz "
         else
-            print i;
+            printraw i " ";
         end
     end
+    printraw "\n"
 end
 
 -- FizzBuzz for - short written using ';' and 'end' alias ';;'
@@ -46,10 +48,15 @@ fn doForShort
         elif i % 3 == 0; result = result + "Fizz "
         elif i % 5 == 0; result = result + "Buzz "
         else result = result + i + " ";;
-    end
+    ;;
     print result
-end
+;;
 
--- doWhile
--- doFor
+
+
+doWhile
+print "---------------"
+doFor
+print "---------------"
 doForShort
+print "---------------"

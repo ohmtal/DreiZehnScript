@@ -2,13 +2,57 @@
 -- DreiZehn Script: examples/helloworld.13
 -- -----------------------------------------------------------------------------
 import Core
+import String # for str::format
+import Vector # for Vector::new
 
 -- famous hello world
-print "Hello World!"
+print "1. Hello World!"
 
 -- with string variable example:
-str1 = "Hello"
+str1 = "2. Hello"
 str2 = "World"
 str  = str1 + " " + str2 + "!"
 print str
 
+-- with str::concat
+print (str::concat  3 ". " "Hello" " " "World" "!")
+
+-- with str::format
+print (str::format "%d. %s %s!" 4 "Hello" "World")
+
+-- mixed vector, printraw and foreach
+vec = Vector::new 5 ". " "Hello" " " "World" "!"
+forEach part vec
+    printraw part
+end
+printraw "\n"
+vec = 0 # release
+
+-- ord chr vec ...
+str = "6. Hello World!"
+vec = Vector::new
+len = str::strlen str
+forRange i len
+    vec->push (str::ord str i)
+end
+forEach ascii vec
+    printraw (str::chr ascii)
+end
+printraw "\n"
+
+-- rot DreiZehn
+vec[0] = str::ord "7" 0
+forEach ascii vec
+    if ascii >= 65 and ascii <= 90
+        c = ((ascii - 65 + 13) % 26) + 65
+        printraw (str::format "0x%X " c)
+    elif ascii >= 97 and ascii <= 122
+        c = ((ascii - 97 + 13) % 26) + 97
+        printraw (str::format "0x%X " c)
+    else
+        printraw (str::format "0x%X " ascii)
+    end
+end
+printraw "\n"
+
+vec = 0 # release

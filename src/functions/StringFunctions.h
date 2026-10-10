@@ -391,7 +391,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // ---------------------------------------------------------------------
         RegisterFunction("str::toNumber", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (!ArgsCheckString("str::len", args, 1)) return true;
+            if (!ArgsCheckString("str::toNumber", args, 1)) return true;
             char* endptr = nullptr;
             std::string s = args[0].getStringRef();
             double resDouble = std::strtod(s.c_str(), &endptr);

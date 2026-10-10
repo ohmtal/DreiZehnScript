@@ -175,7 +175,7 @@ namespace DreiZehn {
             if (methodId == mPrintProp.mSymbolId) {
                 if (!mPrintProp.ValidateArgs(args)) return false;
                 for (auto& value: mElements) {
-                    value.print();
+                     Tools::printf("%s ",value.toString().c_str());
                 }
                 Tools::printf("\n");
                 ret = Value(1);

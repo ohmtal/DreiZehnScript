@@ -302,15 +302,15 @@ public:
     }
 
     inline void const print(bool appendLineFeed = false) {
-        if (isInt()) Tools::printf("%d ", asInt());
-        else if (isDouble()) Tools::printf("%f ", asDouble());
-        else if (isStringId()) Tools::printf("%s ", getStringRef().c_str());
+        if (isInt()) Tools::printf("%d", asInt());
+        else if (isDouble()) Tools::printf("%f", asDouble());
+        else if (isStringId()) Tools::printf("%s", getStringRef().c_str());
         else if (isPointer()) {
             ValueObject* obj = asPointerObject();
             Tools::printf("%s",  obj->toString().c_str());
         }
         else if(isValuePointer()) {
-            Tools::printf("ValuePtr [%p] ",  asValuePointer());
+            Tools::printf("ValuePtr [%p]",  asValuePointer());
         }
         if (appendLineFeed) Tools::printf("\n");
     }

@@ -184,11 +184,11 @@ namespace DreiZehn::FunctionMap {
         }
 
         bool internalLoadAll( Environment& env) {
-            Tools::printf("Import all modules:\n");
+            // Tools::printf("Import all modules:\n");
             for ( auto& [key, value] : modules)  {
                 int res = value.load(env);
-                if (res == 1) Tools::printf("     - %s: %s\n", value.name.c_str(), "OK");
-                else if (res == 0) Tools::printf("     - %s: %s\n", value.name.c_str(), "FAIL");
+                // if (res == 1) Tools::printf("     - %s: %s\n", value.name.c_str(), "OK");
+                // else if (res == 0) Tools::printf("     - %s: %s\n", value.name.c_str(), "FAIL");
             }
             return true;
         }
@@ -196,8 +196,8 @@ namespace DreiZehn::FunctionMap {
             auto it = modules.find(moduleName);
             if (it != modules.end()) {
                 int res = it->second.load(env);
-                if (res == 1)  Tools::printf("Import: %s: %s\n", it->second.name.c_str(), "OK");
-                else if (res == 0) Tools::printf("Import: %s: %s\n", it->second.name.c_str(), "FAIL");
+                // if (res == 1)  Tools::printf("Import: %s: %s\n", it->second.name.c_str(), "OK");
+                // else if (res == 0) Tools::printf("Import: %s: %s\n", it->second.name.c_str(), "FAIL");
                 return res != 0;
             }
             return false;

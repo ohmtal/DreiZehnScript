@@ -30,28 +30,145 @@ need to be registered - without it's the pure script language.
 
 ### Hello World
 ```
-print "Hello World"
+-- -----------------------------------------------------------------------------
+-- DreiZehn Script: examples/helloworld.13
+-- -----------------------------------------------------------------------------
+import Core
+import String # for str::format
+import Vector # for Vector::new
+
+-- famous hello world
+print "1. Hello World!"
+
+-- with string variable example:
+str1 = "2. Hello"
+str2 = "World"
+str  = str1 + " " + str2 + "!"
+print str
+
+-- with str::concat
+print (str::concat  3 ". " "Hello" " " "World" "!")
+
+-- with str::format
+print (str::format "%d. %s %s!" 4 "Hello" "World")
+
+-- mixed vector, printraw and foreach
+vec = Vector::new 5 ". " "Hello" " " "World" "!"
+forEach part vec
+    printraw part
+end
+printraw "\n"
+vec = 0 # release
+
+-- ord chr vec ...
+str = "6. Hello World!"
+vec = Vector::new
+len = str::strlen str
+forRange i len
+    vec->push (str::ord str i)
+end
+forEach ascii vec
+    printraw (str::chr ascii)
+end
+printraw "\n"
+
+-- rot DreiZehn
+vec[0] = str::ord "7" 0
+forEach ascii vec
+    if ascii >= 65 and ascii <= 90
+        c = ((ascii - 65 + 13) % 26) + 65
+        printraw (str::format "0x%X " c)
+    elif ascii >= 97 and ascii <= 122
+        c = ((ascii - 97 + 13) % 26) + 97
+        printraw (str::format "0x%X " c)
+    else
+        printraw (str::format "0x%X " ascii)
+    end
+end
+printraw "\n"
+
+vec = 0 # release
+
 ```
 
 ### FizzBuzz  
 
 ```
-for i 1 100
-    if i % 15 == 0
-        print "FizzBuzz"
-    elif i % 3 == 0
-        print "Fizz"
-    elif i % 5 == 0
-        print "Buzz"
-    else
-        print i;
+-- -----------------------------------------------------------------------------
+-- DreiZehn examples/fizzbuzz.13
+-- -----------------------------------------------------------------------------
+import Core
+
+-- Example with script functions:
+
+-- FizzBuzz while - well formed
+fn doWhile
+    i = 1
+    while i <= 100
+        if i % 15 == 0
+            printraw "FizzBuzz "
+        elif i % 3 == 0
+            printraw "Fizz "
+        elif i % 5 == 0
+            printraw "Buzz "
+        else
+            printraw i " ";
+        end
+        i++
     end
+    printraw "\n"
 end
+
+-- FizzBuzz for - well formed
+fn doFor
+    for i 1 100
+        if i % 15 == 0
+            printraw "FizzBuzz "
+        elif i % 3 == 0
+            printraw "Fizz "
+        elif i % 5 == 0
+            printraw "Buzz "
+        else
+            printraw i " ";
+        end
+    end
+    printraw "\n"
+end
+
+-- FizzBuzz for - short written using ';' and 'end' alias ';;'
+-- writing all to a string with '+' concat
+fn doForShort
+    result = ""
+    for i 1 100
+        if i % 15 == 0;  result = result + "FizzBuzz "
+        elif i % 3 == 0; result = result + "Fizz "
+        elif i % 5 == 0; result = result + "Buzz "
+        else result = result + i + " ";;
+    ;;
+    print result
+;;
+
+
+
+doWhile
+print "---------------"
+doFor
+print "---------------"
+doForShort
+print "---------------"
+
 ```
 
 ### Fibonacci  
 
+This is not the fastest way to calculate a fibonacci. It shows recursive calls.
+
 ```
+-- -----------------------------------------------------------------------------
+-- DreiZehn Script examples/fibonacci.13
+-- -----------------------------------------------------------------------------
+import Core
+
 -- calculate fibonacci n number
 fn fib n                              # define a user function with parameter 'n'
     if n <= 1; return n;;             # 2 statements separated by ';' using ';;' as 'end' alias
@@ -61,6 +178,7 @@ end
 forRange i 14                         # forRange counts 'i' from 0 to 13, it does 14 loops
     print "Fib" i "=" (fib i)
 end
+
 ```
 
 ### 99 Bottles of Beer

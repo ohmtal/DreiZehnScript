@@ -14,6 +14,7 @@
 #include "functions/VectorFunctions.h"
 #include "functions/DebugFunctions.h"
 #include "functions/PointVectorObjectFunctions.h"
+#include "functions/FileFunctions.h"
 
 
 namespace DreiZehn {
@@ -28,6 +29,7 @@ void Init(Environment& env) {
     ModuleRegistry::Register("Vector", RegisterVectorFunctions);
     ModuleRegistry::Register("Debug", RegisterDebugFunctions);
     ModuleRegistry::Register("PointVector", RegisterPointVectorObjectFunctions);
+    ModuleRegistry::Register("File", RegisterFileFunctions);
 
 
     // ---------------------------------------------------------------------

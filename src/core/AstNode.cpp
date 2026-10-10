@@ -476,10 +476,10 @@ namespace DreiZehn {
             case TokenType::Equal: {
                 if (lVal.isPointer() && rVal.isPointer()) {
                     return Value(lVal.asPointer() == rVal.asPointer() ? 1 : 0);
+                } else if (lVal.isStringId() && rVal.isStringId()) {
+                    return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) == 0;
                 } else if (lVal.isStringId() || rVal.isStringId()) {
-                    std::string l = lVal.isStringId() ? lVal.getStringRef() : lVal.toString();
-                    std::string r = rVal.isStringId() ? rVal.getStringRef() : rVal.toString();
-                    return strcmp(l.c_str(), r.c_str()) == 0;
+                    return Value(0);
                 }
                 double l = lVal.getDouble();
                 double r = rVal.getDouble();
@@ -490,6 +490,8 @@ namespace DreiZehn {
                     return Value(lVal.asPointer() != rVal.asPointer() ? 1 : 0);
                 } else if (lVal.isStringId() && rVal.isStringId()) {
                     return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) != 0;
+                }  else if (lVal.isStringId() || rVal.isStringId()) {
+                    return Value(1);
                 }
                 double l = lVal.getDouble();
                 double r = rVal.getDouble();

@@ -94,6 +94,7 @@ if Init
         SDL_SetRenderDrawColor Renderer 20 20 40 255
         SDL_RenderClear Renderer
 
+        SDL_SetRenderDrawColor Renderer 255 255 255 255
         forEach p Points
             p.z -= Dt * Speed
 
@@ -113,7 +114,6 @@ if Init
 
 
             radius = math::lerp 2.0 0.3 p.z
-            SDL_SetRenderDrawColor Renderer 255 255 255 255
             SDL_RenderFillRect Renderer screenX screenY radius radius
 
         end

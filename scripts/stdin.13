@@ -1,0 +1,26 @@
+-- stdin example
+-- socat TCP-LISTEN:12345,fork,max-children=1  system:'./DreiZehn scripts/stdin.13'
+
+import File
+
+log = FileStream::open "stdin.log" "a"
+if (!log); error "Failed to open logfile"; return;;
+log->writeln "Hello Logfile!"; log->flush
+
+fs = FileStream::open "fs://stdin" "r"
+if (!fs); error "Failed to open stream"; return;;
+
+buffer = ""
+buffer_size = 255
+
+while  (buffer = fs->readln buffer_size) != 0
+    if buffer == "bye" || buffer == "quit"
+        break
+    end
+    log->writeln (str::concat "incomming: " buffer); log->flush
+    printraw "why do you think" buffer "?\n"
+--     printraw "why do you think" buffer "?\r\n"
+end
+fs->close
+log->writeln (str::concat "buffer was: " buffer); log->flush
+log->close

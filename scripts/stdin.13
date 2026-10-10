@@ -1,6 +1,7 @@
 -- stdin example
 -- socat TCP-LISTEN:12345,fork,max-children=1  system:'./DreiZehn scripts/stdin.13'
 
+import String
 import File
 
 log = FileStream::open "stdin.log" "a"
@@ -13,14 +14,20 @@ if (!fs); error "Failed to open stream"; return;;
 buffer = ""
 buffer_size = 255
 
+printraw ">"
 while  (buffer = fs->readln buffer_size) != 0
-    if buffer == "bye" || buffer == "quit"
-        break
-    end
     log->writeln (str::concat "incomming: " buffer); log->flush
-    printraw "why do you think" buffer "?\n"
---     printraw "why do you think" buffer "?\r\n"
+    if buffer != ""
+        if buffer == "bye" || buffer == "quit"
+            break
+        end
+        printraw "why do you think" buffer "? >"
+    else
+        printraw ">"
+    end
 end
 fs->close
-log->writeln (str::concat "buffer was: " buffer); log->flush
+log->writeln ("-----------------------------------"); log->flush
 log->close
+fs = 0
+log = 0

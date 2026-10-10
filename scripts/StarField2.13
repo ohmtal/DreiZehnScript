@@ -8,7 +8,7 @@ import String
 import SDL3
 import Vector
 
-print " StarField v7f @13 startup...."
+print " StarField v8b @13 startup...."
 -- DreiZehn global variables are also available by the functions
 -- if you want to make clear it's global you may use a prefix separated by ':'
 -- log Glob::Window = ...
@@ -20,7 +20,7 @@ maxH = H / 2
 minH = maxH * -1
 STAR_COUNT  = 4200
 START_DIV   = 0.03125
-Speed       = 0.4
+Speed       = 0.2
 fontScale   = 1.2
 -- Objects initialize with 0:
 Window      = 0
@@ -30,18 +30,13 @@ Points      = 0
 
 
 fn Init
-    if ( SDL_Init SDL_INIT_VIDEO ) == false
+    if !( SDL_Init SDL_INIT_VIDEO )
         print "Failed to init SDL3"
         return false
     end
 
-    Window = SDL_CreateWindow "StarField DreiZehn" W H 0
-    if Window == 0
-        print "Failed to create window"
-        return false
-    end
-
-    Renderer = SDL_CreateRenderer Window
+    if !(Window = SDL_CreateWindow "StarField DreiZehn" W H 0); return false;;
+    if !(Renderer = SDL_CreateRenderer Window ); return false;;
     Event = SDL_CreateEvent
 
     Points = Vector::new
@@ -50,7 +45,7 @@ fn Init
         p.x =  math::random minW maxW
         p.y =  math::random minH maxH
         p.z =  math::randomf
-        print p
+        -- print p
     end
     return true
 end

@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// FileStream inital r/w stdin stdout
+// FileStream
 //-----------------------------------------------------------------------------
 #pragma once
 

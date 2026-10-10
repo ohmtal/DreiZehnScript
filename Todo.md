@@ -339,6 +339,8 @@ Struct [0x5576cc6a5440]
 - [X] FileStream base also for stdin/stdout :)
 - [ ] FileStream ->getError and test modi 
 - [ ] MiniAudio
+- [ ] Test clang header parser for sdl3 (saved in sourceBox)
+
 ---
 
 ## still missing:

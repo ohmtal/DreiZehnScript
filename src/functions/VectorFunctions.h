@@ -27,9 +27,14 @@ namespace DreiZehn {
         VectorValueObject() : ValueObject(TypeVectorObject) {  }
         ~VectorValueObject() {
             // GarbageCollection: cleanup assigned flags for object members
-            for (auto e: mElements) {
-                if (e.isPointer())  static_cast<ValueObject*>(e.asPointer())->setAssigned(false);
+            if (!Globals::shutDownRUNNING)
+            {
+                for (auto e: mElements) {
+                    // if (e.isPointer())  static_cast<ValueObject*>(e.asPointer())->setAssigned(false);
+                    if (e.isPointer())  e.asPointerObject()->setAssigned(false);
+                }
             }
+            mElements.clear();
         }
 
         inline static ValueObjectProperty mPushProp;
@@ -100,7 +105,14 @@ namespace DreiZehn {
 
             if ( methodId == mPushProp.mSymbolId ) {
                 if (!mPushProp.ValidateArgs(args)) return false;
-                if (args[0].isPointer()) static_cast<ValueObject*>(args[0].asPointer())->setAssigned(true);
+                if (args[0].isPointer()) {
+                    if (args[0].asPointerObject() == this) {
+                        Tools::PrintRuntimeError("Can NOT at myself to me!");
+                        ret = Value(0);
+                        return false;
+                    }
+                    args[0].asPointerObject()->setAssigned(true);
+                }
                 mElements.push_back(args[0]);
                 ret = Value(args[0]);
                 return true;
@@ -110,7 +122,7 @@ namespace DreiZehn {
                 if (!mPopProp.ValidateArgs(args)) return false;
                 if (mElements.size() > 0) {
                     ret = Value(mElements.back());
-                    if (ret.isPointer()) static_cast<ValueObject*>(ret.asPointer())->setAssigned(false);
+                    if (ret.isPointer()) ret.asPointerObject()->setAssigned(false);
                     mElements.pop_back();
                 } else {
                     ret= Value();
@@ -136,10 +148,18 @@ namespace DreiZehn {
                 if (!mSetProp.ValidateArgs(args)) return false;
                 // slowdown a bit but need it for GarbageCollection
                 Value pre = mElements[args[0].getInt()];
-                if (pre.isPointer()) static_cast<ValueObject*>(pre.asPointer())->setAssigned(false);
+                if (pre.isPointer()) pre.asPointerObject()->setAssigned(false);
                 mElements[args[0].getInt()] = args[1];
                 ret =  args[1];
-                if (ret.isPointer()) static_cast<ValueObject*>(ret.asPointer())->setAssigned(true);
+
+                if (ret.isPointer()) {
+                    if (ret.asPointerObject() == this) {
+                        Tools::PrintRuntimeError("Can NOT add myself to me!");
+                        ret = Value(0);
+                        return false;
+                    }
+                    ret.asPointerObject()->setAssigned(true);
+                }
                 return true;
 
             }

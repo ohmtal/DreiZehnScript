@@ -101,6 +101,9 @@ namespace DreiZehn::FunctionMap {
         else
             return nullptr;
     }
+
+    #define REGISTER_CONST(constName) RegisterConstants(#constName, Value(constName))
+
     // -------------------------------------------------------------
     // List of registed modules
     // -------------------------------------------------------------

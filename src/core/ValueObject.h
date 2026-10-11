@@ -47,7 +47,8 @@ struct ValueObject {
 
     FunctionMap::ScriptFunction* getScriptMethod(uint32_t methodId);
 
-    virtual ~ValueObject() = default;
+    // virtual ~ValueObject() = default;
+    virtual ~ValueObject();
 
     void insertUpdateDynamicField(uint32_t fieldSymbolId, const Value& value);
     Value* getDynamicFieldPtr(uint32_t fieldSymbolId);

@@ -18,12 +18,15 @@ namespace DreiZehn {
 namespace Globals {
     inline int currentScriptLineNumber = 0;
     inline std::string currentScriptLine =  "";
-
+    // ------
+    inline  bool shutDownRUNNING = false;
+    // ------
     // i want to track the current Env!
     inline Environment* gCurEnv = nullptr;
-
+    // ------
     inline  bool gDumpStateNodes = false; //Debug
     inline  bool gShowVariableDebug = false; //Debug
+
 }
 
 namespace Tools {

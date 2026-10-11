@@ -56,13 +56,19 @@ filter = str::concat "{" strSep "file" strSep ":" strSep filename strSep ','
 -- -----------------------------------------------------------------------------
 fn Parser::advance this
     cur = this->peek
+    if this._index_ + 1 > this._len_ return "";;
     this._index_ ++;
-    if this._index_ > this._len_ return "";;
     return cur
 end
 
-fn Parser::peek this
-    return this._line_[this._index_]
+fn Parser::peek this offset
+    idx = this._index_
+    if offset
+        if idx + offset < 0 || idx + offset > this._len_; return "";;
+        idx += offset
+    end
+
+    return this._line_[idx]
 end
 
 -- -----------------------------------------------------------------------------
@@ -102,6 +108,7 @@ fn Parser::parse this
             newVector = Vector::new
             newVector.parent = curVector
             curVector = newVector
+
             token->setField left curVector
             left = ""
         end
@@ -115,8 +122,16 @@ fn Parser::parse this
         if (this->peek == strSep)
             this->advance
             tmpStr = ""
+
             while this->peek != strSep && this->peek != ""
+
+                if this->peek == "\\" and (this->peek 1) == strSep
+                    this->advance
+                end
+
                 tmpStr += this->advance
+
+                if prevPeek != "\\" and this->peek == strSep break;;
             end
             if (left == "") left = tmpStr
             else token->setField left tmpStr; left = "";;
@@ -135,11 +150,12 @@ fn Parser::parse this
             -- left is set before ...
         end
 
-
-
-
-        if startindex == this._index_; error "PARSE ERROR peek not moved!"; return 0;;
+        if startindex == this._index_; error "PARSE ERROR peek not moved! LINE" line; return 0;;
     end
+
+    if (squarePos != 0) error "SQUARE COUNTER INVALID:" squarePos "!!! LINE:" LINES ; core::sleep 10000;;
+    if (curlyPos != 0) error "CURLY COUNTER INVALUD:" curlyPos "  LINE:" LINES ; core::sleep 10000;;
+
 end
 
 
@@ -172,7 +188,7 @@ fn ToToken tokenvector
             structname = token.struct
             field = Tokens->getField structname
             if (field && field->getType == TypeObject  )
-                if (field.params && field.params == TypeVector)
+                if (field.params && field.params->getType == TypeVector)
                     print "ADD " token "TO" structname
                     field.params->push token
                 else
@@ -190,7 +206,7 @@ fn ToToken tokenvector
             if token.name
                 Tokens->setField token.name token
             else
-                -- push unknown
+                -- pus"h unknown
                 Tokens->push token
             end
         end
@@ -199,7 +215,6 @@ fn ToToken tokenvector
 end
 -- -----------------------------------------------------------------------------
 fn readLoop
-
     while  (buffer = fs->readln buffer_size) != 0
         if buffer != ""
             curParsed = parseLine buffer
@@ -210,7 +225,8 @@ fn readLoop
     end
 end
 -- -----------------------------------------------------------------------------
-fn createStruct dummy;;###forward
+fn createStruct dummy;;     # -- forward --
+fn createConst dummy;;     # -- forward --
 
 fn TokensTree
     Tokens->dump
@@ -222,14 +238,20 @@ fn TokensTree
         forRange j token->getFieldCount
             print "    " (token->getFieldName j) "=" (token->getField j)
         end
-        forEach subToken token.params
-            forRange j subToken->getFieldCount
-                print "          " (subToken->getFieldName j) "=" (subToken->getField j)
+        if (token.kind == "constant_macro")
+        else
+            forEach subToken token.params
+                forRange j subToken->getFieldCount
+                    print "          " (subToken->getFieldName j) "=" (subToken->getField j)
+                end
+                print "          ...."
             end
-            print "          ...."
         end
 
-        if (token.kind == "struct"); print (createStruct token);;
+        if (token.kind == "struct"); print(createStruct token)
+        elif (token.kind == "constant_macro") print(createConst token)
+        else print "================ TODO:" token.kind token.name" =========================="
+        end
     end
 
 
@@ -240,7 +262,7 @@ fn TokensTree
     end
 end
 -- -----------------------------------------------------------------------------
-
+REGISTER_CONST = ""
 REGISTER_STR = "\n\n"
 
 getFieldSetFieldStr = "   inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override { \n"
@@ -256,13 +278,20 @@ getFieldSetFieldStr +="       return false;\n"
 getFieldSetFieldStr +="   }\n"
 getFieldSetFieldStr +="\n"
 -- -----------------------------------------------------------------------------
+fn createConst tokenObject
+    result = ""
+    result += str::format "REGISTER_CONST(%s);\n" tokenObject.name
+    REGISTER_CONST += result
+    return result
+end
+-- -----------------------------------------------------------------------------
 fn createStruct tokenObject
     result = ""
     objname  = str::format "%sObject" tokenObject.name
     typename = str::format "Type%s" objname
 
     -- register type
-    result += str::format "const int %s =  RegisterUserObjectType(\"%s\");\n" tokenObject.name
+    result += str::format "const int %s =  RegisterUserObjectType(\"%s\");\n" typename tokenObject.name
     result += "\n"
     -- create struct
     result += str::format "struct %s : public ValueObject {\n" objname
@@ -282,7 +311,7 @@ fn createStruct tokenObject
     -- clone
     result += "   virtual ValueObject* clone() override {\n"
     result += str::format "      %s* clone = new %s();\n" objname objname
-    result += "      ValueObject::cloneBase(clone);
+    result += "      ValueObject::cloneBase(clone);"
     forEach param tokenObject.params
         result += str::format "         clone->m%s = this->m%s;\n" param.field param.field
     end
@@ -355,6 +384,23 @@ fn createStruct tokenObject
     return result
 end
 -- -----------------------------------------------------------------------------
+fn DebugPrint
+
+forRange i Tokens->getFieldCount
+    v = Tokens->getField i
+    print "DUMP " v.name ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    v->dump
+    if v.kind == "function"
+        if (v.params->getType == TypeVector)
+            forEach subTok v.params
+                print "     DUMP SUB >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                subTok->dump
+            end
+        end
+    end
+end
+end
+-- -----------------------------------------------------------------------------
 --                      *** MAIN ***
 -- -----------------------------------------------------------------------------
 
@@ -372,14 +418,14 @@ buffer = ""
 buffer_size = 1024
 
 
--- line = "{\"file\":\"SDL_rect.h\",\"kind\":\"function\",\"name\":\"SDL_GetRectAndLineIntersectionFloat\",\"return_type\":\"int\",\"params\":[{\"name\":\"rect\",\"type\":\"const SDL_FRect *\"},{\"name\":\"X1\",\"type\":\"float *\"},{\"name\":\"Y1\",\"type\":\"float *\"},{\"name\":\"X2\",\"type\":\"float *\"},{\"name\":\"Y2\",\"type\":\"float *\"}]}"
-
--- p = parseLine line
--- while core::breath; core::sleep 16;;
-
-
 readLoop
 print ".............. LOOP END ..................."
+-- core::printgc
+-- core::gc
+-- core::printgc
+-- -- core::sleep 1000;
+-- DebugPrint;
+-- return
 
 Tokens->dump
 print ".............. POST PROCESS ..................."
@@ -391,8 +437,10 @@ TokensTree
 print ".............. REGISTER_STR ..................."
 print REGISTER_STR
 
+print ".............. REGISTER_CONST ..................."
+print REGISTER_CONST
+
 fs->close
 log->close
 fs = 0
 log = 0
-

@@ -20,7 +20,7 @@ maxH = H / 2
 minH = maxH * -1
 STAR_COUNT  = 4200
 START_DIV   = 0.03125
-Speed       = 0.4
+Speed       = 0.2
 fontScale   = 1.2
 -- Objects initialize with 0:
 Window      = 0
@@ -94,6 +94,7 @@ if Init
         SDL_SetRenderDrawColor Renderer 20 20 40 255
         SDL_RenderClear Renderer
 
+        SDL_SetRenderDrawColor Renderer 255 255 255 255
         forEach p Points
             ptrX = (&p.x)
             ptrY = (&p.y)
@@ -117,7 +118,6 @@ if Init
 
 
             radius = math::lerp 2.0 0.3 (*ptrZ)
-            SDL_SetRenderDrawColor Renderer 255 255 255 255
             SDL_RenderFillRect Renderer screenX screenY radius radius
 
         end

@@ -76,22 +76,28 @@ void GarbageCollection::listGarbageObjects() {
 void GarbageCollection::doGarbageCollection(bool isShutDown) {
 
     if (isShutDown) {
+        Globals::shutDownRUNNING = true;
         for (auto* obj : mGarbageCollection) {
             delete obj;
         }
+
         mGarbageCollection.clear();
     } else {
+        std::vector<ValueObject*> byebye;
+        std::vector<ValueObject*> muststay;
 
-        auto it = std::remove_if(mGarbageCollection.begin()
-        , mGarbageCollection.end(), [](auto* obj) {
+        for (auto* obj : mGarbageCollection) {
             if (obj->mAssigned < 1) {
-                delete obj;
-                return true; // mark for delete
+                byebye.push_back(obj);
+            } else {
+                muststay.push_back(obj);
             }
-            return false;
-        });
+        }
+        mGarbageCollection = std::move(muststay);
 
-        mGarbageCollection.erase(it, mGarbageCollection.end());
+        for (auto* obj : byebye) {
+            delete obj;
+        }
     }
 }
 

@@ -3,6 +3,40 @@
 #include <string.h>
 #include <stdlib.h>
 
+char* escape_json_string(const char* input) {
+    if (!input) return NULL;
+
+    size_t len = strlen(input);
+    char *escaped = malloc(len * 2 + 1);
+    if (!escaped) return NULL;
+
+    char *dst = escaped;
+    while (*input) {
+        if (*input == '"') {
+            *dst++ = '\\';
+            *dst++ = '"';
+        } else if (*input == '\\') {
+            *dst++ = '\\';
+            *dst++ = '\\';
+        } else if (*input == '\n') {
+            *dst++ = '\\';
+            *dst++ = 'n';
+        } else if (*input == '\r') {
+            *dst++ = '\\';
+            *dst++ = 'r';
+        } else if (*input == '\t') {
+            *dst++ = '\\';
+            *dst++ = 't';
+        } else {
+            *dst++ = *input;
+        }
+        input++;
+    }
+    *dst = '\0';
+    return escaped;
+}
+
+
 static enum CXChildVisitResult visit(
     CXCursor cursor, CXCursor parent, CXClientData data)
 {
@@ -87,14 +121,42 @@ static enum CXChildVisitResult visit(
             }
 
             // *** enum / const ***
-            else if (kind == CXCursor_EnumDecl && clang_isCursorDefinition(cursor)) {
-                printf("{\"file\":\"%s\",\"kind\":\"enum\",\"name\":\"%s\"}\n", short_filename, name);
-            }
+            // else if (kind == CXCursor_EnumDecl && clang_isCursorDefinition(cursor)) {
+            //     printf("{\"file\":\"%s\",\"kind\":\"enum\",\"name\":\"%s\"}\n", short_filename, name);
+            // }
+            // else if (kind == CXCursor_EnumConstantDecl && parentKind == CXCursor_EnumDecl) {
+            //     long long enumValue = clang_getEnumConstantDeclValue(cursor);
+            //
+            //     CXString parentNameStr = clang_getCursorSpelling(parent);
+            //     const char *enumName = clang_getCString(parentNameStr);
+            //
+            //     char typedefName[256] = "";
+            //     if (enumName == NULL || enumName[0] == '\0') {
+            //         CXType parentType = clang_getCursorType(parent);
+            //         CXString typeNameStr = clang_getTypeSpelling(parentType);
+            //
+            //         const char* rawTypeName = clang_getCString(typeNameStr);
+            //         if (rawTypeName && strncmp(rawTypeName, "enum ", 5) != 0) {
+            //             snprintf(typedefName, sizeof(typedefName), "%s", rawTypeName);
+            //             enumName = typedefName;
+            //         } else {
+            //             enumName = "anonymous";
+            //         }
+            //         clang_disposeString(typeNameStr);
+            //     }
+            //
+            //     printf("{\"file\":\"%s\",\"kind\":\"enum_constant\",\"enum\":\"%s\",\"name\":\"%s\",\"value\":\"%lld\"}\n",
+            //            short_filename, enumName, name, enumValue);
+            //
+            //     clang_disposeString(parentNameStr);
+            // }
+
+
             else if (kind == CXCursor_EnumConstantDecl && parentKind == CXCursor_EnumDecl) {
                 CXString parentNameStr = clang_getCursorSpelling(parent);
                 long long enumValue = clang_getEnumConstantDeclValue(cursor);
 
-                printf("{\"file\":\"%s\",\"kind\":\"enum_constant\",\"enum\":\"%s\",\"name\":\"%s\",\"value\":%lld}\n",
+                printf("{\"file\":\"%s\",\"kind\":\"enum_constant\",\"enum\":\"%s\",\"name\":\"%s\",\"value\":\"%lld\"}\n",
                        short_filename, clang_getCString(parentNameStr), name, enumValue);
 
                 clang_disposeString(parentNameStr);
@@ -102,6 +164,11 @@ static enum CXChildVisitResult visit(
 
             // *** macros ***
             else if (kind == CXCursor_MacroDefinition) {
+
+                if (clang_Cursor_isMacroFunctionLike(cursor)) {
+                    return CXChildVisit_Continue;
+                }
+
                 CXSourceRange range = clang_getCursorExtent(cursor);
                 CXSourceLocation startLoc = clang_getRangeStart(range);
                 CXSourceLocation endLoc = clang_getRangeEnd(range);
@@ -132,8 +199,12 @@ static enum CXChildVisitResult visit(
                                 }
 
                                 if (strlen(ptr) > 0) {
+                                     char *safe_value = escape_json_string(ptr);
                                     printf("{\"file\":\"%s\",\"kind\":\"constant_macro\",\"name\":\"%s\",\"value\":\"%s\"}\n",
-                                           short_filename, name, ptr);
+                                           short_filename, name, safe_value ? safe_value : "");
+
+                                    // printf("{\"file\":\"%s\",\"kind\":\"constant_macro\",\"name\":\"%s\",\"value\":\"%s\"}\n",
+                                           // short_filename, name, ptr);
                                 }
                             }
                             free(buffer);

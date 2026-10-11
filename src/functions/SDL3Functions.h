@@ -12,6 +12,7 @@
 #include "core/ValueObject.h"
 #include "core/VariableFrame.h"
 
+
 namespace DreiZehn {
 
     const int TypeSDL_FPointObject =  RegisterUserObjectType("SDL_FPointObject");
@@ -96,11 +97,14 @@ namespace DreiZehn {
         SDL_Event_Object() : ValueObject(Type_SDL_Event_Object) { std::memset(&value, 0, sizeof(SDL_Event)); }
     };
 
-
+    // =================================================================================
     void RegisterSDL3Functions(Environment& env) {
         static bool registered = false; if (registered) return; registered = true;
 
         using namespace FunctionMap;
+        REGISTER_CONST(SDLK_0);
+
+
 
         SDL_FPointObject::RegisterSymbols();
         RegisterFunction("SDL_FPoint", [](std::vector<Value>& args, Value& ret) -> bool {

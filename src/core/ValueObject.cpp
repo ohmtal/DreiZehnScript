@@ -46,6 +46,7 @@ namespace DreiZehn {
         return true;
     }
     // -------------------------------------------------------------------------
+    // ------------------ ValueObject
     // -------------------------------------------------------------------------
     ValueObject::ValueObject(int t) : mType(t) {
         GarbageCollection::insert(this);
@@ -53,6 +54,17 @@ namespace DreiZehn {
         // this make is slower !!
         // mDynmaicFieldIndex.reserve(256);
         // mDynamicFieldValues.reserve(256);
+    }
+    // -------------------------------------------------------------------------
+    ValueObject::~ValueObject() {
+        if (!Globals::shutDownRUNNING)
+        {
+            for(auto& val: mDynamicFieldValues) {
+                if (val.isPointer()) val.asPointerObject()->setAssigned(false);
+            }
+        }
+        mDynamicFieldValues.clear();
+        mDynmaicFieldIndex.clear();
     }
     // -------------------------------------------------------------------------
     void ValueObject::insertUpdateDynamicField(uint32_t fieldSymbolId, const Value& value) {
@@ -123,12 +135,13 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     void ValueObject::DumpBase() {
         Tools::printSeparator(40);
-        Tools::printf(" ----- Dump %s ----- \n", mObjectTypeName.c_str());
-        if (!mClassName.empty()) {
+        Tools::printf(" ----- Dump %s [assigned:%d]----- \n", mObjectTypeName.c_str(), mAssigned);
 
+        if (!mClassName.empty()) {
             Tools::printf("ClassName: %s\n",  mClassName.c_str());
             Tools::printSeparator(40);
         }
+
 
 
         if (mType > 0 && mType < gLastValueObjectType && gUserObjectTypes[mType].mProperties.size() > 0) {
@@ -240,7 +253,16 @@ namespace DreiZehn {
                 ret = Value(0);
                 return true;
             }
-            ret = Value(onSetField(SymbolTable::insert(args[0].getStringRef()), args[1]));
+            uint32_t fieldId = SymbolTable::insert(args[0].getStringRef());
+            Value* pre = getDynamicFieldPtr(fieldId);
+            Value post = args[1];
+            if (pre && pre->isPointer())  pre->asPointerObject()->setAssigned(false);
+            if (onSetField(fieldId, post))  {
+                if (post.isPointer()) post.asPointerObject()->setAssigned(true);
+                ret = Value(post);
+            } else {
+                ret = Value(0);
+            }
             return true;
         }
         // ----------- getField ---------------

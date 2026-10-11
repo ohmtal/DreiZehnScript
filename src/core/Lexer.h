@@ -421,30 +421,33 @@ public:
 
             // ----------------------------------------------------------------
             // StringLiteral
-
             if (peek() == '"') {
                 advance(); // eat '"'
                 std::string strValue;
 
                 while (peek() != '"' && peek() != '\0') {
                     if (peek() == '\\') {
-                        advance();
-                        if (peek() == 'n') { strValue += '\n'; advance(); }
-                        else if (peek() == '"') { strValue += '"'; advance(); }
-                        else { strValue += '\\'; }
+                        advance(); // eat '\\'
+
+                        if (peek() == '\0') break;
+
+                        if (peek() == 'n')      { strValue += '\n'; advance(); }
+                        else if (peek() == 't') { strValue += '\t'; advance(); } // \t
+                        else if (peek() == 'r') { strValue += '\r'; advance(); } // \r
+                        else if (peek() == '"') { strValue += '"';  advance(); }
+                        else if (peek() == '\\'){ strValue += '\\'; advance(); } // Backslash-Escaping
+                        else {
+                            strValue += advance();
+                        }
                     } else {
                         strValue += advance();
                     }
                 }
 
                 if (peek() == '"') {
-                    advance(); //eat '"'
+                    advance(); // eat '"'
                 } else {
                     Tools::errorf("[Lexer-ERROR] String not closed!\n");
-                    // mPos = mSrc.size();
-                    // continue;
-
-                    // clear all token and exit .. nothing else to do here !!
                     tokens.clear();
                     return tokens;
                 }
@@ -452,6 +455,38 @@ public:
                 tokens.push_back({TokenType::StringLiteral, strValue});
                 continue;
             }
+
+            // // StringLiteral
+            // if (peek() == '"') {
+            //     advance(); // eat '"'
+            //     std::string strValue;
+            //
+            //     while (peek() != '"' && peek() != '\0') {
+            //         if (peek() == '\\') {
+            //             advance();
+            //             if (peek() == 'n') { strValue += '\n'; advance(); }
+            //             else if (peek() == '"') { strValue += '"'; advance(); }
+            //             else { strValue += '\\'; }
+            //         } else {
+            //             strValue += advance();
+            //         }
+            //     }
+            //
+            //     if (peek() == '"') {
+            //         advance(); //eat '"'
+            //     } else {
+            //         Tools::errorf("[Lexer-ERROR] String not closed!\n");
+            //         // mPos = mSrc.size();
+            //         // continue;
+            //
+            //         // clear all token and exit .. nothing else to do here !!
+            //         tokens.clear();
+            //         return tokens;
+            //     }
+            //
+            //     tokens.push_back({TokenType::StringLiteral, strValue});
+            //     continue;
+            // }
 
             // ---------- Comment ---------------
             if (peek() == '#') {

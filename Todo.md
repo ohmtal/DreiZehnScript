@@ -338,6 +338,8 @@ Struct [0x5576cc6a5440]
 ## 0.8c
 - [X] FileStream base also for stdin/stdout :)
 - [X] refactored dynamic field and added getFieldCount, getField INDEX, setField INDEX value
+- [ ] FIXME Auto GarbageCollection is disabled at the moment !  
+
 - [ ] sdl3 clang header tool 
     - [X] test and move into DreiZehn tools
     - [ ] create a json parser using DreiZehn :D 

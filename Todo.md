@@ -341,10 +341,12 @@ Struct [0x5576cc6a5440]
 - [ ] sdl3 clang header tool 
     - [X] test and move into DreiZehn tools
     - [ ] create a json parser using DreiZehn :D 
-    
+
+- [ ] test in text \\n i added it but not sure it it fail on my print!    
+- [ ] need a die command ?! 
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works! 
 - [ ] FileStream ->getError and test modi 
-- [ ] MiniAudio
+
 
 ---
 

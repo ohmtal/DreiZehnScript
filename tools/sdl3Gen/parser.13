@@ -1,9 +1,13 @@
 -- read from stdin
--- Example : ./parse_sdl SDL_rect.h | ../../DreiZehn parser.13 SDL_rect.h
+-- Example : ./parse_sdl SDL_rect.h | grep SDL_rect.h | sort -r | uniq | ../../DreiZehn parser.13 SDL_rect.h
+-- Example : ./parse_sdl SDL_rect.h | grep SDL_rect.h | grep struct| sort -r | uniq | ../../DreiZehn parser.13 SDL_rect.h
 
 import Core
 import String
 import Vector
+
+
+-- NOTE: when a function parameter have a "result" parameter THIS is what we want to return
 
 -- str::cast
 -- str::chr
@@ -42,8 +46,8 @@ end
 
 -- -----------------------------------------------------------------------------
 strSep = "\""
-lineToken = Vector::new
 
+Tokens = Vector::new
 -- {"file":"SDL_stdinc.h",
 filter = str::concat "{" strSep "file" strSep ":" strSep filename strSep ','
 
@@ -116,7 +120,7 @@ fn Parser::parse this
             end
             if (left == "") left = tmpStr
             else token->setField left tmpStr; left = "";;
-            print "str is >>" tmpStr "<<, left is >>" left "<<"
+--             print "str is >>" tmpStr "<<, left is >>" left "<<"
             if (this->peek == "") return;;
             this->advance
         end
@@ -152,19 +156,203 @@ fn parseLine line
     parser._index_ = 0
     parser->parse
 
-    parser->dump
+--     parser->dump
 
 
     return parser
+end
+-- -----------------------------------------------------------------------------
+fn ToToken tokenvector
+
+
+    forEach token tokenvector
+        if (token.kind == "param")
+            print "SKIP PARAM: " token.function token.name
+        elif (token.kind == "struct_field")
+            structname = token.struct
+            field = Tokens->getField structname
+            if (field && field->getType == TypeObject  )
+                if (field.params && field.params == TypeVector)
+                    print "ADD " token "TO" structname
+                    field.params->push token
+                else
+                    print "add " token "TO NEW "  structname ".params"
+                    field->setField "params" Vector::new
+                    field.params->push token
+                end
+            else
+                print "DID NOT FIND" structname "LET SEE IN AFTER PARSE!"
+                Tokens->push token
+            end
+
+        else
+
+            if token.name
+                Tokens->setField token.name token
+            else
+                -- push unknown
+                Tokens->push token
+            end
+        end
+    end
+
 end
 -- -----------------------------------------------------------------------------
 fn readLoop
 
     while  (buffer = fs->readln buffer_size) != 0
         if buffer != ""
-            parseLine buffer
+            curParsed = parseLine buffer
+            if (curParsed)
+                ToToken curParsed
+            end
         end
     end
+end
+-- -----------------------------------------------------------------------------
+fn createStruct dummy;;###forward
+
+fn TokensTree
+    Tokens->dump
+    count = Tokens->getFieldCount
+
+    forRange i count
+        token = Tokens->getField i
+        print "----------------------" (Tokens->getFieldName i) "------------------------------"
+        forRange j token->getFieldCount
+            print "    " (token->getFieldName j) "=" (token->getField j)
+        end
+        forEach subToken token.params
+            forRange j subToken->getFieldCount
+                print "          " (subToken->getFieldName j) "=" (subToken->getField j)
+            end
+            print "          ...."
+        end
+
+        if (token.kind == "struct"); print (createStruct token);;
+    end
+
+
+    if (Tokens->size > 0)
+        error "------------------------------------------------------------------------------"
+        error "        WE STILL HAVE " Tokens->size " TOKENS IN THE BAG!!!!"
+        error "------------------------------------------------------------------------------"
+    end
+end
+-- -----------------------------------------------------------------------------
+
+REGISTER_STR = "\n\n"
+
+getFieldSetFieldStr = "   inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override { \n"
+getFieldSetFieldStr +="      Value* ptr = onGetFieldPtr(fieldSymbolId);\n"
+getFieldSetFieldStr +="      if (ptr) { ret = *ptr; return true; }\n"
+getFieldSetFieldStr +="      return false;\n"
+getFieldSetFieldStr +="   }\n"
+getFieldSetFieldStr +="\n"
+getFieldSetFieldStr +="   inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) override {\n"
+getFieldSetFieldStr +="       Value* ptr = onGetFieldPtr(fieldSymbolId);\n"
+getFieldSetFieldStr +="       if (ptr) { *ptr = value; return true; }\n"
+getFieldSetFieldStr +="       return false;\n"
+getFieldSetFieldStr +="   }\n"
+getFieldSetFieldStr +="\n"
+-- -----------------------------------------------------------------------------
+fn createStruct tokenObject
+    result = ""
+    objname  = str::format "%sObject" tokenObject.name
+    typename = str::format "Type%s" objname
+
+    -- register type
+    result += str::format "const int %s =  RegisterUserObjectType(\"%s\");\n" tokenObject.name
+    result += "\n"
+    -- create struct
+    result += str::format "struct %s : public ValueObject {\n" objname
+    -- values and data
+    forEach param tokenObject.params
+        result += str::format "   Value m%s;" param.field
+        result += str::format " inline static ValueObjectProperty m%sProp;\n" param.field
+    end
+    result += str::format "   %s mData = {0}; \n" tokenObject.name
+    result += "\n"
+
+    -- constructor
+    result += str::format "   %s(): ValueObject(%s) {\n" objname typename
+    result += "      mSupportClone = true;\n"
+    result += "   }\n"
+
+    -- clone
+    result += "   virtual ValueObject* clone() override {\n"
+    result += str::format "      %s* clone = new %s();\n" objname objname
+    result += "      ValueObject::cloneBase(clone);
+    forEach param tokenObject.params
+        result += str::format "         clone->m%s = this->m%s;\n" param.field param.field
+    end
+    result += "      return clone;\n"
+    result += "   }\n"
+
+    -- dataPrt
+    result += str::format "   inline virtual %s* dataPtr()  {\n" tokenObject.name
+    forEach param tokenObject.params
+        result += str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
+    end
+    result += "      return &mData;\n"
+    result += "   }\n"
+
+    -- data
+    result += str::format "   inline virtual const %s& data()  {\n" tokenObject.name
+    forEach param tokenObject.params
+    -- FIXME not allways getDouble!!
+        result += str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
+    end
+    result += "      return mData;\n"
+    result += "   }\n"
+
+
+    -- onGetFieldPtr
+    result += "   inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {\n"
+        forEach param tokenObject.params
+            result += str::format \
+                "        if (fieldSymbolId == m%sProp.mSymbolId) return &m%s;\n" \
+                param.field param.field
+        end
+        result += "      return ValueObject::onGetFieldPtr(fieldSymbolId);\n"
+        result += "   }\n"
+    }
+
+    -- other getter/setter
+    result += getFieldSetFieldStr
+
+    -- symbols
+    result += "\n"
+    result += "   inline static void RegisterSymbols() {\n"
+    result += "   static bool mSymbolsLoaded = false;\n"
+    result += "   if (mSymbolsLoaded) return ;\n"
+    forEach param tokenObject.params
+        result += str::format "      m%sProp = ValueObjectProperty(\"%s\",\"\",%s) ;\n" \
+                param.field param.field typename
+    end
+    result += "      mSymbolsLoaded = true;\n   }\n"
+
+    result += "\n};\n"
+
+    -- --------------------------
+    REGISTER_STR += str::format "%s::RegisterSymbols();\n" objname
+    REGISTER_STR += str::format "RegisterFunction(\"%s\", [](std::vector<Value>& args, Value& ret) -> bool {\n" \
+            tokenObject.name
+    REGISTER_STR += str::format "   %s* obj= new %s();\n" objname objname
+    iter = 0
+    forEach param tokenObject.params
+        -- FIXME not always getDouble!!
+        REGISTER_STR += str::format "   if (args.size() > %d) obj->m%s = args[%d].getDouble();\n" \
+                iter  param.field iter
+        iter++
+    end
+    REGISTER_STR += "   ret = Value(obj);\n"
+    REGISTER_STR += "   return true;\n"
+    REGISTER_STR += "});\n"
+
+
+
+    return result
 end
 -- -----------------------------------------------------------------------------
 --                      *** MAIN ***
@@ -181,18 +369,30 @@ fs = FileStream::open "fs://stdin" "r"
 if (!fs); error "Failed to open stream"; return;;
 
 buffer = ""
-buffer_size = 255
-
-line = "{\"file\":\"SDL_rect.h\",\"kind\":\"function\",\"name\":\"SDL_GetRectAndLineIntersectionFloat\",\"return_type\":\"int\",\"params\":[{\"name\":\"rect\",\"type\":\"const SDL_FRect *\"},{\"name\":\"X1\",\"type\":\"float *\"},{\"name\":\"Y1\",\"type\":\"float *\"},{\"name\":\"X2\",\"type\":\"float *\"},{\"name\":\"Y2\",\"type\":\"float *\"}]}"
-
-parsedLine = parseLine line
-while core::breath; core::sleep 16;;
+buffer_size = 1024
 
 
--- -- readLoop
+-- line = "{\"file\":\"SDL_rect.h\",\"kind\":\"function\",\"name\":\"SDL_GetRectAndLineIntersectionFloat\",\"return_type\":\"int\",\"params\":[{\"name\":\"rect\",\"type\":\"const SDL_FRect *\"},{\"name\":\"X1\",\"type\":\"float *\"},{\"name\":\"Y1\",\"type\":\"float *\"},{\"name\":\"X2\",\"type\":\"float *\"},{\"name\":\"Y2\",\"type\":\"float *\"}]}"
 
+-- p = parseLine line
+-- while core::breath; core::sleep 16;;
+
+
+readLoop
+print ".............. LOOP END ..................."
+
+Tokens->dump
+print ".............. POST PROCESS ..................."
+ToToken Tokens
+
+print "..............TOKEN TREE ..................."
+TokensTree
+
+print ".............. REGISTER_STR ..................."
+print REGISTER_STR
 
 fs->close
 log->close
 fs = 0
 log = 0
+

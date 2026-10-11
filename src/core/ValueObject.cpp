@@ -134,12 +134,24 @@ namespace DreiZehn {
         if (mType > 0 && mType < gLastValueObjectType && gUserObjectTypes[mType].mProperties.size() > 0) {
             Tools::printf(" ----- %s Class Methods and Fields ----- \n", gUserObjectTypes[mType].mName.c_str());
             for (int i = 0; i < gUserObjectTypes[mType].mProperties.size(); i++) {
-                Tools::printf(" %s%s  :: %s\n",
-                            gUserObjectTypes[mType].mProperties[i].mIsMethod ? "->" : ".",
-                            gUserObjectTypes[mType].mProperties[i].mName.c_str(),
-                            gUserObjectTypes[mType].mProperties[i].mHelp.c_str()
+                bool isMethod = gUserObjectTypes[mType].mProperties[i].mIsMethod;
+                if (isMethod) {
+                    Tools::printf(" %s%s  :: %s\n",
+                                  "->",
+                                  gUserObjectTypes[mType].mProperties[i].mName.c_str(),
+                                  gUserObjectTypes[mType].mProperties[i].mHelp.c_str()
 
-                );
+                    );
+                } else {
+                        Value val = Value(0);
+                    onGetField(SymbolTable::insert(gUserObjectTypes[mType].mProperties[i].mName), val);
+                    Tools::printf(" %s%s  :: %s  =  %s\n",
+                                  ".",
+                                  gUserObjectTypes[mType].mProperties[i].mName.c_str(),
+                                  gUserObjectTypes[mType].mProperties[i].mHelp.c_str(),
+                                  val.toString().c_str()
+                    );
+                }
             }
             Tools::printSeparator(40);
         }

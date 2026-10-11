@@ -54,7 +54,8 @@ namespace DreiZehn {
 
                 if (currentArgIndex >= args.size())
                 {
-                    Tools::errorf("formatString: invalid argument count !!");
+                    Tools::errorf("formatString: invalid argument count. current index: %d, args count: %zu at: %s!!\n",
+                                  currentArgIndex, args.size(), fmt);
                     break;
                 }
 

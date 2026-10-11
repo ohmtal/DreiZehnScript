@@ -14,6 +14,61 @@
 
 namespace DreiZehn {
 
+    const int TypeSDL_FPointObject =  RegisterUserObjectType("SDL_FPointObject");
+
+    struct SDL_FPointObject : public ValueObject {
+        Value my; inline static ValueObjectProperty myProp;
+        Value mx; inline static ValueObjectProperty mxProp;
+        SDL_FPoint mData = {0};
+
+        SDL_FPointObject(): ValueObject(TypeSDL_FPointObject) {
+            mSupportClone = true;
+        }
+        virtual ValueObject* clone() override {
+            SDL_FPointObject* clone = new SDL_FPointObject();
+            clone->my = this->my;
+            clone->mx = this->mx;
+            return clone;
+        }
+        inline virtual SDL_FPoint* dataPtr()  {
+            mData.y = (float)my.getDouble();
+            mData.x = (float)mx.getDouble();
+            return &mData;
+        }
+        inline virtual const SDL_FPoint& data()  {
+            mData.y = (float)my.getDouble();
+            mData.x = (float)mx.getDouble();
+            return mData;
+        }
+        inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
+            if (fieldSymbolId == myProp.mSymbolId) return &my;
+            if (fieldSymbolId == mxProp.mSymbolId) return &mx;
+            return ValueObject::onGetFieldPtr(fieldSymbolId);
+        }
+        inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
+            Value* ptr = onGetFieldPtr(fieldSymbolId);
+            if (ptr) { ret = *ptr; return true; }
+            return false;
+        }
+
+        inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
+            Value* ptr = onGetFieldPtr(fieldSymbolId);
+            if (ptr) { *ptr = value; return true; }
+            return false;
+        }
+
+
+        inline static void RegisterSymbols() {
+            static bool mSymbolsLoaded = false;
+            if (mSymbolsLoaded) return ;
+            myProp = ValueObjectProperty("y","",TypeSDL_FPointObject) ;
+            mxProp = ValueObjectProperty("x","",TypeSDL_FPointObject) ;
+            mSymbolsLoaded = true;
+        }
+
+    };
+
+
     const int Type_SDL_Window_Object =  RegisterUserObjectType("SDL_Window");
 
     struct SDL_Window_Object : ValueObject {
@@ -46,6 +101,15 @@ namespace DreiZehn {
         static bool registered = false; if (registered) return; registered = true;
 
         using namespace FunctionMap;
+
+        SDL_FPointObject::RegisterSymbols();
+        RegisterFunction("SDL_FPoint", [](std::vector<Value>& args, Value& ret) -> bool {
+            SDL_FPointObject* obj= new SDL_FPointObject();
+            if (args.size() > 0) obj->my = args[0];
+            if (args.size() > 1) obj->mx = args[1];
+            ret = Value(obj);
+            return true;
+        });
 
 
 

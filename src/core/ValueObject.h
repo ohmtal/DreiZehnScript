@@ -31,16 +31,29 @@ struct ValueObject {
     static inline uint32_t sDumpMethodId = SymbolTable::insert("dump");
     static inline uint32_t sIsMethodId = SymbolTable::insert("isScriptMethod");
     static inline uint32_t sGetTypeId = SymbolTable::insert("getType");
+    static inline uint32_t sSetFieldId = SymbolTable::insert("setField");
+    static inline uint32_t sGetFieldId = SymbolTable::insert("getField");
+    static inline uint32_t sGetFieldNameId = SymbolTable::insert("getFieldName");
+    static inline uint32_t sGetFieldCountId = SymbolTable::insert("getFieldCount");
 
     // cache the type name for user methods
     std::string mObjectTypeName = "";
 
     std::unordered_map<uint32_t, FunctionMap::ScriptFunction* > mMethodMap;
-    std::unordered_map<uint32_t, Value > mDynmaicFields;
+
+    std::vector<Value> mDynamicFieldValues;
+    std::unordered_map<uint32_t, size_t > mDynmaicFieldIndex;
+    // std::unordered_map<uint32_t, Value > mDynmaicFields;
 
     FunctionMap::ScriptFunction* getScriptMethod(uint32_t methodId);
 
     virtual ~ValueObject() = default;
+
+    void insertUpdateDynamicField(uint32_t fieldSymbolId, const Value& value);
+    Value* getDynamicFieldPtr(uint32_t fieldSymbolId);
+    size_t getDynamicFieldCount();
+    Value* getDynamicFieldPtrByIndex(size_t index);
+    bool   SymbolIdByIndex(size_t index, uint32_t& symbolId);
 
     virtual bool onGetField(uint32_t fieldSymbolId, Value& ret);
     virtual Value* onGetFieldPtr(uint32_t fieldSymbolId);
@@ -63,19 +76,7 @@ struct ValueObject {
     virtual ValueObject* clone() {
         return nullptr;
     }
-    bool cloneBase(ValueObject* theClone) {
-        if (! mSupportClone ){
-            Tools::errorf("Cloning call but not set mSupportClone!");
-            return false;
-        }
-        theClone->mClassName = this->mClassName;
-
-        theClone->mMethodMap = this->mMethodMap;
-        theClone->mDynmaicFields = this->mDynmaicFields;
-
-
-        return true;
-    }
+    bool cloneBase(ValueObject* theClone);
 
 
     static void RegisterSymbols() {}
@@ -86,6 +87,7 @@ struct ValueObject {
 
     }
 
+    void DumpBase();
 
 
 protected:

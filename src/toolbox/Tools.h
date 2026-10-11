@@ -76,6 +76,16 @@ namespace DreiZehn::Tools{
         _printf(LogLevel::error,format, args);
         va_end(args);
     }
+
+    inline void printSeparator(int length) {
+        const char* dashes = "----------------------------------------------------------------------------------------------------";
+        if (length > 100) length = 100;
+        if (length < 0) length = 0;
+
+        printf("%.*s\n", length, dashes);
+    }
+
+
     // -------------------------------------------------------------------------
     #if defined(_WIN32) || defined(__WIN32__) || defined(MSC_VER)
     #include <windows.h>

@@ -34,18 +34,20 @@ void GarbageCollection::addToGarbageCollection(ValueObject* obj) {
 
     auto& gcVector = mGarbageCollection;
 
+    // garbage collection border check before new object !!
+    mInsertCounter++;
+    if (!mLocked && mInsertCounter > (gcVector.capacity() / 2)) {
+        mInsertCounter = 0;
+        doGarbageCollection(false);
+    }
+
+
     if (gcVector.size() >= gcVector.capacity()) {
         size_t newCapacity = getNextGcPrimeSize(gcVector.capacity());
         gcVector.reserve(newCapacity);
     }
 
     gcVector.push_back(obj);
-    mInsertCounter++;
-
-    if (!mLocked && mInsertCounter > (gcVector.capacity() / 2)) {
-        mInsertCounter = 0;
-        doGarbageCollection(false);
-    }
 }
 // ------------------------------------------------------------------------
 void GarbageCollection::removeFromGarbageCollection(ValueObject* obj) {

@@ -42,7 +42,7 @@ namespace DreiZehn {
         inline static ValueObjectProperty mFrontProp;
         inline static ValueObjectProperty mAppendProp;
         inline static ValueObjectProperty mClearProp;
-        inline static ValueObjectProperty mPrintProp;
+        inline static ValueObjectProperty mDumpProp;
         inline static ValueObjectProperty mFillProp;
 
         inline static void RegisterSymbols() {
@@ -60,7 +60,7 @@ namespace DreiZehn {
             mAppendProp   = ValueObjectProperty("append", 1,256,  "append up to 256 arguments to the end", TypeVectorObject);
 
             mClearProp   = ValueObjectProperty("clear", 0,0,  "clear the list.", TypeVectorObject);
-            mPrintProp   = ValueObjectProperty("print", 0,0,  "print the values", TypeVectorObject);
+            mDumpProp   = ValueObjectProperty("dump", 0,0,  "dump this object", TypeVectorObject);
 
             mFillProp   = ValueObjectProperty("fill", 2,2,  "fill the vector with n values", TypeVectorObject);
             mSymbolsLoaded = true;
@@ -172,8 +172,10 @@ namespace DreiZehn {
                 return true;
             }
             else
-            if (methodId == mPrintProp.mSymbolId) {
-                if (!mPrintProp.ValidateArgs(args)) return false;
+            if (mDumpProp.matchMethod(methodId,args)) {
+                this->DumpBase();
+                Tools::printSeparator(40);
+                Tools::printf("----- Vector Values -----\n");
                 for (auto& value: mElements) {
                      Tools::printf("%s ",value.toString().c_str());
                 }

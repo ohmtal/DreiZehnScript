@@ -337,10 +337,14 @@ Struct [0x5576cc6a5440]
 
 ## 0.8c
 - [X] FileStream base also for stdin/stdout :)
+- [X] refactored dynamic field and added getFieldCount, getField INDEX, setField INDEX value
+- [ ] sdl3 clang header tool 
+    - [X] test and move into DreiZehn tools
+    - [ ] create a json parser using DreiZehn :D 
+    
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works! 
 - [ ] FileStream ->getError and test modi 
 - [ ] MiniAudio
-- [ ] Test clang header parser for sdl3 (saved in sourceBox)
 
 ---
 

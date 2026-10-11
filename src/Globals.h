@@ -14,6 +14,7 @@ namespace DreiZehn {
     const double EPSILON = 1e-9;
 
 
+
 namespace Globals {
     inline int currentScriptLineNumber = 0;
     inline std::string currentScriptLine =  "";

@@ -1,0 +1,198 @@
+-- read from stdin
+-- Example : ./parse_sdl SDL_rect.h | ../../DreiZehn parser.13 SDL_rect.h
+
+import Core
+import String
+import Vector
+
+-- str::cast
+-- str::chr
+-- str::concat
+-- str::format
+-- str::ltrim
+-- str::ord
+-- str::removeword
+-- str::replace
+-- str::rtrim
+-- str::setword
+-- str::strlen
+-- str::strstr
+-- str::substr
+-- str::toLower
+-- str::toNumber
+-- str::toUpper
+-- str::trim
+-- str::word
+-- str::wordcount
+
+import File
+
+-- -----------------------------------------------------------------------------
+args = sys::args
+filename = args.argv_2
+if (filename == "" || filename == 0)
+    error "USAGE: DreiZehn parser.13 SDL_filename.h"
+    error "EXAMPLE: DreiZehn parser.13 SDL_rect.h"
+    return 1
+end
+
+fn rl
+    run args.argv_1
+end
+
+-- -----------------------------------------------------------------------------
+strSep = "\""
+lineToken = Vector::new
+
+-- {"file":"SDL_stdinc.h",
+filter = str::concat "{" strSep "file" strSep ":" strSep filename strSep ','
+
+-- -----------------------------------------------------------------------------
+
+-- -----------------------------------------------------------------------------
+fn Parser::advance this
+    cur = this->peek
+    this._index_ ++;
+    if this._index_ > this._len_ return "";;
+    return cur
+end
+
+fn Parser::peek this
+    return this._line_[this._index_]
+end
+
+-- -----------------------------------------------------------------------------
+-- {"file":"SDL_rect.h","kind":"function","name":"SDL_GetRectAndLineIntersectionFloat","return_type":"int","params":[{"name":"rect","type":"const SDL_FRect *"},{"name":"X1","type":"float *"},{"name":"Y1","type":"float *"},{"name":"X2","type":"float *"},{"name":"Y2","type":"float *"}]}
+-- -----------------------------------------------------------------------------
+fn Parser::parse this
+    curlyPos = 0
+    squarePos = 0
+
+    str = ""
+    left = ""
+    token = 0
+
+    this.parent = 0
+    curVector = this
+
+    while this->peek != ""
+        startindex = this._index_
+
+        if this->peek == "{"
+            this->advance
+            curlyPos ++
+            token = Object::new
+            curVector->push token
+        end
+
+        if this->peek == "}"
+            this->advance
+            curlyPos --
+            if (curlyPos < 0); error "Parse error to many curly close!"; return 0;;
+            token = this->at curlyPos
+        end
+
+        if this->peek == "["
+            this->advance
+            squarePos++
+            newVector = Vector::new
+            newVector.parent = curVector
+            curVector = newVector
+            token->setField left curVector
+            left = ""
+        end
+        if this->peek == "]"
+            this->advance
+            squarePos--
+            curVector = curVector.parent
+            if (squarePos < 0); error "Parse error to many square close!"; return 0;;
+        end
+
+        if (this->peek == strSep)
+            this->advance
+            tmpStr = ""
+            while this->peek != strSep && this->peek != ""
+                tmpStr += this->advance
+            end
+            if (left == "") left = tmpStr
+            else token->setField left tmpStr; left = "";;
+            print "str is >>" tmpStr "<<, left is >>" left "<<"
+            if (this->peek == "") return;;
+            this->advance
+        end
+
+        if (this->peek == ":")
+            this->advance
+            -- left is set before ...
+        end
+
+        if (this->peek == ",")
+            this->advance
+            -- left is set before ...
+        end
+
+
+
+
+        if startindex == this._index_; error "PARSE ERROR peek not moved!"; return 0;;
+    end
+end
+
+
+fn parseLine line
+    log->writeln (str::concat "LINE: " line); log->flush
+    pos = (str::strstr line filter)
+    if pos != 0; return 0 ;;
+
+
+    parser = Vector::new
+    parser->setClassName "Parser"
+    parser._line_ = line
+    parser._len_ = str::strlen line
+    parser._index_ = 0
+    parser->parse
+
+    parser->dump
+
+
+    return parser
+end
+-- -----------------------------------------------------------------------------
+fn readLoop
+
+    while  (buffer = fs->readln buffer_size) != 0
+        if buffer != ""
+            parseLine buffer
+        end
+    end
+end
+-- -----------------------------------------------------------------------------
+--                      *** MAIN ***
+-- -----------------------------------------------------------------------------
+
+
+-- ~~~~~
+
+log = FileStream::open "parser.log" "w"
+if (!log); error "Failed to open logfile"; return;;
+log->writeln "start parsing..."; log->flush
+
+fs = FileStream::open "fs://stdin" "r"
+if (!fs); error "Failed to open stream"; return;;
+
+buffer = ""
+buffer_size = 255
+
+line = "{\"file\":\"SDL_rect.h\",\"kind\":\"function\",\"name\":\"SDL_GetRectAndLineIntersectionFloat\",\"return_type\":\"int\",\"params\":[{\"name\":\"rect\",\"type\":\"const SDL_FRect *\"},{\"name\":\"X1\",\"type\":\"float *\"},{\"name\":\"Y1\",\"type\":\"float *\"},{\"name\":\"X2\",\"type\":\"float *\"},{\"name\":\"Y2\",\"type\":\"float *\"}]}"
+
+parsedLine = parseLine line
+while core::breath; core::sleep 16;;
+
+
+-- -- readLoop
+
+
+fs->close
+log->close
+fs = 0
+log = 0

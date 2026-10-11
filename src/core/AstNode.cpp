@@ -111,12 +111,22 @@ namespace DreiZehn {
             Tools::errorf("RunTime Error: Array Variable: %s. Only number keys allowed\n",varValue.toString().c_str());
             return Value(0);
         }
+        size_t index = (size_t)indexValue.getUInt();
 
-        // only works on objects which support onGetArrayIndexPtr
+        if (varValue.isString()) {
+            std::string str = varValue.getStringRef();
+            if (index >= str.length()) {
+                return EmptyStringValue;
+            }
+            std::string result(1, static_cast<char>(str[index]));
+            return Value(result);
+        }
+
+            // only works on objects which support onGetArrayIndexPtr
         if (!varValue.isPointer() ) {
             return Value(0);
         }
-        Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
+        Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr(index);
         if (valPtr) return Value(*valPtr);
 
         return Value(0);

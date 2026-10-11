@@ -62,7 +62,7 @@ public:
                 v.second.asPointerObject()->setAssigned(false);
             }
         }
-        GarbageCollection::run();
+        // NOT! GarbageCollection::run();
         gCurrentFrame = mParentFrame;
     }
 

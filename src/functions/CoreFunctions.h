@@ -14,7 +14,7 @@ namespace DreiZehn {
 
     inline std::function<bool()> OnBreath = nullptr;
 
-
+/*
     const int TypeBaseObject =  RegisterUserObjectType("Object");
     const int TypeStructObject =  RegisterUserObjectType("Struct");
     struct BaseValueObject : public ValueObject {
@@ -85,7 +85,7 @@ namespace DreiZehn {
             return ValueObject::onMethodCall(methodId, args, ret);
         }
 
-    };
+    };*/
     // =============================================================================
     // --- RegisterCoreFunctions ---
     // =============================================================================
@@ -94,34 +94,34 @@ namespace DreiZehn {
         using namespace FunctionMap;
 
 
-        // ---------------------------------------------------------------------
-
-        RegisterFunction("Object::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
-            BaseValueObject* obj = new BaseValueObject();
-            ret = Value(obj);
-            return true;
-        });
-
-        // ---------------------------------------------------------------------
-        StructObject::RegisterSymbols();
-        RegisterFunction("Struct::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
-            if(args.size() == 0) {
-                Tools::errorf("Usage struct [string field] [string field] ...\n");
-                return true;
-            }
-
-            for(size_t i = 0; i < args.size(); i++) {
-                if (!args[i].isStringId() ) {
-                    Tools::errorf("Usage struct [string field] [string field] ...\n");
-                    return true;
-                }
-            }
-            StructObject* obj = new StructObject(args);
-            ret = Value(obj);
-
-
-            return true;
-        });
+        // // ---------------------------------------------------------------------
+        //
+        // RegisterFunction("Object::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        //     BaseValueObject* obj = new BaseValueObject();
+        //     ret = Value(obj);
+        //     return true;
+        // });
+        //
+        // // ---------------------------------------------------------------------
+        // StructObject::RegisterSymbols();
+        // RegisterFunction("Struct::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        //     if(args.size() == 0) {
+        //         Tools::errorf("Usage struct [string field] [string field] ...\n");
+        //         return true;
+        //     }
+        //
+        //     for(size_t i = 0; i < args.size(); i++) {
+        //         if (!args[i].isStringId() ) {
+        //             Tools::errorf("Usage struct [string field] [string field] ...\n");
+        //             return true;
+        //         }
+        //     }
+        //     StructObject* obj = new StructObject(args);
+        //     ret = Value(obj);
+        //
+        //
+        //     return true;
+        // });
 
         // ---------------------------------------------------------------------
         // CORE

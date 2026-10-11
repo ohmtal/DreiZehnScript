@@ -240,7 +240,7 @@ namespace DreiZehn {
     //         if (value.isStringId() ) {
     //             *ptr = value;
     //         } else {
-    //             *ptr = Value("");
+    //             *ptr = EmptyStringValue;
     //         }
     //         return true;
     //     }
@@ -367,7 +367,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         RegisterFunction("str::format", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() < 1) {
-                ret = Value("");
+                ret = EmptyStringValue;
                 return true;
             }
             ret = Value( formatString(args));
@@ -378,7 +378,7 @@ namespace DreiZehn {
         RegisterFunction("str::cast", [](std::vector<Value>& args, Value& ret) -> bool {
 
             if (args.size() < 1 || args[0].isPointer()) {
-                ret = Value("");
+                ret = EmptyStringValue;
                 return true;
             }
             if (args[0].isInt()) ret = Value (std::to_string(args[0].asFastInt()));
@@ -410,10 +410,13 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         RegisterFunction("str::strstr", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (!ArgsCheckString("str::str", args, 2)) return true;
+            if (!ArgsCheckString("str::strstr", args, 2)) return true;
             const char* str = args[0].getStringChars();
             const char* pos = strstr(str, args[1].getStringChars());
-            if (!pos) return true;
+            if (!pos) {
+                ret = Value(-1);
+                return true;
+            }
             ret = Value((int32_t)(pos-str));
             return true;
         });
@@ -584,7 +587,7 @@ namespace DreiZehn {
             }
             std::string_view str = args[0].getStringRef();
             if (str.empty()) {
-                ret = Value("");
+                ret = EmptyStringValue;
                 return true;
             }
 
@@ -608,7 +611,7 @@ namespace DreiZehn {
             }
             std::string str = args[0].getStringRef();
             if (str.empty()) {
-                ret = Value("");
+                ret = EmptyStringValue;
                 return true;
             }
 
@@ -633,7 +636,7 @@ namespace DreiZehn {
             }
             std::string str = args[0].getStringRef();
             if (str.empty()) {
-                ret = Value("");
+                ret = EmptyStringValue;
                 return true;
             }
 

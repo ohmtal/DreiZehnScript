@@ -25,9 +25,8 @@ namespace DreiZehn {
 // Global Access:
 class VariableFrame;
 
-inline VariableFrame* gCurrentFrame = nullptr;
-
-inline VariableFrame* gMasterFrame = nullptr;
+// inline VariableFrame* gCurrentFrame = nullptr;
+// inline VariableFrame* gMasterFrame = nullptr;
 // -----------------------------------------------------------------------------
 #ifndef DREIZEHN_INITIAL_VARIABLE_MASTERFRAME_SIZE
 #define DREIZEHN_INITIAL_VARIABLE_MASTERFRAME_SIZE 256
@@ -47,9 +46,9 @@ public:
 
     VariableFrame( VariableFrame* parentFrame ) {
         mFrameId = (gFrameCounter++);
-        gCurrentFrame = this;
+        // gCurrentFrame = this;
         if (parentFrame == nullptr) {
-            gMasterFrame = this;
+            // gMasterFrame = this;
             mVariables.reserve(DREIZEHN_INITIAL_VARIABLE_MASTERFRAME_SIZE);
         } else {
             mVariables.reserve(DREIZEHN_INITIAL_VARIABLE_CHILDFRAME_SIZE);
@@ -63,7 +62,7 @@ public:
             }
         }
         // NOT! GarbageCollection::run();
-        gCurrentFrame = mParentFrame;
+        // gCurrentFrame = mParentFrame;
     }
 
     inline uint32_t getFrameId() {return mFrameId;}
@@ -129,23 +128,52 @@ public:
         return Value();
     }
 
-    inline Value* getVariablePtr(uint32_t id, bool isAssignVar = false) {
+    inline Value* lookUpVariablePtr(uint32_t id) {
         auto it = mVariables.find(id);
         if (it != mVariables.end()) {
             return &it->second;
         }
 
         if (mParentFrame != nullptr) {
-            return mParentFrame->getVariablePtr(id, isAssignVar);
+            return mParentFrame->lookUpVariablePtr(id);
         }
-        // not found we set a new one !
-        // warning is bad, when it's an assign!
+        return nullptr;
+    }
+
+    inline Value* getVariablePtr(uint32_t id, bool isAssignVar = false) {
+
+        auto it = mVariables.find(id);
+        if (it != mVariables.end()) {
+            return &it->second;
+        }
+
+        Value* lookUp = nullptr;
+        if (mParentFrame != nullptr) {
+            lookUp = mParentFrame->lookUpVariablePtr(id);
+        }
+        if (lookUp) return lookUp;
+
         if (!isAssignVar) {
             std::string varName = SymbolTable::getName(id);
             Tools::warnf("Variable not found: %s\n", varName.c_str());
         }
+
         mVariables[id] = Value(0);
         return &mVariables[id];
+
+        // OK THIS BREAKS THE SCOPE!!
+        // it recursive go to master frame and then create all variables there !!!
+        // if (mParentFrame != nullptr) {
+        //     return mParentFrame->getVariablePtr(id, isAssignVar);
+        // }
+        // // not found we set a new one !
+        // // warning is bad, when it's an assign!
+        // if (!isAssignVar) {
+        //     std::string varName = SymbolTable::getName(id);
+        //     Tools::warnf("Variable not found: %s\n", varName.c_str());
+        // }
+        // mVariables[id] = Value(0);
+        // return &mVariables[id];
     }
 
 };

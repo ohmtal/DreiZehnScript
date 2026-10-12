@@ -9,7 +9,7 @@
 import All
 
 -- Avail Modules in subfolder modules:
-loader::Modules = Vector::new "FensterShooter" "Fenster" "RayFirst"
+loader::Modules = Vector::new "FensterShooter" "Fenster" "RayFirst" "Scope"
 loader::ModuleIndex = -1
 loader::ModuleName = ""
 

@@ -1,0 +1,38 @@
+print "----- SCOPE Test -----"
+
+print "................. NOW IMPORTANT BREAK POINT !!!!!......."
+core::sleep 1000
+
+
+GlobalObject = 0
+globalVar = 10
+
+fn ModuleCreate
+    GlobalObject = Object::new
+    print "CREATE:" GlobalObject
+    return true
+end
+
+fn foo p1
+    v1 = 10
+    print p1 * v1
+    print "global is" globalVar
+    globalVar = 20
+
+    GlobalObject.x = 10
+    GlobalObject->dump
+end
+
+fn ModuleLoop
+   foo 100
+
+   print "should be 0,0,20,[P] =>" p1 "," v1 "," globalVar "," GlobalObject
+--    core::sleep 2000
+--    return true
+    return false
+
+end
+
+fn ModuleDelete
+    GlobalObject = 0
+end

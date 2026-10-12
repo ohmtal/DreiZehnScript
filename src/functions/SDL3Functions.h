@@ -12,10 +12,9 @@
 #include "core/ValueObject.h"
 #include "core/VariableFrame.h"
 
-
 namespace DreiZehn {
 
-    const int TypeSDL_FPointObject =  RegisterUserObjectType("SDL_FPointObject");
+    const int TypeSDL_FPointObject =  RegisterUserObjectType("SDL_FPoint");
 
     struct SDL_FPointObject : public ValueObject {
         Value my; inline static ValueObjectProperty myProp;

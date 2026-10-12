@@ -50,12 +50,12 @@ namespace DreiZehn {
 
     Value* VariableExpression::evaluatePtr(Environment& env) {
 
-        uint32_t frameID = gCurrentFrame->getFrameId();
+        uint32_t frameID = env.getVariableFrame()->getFrameId();
         if (mCacheValue && mCacheFrameID == frameID) {
             return mCacheValue;
         }
         mCacheFrameID = frameID;
-        mCacheValue =  gCurrentFrame->getVariablePtr(mVariableNameSymbolId, AssignActive);
+        mCacheValue =  env.getVariableFrame()->getVariablePtr(mVariableNameSymbolId, AssignActive);
         return mCacheValue;
     }
 

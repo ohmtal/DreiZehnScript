@@ -55,11 +55,15 @@ filter = str::concat "{" strSep "file" strSep ":" strSep filename strSep ','
 
 -- -----------------------------------------------------------------------------
 fn Parser::advance this
-    cur = this->peek
-    if this._index_ + 1 > this._len_ return "";;
-    this._index_ ++;
+    if this._index_ >= this._len_
+        return ""
+    end
+
+    cur = this._line_[this._index_]
+    this._index_++
     return cur
 end
+
 
 fn Parser::peek this offset
     idx = this._index_
@@ -71,6 +75,15 @@ fn Parser::peek this offset
     return this._line_[idx]
 end
 
+fn Parser::skipSpaces this
+    while this->peek() == " " ||  \
+            this->peek() == "\r" || \
+            this->peek() == "\n" || \
+            this->peek() == "\t"
+
+        this->advance
+    end
+end
 -- -----------------------------------------------------------------------------
 -- {"file":"SDL_rect.h","kind":"function","name":"SDL_GetRectAndLineIntersectionFloat","return_type":"int","params":[{"name":"rect","type":"const SDL_FRect *"},{"name":"X1","type":"float *"},{"name":"Y1","type":"float *"},{"name":"X2","type":"float *"},{"name":"Y2","type":"float *"}]}
 -- -----------------------------------------------------------------------------
@@ -326,14 +339,20 @@ fn createStruct tokenObject
     result += "      return &mData;\n"
     result += "   }\n"
 
-    -- data
-    result += str::format "   inline virtual const %s& data()  {\n" tokenObject.name
+    -- dataPrt
+    result += "   inline virtual void syncFromData() {\n"
     forEach param tokenObject.params
-    -- FIXME not allways getDouble!!
-        result += str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
+        result += str::format "      m%s = Value((%s) mData.%s);\n" param.field param.type param.field
     end
-    result += "      return mData;\n"
     result += "   }\n"
+    -- data
+--     result += str::format "   inline virtual const %s& data()  {\n" tokenObject.name
+--     forEach param tokenObject.params
+--     -- FIXME not allways getDouble!!
+--         result += str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
+--     end
+--     result += "      return mData;\n"
+--     result += "   }\n"
 
 
     -- onGetFieldPtr

@@ -1,0 +1,27 @@
+print "----- Testing Garbage collection -----"
+import All
+
+define DEEP_COUNT 1000
+
+fn RunCrazy
+    vec = Vector::new
+    forRange _ 10
+        forRange i DEEP_COUNT
+            field = str::format "vec%d" i
+            newVec = Vector::new
+            vec->setField field newVec
+            forRange j DEEP_COUNT
+                newVec->push Object::new
+                newVec.vecField = Struct::new "a" "b" "c"
+            end
+        end
+    end
+end
+
+print "calling RunCrazy"
+RunCrazy
+core::gc; core::printgc;
+
+print "vec:" vec ", field:" field ", newVec" newVec
+
+while core::breath; core::sleep 16 ;;

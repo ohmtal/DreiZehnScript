@@ -83,20 +83,23 @@ void GarbageCollection::doGarbageCollection(bool isShutDown) {
 
         mGarbageCollection.clear();
     } else {
-        std::vector<ValueObject*> byebye;
-        std::vector<ValueObject*> muststay;
+        for (int i = 0; i < 3; i++) {
+            if (mGarbageCollection.size() < 256) return ;
+            std::vector<ValueObject*> byebye;
+            std::vector<ValueObject*> muststay;
 
-        for (auto* obj : mGarbageCollection) {
-            if (obj->mAssigned < 1) {
-                byebye.push_back(obj);
-            } else {
-                muststay.push_back(obj);
+            for (auto* obj : mGarbageCollection) {
+                if (obj->mAssigned < 1) {
+                    byebye.push_back(obj);
+                } else {
+                    muststay.push_back(obj);
+                }
             }
-        }
-        mGarbageCollection = std::move(muststay);
+            mGarbageCollection = std::move(muststay);
 
-        for (auto* obj : byebye) {
-            delete obj;
+            for (auto* obj : byebye) {
+                delete obj;
+            }
         }
     }
 }

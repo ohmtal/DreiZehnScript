@@ -338,12 +338,33 @@ Struct [0x5576cc6a5440]
 ## 0.8c
 - [X] FileStream base also for stdin/stdout :)
 - [X] refactored dynamic field and added getFieldCount, getField INDEX, setField INDEX value
-- [ ] FIXME Auto GarbageCollection is disabled at the moment !  
+- [X] FIXME Auto GarbageCollection is disabled at the moment !  
+- [X] FIXME Variable scope - i guess i broke it somewhere - look at scripts/test_Scope.13 !!!!
+    - i did at Variable cache!! , removed gCurrentFrame!!
 
+- [X] FIXME something is still wrong with Assign ! scripts/test_Scope.13 at the end it should be cleared
+    - it works but since my change the childs are not removed directly so i have to call it more than once
 - [ ] sdl3 clang header tool 
     - [X] test and move into DreiZehn tools
     - [ ] create a json parser using DreiZehn :D 
-
+        - [X] lexer / tokenizer
+        - [X] consts
+        - [X] structs (basic)
+        - [ ] write a reusable load/save  file - should be in common scripts (new folder) 
+        - [ ] change the parser to recursive to handle multiple lines 
+        - [ ] remove stdin here and load the definition from file it does not change so often!
+                This enable my console again - i guess.
+        - [ ] separate the Tokenizer 
+        - [ ] load hints 
+        - [ ] write a sourcefile directly -- now we can use templates 
+        - [ ] functions
+            - adding a templete for function parameter to know what is an array like the points:
+            - `bool SDL_GetRectEnclosingPointsFloat(const SDL_FPoint *points, int count, const SDL_FRect *clip, SDL_FRect *result);`
+                - "points": { "passing": "array", "size_by": "count" },
+                - "clip": { "passing": "in_ref" },
+                - "result": { "passing": "out_ref" }}
+            - OR: simply skip :P ... not sure
+            
 - [ ] test in text \\n i added it but not sure it it fail on my print!    
 - [ ] need a die command ?! 
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works! 

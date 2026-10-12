@@ -182,7 +182,9 @@ void Init(Environment& env) {
 
         if (args[0].isStringId() ) {
             Tools::printf("Loading Script: %s\n", args[0].getStringRef().c_str());
-            bool success = RunScriptFile(args[0].getStringRef(), env);
+            bool success = false;
+            success = RunScriptFile(args[0].getStringRef(), env);
+
             ret = Value(success ? 1 : 0);
             return success;
         }

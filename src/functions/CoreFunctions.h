@@ -180,9 +180,11 @@ namespace DreiZehn {
         RegisterFunction("core::printgc", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- Garbage Collection ------------------\n");
             GarbageCollection::print();
+            Tools::printf("*** count is: %zu ***", GarbageCollection::size());
             Tools::printf("------------------------------------------------------\n");
             return true;
         });
+
 
         // ---------------------------------------------------------------------
         // Help

@@ -22,7 +22,7 @@ fn ModuleDelete
 end
 
 fn ModuleLoop
-    if (!fenster->loop )|| (fenster->isKeyDown KEY_ESC)
+    if (!fenster || !fenster->loop )|| (fenster->isKeyDown KEY_ESC)
         return false
     end
    fenster->rect 0 210 320 30 COLOR_DARKGRAY

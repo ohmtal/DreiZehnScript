@@ -1,0 +1,34 @@
+print "----- Assignment redesign attempt 0.7 -----"
+import Core
+
+GlobalObject = 0
+globalVar = 10
+
+fn init
+    GlobalObject = Object::new
+end
+
+fn foo p1
+    v1 = 10
+    print p1 * v1
+    print "global is" globalVar
+    globalVar = 20
+
+    GlobalObject.x = 10
+    GlobalObject->dump
+
+    LocalVec = Vector::new
+    LocalObject = Struct::new "x" "y" "z"
+    LocalVec->push LocalObject
+    print "LOCAL OBJECT IS" LocalObject ", Vector:" LocalVec
+
+end
+
+init
+
+foo 100
+print "should be 0,0,20,Object[P] =>" p1 "," v1 "," globalVar "," GlobalObject
+
+core::printgc
+
+while core::breath; core::sleep 16 ;;

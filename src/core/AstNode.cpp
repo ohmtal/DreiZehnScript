@@ -54,12 +54,11 @@ namespace DreiZehn {
 
         // if (mGlobalVariable) Tools::printf("<<<< %s >>> found a global :D\n",SymbolTable::getName(mVariableNameSymbolId).c_str());
         if (mGlobalVariable) {
-            VariableFrame* frame = Globals::MasterVariableFrame;
-            // uint32_t frameID = frame->getFrameId();
             if (mCacheValue /*&& mCacheFrameID == frameID*/) {
                 return mCacheValue;
             }
-            mCacheFrameID = frame->getFrameId(); //should be 0
+            VariableFrame* frame = Globals::MasterVariableFrame;
+            mCacheFrameID = 0 ; //frame->getFrameId(); //should be 0
             mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
             return mCacheValue;
 

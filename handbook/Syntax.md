@@ -40,6 +40,7 @@
     - or        logical or alias for `||`   
     - import    import one module `import Math` or `import All` to import all modules
     - define    define a constants `define HALF_PI 3.14159265358979323846 / 2.0`
+    - global    define a variable as global. Must be done early in script so the parser know which var is global
     
 - Note Object fields only allow assign Inline Operation (`++`) or Operation Assign (`+=`) is not 
 implemented so far.
@@ -97,17 +98,17 @@ obj = Object::new
 ## 3. Variables & Assignment
 
 Variables are dynamically typed and stored in the active environment. 
-Assigning a value updates the local scope. Variables are looked up recursive
-in the stacked environment. 
+Assigning a value updates the local or global scope if variable defined as global.
 
 ```
-speed = 100
+global speed = 100
+
 multiplier = 2
 total_speed = speed * multiplier
 
 fn newSpeed
    x = 10       # was not defined before it's in the local scope
-   speed += x   # the speed variable defined previous (global scope) 
+   speed += x   # the speed variable defined as global
    return speed 
 end
 ```

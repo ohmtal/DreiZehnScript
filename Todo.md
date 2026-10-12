@@ -346,7 +346,7 @@ Struct [0x5576cc6a5440]
 - [X] test in text \\n i added it but not sure it it fail on my print!    
 
 
-## 0.8d
+## 0.8d - the global var change 
 - [X] I need to change the variable scope .. 
     - [X] since i fixed the scope bug, StarField2 is slower 
             ==> optimized the getCurrentFrame a bit 
@@ -355,8 +355,13 @@ Struct [0x5576cc6a5440]
     - [X] if so we can go ahead and add "global" to lexer and Expression
     - [X] modify the Variable Frame Lookup to only toggle main or current
     - ==> funny this is not faster :/
-    
-    
+- [X] fill unset parameter with 0 at function call
+- [ ] add Arrow and Dot to expression to also use a constant or methodcall 
+- [ ] test why define constants sometimes fail (prio ?! ) 
+      happend on modules/RayFirst.13 screenWidth screenHeight
+      , note: FensterShooter was loaded before 
+
+
 ## 0.?? .... ongoing process ....
     
 - [ ] sdl3 clang header tool 

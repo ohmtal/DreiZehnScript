@@ -9,9 +9,7 @@ import SDL3
 import Vector
 
 print " StarField v8b @13 startup...."
--- DreiZehn global variables are also available by the functions
--- if you want to make clear it's global you may use a prefix separated by ':'
--- log Glob::Window = ...
+
 global W = 640
 global H = 320
 global maxW = W / 2

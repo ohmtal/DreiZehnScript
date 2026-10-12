@@ -91,8 +91,8 @@ public:
         }
     }
 
-    VariableFrame* getVariableFrame() {
-        assert(mVariableFrame && "FATAL ERROR: Enviroment require a VariableFrame!");
+    inline VariableFrame* getVariableFrame() {
+        // assert(mVariableFrame && "FATAL ERROR: Enviroment require a VariableFrame!");
         return mVariableFrame;
     }
 

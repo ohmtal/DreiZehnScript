@@ -341,9 +341,23 @@ Struct [0x5576cc6a5440]
 - [X] FIXME Auto GarbageCollection is disabled at the moment !  
 - [X] FIXME Variable scope - i guess i broke it somewhere - look at scripts/test_Scope.13 !!!!
     - i did at Variable cache!! , removed gCurrentFrame!!
-
 - [X] FIXME something is still wrong with Assign ! scripts/test_Scope.13 at the end it should be cleared
     - it works but since my change the childs are not removed directly so i have to call it more than once
+- [X] test in text \\n i added it but not sure it it fail on my print!    
+
+
+## 0.8d
+- [ ] I need to change the variable scope .. 
+    - [X] since i fixed the scope bug, StarField2 is slower 
+            ==> optimized the getCurrentFrame a bit 
+    - [ ] check if ONLY script functions run in it's own Enviroment
+        - [ ] if so we can go ahead and add "global" to lexer and Expression
+        - [ ] modify the Variable Frame Lookup to only toggle main or current
+    
+    
+    
+## 0.?? .... ongoing process ....
+    
 - [ ] sdl3 clang header tool 
     - [X] test and move into DreiZehn tools
     - [ ] create a json parser using DreiZehn :D 
@@ -365,15 +379,14 @@ Struct [0x5576cc6a5440]
                 - "result": { "passing": "out_ref" }}
             - OR: simply skip :P ... not sure
             
-- [ ] test in text \\n i added it but not sure it it fail on my print!    
-- [ ] need a die command ?! 
-- [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works! 
-- [ ] FileStream ->getError and test modi 
 
 
 ---
 
 ## still missing:
+- [ ] need a die command ?! 
+- [ ] FileStream ->getError and test modi 
+- [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works! 
 - [ ] fix memleaks fenster_audio .... it's "fixed" but still leak << i guess i will replace it with MiniAudio! 
 
 

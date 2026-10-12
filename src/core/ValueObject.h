@@ -35,6 +35,7 @@ struct ValueObject {
     static inline uint32_t sGetFieldId = SymbolTable::insert("getField");
     static inline uint32_t sGetFieldNameId = SymbolTable::insert("getFieldName");
     static inline uint32_t sGetFieldCountId = SymbolTable::insert("getFieldCount");
+    static inline uint32_t sGetAssignedId = SymbolTable::insert("getAssigned");
 
     // cache the type name for user methods
     std::string mObjectTypeName = "";

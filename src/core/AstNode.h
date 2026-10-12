@@ -25,7 +25,7 @@ enum class FlowSignal {
 
 struct FlowStatus {
     FlowSignal signal = FlowSignal::None;
-    Value returnValue = Value(0);
+    Value returnValue = NumberNullValue;
 };
 
 enum class NodeType {

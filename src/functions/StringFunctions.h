@@ -287,7 +287,7 @@ namespace DreiZehn {
     //             std::string s = mValue.getString();
     //             double resDouble = std::strtod(s.c_str(), &endptr);
     //             if (s.empty() || *endptr != '\0') {
-    //                 ret = Value(0);
+    //                 ret = NumberNullValue;
     //             } else {
     //                 ret = Value(resDouble);
     //             }
@@ -397,7 +397,7 @@ namespace DreiZehn {
             std::string s = args[0].getStringRef();
             double resDouble = std::strtod(s.c_str(), &endptr);
             if (s.empty() || *endptr != '\0') {
-                ret = Value(0);
+                ret = NumberNullValue;
             } else {
                 ret = Value(resDouble);
             }
@@ -566,7 +566,7 @@ namespace DreiZehn {
             }
             std::string_view str = args[0].getStringRef();
             if (str.empty()) {
-                ret = Value(0);
+                ret = NumberNullValue;
                 return true;
             }
 

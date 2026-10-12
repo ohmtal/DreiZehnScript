@@ -135,7 +135,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     void ValueObject::DumpBase() {
         Tools::printSeparator(40);
-        Tools::printf(" ----- Dump %s [assigned:%d]----- \n", mObjectTypeName.c_str(), mAssigned);
+        Tools::printf(" ----- %s [assigned:%d] [%p]----- \n", mObjectTypeName.c_str(), mAssigned, (void*) this);
 
         if (!mClassName.empty()) {
             Tools::printf("ClassName: %s\n",  mClassName.c_str());
@@ -156,7 +156,7 @@ namespace DreiZehn {
 
                     );
                 } else {
-                        Value val = Value(0);
+                        Value val = NumberNullValue;
                     onGetField(SymbolTable::insert(gUserObjectTypes[mType].mProperties[i].mName), val);
                     Tools::printf(" %s%s  :: %s  =  %s\n",
                                   ".",
@@ -208,7 +208,7 @@ namespace DreiZehn {
         if (methodNameSymbolId == sClassNameMethodId) {
             if (args.size() != 1 || !args[0].isStringId()) {
                 Tools::errorf("Usage: setClassName string ClassName\n");
-                ret = Value(0);
+                ret = NumberNullValue;
                 return true;
             }
             mClassName = args[0].getString();
@@ -226,14 +226,14 @@ namespace DreiZehn {
         else if (methodNameSymbolId == sIsMethodId) {
             if (args.size() != 1 || !args[0].isStringId()) {
                 Tools::errorf("Usage: isScriptMethod string MethodName\n");
-                ret = Value(0);
+                ret = NumberNullValue;
                 return true;
             }
             uint32_t loopupSymbol = SymbolTable::insert(args[0].getStringRef());
             if (getScriptMethod(loopupSymbol) != nullptr) {
                 ret = Value(1);
             } else {
-                ret = Value(0);
+                ret = NumberNullValue;
             }
             return true;
         }
@@ -250,7 +250,7 @@ namespace DreiZehn {
         else if (methodNameSymbolId == sSetFieldId) {
             if (args.size() != 2  || !args[0].isStringId() ) {
                 Tools::errorf("set a field by fieldname Usage: \"fieldname\" value\n");
-                ret = Value(0);
+                ret = NumberNullValue;
                 return true;
             }
             uint32_t fieldId = SymbolTable::insert(args[0].getStringRef());
@@ -261,7 +261,7 @@ namespace DreiZehn {
                 if (post.isPointer()) post.asPointerObject()->setAssigned(true);
                 ret = Value(post);
             } else {
-                ret = Value(0);
+                ret = NumberNullValue;
             }
             return true;
         }
@@ -269,7 +269,7 @@ namespace DreiZehn {
         else if (methodNameSymbolId == sGetFieldId) {
             if (args.size() != 1   ) {
                 Tools::errorf("get a field value by fieldname Usage: \"fieldname\" OR index od dynamic field\n");
-                ret = Value(0);
+                ret = NumberNullValue;
                 return true;
             }
             Value* valPtr = nullptr;
@@ -292,7 +292,7 @@ namespace DreiZehn {
         else if (methodNameSymbolId == sGetFieldNameId) {
             if (args.size() != 1   ) {
                 Tools::errorf("get a dynamic field name by index \n");
-                ret = Value(0);
+                ret = NumberNullValue;
                 return true;
             }
             uint32_t index = 0;
@@ -310,6 +310,11 @@ namespace DreiZehn {
                 Tools::warnf("getFieldCount - should not get parameter - get the dynamic field count.\n");
             }
             ret = Value(static_cast<int32_t> (mDynamicFieldValues.size()));
+            return true;
+        }
+        // ----------- GetAssigned ---------------
+        else if (methodNameSymbolId == sGetAssignedId) {
+            ret = Value(mAssigned);
             return true;
         }
 
@@ -338,7 +343,7 @@ namespace DreiZehn {
             return valPtr;
         }
         else if (mAutoCreateDynamicFields ) {
-            insertUpdateDynamicField(fieldSymbolId, Value(0));
+            insertUpdateDynamicField(fieldSymbolId, NumberNullValue);
             return  getDynamicFieldPtr(fieldSymbolId);
         }
         Tools::errorf("Runtime Error: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());

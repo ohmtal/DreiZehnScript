@@ -56,8 +56,8 @@ namespace DreiZehn {
 
                 uint32_t id = SymbolTable::insert(fieldName);
                 this->mFieldOrder.push_back(id);
-                insertUpdateDynamicField(id, Value(0));
-                // this->mDynmaicFields[id] = Value(0);
+                insertUpdateDynamicField(id, NumberNullValue);
+                // this->mDynmaicFields[id] = NumberNullValue;
             }
         }
         // -------------------------------------------------------------------------
@@ -111,7 +111,7 @@ void Init(Environment& env) {
     // ---------------------------------------------------------------------
     // also push some CORE Constants here:
     RegisterConstants("true", Value(1));
-    RegisterConstants("false", Value(0));
+    RegisterConstants("false", NumberNullValue);
 
     // ---------------------------------------------------------------------
     // Base Objects
@@ -176,7 +176,7 @@ void Init(Environment& env) {
     RegisterFunction("run", [&env](std::vector<Value>& args, Value& ret) -> bool {
         if (args.size() != 1) {
             Tools::errorf("file name requires for run, Usage: run filename\n");
-            ret = Value(0);
+            ret = NumberNullValue;
             return true;
         }
 
@@ -191,7 +191,7 @@ void Init(Environment& env) {
 
 
         Tools::errorf("file name requires for run\n");
-        ret = Value(0);
+        ret = NumberNullValue;
         return true;
     });
 

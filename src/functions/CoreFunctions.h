@@ -50,7 +50,7 @@ namespace DreiZehn {
 
                 uint32_t id = SymbolTable::insert(fieldName);
                 this->mFieldOrder.push_back(id);
-                this->mDynmaicFields[id] = Value(0);
+                this->mDynmaicFields[id] = NumberNullValue;
             }
         }
         // -------------------------------------------------------------------------
@@ -129,7 +129,7 @@ namespace DreiZehn {
         RegisterFunction("core::eval", [&env](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isStringId()) {
                 Tools::errorf("Usage: core::eval codeled\n");
-                ret = Value(0);
+                ret = NumberNullValue;
                 return true;
             }
             std::stringstream stream(args[0].getStringRef());
@@ -178,10 +178,7 @@ namespace DreiZehn {
             return true;
         });
         RegisterFunction("core::printgc", [](std::vector<Value>& args, Value& ret) -> bool {
-            Tools::printf("---------------- Garbage Collection ------------------\n");
             GarbageCollection::print();
-            Tools::printf("*** count is: %zu ***", GarbageCollection::size());
-            Tools::printf("------------------------------------------------------\n");
             return true;
         });
         // ---------------------------------------------------------------------

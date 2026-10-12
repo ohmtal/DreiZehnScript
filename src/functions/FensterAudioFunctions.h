@@ -119,7 +119,7 @@ namespace DreiZehn {
         inline bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
 
             if (mClosed) {
-                ret = Value(0);
+                ret = NumberNullValue;
                 return true;
             }
 
@@ -178,7 +178,7 @@ namespace DreiZehn {
                  size_t avail = fenster_audio_available(&mFensterAudio);
                  if (n > avail) {
                      Tools::errorf("FensterAudioObject->write buffer overflow! n=%zu avail=%zu \n", n, avail);
-                     ret = Value(0);
+                     ret = NumberNullValue;
                      return true;
                 }
                 fenster_audio_write(&mFensterAudio, mAudioBuffer,n);
@@ -191,7 +191,7 @@ namespace DreiZehn {
                 uint32_t n =  args[0].getUInt();
                 if (n >= FENSTER_AUDIO_BUFSZ) {
                     Tools::errorf("FensterAudioObject->set buffer overflow!\n");
-                    ret = Value(0);
+                    ret = NumberNullValue;
                     return true;
                 }
                 float value = args[1].getFloat();
@@ -204,7 +204,7 @@ namespace DreiZehn {
                 uint32_t n =  args[0].getUInt();
                 if (n >= FENSTER_AUDIO_BUFSZ) {
                     Tools::errorf("FensterAudioObject->set buffer overflow!");
-                    ret = Value(0);
+                    ret = NumberNullValue;
                     return true;
                 }
                 ret = Value (static_cast<double>(mAudioBuffer[n]));

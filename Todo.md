@@ -356,6 +356,8 @@ Struct [0x5576cc6a5440]
     - [X] modify the Variable Frame Lookup to only toggle main or current
     - ==> funny this is not faster :/
 - [X] fill unset parameter with 0 at function call
+- [X] fixed foreach issue with assigned
+- [X] changed Varableframe Value to unique_ptr
 - [ ] add Arrow and Dot to expression to also use a constant or methodcall 
 - [ ] test why define constants sometimes fail (prio ?! ) 
       happend on modules/RayFirst.13 screenWidth screenHeight

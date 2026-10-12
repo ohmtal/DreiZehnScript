@@ -108,7 +108,7 @@ namespace DreiZehn {
                 if (args[0].isPointer()) {
                     if (args[0].asPointerObject() == this) {
                         Tools::PrintRuntimeError("Can NOT at myself to me!");
-                        ret = Value(0);
+                        ret = NumberNullValue;
                         return false;
                     }
                     args[0].asPointerObject()->setAssigned(true);
@@ -155,7 +155,7 @@ namespace DreiZehn {
                 if (ret.isPointer()) {
                     if (ret.asPointerObject() == this) {
                         Tools::PrintRuntimeError("Can NOT add myself to me!");
-                        ret = Value(0);
+                        ret = NumberNullValue;
                         return false;
                     }
                     ret.asPointerObject()->setAssigned(true);
@@ -211,7 +211,7 @@ namespace DreiZehn {
 
                 if (!args[0].isNumber()) {
                     Tools::errorf("Usage ->fill count value");
-                    ret = Value(0);
+                    ret = NumberNullValue;
                     return true;
                 }
                 ValueObject* cloneParent = nullptr;
@@ -220,7 +220,7 @@ namespace DreiZehn {
                     if (!cloneParent->mSupportClone) {
                         Tools::errorf("Sorry the object %s does not support cloneing!"
                             , cloneParent->mClassName.c_str());
-                        ret = Value(0);
+                        ret = NumberNullValue;
                         return true;
                     }
                 }
@@ -236,7 +236,7 @@ namespace DreiZehn {
                         if (!clone) {
                             Tools::errorf("Runtime Error: fill Vector: Cloning of %s failed!"
                                 , cloneParent->mClassName.c_str());
-                            ret = Value(0);
+                            ret = NumberNullValue;
                             return false;
                         }
 

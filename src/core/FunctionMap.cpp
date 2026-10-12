@@ -28,7 +28,7 @@ namespace DreiZehn::FunctionMap {
                         , true);
                 } else {
                     // 0.8d fill up arguments with 0
-                    localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), Value(0), true);
+                    localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), NumberNullValue, true);
                 }
             }
 
@@ -39,9 +39,9 @@ namespace DreiZehn::FunctionMap {
                     return status.returnValue;
                 }
             }
-            return Value(0);
+            return NumberNullValue;
         }
-        return Value(0);
+        return NumberNullValue;
     }
     // -------------------------------------------------------------------------
 

@@ -151,7 +151,7 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
         if (a.getInt() <= b.getInt()) {
             pushStack(Value(1));
         } else {
-            pushStack(Value(0));
+            pushStack(NumberNullValue);
         }
         DISPATCH();
     }
@@ -159,15 +159,13 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
     // -------------------------------
     handle_OP_LOAD_VAR:{
         // lookup
-        pushStack(
-            gCurrentFrame->getVariable(advanceU32())
-        );
+        pushStack( Globals::MasterVariableFrame->getVariable(advanceU32()) );
         DISPATCH();
     }
     // -------------------------------
     handle_OP_SAVE_VAR:{
         U32 varID = advanceU32();
-        gCurrentFrame->setVariable(varID, popStack());
+        Globals::MasterVariableFrame->setVariable(varID, popStack());
         DISPATCH();
     }
     // -------------------------------
@@ -229,7 +227,7 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
     }
     // -------------------------------
     handle_OP_EXIT: {
-        return vmStack.empty() ? Value(0) : vmStack.back();
+        return vmStack.empty() ? NumberNullValue : vmStack.back();
     }
     // -------------------------------
     handle_OP_INVALID: {
@@ -241,7 +239,7 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
     #undef DISPATCH_OPCODE
 
     Tools::errorf("SHOULD NOT BE HERE !!! Did you forget OP_EXIT?");
-    return Value(0);
+    return NumberNullValue;
 }
 
 //-----------------------------------------------------------------------------

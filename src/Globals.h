@@ -30,15 +30,21 @@ namespace Globals {
 
     inline VariableFrame* MasterVariableFrame = nullptr;
 
+    // as sorted list for fast binary_search
     inline std::vector<uint32_t> GlobalVarList;
     inline bool isGlobalVar(uint32_t id) {
-          auto it = std::find(GlobalVarList.begin(), GlobalVarList.end(), id);
-          if (it == GlobalVarList.end()) return false;
-          return true;
+          return std::binary_search(GlobalVarList.begin(), GlobalVarList.end(), id);
+          // auto it = std::find(GlobalVarList.begin(), GlobalVarList.end(), id);
+          // if (it == GlobalVarList.end()) return false;
+          // return true;
     }
     inline bool insertGlobalVar(uint32_t id) {
         if (isGlobalVar(id)) return false;
         GlobalVarList.push_back(id);
+
+        // should be done once but i want to be sure it's done!
+        std::sort(GlobalVarList.begin(), GlobalVarList.end());
+
         return true;
     }
     // ------

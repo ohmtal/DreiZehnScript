@@ -17,6 +17,7 @@ global minW = maxW * -1
 global maxH = H / 2
 global minH = maxH * -1
 global STAR_COUNT  = 4200
+-- global STAR_COUNT  = 120
 global START_DIV   = 0.03125
 global Speed       = 0.2
 global fontScale   = 1.2
@@ -43,10 +44,26 @@ fn Init
     Points = Vector::new
     Points->fill STAR_COUNT (Vector3::new)
     forEach p Points
+        if p->getAssigned == 0
+            error "BUG point is not assinged !"
+            return false
+        end
+
         p.x =  math::random minW maxW
         p.y =  math::random minH maxH
         p.z =  math::randomf
         -- print p
+    end
+    return true
+end
+
+fn check
+    forEach p Points
+        if p->getAssigned < 1
+            error "BUG point is not assinged !"
+            p->dump
+            return false
+        end
     end
     return true
 end

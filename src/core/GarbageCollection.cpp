@@ -60,6 +60,8 @@ size_t GarbageCollection::getGarbageSize() {
 }
 // ------------------------------------------------------------------------
 void GarbageCollection::listGarbageObjects() {
+    Tools::printf("---------------- Garbage Collection ------------------\n");
+    size_t countNotAssigned = 0;
     int i = 0;
     for (auto* obj : mGarbageCollection) {
         int objtype = obj->mType;
@@ -67,9 +69,12 @@ void GarbageCollection::listGarbageObjects() {
         , i, (void*)obj, obj->mAssigned
         , objtype, GetObjectTypeName(obj));
 
+        if (obj->mAssigned == 0) countNotAssigned++;
         i++;
     }
+    Tools::printf("*** count is: %zu, not assigned: %zu ***\n", GarbageCollection::size(), countNotAssigned);
     if (mLocked) Tools::warnf("\n ---- GarbageCollection is locked!!! ----\n");
+    Tools::printf("------------------------------------------------------\n");
 }
 // ------------------------------------------------------------------------
 

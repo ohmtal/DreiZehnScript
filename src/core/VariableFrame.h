@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <cassert>
 #include <algorithm>
+#include <memory>
 
 #include "Value.h"
 #include "ValueObject.h"
@@ -37,7 +38,7 @@ class VariableFrame;
 class VariableFrame {
 private:
     // variables stack
-    std::unordered_map<uint32_t, Value> mVariables;
+    std::unordered_map<uint32_t, std::unique_ptr<Value>> mVariables;
     VariableFrame* mParentFrame = nullptr;
 
     static inline uint32_t gFrameCounter = 0;
@@ -56,11 +57,12 @@ public:
         mParentFrame = parentFrame;
     }
     ~VariableFrame() {
-        for(auto v: mVariables) {
-            if (v.second.isPointer()) {
-                v.second.asPointerObject()->setAssigned(false);
+        for(auto& [key,ptr]: mVariables) {
+            if (ptr && ptr->isPointer()) {
+                ptr->asPointerObject()->setAssigned(false);
             }
         }
+
         // NOT! GarbageCollection::run();
         // gCurrentFrame = mParentFrame;
     }
@@ -99,12 +101,14 @@ public:
 
         auto it = mVariables.find(id);
         if (it != mVariables.end()) {
-            internalSetVariable(it->second , val);
+            internalSetVariable(*it->second , val);
             return;
         }
         if (forceScope) {
-             internalSetVariable( mVariables[id] , val);
-             return;
+            if (val.isPointer()) val.asPointerObject()->setAssigned(true);
+            mVariables[id] =  std::make_unique<Value>(val);
+            // internalSetVariable( *mVariables[id] , val);
+            return;
         }
 
         // fallback
@@ -126,19 +130,20 @@ public:
        Value* varPtr = getVariablePtr(id);
        if (varPtr) return *varPtr;
 
-        std::string varName = SymbolTable::getName(id);
-        Tools::warnf("Variable not found: %s\n", varName.c_str());
+        // std::string varName = SymbolTable::getName(id);
+        // Tools::warnf("Variable not found: %s\n", varName.c_str());
         return Value();
     }
 
+    // // -------------------------------------------------------------------------
     inline Value* getVariablePtr(uint32_t id, bool isAssignVar = false) {
 
         auto it = mVariables.find(id);
         if (it != mVariables.end()) {
-            return &it->second;
+            return it->second.get();
         }
 
-        if (this != Globals::MasterVariableFrame && Globals::isGlobalVar(id)) {
+        if (this != Globals::MasterVariableFrame &&  Globals::isGlobalVar(id)) {
             return Globals::MasterVariableFrame->getVariablePtr(id,isAssignVar);
         }
 
@@ -148,8 +153,8 @@ public:
             return nullptr;
         }
 
-        mVariables[id] = Value(0);
-        return &mVariables[id];
+        mVariables[id] = std::make_unique<Value>(NumberNullValue);
+        return mVariables[id].get();
 
     }
 
@@ -198,7 +203,7 @@ public:
     //         Tools::warnf("Variable not found: %s\n", varName.c_str());
     //     }
     //
-    //     mVariables[id] = Value(0);
+    //     mVariables[id] = NumberNullValue;
     //     return &mVariables[id];
     //
     // }

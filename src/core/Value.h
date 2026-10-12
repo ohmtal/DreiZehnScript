@@ -317,5 +317,6 @@ public:
 
 
     static const Value EmptyStringValue = Value(std::string(""));
+    static const Value NumberNullValue = Value(0);
 
 } //namespace

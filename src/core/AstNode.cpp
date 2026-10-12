@@ -27,7 +27,7 @@ namespace DreiZehn {
             bool  haveDot = mRawValue.find('.') != std::string::npos;
             double resDouble = std::strtod(mRawValue.c_str(), &endptr);
             if (mRawValue.empty() || *endptr != '\0') {
-                mEvaluatedValue =  Value(0);
+                mEvaluatedValue =  NumberNullValue;
             } else {
                 if (haveDot) mEvaluatedValue = Value(resDouble);
                 else mEvaluatedValue =  Value((int32_t)resDouble);
@@ -46,32 +46,32 @@ namespace DreiZehn {
     Value VariableExpression::evaluate(Environment& env) {
         Value* valPtr = this->evaluatePtr(env);
         if (valPtr) return *valPtr;
-        return EmptyStringValue;
+        return NumberNullValue;
         // return env.getVariableFrame()->getVariablePtr(mVariableNameSymbolId);
     }
 
     Value* VariableExpression::evaluatePtr(Environment& env) {
 
         // if (mGlobalVariable) Tools::printf("<<<< %s >>> found a global :D\n",SymbolTable::getName(mVariableNameSymbolId).c_str());
-        if (mGlobalVariable) {
-            if (mCacheValue /*&& mCacheFrameID == frameID*/) {
-                return mCacheValue;
-            }
-            VariableFrame* frame = Globals::MasterVariableFrame;
-            mCacheFrameID = 0 ; //frame->getFrameId(); //should be 0
-            mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
-            return mCacheValue;
-
-        } else {
-            VariableFrame* frame = env.getVariableFrame();
-            uint32_t frameID = frame->getFrameId();
-            if (mCacheValue && mCacheFrameID == frameID) {
-                return mCacheValue;
-            }
-            mCacheFrameID = frameID;
-            mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
+        // if (mGlobalVariable) {
+        //     if (mCacheValue /*&& mCacheFrameID == frameID*/) {
+        //         return mCacheValue;
+        //     }
+        //     VariableFrame* frame = Globals::MasterVariableFrame;
+        //     mCacheFrameID = 0 ; //frame->getFrameId(); //should be 0
+        //     mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
+        //     return mCacheValue;
+        //
+        // } else {
+        VariableFrame* frame = env.getVariableFrame();
+        uint32_t frameID = frame->getFrameId();
+        if (mCacheValue && mCacheFrameID == frameID) {
             return mCacheValue;
         }
+        mCacheFrameID = frameID;
+        mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
+        return mCacheValue;
+        // }
 
         return nullptr;
     }
@@ -120,13 +120,13 @@ namespace DreiZehn {
     Value ArrayVariableExpression::evaluate(Environment& env) {
         if (!mVarExpr || !mIndexExpr ) {
             Tools::errorf("RunTime Error: Array Field invalid Variable or index");
-            return Value(0);
+            return NumberNullValue;
         }
         Value varValue = mVarExpr->evaluate(env);
         Value indexValue = mIndexExpr->evaluate(env);
         if (!indexValue.isNumber()) {
             Tools::errorf("RunTime Error: Array Variable: %s. Only number keys allowed\n",varValue.toString().c_str());
-            return Value(0);
+            return NumberNullValue;
         }
         size_t index = (size_t)indexValue.getUInt();
 
@@ -141,12 +141,12 @@ namespace DreiZehn {
 
             // only works on objects which support onGetArrayIndexPtr
         if (!varValue.isPointer() ) {
-            return Value(0);
+            return NumberNullValue;
         }
         Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr(index);
         if (valPtr) return Value(*valPtr);
 
-        return Value(0);
+        return NumberNullValue;
     }
 
     Value* ArrayVariableExpression::evaluatePtr(Environment& env) {
@@ -172,7 +172,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     Value ObjectFieldExpression::evaluate(Environment& env) {
         Value varValue = mVarExpr->evaluate(env);
-        Value returnValue = Value(0);
+        Value returnValue = NumberNullValue;
         if (!varValue.isPointer()) {
             Tools::errorf("RunTime Error: Object %s not found.\n",varValue.toString().c_str());
             return returnValue;
@@ -190,7 +190,7 @@ namespace DreiZehn {
 
         // Value* retValuePtr = this->evaluatePtr(env);
         // if (retValuePtr) return *retValuePtr;
-        // return Value(0);
+        // return NumberNullValue;
 
     }
     Value* ObjectFieldExpression::evaluatePtr(Environment& env) {
@@ -243,7 +243,7 @@ namespace DreiZehn {
             if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
         }
 
-        Value returnValue = Value(0);
+        Value returnValue = NumberNullValue;
 
         obj->onMethodCall(mMethodNameSymbolId, evaluatedArgs, returnValue);
         return returnValue;
@@ -281,7 +281,7 @@ namespace DreiZehn {
             if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
         }
 
-        Value returnValue = Value(0);
+        Value returnValue = NumberNullValue;
         bool success = (*cb)(evaluatedArgs, returnValue);
 
         if (!success) {
@@ -301,10 +301,10 @@ namespace DreiZehn {
                 localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), evaluatedArg, true);
             } else {
                 // 0.8d fill up arguments with 0
-                localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), Value(0), true);
+                localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), NumberNullValue, true);
             }
         }
-        Value functionResult = Value(0);
+        Value functionResult = NumberNullValue;
         for (auto& statement : func.body) {
             FlowStatus status = env.execute(statement.get(), localEnv);
 
@@ -341,7 +341,7 @@ namespace DreiZehn {
                 if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
             }
 
-            Value returnValue = Value(0);
+            Value returnValue = NumberNullValue;
             bool success = (*cb)(evaluatedArgs, returnValue);
 
             if (!success) {
@@ -361,10 +361,10 @@ namespace DreiZehn {
                     localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), evaluatedArg, true);
                 } else {
                     // 0.8d fill up arguments with 0
-                    localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), Value(0), true);
+                    localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), NumberNullValue, true);
                 }
             }
-            Value functionResult = Value(0);
+            Value functionResult = NumberNullValue;
             for (auto& statement : func.body) {
                 FlowStatus status = env.execute(statement.get(), localEnv);
 
@@ -403,13 +403,13 @@ namespace DreiZehn {
                 if (mode == 0) return Value(lVal.getDouble() + rVal.getDouble());
                 else if (mode == 1) return Value(lVal.getInt() + rVal.getInt());
                 else  if (mode == 2) return Value(std::string(lVal.toString() + rVal.toString()));
-                else  return Value(0);
+                else  return NumberNullValue;
                 break;
             }
             case TokenType::Minus:{
                 if (mode == 0) return Value(lVal.getDouble() - rVal.getDouble());
                 else if (mode == 1) return Value(lVal.getInt() - rVal.getInt());
-                else  return Value(0);
+                else  return NumberNullValue;
                 break;
 
             }
@@ -417,18 +417,18 @@ namespace DreiZehn {
                 double d = lVal.getDouble() * rVal.getDouble();
                 if (mode == 0) return (Value(d));
                 else if (mode == 1) return (Value(static_cast<int32_t>(d)));
-                else  return Value(0);
+                else  return NumberNullValue;
                 break;
 
             }
 
             case TokenType::Div: {
                 double r = rVal.getDouble();
-                if (r == 0.0) return Value(0);
+                if (r == 0.0) return NumberNullValue;
                 double d = lVal.getDouble() / r;
                 if (mode == 0) return (Value(d));
                 else if (mode == 1) return (Value(static_cast<int32_t>(d)));
-                else  return Value(0);
+                else  return NumberNullValue;
                 break;
 
             }
@@ -512,7 +512,7 @@ namespace DreiZehn {
                 } else if (lVal.isStringId() && rVal.isStringId()) {
                     return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) == 0;
                 } else if (lVal.isStringId() || rVal.isStringId()) {
-                    return Value(0);
+                    return NumberNullValue;
                 }
                 double l = lVal.getDouble();
                 double r = rVal.getDouble();
@@ -571,7 +571,7 @@ namespace DreiZehn {
                     double r = rVal.asFastDouble();
                     if (r == 0.0) {
                         Tools::PrintRuntimeError("Modulo Division by 0.0!");
-                        return Value(0);
+                        return NumberNullValue;
                     }
                     return Value(std::fmod(lVal.asFastDouble(),rVal.asFastDouble()));
                 } else {
@@ -579,7 +579,7 @@ namespace DreiZehn {
                     int64_t r = rVal.getInt64();
                     if (r == 0) {
                         Tools::PrintRuntimeError("Modulo Division by 0!");
-                        return Value(0);
+                        return NumberNullValue;
                     }
                     int64_t res = l % r;
 
@@ -611,7 +611,7 @@ namespace DreiZehn {
 
         if ( !valPtr  ) {
             Tools::PrintParseError("Assign: variable is missing or invalid");
-            return Value(0);
+            return NumberNullValue;
         }
 
         // since i set it with pointer i need to check assignment here !!!!!!
@@ -634,7 +634,7 @@ namespace DreiZehn {
 
         if ( !valuePtr || !this->mRhs ) {
             Tools::PrintParseError("AssignOP: variable or right is missing or invalid");
-            return Value(0);
+            return NumberNullValue;
         }
         Value rightHand = this->mRhs->evaluate(env);
 
@@ -649,7 +649,7 @@ namespace DreiZehn {
                     double r = rightHand.asFastDouble();
                     r != 0.0 ? doubleval /= r : doubleval = 0; break;
                 }
-                default: return Value(0);
+                default: return NumberNullValue;
             }
             *valuePtr = Value(doubleval);
             return *valuePtr;
@@ -671,7 +671,7 @@ namespace DreiZehn {
 
         } else if (valuePtr->isStringId( )) {
             if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (valuePtr->getStringRef() +  rightHand.toString() );
-            else return Value(0);
+            else return NumberNullValue;
             return *valuePtr;
 
         } else {
@@ -684,13 +684,13 @@ namespace DreiZehn {
                     double r = rightHand.asFastDouble();
                     r != 0.0 ? doubleval /= r : doubleval = 0; break;
                 }
-                default: return Value(0);
+                default: return NumberNullValue;
             }
             *valuePtr = Value(doubleval);
             return *valuePtr;
         }
 
-        return Value(0);
+        return NumberNullValue;
     }
 
     // Value AssignOPStatement::evaluate(Environment& env) {
@@ -699,7 +699,7 @@ namespace DreiZehn {
     //
     //     if ( !valuePtr || !this->mRhs ) {
     //         Tools::PrintParseError("AssignOP: variable or right is missing or invalid");
-    //         return Value(0);
+    //         return NumberNullValue;
     //     }
     //     Value rightHand = this->mRhs->evaluate(env);
     //
@@ -746,15 +746,15 @@ namespace DreiZehn {
     //                 return *valuePtr;
     //             } else if (mode == 1) {
     //                 int32_t rh = rightHand.getDouble();
-    //                 if (rh == 0) *valuePtr  = Value(0);
+    //                 if (rh == 0) *valuePtr  = NumberNullValue;
     //                 else *valuePtr = Value(valuePtr->asFastInt() / rh);
     //                 return *valuePtr;
     //             }
     //         }
-    //         default: return Value(0);
+    //         default: return NumberNullValue;
     //     }
     //
-    //     return Value(0);
+    //     return NumberNullValue;
     // }
 
     // -------------------------------------------------------------------------
@@ -972,15 +972,20 @@ namespace DreiZehn {
                 FlowStatus status = env.execute(statement.get(), env);
 
                 if (status.signal == FlowSignal::Break) {
+                    if (iterValPtr) *iterValPtr = NumberNullValue;
                     return FlowStatus (FlowSignal::None);
                 }
                 if (status.signal == FlowSignal::Return) {
+                    if (iterValPtr) *iterValPtr = NumberNullValue;
                     return status;
                 }
                 if (status.signal == FlowSignal::Continue) break;
 
             }
         }
+        // cleanup
+        if (iterValPtr) *iterValPtr = NumberNullValue;
+
         return  FlowStatus (FlowSignal::None)  ;
     }
     // -------------------------------------------------------------------------

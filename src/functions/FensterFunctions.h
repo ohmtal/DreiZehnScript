@@ -561,7 +561,7 @@ namespace DreiZehn {
             // ------- clear
             if (clearProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer  ) {
-                    ret = Value(0);
+                    ret = NumberNullValue;
                     return true;
                 }
                 uint32_t color = 0xFFFFFFFF;
@@ -649,7 +649,7 @@ namespace DreiZehn {
                 if (!mBuffer.buffer) return false;
 
                 if (!args[0].isStringId()) {
-                    ret = Value(0);
+                    ret = NumberNullValue;
                     return true;
                 }
 
@@ -662,7 +662,7 @@ namespace DreiZehn {
                 if (!mBuffer.buffer) return false;
 
                 if (!args[0].isStringId()) {
-                    ret = Value(0);
+                    ret = NumberNullValue;
                     return true;
                 }
 
@@ -958,7 +958,7 @@ namespace DreiZehn {
                     ret = Value(static_cast<int32_t>(pressed != 0));
                     return true;
                 }
-                ret = Value(0);
+                ret = NumberNullValue;
                 return true;
             }
             // ------- close
@@ -973,7 +973,7 @@ namespace DreiZehn {
             // ------- clear
             if (clearProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer || !mFenster.buf ) {
-                    ret = Value(0);
+                    ret = NumberNullValue;
                     return true;
                 }
                 uint32_t color = 0xFFFFFFFF;

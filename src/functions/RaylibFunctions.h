@@ -248,7 +248,7 @@ namespace DreiZehn::Raylib {
         RegisterFunction("rl::InitWindow", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 3) {
                 Tools::errorf("Usage:raylib::InitWindow int width int height string title\n");
-                ret = Value(0);
+                ret = NumberNullValue;
                 return false;
             }
             InitWindow(args[0].getInt(),args[1].getInt(), args[2].getStringRef().c_str());

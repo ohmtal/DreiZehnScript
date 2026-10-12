@@ -96,7 +96,7 @@ struct FileStreamObject : public ValueObject {
                 *output << args[0].getStringRef();
                 ret = Value(1);
             } else {
-                ret = Value(0);
+                ret = NumberNullValue;
             }
             return true;
         }
@@ -106,7 +106,7 @@ struct FileStreamObject : public ValueObject {
                 *output << args[0].getStringRef() << "\r\n";
                 ret = Value(1);
             } else {
-                ret = Value(0);
+                ret = NumberNullValue;
             }
             return true;
         }
@@ -137,10 +137,10 @@ struct FileStreamObject : public ValueObject {
 
                     ret = Value(line);
                 } else {
-                    ret = Value(0);
+                    ret = NumberNullValue;
                 }
             } else {
-                ret = Value(0);
+                ret = NumberNullValue;
             }
             return true;
         }
@@ -165,10 +165,10 @@ struct FileStreamObject : public ValueObject {
         //
         //             ret = Value(line);
         //         } else {
-        //             ret = Value(0);
+        //             ret = NumberNullValue;
         //         }
         //     } else {
-        //         ret = Value(0);
+        //         ret = NumberNullValue;
         //     }
         //     return true;
         // }
@@ -193,10 +193,10 @@ struct FileStreamObject : public ValueObject {
                     if (input->fail()) {
                         input->clear(input->rdstate() & ~std::ios_base::failbit);
                     }
-                    ret = Value(0);
+                    ret = NumberNullValue;
                 }
             } else {
-                ret = Value(0);
+                ret = NumberNullValue;
             }
             return true;
         }
@@ -213,10 +213,10 @@ struct FileStreamObject : public ValueObject {
         //             }
         //             ret = Value(buffer);
         //         } else {
-        //             ret = Value(0);
+        //             ret = NumberNullValue;
         //         }
         //     } else {
-        //         ret = Value(0);
+        //         ret = NumberNullValue;
         //     }
         //     return true;
         // }
@@ -257,7 +257,7 @@ struct FileStreamObject : public ValueObject {
                 output->flush();
                 ret = Value(1);
             } else {
-                ret = Value(0);
+                ret = NumberNullValue;
             }
             return true;
         }
@@ -273,7 +273,7 @@ struct FileStreamObject : public ValueObject {
             return true;
         }
 
-        ret = Value(0);
+        ret = NumberNullValue;
         return true;
 
     }
@@ -283,7 +283,7 @@ void RegisterFileFunctions(Environment& env) {
     static bool registered = false; if (registered) return; registered = true;
     using namespace FunctionMap;
 
-    RegisterConstants("fs::seek_beg", Value(0));
+    RegisterConstants("fs::seek_beg", NumberNullValue);
     RegisterConstants("fs::seek_cur", Value(1));
     RegisterConstants("fs::seek_end", Value(2));
 
@@ -296,7 +296,7 @@ void RegisterFileFunctions(Environment& env) {
     RegisterFunction("FileStream::open", [](std::vector<Value>& args, Value& ret) -> bool {
         if (args.size() != 2 || !args[0].isStringId() || !args[1].isStringId()) {
             Tools::errorf("Usage: FileStream::open filename mode");
-            ret = Value(0);
+            ret = NumberNullValue;
             return true;
         }
 
@@ -318,7 +318,7 @@ void RegisterFileFunctions(Environment& env) {
 
             if (mode == "r") {
                 fs->fileInput = std::make_unique<std::ifstream>(filename, openMode);
-                if (!fs->fileInput->is_open()) { delete fs; ret = Value(0); return true; }
+                if (!fs->fileInput->is_open()) { delete fs; ret = NumberNullValue; return true; }
                 fs->input = fs->fileInput.get();
                 useStream = false; // Wir nutzen hier noch den alten ifstream
             }
@@ -342,7 +342,7 @@ void RegisterFileFunctions(Environment& env) {
                 fs->fileStream = std::make_unique<std::fstream>(filename, openMode);
                 if (!fs->fileStream->is_open()) {
                     delete fs;
-                    ret = Value(0);
+                    ret = NumberNullValue;
                     return true;
                 }
                 fs->input = fs->fileStream.get();

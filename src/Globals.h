@@ -7,9 +7,12 @@
 #pragma once
 
 #include "toolbox/Tools.h"
+#include <vector>
+#include <algorithm>
 
 namespace DreiZehn {
     class Environment;
+    class VariableFrame;
 
     const double EPSILON = 1e-9;
 
@@ -23,6 +26,22 @@ namespace Globals {
     // ------
     // i want to track the current Env!
     inline Environment* gCurEnv = nullptr;
+    inline Environment* gMainEnv = nullptr;
+
+    inline VariableFrame* MasterVariableFrame = nullptr;
+
+    inline std::vector<uint32_t> GlobalVarList;
+    inline bool isGlobalVar(uint32_t id) {
+          auto it = std::find(GlobalVarList.begin(), GlobalVarList.end(), id);
+          if (it == GlobalVarList.end()) return false;
+          return true;
+    }
+    inline bool insertGlobalVar(uint32_t id) {
+        if (isGlobalVar(id)) return false;
+        GlobalVarList.push_back(id);
+        return true;
+    }
+    // ------
     // ------
     inline  bool gDumpStateNodes = false; //Debug
     inline  bool gShowVariableDebug = false; //Debug

@@ -63,6 +63,8 @@ enum class TokenType {
 
     , Define, Import
 
+    , Global
+
     , NoToken // for peekPrev pos < 1
     , EOFToken
 };
@@ -139,6 +141,7 @@ inline const char* tokenTypeToString(TokenType type) {
 
         case TokenType::Import:         return "Import";
         case TokenType::Define:         return "Define";
+        case TokenType::Global:         return "Global";
 
         case TokenType::EOFToken:       return "EOFToken";
 
@@ -410,6 +413,7 @@ public:
                 else if (id == "or") { tokens.push_back({TokenType::Or, "or"});  }
                 else if (id == "import") { tokens.push_back({TokenType::Import, "import"});  }
                 else if (id == "define") { tokens.push_back({TokenType::Define, "define"});  }
+                else if (id == "global") { tokens.push_back({TokenType::Global, "global"});  }
                 else {
                     tokens.push_back({TokenType::Identifier, id});
                 }

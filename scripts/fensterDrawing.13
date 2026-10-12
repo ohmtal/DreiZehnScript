@@ -30,11 +30,11 @@ import All
 --
 -- end
 
-W = 320
-H = 200
-SCALE = 2
+global W = 320
+global H = 200
+global SCALE = 2
 
-fenster = Fenster::new "DreiZehn Fenster Drawing Demo" W H SCALE
+global fenster = Fenster::new "DreiZehn Fenster Drawing Demo" W H SCALE
 
 
 -- -----------------------------------------------------------------------------

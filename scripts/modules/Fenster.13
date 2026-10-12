@@ -1,6 +1,6 @@
 -- DreiZehn Fenster Module Demo
 
-fenster = 0
+global fenster = 0
 
 fn ModuleCreate
     print "--- Fenster Create ---"
@@ -29,5 +29,3 @@ fn ModuleLoop
    fenster->text 20 220 (str::concat "mouse: x:" fenster.mouseX ", y:" fenster.mouseY ", down:" fenster.mouseDown) 2 0xFFFFFF
    return true
 end
-
-

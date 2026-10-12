@@ -29,10 +29,10 @@ import Vector
 -- str::word
 -- str::wordcount
 
-import File
+import All
 
 -- -----------------------------------------------------------------------------
-args = sys::args
+global args = sys::args
 filename = args.argv_2
 if (filename == "" || filename == 0)
     error "USAGE: DreiZehn parser.13 SDL_filename.h"
@@ -45,11 +45,11 @@ fn rl
 end
 
 -- -----------------------------------------------------------------------------
-strSep = "\""
+define strSep "\""
 
-Tokens = Vector::new
+global Tokens = Vector::new
 -- {"file":"SDL_stdinc.h",
-filter = str::concat "{" strSep "file" strSep ":" strSep filename strSep ','
+global filter = str::concat "{" strSep "file" strSep ":" strSep filename strSep ','
 
 -- -----------------------------------------------------------------------------
 
@@ -142,6 +142,7 @@ fn Parser::parse this
                     this->advance
                 end
 
+                prevPeek = this->peek
                 tmpStr += this->advance
 
                 if prevPeek != "\\" and this->peek == strSep break;;
@@ -275,8 +276,8 @@ fn TokensTree
     end
 end
 -- -----------------------------------------------------------------------------
-REGISTER_CONST = ""
-REGISTER_STR = "\n\n"
+global REGISTER_CONST = ""
+global REGISTER_STR = "\n\n"
 
 getFieldSetFieldStr = "   inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override { \n"
 getFieldSetFieldStr +="      Value* ptr = onGetFieldPtr(fieldSymbolId);\n"
@@ -426,15 +427,15 @@ end
 
 -- ~~~~~
 
-log = FileStream::open "parser.log" "w"
+global log = FileStream::open "parser.log" "w"
 if (!log); error "Failed to open logfile"; return;;
 log->writeln "start parsing..."; log->flush
 
-fs = FileStream::open "fs://stdin" "r"
+global fs = FileStream::open "fs://stdin" "r"
 if (!fs); error "Failed to open stream"; return;;
 
-buffer = ""
-buffer_size = 1024
+global buffer = ""
+global buffer_size = 1024
 
 
 readLoop

@@ -168,15 +168,26 @@ struct ValueExpression : public Expression {
 };
 
 // Variables -------------------------------------------------------------------
-class VariableFrame;
+
 struct VariableExpression : public Expression {
+
     uint32_t mVariableNameSymbolId = 0;
+    bool mGlobalVariable = false;
 
     uint32_t mCacheFrameID = 0;
     Value* mCacheValue = nullptr;
 
-    VariableExpression(uint32_t n) : mVariableNameSymbolId(n) {
+    VariableExpression(uint32_t id, bool isGlobal) : mVariableNameSymbolId(id)  {
         mNodeType  = NodeType::VariableExpression;
+
+        if (isGlobal) {
+            mGlobalVariable = true;
+            Globals::insertGlobalVar(id);
+            // Tools::printf("DEBUG: ADD a expression to global: %s\n", SymbolTable::getName(id).c_str());
+        } else if (Globals::isGlobalVar(id)) {
+            mGlobalVariable = true;
+            // Tools::printf("DEBUG: set a expression to global: %s\n", SymbolTable::getName(id).c_str());
+        }
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;

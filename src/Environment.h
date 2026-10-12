@@ -75,6 +75,7 @@ private:
 public:
     Environment() : mParentEnv(nullptr) {
         Globals::gCurEnv = this;
+        Globals::gMainEnv = this;
         mVariableFrame = new VariableFrame(nullptr);
     }
     Environment(Environment* parentEnv) : mParentEnv(parentEnv) {

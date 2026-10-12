@@ -48,7 +48,7 @@ public:
         mFrameId = (gFrameCounter++);
         // gCurrentFrame = this;
         if (parentFrame == nullptr) {
-            // gMasterFrame = this;
+            Globals::MasterVariableFrame = this;
             mVariables.reserve(DREIZEHN_INITIAL_VARIABLE_MASTERFRAME_SIZE);
         } else {
             mVariables.reserve(DREIZEHN_INITIAL_VARIABLE_CHILDFRAME_SIZE);
@@ -75,21 +75,24 @@ private:
     }
 
     // -------------------------------------------------------------------------
-    bool tryUpdateVariable(uint32_t id, Value val) {
-        auto it = mVariables.find(id);
-        if (it != mVariables.end()) {
-            internalSetVariable(it->second , val);
-            return true;
-        }
-        if (mParentFrame != nullptr) {
-            return mParentFrame->tryUpdateVariable(id, val);
-        }
-        return false;
-    }
+    // bool tryUpdateVariable(uint32_t id, Value val) {
+    //     auto it = mVariables.find(id);
+    //     if (it != mVariables.end()) {
+    //         internalSetVariable(it->second , val);
+    //         return true;
+    //     }
+    //     if (mParentFrame != nullptr) {
+    //         return mParentFrame->tryUpdateVariable(id, val);
+    //     }
+    //     return false;
+    // }
 public:
     // -------------------------------------------------------------------------
     inline VariableFrame* getParentFrame() {return mParentFrame;}
     // -------------------------------------------------------------------------
+
+    //NOTE: only used at iter and fn definition at the moment
+    //      maybe renamed to add Variable!!!
     inline void setVariable(uint32_t id, Value val, bool forceScope = false) {
 
         // if (Globals::gShowVariableDebug) Tools::printf("DEBUG: setVariable :: name: %s id: %d, floatval: %f\n", SymbolTable::getName(id).c_str(), id, val.getFloat());
@@ -104,40 +107,28 @@ public:
              return;
         }
 
-        if (mParentFrame != nullptr) {
-            if (mParentFrame->tryUpdateVariable(id, val)) {
-                return;
-            }
+        // fallback
+        if (Globals::MasterVariableFrame) {
+            Globals::MasterVariableFrame->setVariable(id, val, true);
         }
-        internalSetVariable( mVariables[id] , val);
+        Tools::errorf("\n\tVariable fatal error ! can NOT set the variable !!!!\n\n");
+        // if (mParentFrame != nullptr) {
+        //     if (mParentFrame->tryUpdateVariable(id, val)) {
+        //         return;
+        //     }
+        // }
+
+        // internalSetVariable( mVariables[id] , val);
     }
 
     // // -------------------------------------------------------------------------
    inline Value getVariable(uint32_t id) {
-        auto it = mVariables.find(id);
-        if (it != mVariables.end()) {
-            return it->second;
-        }
-
-        if (mParentFrame != nullptr) {
-            return mParentFrame->getVariable(id);
-        }
+       Value* varPtr = getVariablePtr(id);
+       if (varPtr) return *varPtr;
 
         std::string varName = SymbolTable::getName(id);
         Tools::warnf("Variable not found: %s\n", varName.c_str());
         return Value();
-    }
-
-    inline Value* lookUpVariablePtr(uint32_t id) {
-        auto it = mVariables.find(id);
-        if (it != mVariables.end()) {
-            return &it->second;
-        }
-
-        if (mParentFrame != nullptr) {
-            return mParentFrame->lookUpVariablePtr(id);
-        }
-        return nullptr;
     }
 
     inline Value* getVariablePtr(uint32_t id, bool isAssignVar = false) {
@@ -147,34 +138,70 @@ public:
             return &it->second;
         }
 
-        Value* lookUp = nullptr;
-        if (mParentFrame != nullptr) {
-            lookUp = mParentFrame->lookUpVariablePtr(id);
+        if (this != Globals::MasterVariableFrame && Globals::isGlobalVar(id)) {
+            return Globals::MasterVariableFrame->getVariablePtr(id,isAssignVar);
         }
-        if (lookUp) return lookUp;
 
         if (!isAssignVar) {
             std::string varName = SymbolTable::getName(id);
             Tools::warnf("Variable not found: %s\n", varName.c_str());
+            return nullptr;
         }
 
         mVariables[id] = Value(0);
         return &mVariables[id];
 
-        // OK THIS BREAKS THE SCOPE!!
-        // it recursive go to master frame and then create all variables there !!!
-        // if (mParentFrame != nullptr) {
-        //     return mParentFrame->getVariablePtr(id, isAssignVar);
-        // }
-        // // not found we set a new one !
-        // // warning is bad, when it's an assign!
-        // if (!isAssignVar) {
-        //     std::string varName = SymbolTable::getName(id);
-        //     Tools::warnf("Variable not found: %s\n", varName.c_str());
-        // }
-        // mVariables[id] = Value(0);
-        // return &mVariables[id];
     }
+
+//     inline Value getVariable(uint32_t id) {
+//         auto it = mVariables.find(id);
+//         if (it != mVariables.end()) {
+//             return it->second;
+//         }
+//
+//         if (mParentFrame != nullptr) {
+//             return mParentFrame->getVariable(id);
+//         }
+//
+//         std::string varName = SymbolTable::getName(id);
+//         Tools::warnf("Variable not found: %s\n", varName.c_str());
+//         return Value();
+//     }
+
+    // inline Value* lookUpVariablePtr(uint32_t id) {
+    //     auto it = mVariables.find(id);
+    //     if (it != mVariables.end()) {
+    //         return &it->second;
+    //     }
+    //
+    //     if (mParentFrame != nullptr) {
+    //         return mParentFrame->lookUpVariablePtr(id);
+    //     }
+    //     return nullptr;
+    // }
+    //
+    // inline Value* getVariablePtr(uint32_t id, bool isAssignVar = false) {
+    //
+    //     auto it = mVariables.find(id);
+    //     if (it != mVariables.end()) {
+    //         return &it->second;
+    //     }
+    //
+    //     Value* lookUp = nullptr;
+    //     if (mParentFrame != nullptr) {
+    //         lookUp = mParentFrame->lookUpVariablePtr(id);
+    //     }
+    //     if (lookUp) return lookUp;
+    //
+    //     if (!isAssignVar) {
+    //         std::string varName = SymbolTable::getName(id);
+    //         Tools::warnf("Variable not found: %s\n", varName.c_str());
+    //     }
+    //
+    //     mVariables[id] = Value(0);
+    //     return &mVariables[id];
+    //
+    // }
 
 };
 // -----------------------------------------------------------------------------

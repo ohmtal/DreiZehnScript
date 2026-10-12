@@ -9,24 +9,25 @@ import SDL3
 import Vector
 
 print " StarField v6 @13 startup...."
--- DreiZehn global variables are also available by the functions
-W = 640
-H = 320
-maxW = W / 2
-minW = maxW * -1
-maxH = H / 2
-minH = maxH * -1
-STAR_COUNT  = 4200
-START_DIV   = 0.03125
-Speed       = 0.2
-fontScale   = 1.2
+
+global W = 640
+global H = 320
+global maxW = W / 2
+global minW = maxW * -1
+global maxH = H / 2
+global minH = maxH * -1
+global STAR_COUNT  = 4200
+global START_DIV   = 0.03125
+global Speed       = 0.2
+global fontScale   = 1.2
 -- Objects initialize with 0:
-Window      = 0
-Renderer    = 0
-Event       = 0
-Points_X    = 0
-Points_Y    = 0
-Points_Z    = 0
+global Window      = 0
+global Renderer    = 0
+global Event       = 0
+
+global Points_X    = 0
+global Points_Y    = 0
+global Points_Z    = 0
 
 
 fn Init

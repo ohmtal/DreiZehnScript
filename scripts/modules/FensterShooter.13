@@ -14,39 +14,35 @@
 -- -----------------------------------------------------------------------------
 
 -- consts
-title = "DreiZehn Fenster Shooter"
-WIDTH  = 320
-HEIGHT = 200
-SCALE  = 2.4
-GAMEWIDTH  = 320
-GAMEHEIGHT = 180 # rest is for gui ;)
-backcolor = 0x050510
-soundRate8k  = 8000.0 / 44100.0
-soundRate12k = 12000.0 / 44100.0
+define title "DreiZehn Fenster Shooter"
+define WIDTH 320
+define HEIGHT 200
+define SCALE  2.4
+define GAMEWIDTH   320
+define GAMEHEIGHT  180
+define backcolor  0x050510
+define soundRate8k   8000.0 / 44100.0
+define soundRate12k  12000.0 / 44100.0
 
 -- Objects
-Fenster = 0     # The Fenster Object
-Game    = 0     # The Game Object
-Player  = 0     # Object
-Bullets = 0     # Vector of Bullet Object
-Enemies = 0     # Vector of Enemy Object
-Stars   = 0     # Vector of Stars
+global Fenster = 0     # The Fenster Object
+global Game    = 0     # The Game Object
+global Player  = 0     # Object
+global Bullets = 0     # Vector of Bullet Object
+global Enemies = 0     # Vector of Enemy Object
+global Stars   = 0     # Vector of Stars
 
 --- Graphics
-Ship     = 0     # TGA ship :)
-Boulders = 0     # TGA boulder Vector :)
+global Ship     = 0     # TGA ship :)
+global Boulders = 0     # TGA boulder Vector :)
 
 -- Sound
-Audio    = 0     # FensterAudio Object
-
-loopCounter = 0 # a simple counter
-
-
-
+global Audio    = 0     # FensterAudio Object
+global loopCounter = 0 # a simple counter
 
 -- more consts
-enemyCount  = 20
-starCount   = 30
+define enemyCount 20
+define starCount  30
 
 -- -----------------------------------------------------------------------------
 fn doesCollide objA objB

@@ -184,7 +184,19 @@ namespace DreiZehn {
             Tools::printf("------------------------------------------------------\n");
             return true;
         });
-
+        // ---------------------------------------------------------------------
+        RegisterFunction("core::printGlob", [](std::vector<Value>& args, Value& ret) -> bool {
+            Tools::printf("---------------- Globals ------------------\n");
+            for (auto & id: Globals::GlobalVarList) {
+                Value* valPtr = Globals::MasterVariableFrame->getVariablePtr(id);
+                Tools::printf("[%zu] %s = %s\n "
+                    , id, SymbolTable::getName(id).c_str()
+                    , valPtr ? valPtr->toString().c_str() : "NOT FOUND!!!"
+                );
+            }
+            Tools::printf("------------------------------------------------------\n");
+            return true;
+        });
 
         // ---------------------------------------------------------------------
         // Help

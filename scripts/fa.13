@@ -4,6 +4,14 @@ import String
 import FensterAudio
 
 -- FensterAudio Test
+global fa = FensterAudio::new
+global global_time_total = 0.0
+global rate = 8000
+global melody = 3
+global vol = 0.5
+global useFloat = false
+
+
 print "FensterAudio TEST. You may set `bitRate` to change the sound "
 print str::concat "* rate    = " rate   " ==> highter is faster."
 print str::concat "* melody  = " melody "  ==> 0..5 available"
@@ -88,14 +96,7 @@ fn MainLoop
     fa->close
 end
 
-if (!fa)
-    fa = FensterAudio::new
-    global_time_total = 0.0
-    rate = 8000
-    melody = 3
-    vol = 0.5
-    useFloat = false
-    MainLoop
-end
+
+MainLoop
 
 fa = 0

@@ -163,7 +163,8 @@ private:
                 return std::make_unique<CallExpression>(nameTokenSymbolId, std::move(args));
             } else {
                 // we got a variable
-                currentExpression = std::make_unique<VariableExpression>(nameTokenSymbolId);
+                bool isGlobal = peekOffset(-2).mType == TokenType::Global;
+                currentExpression = std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
             }
 
             while (true) {
@@ -362,7 +363,8 @@ private:
                 return std::make_unique<CallExpression>(nameTokenSymbolId, std::move(args));
             }
 
-            return std::make_unique<VariableExpression>(nameTokenSymbolId);
+            bool isGlobal = peekOffset(-2).mType == TokenType::Global;
+            return std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
         }
 
         return nullptr;
@@ -598,6 +600,12 @@ public:
                 }
 
                 return nullptr;
+            }
+            break;
+            // -----------------------------------------------------------------
+            case TokenType::Global:  {
+                advance(); // skip "
+                // return std::make_unique<ElseMarkerNode>();
             }
             break;
             // -----------------------------------------------------------------

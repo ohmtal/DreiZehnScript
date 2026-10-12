@@ -6,6 +6,8 @@ fn rl
     run "scripts/hot.13"
 end
 
+global i = 0
+
 fn Main
     while core::breath
         i++;

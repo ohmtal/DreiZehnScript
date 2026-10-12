@@ -26,6 +26,9 @@ namespace DreiZehn::FunctionMap {
                         SymbolTable::insert(func.parameterNames[i])
                         , args[i]
                         , true);
+                } else {
+                    // 0.8d fill up arguments with 0
+                    localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), Value(0), true);
                 }
             }
 

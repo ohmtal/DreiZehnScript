@@ -9,9 +9,9 @@
 import All
 
 -- Avail Modules in subfolder modules:
-loader::Modules = Vector::new "FensterShooter" "Fenster" "RayFirst" "Scope"
-loader::ModuleIndex = -1
-loader::ModuleName = ""
+global loader::Modules = Vector::new "FensterShooter" "Fenster" "RayFirst" "Scope"
+global loader::ModuleIndex = -1
+global loader::ModuleName = ""
 
 -- inital setup the call back functions,
 -- so it can be overridden: when the script is parsed it lookup registered

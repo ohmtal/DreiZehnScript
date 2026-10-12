@@ -144,6 +144,7 @@ stupid iterator test ;)
 i = 0
 for i 1 1000000000
 end
+print "I=" i
 ```
 
 

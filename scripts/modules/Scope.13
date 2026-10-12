@@ -4,8 +4,8 @@ print "................. NOW IMPORTANT BREAK POINT !!!!!......."
 core::sleep 1000
 
 
-GlobalObject = 0
-globalVar = 10
+global GlobalObject = 0
+global globalVar = 10
 
 fn ModuleCreate
     GlobalObject = Object::new
@@ -26,7 +26,7 @@ end
 fn ModuleLoop
    foo 100
 
-   print "should be 0,0,20,[P] =>" p1 "," v1 "," globalVar "," GlobalObject
+   print "should be  , ,20,Object [P] =>" p1 "," v1 "," globalVar "," GlobalObject
 --    core::sleep 2000
 --    return true
     return false

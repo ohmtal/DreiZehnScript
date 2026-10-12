@@ -1,8 +1,13 @@
 print "----- Assignment redesign attempt 0.7 -----"
 import Core
 
-GlobalObject = 0
-globalVar = 10
+global GlobalObject = 0
+global globalVar = 0
+
+
+
+while globalVar < 10; globalVar++; printraw globalVar " ";  end;
+printraw "\n"
 
 fn init
     GlobalObject = Object::new
@@ -25,10 +30,31 @@ fn foo p1
 end
 
 init
-
+-- core::printGlob; return;
 foo 100
 print "should be 0,0,20,Object[P] =>" p1 "," v1 "," globalVar "," GlobalObject
 
-core::printgc
+localVar = 10
+-- core::printgc
+debug::printenv
+fn Init; return true; end
 
-while core::breath; core::sleep 16 ;;
+if Init
+    ifVar = 20
+debug::printenv
+    print "LOCALVAR:" localVar "ifVar" ifVar
+    while ifVar > 0 ; ifVar-=1; printraw ifVar " ";end
+    print "....."
+end
+
+print "outside if ifVar" ifVar
+
+fn lala p1 p2 p3 ; print "p1" p1 "p2" p2 "p3" p3;;
+
+lala
+
+
+fn Object::lala this p1 p2 p3 ; print "obj: p1" p1 "p2" p2 "p3" p3;;
+obj = Object::new
+obj->lala
+-- while core::breath; core::sleep 16 ;;

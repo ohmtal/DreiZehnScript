@@ -30,8 +30,10 @@ set(BUILD_WITH_SANITIZE ${SANITIZE_DEFAULT} CACHE BOOL "Build Application with -
 set(LOADALL_DEFAULT ON)
 set(BUILD_WITH_LOADALL ${LOADALL_DEFAULT} CACHE BOOL "Build Application with load all available modules at start")
 
+set(FORCE_02 ON)
+set(BUILD_WITH_FORCEO2 ${FORCE_02} CACHE BOOL "Build Application Release also with -02 on gcc")
 # -02 is faster on gcc (StarField2 > 300fps instead of 250fps)!!!
-if(NOT MSVC)
+if(NOT MSVC AND BUILD_WITH_FORCEO2)
     set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
     set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 endif()

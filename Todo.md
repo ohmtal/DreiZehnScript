@@ -347,13 +347,14 @@ Struct [0x5576cc6a5440]
 
 
 ## 0.8d
-- [ ] I need to change the variable scope .. 
+- [X] I need to change the variable scope .. 
     - [X] since i fixed the scope bug, StarField2 is slower 
             ==> optimized the getCurrentFrame a bit 
-    - [ ] check if ONLY script functions run in it's own Enviroment
-        - [ ] if so we can go ahead and add "global" to lexer and Expression
-        - [ ] modify the Variable Frame Lookup to only toggle main or current
-    
+    - [X] check if ONLY script functions run in it's own Enviroment << YES
+    - [X] changed all loops to current env !!!!!!!
+    - [X] if so we can go ahead and add "global" to lexer and Expression
+    - [X] modify the Variable Frame Lookup to only toggle main or current
+    - ==> funny this is not faster :/
     
     
 ## 0.?? .... ongoing process ....

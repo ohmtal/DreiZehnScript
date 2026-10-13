@@ -382,6 +382,9 @@ Struct [0x5576cc6a5440]
     - [X] changed dynamic fields also to unique_ptr ! this fixed it :D
 
 
+## 0.8f 
+    
+    
 ## 0.?? .... ongoing process ....
     
 - [ ] sdl3 clang header tool 

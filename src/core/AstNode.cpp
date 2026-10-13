@@ -171,6 +171,13 @@ namespace DreiZehn {
     // ObjectFieldExpression
     // -------------------------------------------------------------------------
     Value ObjectFieldExpression::evaluate(Environment& env) {
+
+        // ------ TEST ONLY << did not speed up ! >>------
+        // Value* ptr = this->evaluatePtr(env);
+        // if (ptr) return *ptr;
+        // // ... fallback ---->
+        // ------ ......... ------
+
         Value varValue = mVarExpr->evaluate(env);
         Value returnValue = NumberNullValue;
         if (!varValue.isPointer()) {

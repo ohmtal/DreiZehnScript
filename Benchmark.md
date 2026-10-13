@@ -5,6 +5,7 @@ I used my Benchmark Script from ElfScript:
 - Lua 5.5.1: 1.243u 0.002s 0:01.25 99.2%     0+0k 0+0io 0pf+0w
 - Elfscript 0.7c: 1.354u 0.002s 0:01.36 99.2%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8b): 3.306u 0.006s 0:03.32 99.3%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.8e): 3.417u 0.001s 0:03.42 99.7%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8a): 3.835u 0.005s 0:03.86 99.2%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7c): 5.393u 0.006s 0:05.42 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7f): 5.995u 0.001s 0:06.02 99.5%     0+0k 0+0io 0pf+0w
@@ -24,6 +25,14 @@ I used my Benchmark Script from ElfScript:
 🚀 == bytecode in place 
 
 Note 0.8b is 0.8a but using -02 optimized instead of -03.
+
+## StarField II 4200 Stars (rectangle mode):
+
+i need to write a better Benchmark here but for now its only a info for me.
+it can happen, that when i restart the prog that it's only peek 310 not 340
+
+- 🐢 DreiZehn(0.8e): peek: 340 FPS, low: 325 FPS
+
 
 ## Script on Version 0.6:
 
@@ -81,6 +90,7 @@ Note on 0.5b: While Variables  uses fast "++"/"--" fields only have the slower a
 
 Note on 0.5c: Added inline OP and OP assign :) Nearly as fast as global var
 
+- 🐢 DreiZehn(0.8e): 3.969u 0.005s 0:03.98 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8b): 5.150u 0.003s 0:05.16 99.8%     0+0k 0+0io 0pf+0w 
 - 🐢 DreiZehn(0.8a): 5.529u 0.003s 0:05.55 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7c): 7.448u 0.005s 0:07.47 99.5%     0+0k 0+0io 0pf+0w
@@ -108,6 +118,7 @@ print "Fib recursiv" num "=" (fib num)
 - ruby (3.4.10): 0.447u 0.013s 0:00.48 93.7%     0+0k 3392+0io 67pf+0w
 - Python (3.14.7): 0.649u 0.006s 0:00.65 98.4%     0+0k 0+0io 0pf+0w
 - ElfScript 0.8a: 1.199u 0.001s 0:01.20 99.1%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.8e): 2.270u 0.002s 0:02.27 100.0%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8a): 2.396u 0.001s 0:02.40 99.5%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8b): 2.647u 0.004s 0:02.66 99.2%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7f): 2.339u 0.001s 0:02.34 99.5%     0+0k 0+0io 0pf+0w
@@ -127,6 +138,7 @@ stupid iterator test ;)
 
 - 🐢 DreiZehn(0.7f): 0.333u 0.002s 0:00.33 100.0%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7c): 0.334u 0.004s 0:00.34 97.0%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.8e): 0.814u 0.004s 0:00.82 98.7%     0+0k 0+0io 0pf+0w 
 - 🐢 DreiZehn(0.8b): 0.982u 0.004s 0:00.98 100.0%    0+0k 0+0io 0pf+0w
 - ElfScript 0.7a: 2.688u 0.003s 0:02.69 99.6% 0+0k 0+0io 0pf+0w
 - Lua (5.5.0): 3.504u 0.003s 0:03.52 99.4% 0+0k 0+0io 0pf+0w

@@ -1,5 +1,7 @@
-global screenWidth  = 800
-global screenHeight = 450
+define screenWidth  800
+define screenHeight 450
+-- global screenWidth  = 800
+-- global screenHeight = 450
 global bgColor = rl::Color 10 30 10 255
 global myText = 0;
 

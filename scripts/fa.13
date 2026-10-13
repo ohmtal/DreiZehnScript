@@ -20,7 +20,7 @@ print "* quit ==> call to stop the loop"
 
 fn MainLoop
     while core::breath
-        n = fa.avail
+        n = fa->getAvail
         if n > 0
             forRange i n
                 float_value = 0

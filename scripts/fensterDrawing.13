@@ -135,7 +135,7 @@ fillHouse
 curpic = 1
 
 spaceWasUp = true
-now = fenster.time
+now = fenster->getTime
 while fenster->loop && core::breath
    if fenster->isKeyDown KEY_SPACE
        if spaceWasUp

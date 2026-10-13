@@ -200,6 +200,8 @@ inline bool isMathType(const Token& op) {
     || op.mType == TokenType::Modulo
     // || op.mType == TokenType::Not
     || op.mType == TokenType::Question
+    || op.mType == TokenType::Dot
+    || op.mType == TokenType::Arrow
 
     || op.mType == TokenType::Assign
     || isInlineMathType(op.mType)
@@ -460,37 +462,6 @@ public:
                 continue;
             }
 
-            // // StringLiteral
-            // if (peek() == '"') {
-            //     advance(); // eat '"'
-            //     std::string strValue;
-            //
-            //     while (peek() != '"' && peek() != '\0') {
-            //         if (peek() == '\\') {
-            //             advance();
-            //             if (peek() == 'n') { strValue += '\n'; advance(); }
-            //             else if (peek() == '"') { strValue += '"'; advance(); }
-            //             else { strValue += '\\'; }
-            //         } else {
-            //             strValue += advance();
-            //         }
-            //     }
-            //
-            //     if (peek() == '"') {
-            //         advance(); //eat '"'
-            //     } else {
-            //         Tools::errorf("[Lexer-ERROR] String not closed!\n");
-            //         // mPos = mSrc.size();
-            //         // continue;
-            //
-            //         // clear all token and exit .. nothing else to do here !!
-            //         tokens.clear();
-            //         return tokens;
-            //     }
-            //
-            //     tokens.push_back({TokenType::StringLiteral, strValue});
-            //     continue;
-            // }
 
             // ---------- Comment ---------------
             if (peek() == '#') {

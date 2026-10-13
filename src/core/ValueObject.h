@@ -6,6 +6,7 @@
 
 #include <string>
 #include <iostream>
+#include <memory>
 #include <functional>
 #include "toolbox/Tools.h"
 #include "toolbox/SymbolTable.h"
@@ -42,7 +43,7 @@ struct ValueObject {
 
     std::unordered_map<uint32_t, FunctionMap::ScriptFunction* > mMethodMap;
 
-    std::vector<Value> mDynamicFieldValues;
+    std::vector<std::unique_ptr<Value>> mDynamicFieldValues;
     std::unordered_map<uint32_t, size_t > mDynmaicFieldIndex;
     // std::unordered_map<uint32_t, Value > mDynmaicFields;
 
@@ -62,9 +63,7 @@ struct ValueObject {
     virtual bool onSetField(uint32_t fieldSymbolId, const Value& value);
 
     virtual bool onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret);
-    virtual inline Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args) {
-        return nullptr;
-    }
+    virtual Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args);
 
     virtual inline size_t onGetArraySize() {
         return 0;

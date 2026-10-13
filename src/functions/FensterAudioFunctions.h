@@ -80,40 +80,10 @@ namespace DreiZehn {
             , "get the float value at index. @params uint index" , TypeFensterAudioObject);
 
 
-            // Fields
-            availableProp  = ValueObjectProperty("avail","readonly floats avaiable", TypeFensterAudioObject);
-            sampleRateProp = ValueObjectProperty("sampleRate","readonly return the samplerate", TypeFensterAudioObject);
+
+            availableProp  = ValueObjectProperty("getAvail",0,0,"floats avaiable", TypeFensterAudioObject);
+            sampleRateProp = ValueObjectProperty("getSampleRate",0,0,"get the samplerate", TypeFensterAudioObject);
             mSymbolsLoaded = true;
-        }
-        // -------------------------------------------------------------------------
-        inline bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
-            if (mClosed) {
-                return true;
-            }
-            if (availableProp.matchField( fieldSymbolId)) {
-                ret = Value(fenster_audio_available(&mFensterAudio));
-                return true;
-            }
-            else
-            if (sampleRateProp.matchField( fieldSymbolId)) {
-                ret = Value(static_cast<uint32_t>(FENSTER_SAMPLE_RATE));
-                return true;
-            }
-
-            return ValueObject::onGetField(fieldSymbolId, ret);
-        }
-        // -------------------------------------------------------------------------
-        inline bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
-            // Read-Only!
-            if (availableProp.matchField( fieldSymbolId)) {
-                return false;
-            }
-            else
-            if (sampleRateProp.matchField( fieldSymbolId)) {
-                return false;
-            }
-
-            return ValueObject::onSetField(fieldSymbolId, value);
         }
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
@@ -200,6 +170,7 @@ namespace DreiZehn {
                 return true;
             }
             // ------- get
+            else
             if (getProp.matchMethod( methodId , args) == 1) {
                 uint32_t n =  args[0].getUInt();
                 if (n >= FENSTER_AUDIO_BUFSZ) {
@@ -208,6 +179,16 @@ namespace DreiZehn {
                     return true;
                 }
                 ret = Value (static_cast<double>(mAudioBuffer[n]));
+                return true;
+            }
+            else
+            if (availableProp.matchField( methodId)) {
+                ret = Value(fenster_audio_available(&mFensterAudio));
+                return true;
+            }
+            else
+            if (sampleRateProp.matchField( methodId)) {
+                ret = Value(static_cast<uint32_t>(FENSTER_SAMPLE_RATE));
                 return true;
             }
 

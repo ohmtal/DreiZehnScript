@@ -819,97 +819,15 @@ namespace DreiZehn {
             , "draw a pixel buffer object at position", TypeFensterObject);
 
 
-            titleProp     = ValueObjectProperty("title","readonly", TypeFensterObject);
-            widthProp     = ValueObjectProperty("width","readonly", TypeFensterObject);
-            heightProp    = ValueObjectProperty("height","readonly", TypeFensterObject);
-            mouseXProp    = ValueObjectProperty("mouseX","readonly", TypeFensterObject);
-            mouseYProp    = ValueObjectProperty("mouseY","readonly", TypeFensterObject);
-            mouseDownProp = ValueObjectProperty("mouseDown","readonly", TypeFensterObject);
-            timeProp      = ValueObjectProperty("time","readonly", TypeFensterObject);
-            keymodProp    = ValueObjectProperty("mod","readonly: mod is 4 bits mask, ctrl=1, shift=2, alt=4, meta=8", TypeFensterObject);
+            titleProp     = ValueObjectProperty("getTitle",0,0,"get the window title", TypeFensterObject);
+            widthProp     = ValueObjectProperty("getWidth",0,0,"get the window with", TypeFensterObject);
+            heightProp    = ValueObjectProperty("getHeight",0,0,"get the window height", TypeFensterObject);
+            mouseXProp    = ValueObjectProperty("getMouseX",0,0,"get mouseX", TypeFensterObject);
+            mouseYProp    = ValueObjectProperty("getMouseY",0,0,"get mouseY", TypeFensterObject);
+            mouseDownProp = ValueObjectProperty("getMouseDown",0,0,"get is mouse button down", TypeFensterObject);
+            timeProp      = ValueObjectProperty("getTime",0,0,"get the tome", TypeFensterObject);
+            keymodProp    = ValueObjectProperty("getKeymod",0,0,"get: mod is 4 bits mask, ctrl=1, shift=2, alt=4, meta=8", TypeFensterObject);
             mSymbolsLoaded = true;
-        }
-        // -------------------------------------------------------------------------
-        inline bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
-
-            if (titleProp.matchField( fieldSymbolId)) {
-                ret = Value(std::string(mFenster.title));
-                return true;
-            }
-            else
-            if (mouseXProp.matchField(fieldSymbolId)) {
-                ret = Value(static_cast<int32_t>(mFenster.x / mScale));
-                return true;
-            }
-            else
-            if ( mouseYProp.matchField(fieldSymbolId)) {
-                ret = Value(static_cast<int32_t>(mFenster.y / mScale));
-                return true;
-            }
-            else
-            if ( mouseDownProp.matchField(fieldSymbolId)) {
-                ret = Value(static_cast<int32_t>(mFenster.mouse));
-                return true;
-            }
-            else
-            if ( widthProp.matchField(fieldSymbolId)) {
-                ret = Value(static_cast<int32_t>(mBuffer.width));
-                return true;
-            }
-            else
-            if ( heightProp.matchField(fieldSymbolId)) {
-                ret = Value(static_cast<int32_t>(mBuffer.height));
-                return true;
-            }
-            else
-            if ( timeProp.matchField(fieldSymbolId)) {
-                ret = Value(static_cast<double>(fenster_time()));
-                return true;
-            }
-            else
-            if ( keymodProp.matchField(fieldSymbolId)) {
-                ret = Value(static_cast<uint32_t>(mFenster.mod));
-                return true;
-            }
-
-            return ValueObject::onGetField(fieldSymbolId, ret);
-        }
-        // -------------------------------------------------------------------------
-        inline bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
-            // Read-Only!
-            if (titleProp.matchField( fieldSymbolId)) {
-                return false;
-            }
-            else
-            if (mouseXProp.matchField(fieldSymbolId)) {
-                return false;
-            }
-            else
-            if ( mouseYProp.matchField(fieldSymbolId)) {
-                return false;
-            }
-            else
-            if ( mouseDownProp.matchField(fieldSymbolId)) {
-                return false;
-            }
-            else
-            if ( widthProp.matchField(fieldSymbolId)) {
-                return false;
-            }
-            else
-            if ( heightProp.matchField(fieldSymbolId)) {
-                return false;
-            }
-            else
-            if ( timeProp.matchField(fieldSymbolId)) {
-                return false;
-            }
-            else
-            if ( keymodProp.matchField(fieldSymbolId)) {
-                return false;
-            }
-
-            return ValueObject::onSetField(fieldSymbolId, value);
         }
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
@@ -1044,6 +962,47 @@ namespace DreiZehn {
 
                 mBuffer.blit(x,y,pb->mBuffer);
 
+                return true;
+            }
+
+            // no parameter can use matchField
+            if (titleProp.matchField( methodId)) {
+                ret = Value(std::string(mFenster.title));
+                return true;
+            }
+            else
+            if (mouseXProp.matchField(methodId)) {
+                ret = Value(static_cast<int32_t>(mFenster.x / mScale));
+                return true;
+            }
+            else
+            if ( mouseYProp.matchField(methodId)) {
+                ret = Value(static_cast<int32_t>(mFenster.y / mScale));
+                return true;
+            }
+            else
+            if ( mouseDownProp.matchField(methodId)) {
+                ret = Value(static_cast<int32_t>(mFenster.mouse));
+                return true;
+            }
+            else
+            if ( widthProp.matchField(methodId)) {
+                ret = Value(static_cast<int32_t>(mBuffer.width));
+                return true;
+            }
+            else
+            if ( heightProp.matchField(methodId)) {
+                ret = Value(static_cast<int32_t>(mBuffer.height));
+                return true;
+            }
+            else
+            if ( timeProp.matchField(methodId)) {
+                ret = Value(static_cast<double>(fenster_time()));
+                return true;
+            }
+            else
+            if ( keymodProp.matchField(methodId)) {
+                ret = Value(static_cast<uint32_t>(mFenster.mod));
                 return true;
             }
 

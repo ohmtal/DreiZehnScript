@@ -95,8 +95,18 @@ namespace DreiZehn {
 
     };
 
-void Init(Environment& env) {
+void Init(Environment& env, int argc, char* argv[]) {
     static bool registered = false; if (registered) return; registered = true;
+
+    char buffer[256];
+    BaseValueObject* obj = new BaseValueObject();
+    obj->onSetField(SymbolTable::insert("argc"), Value(argc));
+    FunctionMap::RegisterConstants("sys::args", Value(obj));
+    for (int i = 0; i < argc; i++) {
+        snprintf(buffer, sizeof(buffer), "argv_%d" , i);
+        obj->onSetField(SymbolTable::insert(buffer), Value(std::string(argv[i])));
+    }
+
 
     using namespace FunctionMap;
     ModuleRegistry::Register("Core", RegisterCoreFunctions);

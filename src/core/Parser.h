@@ -54,6 +54,8 @@ private:
 
         if (type == TokenType::Question) return 0;
         if (type == TokenType::Assign) return 0;
+        if (type == TokenType::Dot) return 0;
+        if (type == TokenType::Arrow) return 0;
         if (isMathAssignOperatorType(type)) return 0;
 
         return -1;
@@ -292,7 +294,29 @@ private:
                     std::move(left),op.mType
                 );
                 continue;
+            } else
+            if (op.mType  == TokenType::Dot && peek().mType == TokenType::Identifier ) {
+
+                Token fieldToken = advance();
+                uint32_t fieldSymbolId = SymbolTable::insert(fieldToken.mValue);
+                return  std::make_unique<ObjectFieldExpression>(std::move(left), fieldSymbolId);
+            } else
+            if (op.mType  == TokenType::Arrow && peek().mType == TokenType::Identifier ) {
+                Token methodToken = advance();
+                uint32_t methodSymbolId = SymbolTable::insert(methodToken.mValue);
+
+                std::vector<std::unique_ptr<Expression>> args;
+                while (isContinueToken(peek())) {
+                    size_t lastPos = mPos;
+                    args.push_back(parseMath());
+                    if (lastPos == mPos) {
+                        Tools::PrintParseError("In method call:");
+                        break;
+                    }
+                }
+                return std::make_unique<MethodExpression>(std::move(left), methodSymbolId, std::move(args));
             }
+
 
             auto right = parseMath(precedence + 1);
 
@@ -552,6 +576,8 @@ public:
                     return nullptr;
                 }
                 std::string varName = advance().mValue;
+
+                if (peek().mType == TokenType::Assign) advance(); //eat optional "="
 
                 auto expr = parseMath();
 

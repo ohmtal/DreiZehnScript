@@ -5,7 +5,8 @@ global fenster = 0
 fn ModuleCreate
     print "--- Fenster Create ---"
     fenster = Fenster::new "DreiZehn Fenster" 320 240 2
-    if !fenster; return false;;
+    print "fenster is:" fenster
+    if (!fenster); return false;;
 
     backcolor = 0x000CDD
     fenster->clear backcolor
@@ -15,6 +16,8 @@ fn ModuleCreate
     return true
 end
 
+
+
 fn ModuleDelete
     print "--- Fenster Delete ---"
     fenster->close
@@ -22,10 +25,15 @@ fn ModuleDelete
 end
 
 fn ModuleLoop
-    if (!fenster || !fenster->loop )|| (fenster->isKeyDown KEY_ESC)
+    if (!fenster) || (!fenster->loop) || fenster->isKeyDown KEY_ESC
         return false
     end
+
+    if (fenster->isKeyDown KEY_ESC); print "ESC PRESSED!!!!!";;
+
    fenster->rect 0 210 320 30 COLOR_DARKGRAY
-   fenster->text 20 220 (str::concat "mouse: x:" fenster.mouseX ", y:" fenster.mouseY ", down:" fenster.mouseDown) 2 0xFFFFFF
+   fenster->text 20 220 \
+     (str::concat "mouse: x:" (fenster->getMouseX) ", y:" (fenster->getMouseY) ", down:" (fenster->getMouseDown)) \
+     2 0xFFFFFF
    return true
 end

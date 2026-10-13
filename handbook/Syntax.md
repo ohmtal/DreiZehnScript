@@ -39,7 +39,7 @@
     - and       logical and alias for `&&`
     - or        logical or alias for `||`   
     - import    import one module `import Math` or `import All` to import all modules
-    - define    define a constants `define HALF_PI 3.14159265358979323846 / 2.0`
+    - define    define a constants `define HALF_PI 3.14159265358979323846 / 2.0`, optional "=" `define FOO = "bar"`
     - global    define a variable as global. Must be done early in script so the parser know which var is global
     
 - Note Object fields only allow assign Inline Operation (`++`) or Operation Assign (`+=`) is not 
@@ -74,6 +74,7 @@ end of each line you want to continue.
 - To capsulate a function call: `print (myVec->at 10) player.x` 
 This is imporant so the parser known when the parameter input of `->at` end. 
 - To capsulate a negativ number in a function call: `print str::substr "NoteBook" (-4)`. Else math thinks you want to calculate "NoteBook" - 4
+- To capsulate  a not in a statement like `if (!true); print "false??";;`
 
 ## 2. Data Types & Literals
 

@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     using namespace DreiZehn;
 
     Environment env;
-    Init(env);
+    Init(env, argc, argv);
 
     #ifdef DREIZEHN_FENSTER
     FunctionMap::ModuleRegistry::Register("Fenster", RegisterFensterFunctions);
@@ -154,16 +154,16 @@ int main(int argc, char* argv[]) {
         return ConsoleCall(env);
     };
 
-    char buffer[256];
-    BaseValueObject* obj = new BaseValueObject();
-    obj->onSetField(SymbolTable::insert("argc"), Value(argc));
-    FunctionMap::RegisterConstants("sys::args", Value(obj));
 
+    // char buffer[256];
+    // BaseValueObject* obj = new BaseValueObject();
+    // obj->onSetField(SymbolTable::insert("argc"), Value(argc));
+    // FunctionMap::RegisterConstants("sys::args", Value(obj));
+    // for (int i = 0; i < argc; i++) {
+    //     snprintf(buffer, sizeof(buffer), "argv_%d" , i);
+    //     obj->onSetField(SymbolTable::insert(buffer), Value(std::string(argv[i])));
+    // }
     if (argc > 1) {
-        for (int i = 0; i < argc; i++) {
-            snprintf(buffer, sizeof(buffer), "argv_%d" , i);
-            obj->onSetField(SymbolTable::insert(buffer), Value(std::string(argv[i])));
-        }
 
         std::string scriptPath = argv[1];
 

@@ -87,7 +87,7 @@ namespace DreiZehn {
                 return nullptr;
             }
 
-            return nullptr;
+            return ValueObject::onMethodCallGetAssignPtr(methodNameSymbolId, args);
         }
         // -------------------------------------------------------------------------
         inline size_t onGetArraySize() override{

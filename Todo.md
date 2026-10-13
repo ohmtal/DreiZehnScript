@@ -358,10 +358,28 @@ Struct [0x5576cc6a5440]
 - [X] fill unset parameter with 0 at function call
 - [X] fixed foreach issue with assigned
 - [X] changed Varableframe Value to unique_ptr
-- [ ] add Arrow and Dot to expression to also use a constant or methodcall 
-- [ ] test why define constants sometimes fail (prio ?! ) 
+- [X] add Arrow and Dot to expression to also use a constant or methodcall 
+    - `o = Object::new; o.struct = Struct::new "x" "y";`
+    - [X] Dot: `((o->getField "struct").x)++; print (o->getField "struct").x;`
+    - [X] Arrow: `(o->getField "struct")->dump`
+    
+- [X] test why define constants sometimes fail (prio ?! ) 
       happend on modules/RayFirst.13 screenWidth screenHeight
       , note: FensterShooter was loaded before 
+      ==> test.13 test says define overide varable   
+      
+- [X] added optional "=" in `define foo = "bar"` easier to change from a var ;)
+
+
+## 0.8e - Inline Field cache :D
+- [X] fieldcache again ... i want this ;) 
+    - works ok in most tests but on FensterShooter - using object :
+        - i have a global object Game with className Game
+        - key space is pressed Game::reset is called 
+        - this.gameOver = false ; does not change the field!
+            - Object [0x55ec88cf05b0]   gameover = 1
+            - RESET  Object [0x55ec88cf05b0]  lastSpawn= 1791852217955.000000 GameOver: 1 
+    - [X] changed dynamic fields also to unique_ptr ! this fixed it :D
 
 
 ## 0.?? .... ongoing process ....

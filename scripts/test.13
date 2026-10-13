@@ -4,6 +4,23 @@ import Debug
 import Math
 import String
 
+
+myVar = 10
+define myVar "HUHU"
+
+print "IS IT 10 OR HUHU?=>" myVar
+print "---------------------"
+
+print ("Method call with DOT and ARROW")
+o = Object::new
+o.struct = Struct::new "x" "y";
+((o->getField "struct").x)++;
+(o->getField "struct")->dump
+print o.struct.x
+o = 0; core::gc
+
+while core::breath; core::sleep 16 ;;
+
 foo = Object::new;
 bar = Object::new;
 fn p obj name
@@ -22,7 +39,6 @@ foo->p "foo"; bar->p "bar"
 -- v = Vector::new
 
 
-while core::breath; core::sleep 16 ;;
 
 -- calculate fibonacci n number
 fn fib n

@@ -186,12 +186,8 @@ namespace DreiZehn {
                       varValue.toString().c_str(),
                       SymbolTable::getName(mFieldSymbolId).c_str()
                       );
+
         return returnValue;
-
-        // Value* retValuePtr = this->evaluatePtr(env);
-        // if (retValuePtr) return *retValuePtr;
-        // return NumberNullValue;
-
     }
     Value* ObjectFieldExpression::evaluatePtr(Environment& env) {
         Value varValue = mVarExpr->evaluate(env);
@@ -202,13 +198,13 @@ namespace DreiZehn {
 
         ValueObject* obj = varValue.asPointerObject();
 
-        // NOTE cool speedup but only works on dynamic fields so => NOT!!!!
-        // if (mCachedFieldValue && mCachedObject == obj) {
-        //     return mCachedFieldValue;
-        // }
-        //
-        // mCachedFieldValue = nullptr;
-        // mCachedObject = nullptr;
+        // cool speedup
+        if (mCachedFieldValue && mCachedObject == obj) {
+            return mCachedFieldValue;
+        }
+
+        mCachedFieldValue = nullptr;
+        mCachedObject = nullptr;
 
         Value* valPtr= obj->onGetFieldPtr(mFieldSymbolId);
         if (!valPtr) {
@@ -217,10 +213,10 @@ namespace DreiZehn {
                         SymbolTable::getName(mFieldSymbolId).c_str()
             );
         }
-        // else {
-        //     mCachedFieldValue = valPtr;
-        //     mCachedObject = obj;
-        // }
+        else {
+            mCachedFieldValue = valPtr;
+            mCachedObject = obj;
+        }
         return valPtr;
     }
     // -------------------------------------------------------------------------
@@ -615,7 +611,6 @@ namespace DreiZehn {
         }
 
         // since i set it with pointer i need to check assignment here !!!!!!
-
         Value& pre = *valPtr;
         Value post = this->mRhs->evaluate(env);
         if (pre.isPointer())  pre.asPointerObject()->setAssigned(false);

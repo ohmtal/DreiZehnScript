@@ -60,7 +60,7 @@ namespace DreiZehn {
         if (!Globals::shutDownRUNNING)
         {
             for(auto& val: mDynamicFieldValues) {
-                if (val.isPointer()) val.asPointerObject()->setAssigned(false);
+                if (val && val->isPointer()) val->asPointerObject()->setAssigned(false);
             }
         }
         mDynamicFieldValues.clear();
@@ -70,19 +70,19 @@ namespace DreiZehn {
     void ValueObject::insertUpdateDynamicField(uint32_t fieldSymbolId, const Value& value) {
         auto it = mDynmaicFieldIndex.find(fieldSymbolId);
         if (it == mDynmaicFieldIndex.end()) {
-            mDynamicFieldValues.push_back(value);
+            mDynamicFieldValues.push_back(std::make_unique<Value>( value )) ;
             mDynmaicFieldIndex[fieldSymbolId] = mDynamicFieldValues.size() - 1;
 
         } else {
             size_t index = it->second;
-            mDynamicFieldValues[index] = value;
+            mDynamicFieldValues[index] = std::make_unique<Value>(value);
         }
     }
     Value* ValueObject::getDynamicFieldPtr(uint32_t fieldSymbolId) {
         auto it = mDynmaicFieldIndex.find(fieldSymbolId);
         if (it == mDynmaicFieldIndex.end()) return nullptr;
         size_t index = it->second;
-        return &mDynamicFieldValues[index];
+        return mDynamicFieldValues[index].get();
     }
 
     size_t ValueObject::getDynamicFieldCount(){
@@ -90,7 +90,7 @@ namespace DreiZehn {
     }
     Value* ValueObject::getDynamicFieldPtrByIndex(size_t index) {
         if (index >= mDynamicFieldValues.size()) return nullptr;
-        return &mDynamicFieldValues[index];
+        return mDynamicFieldValues[index].get();
     }
 
     bool ValueObject::SymbolIdByIndex(size_t index, uint32_t& symbolId) {
@@ -173,9 +173,12 @@ namespace DreiZehn {
         if (mDynamicFieldValues.size() > 0) {
             Tools::printf(" ----- Dynamic Fields: %zu -----\n", mDynamicFieldValues.size());
             for ( auto& [key, index] : mDynmaicFieldIndex) {
-                Tools::printf("  .%s = %s\n"
+                Tools::printf("  .%s = %s \t[%p] [sym:%u]\n"
                 , SymbolTable::getName(key).c_str()
-                , mDynamicFieldValues[index].toString().c_str());
+                , mDynamicFieldValues[index]->toString().c_str()
+                , mDynamicFieldValues[index].get()
+                , key
+                );
             }
 
             Tools::printSeparator(40);
@@ -188,6 +191,23 @@ namespace DreiZehn {
                 );
             }
         }
+    }
+    // -------------------------------------------------------------------------
+    Value* ValueObject::onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args) {
+        if (methodNameSymbolId == sGetFieldId) {
+            if (args.size() != 1   ) {
+                Tools::errorf("get a field value by fieldname Usage: \"fieldname\" OR index od dynamic field\n");
+                return nullptr;
+            }
+            Value* valPtr = nullptr;
+            if (args[0].isStringId()) {
+                return getDynamicFieldPtr(SymbolTable::insert(args[0].getStringRef()));
+            } else {
+                return getDynamicFieldPtrByIndex(args[0].getUInt());
+            }
+        }
+
+        return nullptr;
     }
     // -------------------------------------------------------------------------
     bool ValueObject::onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret) {
@@ -372,8 +392,15 @@ namespace DreiZehn {
         theClone->mMethodMap = this->mMethodMap;
         // theClone->mDynmaicFields = this->mDynmaicFields;
         theClone->mDynmaicFieldIndex = this->mDynmaicFieldIndex;
-        theClone->mDynamicFieldValues = this->mDynamicFieldValues;
-
+        // theClone->mDynamicFieldValues = this->mDynamicFieldValues;
+        theClone->mDynamicFieldValues.reserve(this->mDynamicFieldValues.size());
+        for (const auto& valuePtr : this->mDynamicFieldValues) {
+            if (valuePtr) {
+                theClone->mDynamicFieldValues.push_back(std::make_unique<Value>(*valuePtr));
+            } else {
+                theClone->mDynamicFieldValues.push_back(nullptr);
+            }
+        }
 
         return true;
     }

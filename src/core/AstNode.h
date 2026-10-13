@@ -237,9 +237,8 @@ struct ArrayVariableExpression : public Expression {
 struct ObjectFieldExpression : public Expression {
     std::unique_ptr<Expression> mVarExpr; //left variable expression
 
-    // NOTE: only works on dynamic fields so NOT!
-    // Value* mCachedFieldValue = nullptr;
-    // ValueObject* mCachedObject = nullptr;
+    Value* mCachedFieldValue = nullptr;
+    ValueObject* mCachedObject = nullptr;
 
     uint32_t mFieldSymbolId = 0;
     ObjectFieldExpression(std::unique_ptr<Expression> varExpr, uint32_t fieldId)

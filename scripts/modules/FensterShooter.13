@@ -14,15 +14,15 @@
 -- -----------------------------------------------------------------------------
 
 -- consts
-define title "DreiZehn Fenster Shooter"
+define WINDOW_TITLE "DreiZehn Fenster Shooter"
 define WIDTH 320
 define HEIGHT 200
 define SCALE  2.4
 define GAMEWIDTH   320
 define GAMEHEIGHT  180
-define backcolor  0x050510
-define soundRate8k   8000.0 / 44100.0
-define soundRate12k  12000.0 / 44100.0
+define BACK_COLOR  0x050510
+define SOUND_RATE_8K   8000.0 / 44100.0
+define SOUND_RATE_12K  12000.0 / 44100.0
 
 -- Objects
 global Fenster = 0     # The Fenster Object
@@ -195,12 +195,12 @@ fn Player::process this
     if (Fenster->isKeyDown KEY_SPACE)
 
         Fenster->rect (this.x + this.w / 2 - 1) (this.y - 1) 3 3 COLOR_WHITE
-        if (this.releasedSpace && Fenster.time - this.lastshoot > this.shootDelay)
+        if (this.releasedSpace && Fenster->getTime - this.lastshoot > this.shootDelay)
             bullet = Object::new
             bullet->setClassName "Bullet"
             bullet->spawn (this.x + this.w / 2) (this.y - this.h) true
             Bullets->push bullet
-            this.lastshoot = Fenster.time
+            this.lastshoot = Fenster->getTime
             Audio->laser
         end
         this.releasedSpace = false
@@ -222,7 +222,8 @@ fn Game::init this
 end
 
 fn Game::gameOver this
-    this.gameOverTime = Fenster.time
+    print "enter gameover..." this
+    this.gameOverTime = Fenster->getTime
     Bullets->clear
     this.gameOver = true
     if ( this.score > this.hiScore )
@@ -241,20 +242,21 @@ end
 fn Game::reset this
     this.gameOver  = false
     this.score     = 0
-    this.lastSpawn = Fenster.time
+    this.lastSpawn = Fenster->getTime
+    print "RESET " this "lastSpawn=" this.lastSpawn "GameOver:" this.gameOver
     Player->init
 
 end
 
 fn Game::processEnemies this
 
-    doSpawn = Fenster.time - this.lastSpawn >  this.spawnDelay
+    doSpawn = Fenster->getTime - this.lastSpawn >  this.spawnDelay
 --     forRange i enemyCount
 --         enemy = Enemies->at i
 --         if !enemy.active
 --             if doSpawn
 --                 enemy->spawn
---                 this.lastSpawn = Fenster.time
+--                 this.lastSpawn = Fenster->getTime
 --                 doSpawn = false
 --             end
 --         else
@@ -265,7 +267,7 @@ fn Game::processEnemies this
         if !enemy.active
             if doSpawn
                 enemy->spawn
-                this.lastSpawn = Fenster.time
+                this.lastSpawn = Fenster->getTime
                 doSpawn = false
             end
         else
@@ -286,7 +288,7 @@ fn Audio::explo this
 end
 
 fn Audio::process this
-    n = this.avail
+    n = this->getAvail
     if n > 0
 
         forRange i n
@@ -297,10 +299,10 @@ fn Audio::process this
             -- music
 
             if Game.gameOver
-                t = int::cast (this.counter * soundRate12k)
+                t = int::cast (this.counter * SOUND_RATE_12K)
                 music_sample = (((t & t ^ t >> 6 | t * 3) - t  ) & 255) * 0.2
             else
-                t = int::cast (this.counter * soundRate8k)
+                t = int::cast (this.counter * SOUND_RATE_8K)
                  music_sample  =  (t*(3+(1^t>>10&5))*(5+(3&t>>14))>>(t>>8&3) & 255) * 0.3
             end
             float_value += music_sample / 255.0
@@ -309,7 +311,7 @@ fn Audio::process this
 
             if this.laserActive
                 this.laser_counter++
-                lt = int::cast (this.laser_counter * soundRate8k)
+                lt = int::cast (this.laser_counter * SOUND_RATE_8K)
 --                 laser_sample = ((lt * (64 - (lt >> 7 & 63)) & 128) >> (lt >> 10)) ;
 --                 laser_sample = ((lt * (32 - (lt >> 7 & 31)) & 255) >> (lt >> 8)) ;
                 laser_sample = ((lt * (16 - (lt >> 2 ))) & 64) >> (lt >> 8) ;
@@ -321,7 +323,7 @@ fn Audio::process this
 
             if this.exploActive
                 this.explo_counter++
-                lt = int::cast (this.explo_counter * soundRate8k)
+                lt = int::cast (this.explo_counter * SOUND_RATE_8K)
                 explo_sample = ((lt * (lt >> 7 | lt >> 9)) & 128) & (255 >> (lt >> 11));
                 float_value += explo_sample / 255.0;
 
@@ -342,9 +344,9 @@ end
 -- -----------------------------------------------------------------------------
 fn ModuleCreate
     print "--- Fenster Create ---"
-    Fenster = Fenster::new title WIDTH HEIGHT SCALE
+    Fenster = Fenster::new WINDOW_TITLE WIDTH HEIGHT SCALE
     if !Fenster; return false;;
---     Fenster.now = Fenster.time
+--     Fenster.now = Fenster->getTime
 
 
 
@@ -436,17 +438,9 @@ fn ModuleDelete
 end
 -- -----------------------------------------------------------------------------
 fn ModuleLoop
-    Fenster->clear backcolor
+    Fenster->clear BACK_COLOR
 
     -- Stars --
---     forRange i starCount
--- --         star = Stars->at i
--- --         star->process
---         -- 0.7 rocks :)
---         Stars[i]->process
---
---     end
-    -- 0.7b rocks more for this ;)
     forEach s Stars
         s->process
     end
@@ -454,10 +448,14 @@ fn ModuleLoop
     if Game.gameOver
         Fenster->text 90 (GAMEHEIGHT / 2 - 20) "Game over" 4 0xFFFFFF
 
-        if (Fenster.time - Game.gameOverTime > 1000)
+        Fenster->text 5 (GAMEHEIGHT - 20) \
+            ( str::format "fenstertime %f gameOverTime: %f" (Fenster->getTime) Game.gameOverTime) 1 0xFFFFFF
+
+        if (Fenster->getTime - Game.gameOverTime > 1000)
             Fenster->text 70 (GAMEHEIGHT / 2 + 30) "press space to restart" 2 0xFFFFFF
             if (Fenster->isKeyDown KEY_SPACE)
                 Game->reset
+                print "space pressed..." Game " gameover =" Game.gameOver
             end
         end
 

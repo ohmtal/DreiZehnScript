@@ -1,0 +1,196 @@
+-- -----------------------------------------------------------------------------
+--  Copyright (c) 2026 Thomas Hühn (XXTH)
+--  SPDX-License-Identifier: MIT
+-- -----------------------------------------------------------------------------
+--  JSON Parser written in DreiZehn
+--  NOTE WiP
+-- -----------------------------------------------------------------------------
+import All
+define strSep "\""
+-- -----------------------------------------------------------------------------
+fn Parser::advance this
+    if this._index_ >= this._len_
+        return ""
+    end
+
+    cur = this._raw_[this._index_]
+    this._index_++
+    return cur
+end
+
+
+fn Parser::peek this offset
+    idx = this._index_
+    if offset
+        if idx + offset < 0 || idx + offset > this._len_; return "";;
+        idx += offset
+    end
+
+    return this._raw_[idx]
+end
+
+fn Parser::skipSpaces this
+    while this->peek == " " or this->peek == "\r" \
+            or this->peek == "\n" or this->peek == "\t"
+
+        print "SKIP:" this->advance
+    end
+end
+
+-- -----------------------------------------------------------------------------
+fn Parser::parseValue this end        # fwd
+-- -----------------------------------------------------------------------------
+fn Parser::parseString this
+    this->debug "Enter parseString"
+    this->skipSpaces
+
+    this->advance                   # eat '"'
+
+    str = ""
+
+    while this->peek != strSep && this->peek != ""
+
+        if this->peek == "\\" and (this->peek 1) == strSep
+            this->advance
+        end
+
+        prevPeek = this->peek
+        str += this->advance
+
+        if prevPeek != "\\" and this->peek == strSep break;;
+    end
+    this->advance
+
+    this->debug "Leave parseString: str=" str
+    return str
+end
+-- -----------------------------------------------------------------------------
+fn Parser::parsePrimitive this
+    this->debug "Enter parsePrimitive"
+    prim = ""
+    this->skipSpaces
+
+    while (this->peek != "}") and (this->peek != "") and  (this->peek != " ")
+        prim += this->advance
+    end
+    this->debug "Leave parsePrimitive"
+    return prim
+
+end
+-- -----------------------------------------------------------------------------
+fn Parser::parseArray this
+    this->debug "Enter parseArray"
+    this->advance                   # eat "["
+    arr = Vector::new
+
+    while (this->peek != "]") and (this->peek != "")
+        this->skipSpaces
+
+        value = this->parseValue
+        arr->push value
+
+        this->skipSpaces
+        if this->peek == ","
+            this->advance
+        elif this->peek != "]"
+            error "Expected ',' or ']'"
+        end
+    end
+    this->advance                   # eat  "]"
+    if (this._debug_) arr->dump;;
+    this->debug "Leave parseArray"
+    return arr
+end
+-- -----------------------------------------------------------------------------
+fn Parser::parseObject this
+    this->debug "Enter parseObject"
+    this->advance           # eat "{"
+    obj = Object::new
+
+    while (this->peek != "}") and (this->peek != "")
+        this->skipSpaces
+        key = this->parseString
+
+        this->skipSpaces
+        if this->peek == ":"
+            this->advance
+        else
+            error "Expected ':' got:" (this->peek)
+            return 0
+        end
+
+        value = this->parseValue
+        obj->setField key value
+
+        this->skipSpaces
+        if this->peek == ","
+            this->advance
+        elif this->peek != "}"
+            error "Expected ',' or '}'"
+            return 0
+        end
+    end
+    this->advance          # eat "}"
+
+    if (this._debug_) obj->dump;;
+
+    this->debug "leave parseObject"
+    return obj
+end
+-- -----------------------------------------------------------------------------
+fn Parser::debug this p1 p2 p3 p4 p5
+    if this._debug_
+        if p1==0 p1 ="";; if p2==0 p2 ="";; if p3==0 p3 ="";; if p4==0 p4 ="";;
+        if p5==0 p5 ="";;
+        print (str::format "PARSER DEBUG: peek:[%s] :: %s %s %s %s %s" (this->peek) p1 p2 p3 p4 p5 )
+    end
+end
+-- -----------------------------------------------------------------------------
+
+fn Parser::parseValue this
+    this->debug "Enter parseValue"
+    this->skipSpaces
+
+    if this->peek == "{" return this->parseObject end
+    if this->peek == "[" return this->parseArray  end
+    if this->peek == strSep return this->parseString end
+
+    return this->parsePrimitive
+end
+-- -----------------------------------------------------------------------------
+-- Static Constructor
+fn Parser::new what debug
+  if !what return 0;;
+  this = Vector::new
+  this->setClassName "Parser"
+  this._raw_ = str::trim what
+  this._index_ = 0
+  this._len_ = str::strlen this._raw_
+  this._debug_ = debug
+  while (item = this->parseValue)
+      this->push item
+  end
+
+  return this
+end
+-- -----------------------------------------------------------------------------
+--  TEST
+-- -----------------------------------------------------------------------------
+global doReload = false
+fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+fn rl; doReload = true;;
+-- -----------------------------------------------------------------------------
+-- 1. single line
+fn test1
+    line = "{\"file\":\"SDL_rect.h\",\"kind\":\"function\",\"name\":\"SDL_GetRectAndLineIntersectionFloat\",\"return_type\":\"int\",\"params\":[{\"name\":\"rect\",\"type\":\"const SDL_FRect *\"},{\"name\":\"X1\",\"type\":\"float *\"},{\"name\":\"Y1\",\"type\":\"float *\"},{\"name\":\"X2\",\"type\":\"float *\"},{\"name\":\"Y2\",\"type\":\"float *\"}]}"
+
+    p = Parser::new line true
+    p->dump
+end
+
+-- test1
+
+
+
+while core::breath && !doReload; core::sleep 16; end
+if (doReload) postRL;;

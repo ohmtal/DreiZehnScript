@@ -383,6 +383,12 @@ Struct [0x5576cc6a5440]
 
 
 ## 0.8f 
+- [X] moved Parser header source to cpp
+- [X] moved Lexer header source to cpp
+- [X] print  0xff0000ff ==> -16776961 . its correct but bad 
+      also   print  float::cast 0xff0000ff does! should added as uint32 
+      i cast it as double!
+- [ ] ..
     
     
 ## 0.?? .... ongoing process ....
@@ -413,19 +419,20 @@ Struct [0x5576cc6a5440]
 ---
 
 ## still missing:
-- [ ] need a die command ?! 
 - [ ] FileStream ->getError and test modi 
-- [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works! 
+- [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works but depends on compiler! 
 - [ ] fix memleaks fenster_audio .... it's "fixed" but still leak << i guess i will replace it with MiniAudio! 
 
-
 ## maybe:
-- [ ] Bytecode continue .... 
-- [ ] Handbook - CheatSheet (EBFN also ?) 
+- [ ] Handbook - CheatSheet for basic syntax and functions.
 - [ ] MiniAudio bindings (cmake already prepared)
-- [ ] move more code to cpp because compiletime is raising - carefully do not break the speed
+- [ ] while `foo = "abc"; print foo[2]` is working foo[2] = "a" is not. 
+      ok yes, it is only working with object which support it like Vector
+      not sure if i want do change this
+- [ ] Bytecode continue .... 
 
 ## maybe maybe
+- need a die command ?! 
 - finish Raylib importer << stuck at structs inside structs and pointer returns 
 - validate if there is a usable SDL3 auto bind script parser 
     - maybe https://github.com/TerensTare/SDL_parser

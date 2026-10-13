@@ -16,7 +16,9 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/core/GarbageCollection.h
     ${CMAKE_CURRENT_LIST_DIR}/core/GarbageCollection.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/Lexer.h
+    ${CMAKE_CURRENT_LIST_DIR}/core/Lexer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/Parser.h
+    ${CMAKE_CURRENT_LIST_DIR}/core/Parser.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/Value.h
     ${CMAKE_CURRENT_LIST_DIR}/core/ValueObject.h
     ${CMAKE_CURRENT_LIST_DIR}/core/ValueObject.cpp

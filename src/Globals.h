@@ -56,7 +56,7 @@ namespace Globals {
 
 namespace Tools {
     inline void PrintParseError(std::string message) {
-        errorf("Parse Error in Line [%d]\n%s\n%s\n",
+        errorf("DreiZehn Parse Error in Line [%d]:%s\n\t%s\n",
             Globals::currentScriptLineNumber,
             Globals::currentScriptLine.c_str(),
             message.c_str());

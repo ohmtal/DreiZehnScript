@@ -3,7 +3,7 @@
 --  SPDX-License-Identifier: MIT
 -- -----------------------------------------------------------------------------
 --  JSON Parser written in DreiZehn
---  NOTE WiP
+
 -- -----------------------------------------------------------------------------
 import All
 define strSep "\""
@@ -158,6 +158,38 @@ fn Parser::parseValue this
     return this->parsePrimitive
 end
 -- -----------------------------------------------------------------------------
+fn getBlanks depth
+    result = ""
+    forRange i depth
+        result += "  "
+    end
+    return result
+end
+-- -----------------------------------------------------------------------------
+fn Object::printObject this object depth
+    fieldcount = object->getFieldCount
+    dstr = getBlanks depth
+    forRange i fieldcount
+        key = object->getFieldName i
+        value = object->getField i
+        varType = getType value
+        -- print "VAR TYPE IS " varType
+        if varType == type::object
+            value->printTree (depth + 1)
+        else
+            print str::format "%s %-30s %s" dstr key value
+        end
+    end
+    print dstr "----"
+end
+-- -----------------------------------------------------------------------------
+fn Vector::printTree this depth
+    print (getBlanks depth)   "--- Tree Size" (this->size) "---"
+    foreach item this
+        item->printObject item depth + 1
+    end
+end
+-- -----------------------------------------------------------------------------
 -- Static Constructor
 fn Parser::new what debug
   if !what return 0;;
@@ -176,21 +208,24 @@ end
 -- -----------------------------------------------------------------------------
 --  TEST
 -- -----------------------------------------------------------------------------
-global doReload = false
-fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
-fn rl; doReload = true;;
+-- global doReload = false
+-- fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+-- fn rl; doReload = true;;
 -- -----------------------------------------------------------------------------
 -- 1. single line
+global p = 0
 fn test1
     line = "{\"file\":\"SDL_rect.h\",\"kind\":\"function\",\"name\":\"SDL_GetRectAndLineIntersectionFloat\",\"return_type\":\"int\",\"params\":[{\"name\":\"rect\",\"type\":\"const SDL_FRect *\"},{\"name\":\"X1\",\"type\":\"float *\"},{\"name\":\"Y1\",\"type\":\"float *\"},{\"name\":\"X2\",\"type\":\"float *\"},{\"name\":\"Y2\",\"type\":\"float *\"}]}"
 
     p = Parser::new line true
-    p->dump
+
+    print "SIZE IS " p->size
+    p->printTree 0
 end
 
 -- test1
 
 
 
-while core::breath && !doReload; core::sleep 16; end
-if (doReload) postRL;;
+-- while core::breath && !doReload; core::sleep 16; end
+-- if (doReload) postRL;;

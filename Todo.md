@@ -388,10 +388,19 @@ Struct [0x5576cc6a5440]
 - [X] print  0xff0000ff ==> -16776961 . its correct but bad 
       also   print  float::cast 0xff0000ff does! should added as uint32 
       i cast it as double!
-- [ ] ..
-    
-    
+- [X] added desc map and parameter to RegisterFunctions 
+- [X] coding and testing common tools
+- [X] added core::getEnv and core::fetchEnv to get enviroment stuff
+- [X] added core::time, core::date and  core::dateutc
+- [X] Comma hack to separate parameter at a function call. this works fine but when it is a function call WITH 
+        parameter inside a function call - it still need the () !!!!! I dont want to change it to a foo(a,b,c)! i like my
+        foo a b c  or now foo a,b,c
+
+        
 ## 0.?? .... ongoing process ....
+
+- [ ] common/FileTools.13
+- [ ] common/JSONParser.13
     
 - [ ] sdl3 clang header tool 
     - [X] test and move into DreiZehn tools

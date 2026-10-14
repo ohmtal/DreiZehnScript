@@ -4,6 +4,25 @@ import Debug
 import Math
 import String
 
+global doReload = false
+fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+fn rl; doReload = true;;
+-- -----------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------4
+
+print ("while return value test")
+global iter = 0
+fn doIter
+    if iter > 9; iter = 0; return 0;;
+    iter++
+    return str::concat "HUHU" iter
+end
+
+while (str = doIter); print str;;
+
+-- o = Object::new; o.str = ""
+-- o=0; core::gc
+while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;
 
 myVar = 10
 define myVar "HUHU"
@@ -19,7 +38,6 @@ o.struct = Struct::new "x" "y";
 print o.struct.x
 o = 0; core::gc
 
-while core::breath; core::sleep 16 ;;
 
 foo = Object::new;
 bar = Object::new;

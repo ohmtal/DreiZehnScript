@@ -39,10 +39,6 @@ namespace DreiZehn {
         return -1;
     }
 
-
-
-
-
     // ----------------------------------------------------------------------------
     std::unique_ptr< DreiZehn::Expression > Parser::parsePrimary() {
 
@@ -139,6 +135,10 @@ namespace DreiZehn {
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());
+
+
+                    if (checkCommaBreak(args)) break; //TEST
+
                     if (lastPos == mPos) {
                         Tools::PrintParseError("In function call:");
                         break;
@@ -167,6 +167,9 @@ namespace DreiZehn {
                     while (isContinueToken(peek())) {
                         size_t lastPos = mPos;
                         args.push_back(parseMath());
+
+                        if (checkCommaBreak(args)) break; //TEST
+
                         if (lastPos == mPos) {
                             Tools::PrintParseError("In method call:");
                             break;
@@ -290,6 +293,9 @@ namespace DreiZehn {
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());
+
+                    if (checkCommaBreak(args)) break; //TEST
+
                     if (lastPos == mPos) {
                         Tools::PrintParseError("In method call:");
                         break;
@@ -359,6 +365,8 @@ namespace DreiZehn {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());
 
+                    if (checkCommaBreak(args)) break; //TEST
+
                     if (lastPos == mPos) {
                         Tools::PrintParseError("In function call:");
                         break;
@@ -382,6 +390,7 @@ namespace DreiZehn {
                 continue;
             }
 
+
             if (Globals::gDumpStateNodes) {
                 Tools::printf("---------- new statement ------ Pos:%d \n", (int)mPos);
                 for(size_t i = mPos; i < mTokens.size() ; i++) {
@@ -399,6 +408,8 @@ namespace DreiZehn {
             if (peek().mType == TokenType::Semicolon) {
                 advance();
             }
+
+
             else if (mPos == startIndex) {
                 Tools::errorf("Syntax-Error: Unexpected token '%s' (%s:%d)\n"
                 , tokenTypeToString(mTokens[mPos].mType),Globals::currentScriptLine.c_str()

@@ -2,90 +2,32 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Core + Help Commands + Object + Struct Objects
+// Core + Help Commands + sys commands
 //-----------------------------------------------------------------------------
 #pragma once
+#include <string>
 #include <algorithm> // std::sort
+#include <cstdlib> // std::getenv
+
 #include "core/FunctionMap.h"
 #include "ScriptLoader.h"
 #include "core/GarbageCollection.h"
 
+
+
+// for FetchEnv
+#if defined(_WIN32)
+#define environ _environ
+#else
+extern char** environ;
+#endif
+
 namespace DreiZehn {
+
+
 
     inline std::function<bool()> OnBreath = nullptr;
 
-/*
-    const int TypeBaseObject =  RegisterUserObjectType("Object");
-    const int TypeStructObject =  RegisterUserObjectType("Struct");
-    struct BaseValueObject : public ValueObject {
-        BaseValueObject() : ValueObject(TypeBaseObject) {
-            mSupportClone = true;
-
-        }
-        virtual ValueObject* clone() override {
-            BaseValueObject* clone = new BaseValueObject();
-            ValueObject::cloneBase(clone);
-            return clone;
-        }
-    };
-    // -------------------------------------------------------------------------
-    struct StructObject : public ValueObject {
-        std::vector<uint32_t> mFieldOrder;
-
-        inline static ValueObjectProperty mSetProp;
-
-        StructObject() : ValueObject(TypeStructObject) {
-            mSupportClone = true;
-            mAutoCreateDynamicFields = false;
-        }
-
-        StructObject(std::vector<Value>& args) : ValueObject(TypeStructObject) {
-            mSupportClone = true;
-            mAutoCreateDynamicFields = false;
-
-            for(size_t i = 0; i < args.size(); i++) {
-
-                const std::string &fieldName = args[i].getStringRef();
-                if (!isValidVariableName(fieldName)) continue;
-
-                uint32_t id = SymbolTable::insert(fieldName);
-                this->mFieldOrder.push_back(id);
-                this->mDynmaicFields[id] = NumberNullValue;
-            }
-        }
-        // -------------------------------------------------------------------------
-
-        virtual ValueObject* clone() override {
-            StructObject* clone = new StructObject();
-            ValueObject::cloneBase(clone);
-            clone->mFieldOrder = this->mFieldOrder;
-
-            return clone;
-        }
-        // -------------------------------------------------------------------------
-        inline static void RegisterSymbols() {
-            static bool mSymbolsLoaded = false;
-            if (mSymbolsLoaded) return;
-            mSetProp   = ValueObjectProperty("set", 1,999,  "set struct Values.Usage ->set value ... ", TypeStructObject);
-            mSymbolsLoaded = true;
-        }
-        // -------------------------------------------------------------------------
-        inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
-            if (mSetProp.matchMethod(methodId, args)) {
-                size_t count = std::min(args.size(), mFieldOrder.size());
-
-                for(size_t i = 0; i < count; i++) {
-                    mDynmaicFields[mFieldOrder[i]] = args[i];
-                }
-
-                ret =  Value((uint32_t)count);
-                return true;
-            }
-
-            return ValueObject::onMethodCall(methodId, args, ret);
-        }
-
-    };*/
     // =============================================================================
     // --- RegisterCoreFunctions ---
     // =============================================================================
@@ -93,35 +35,6 @@ namespace DreiZehn {
         static bool registered = false; if (registered) return; registered = true;
         using namespace FunctionMap;
 
-
-        // // ---------------------------------------------------------------------
-        //
-        // RegisterFunction("Object::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
-        //     BaseValueObject* obj = new BaseValueObject();
-        //     ret = Value(obj);
-        //     return true;
-        // });
-        //
-        // // ---------------------------------------------------------------------
-        // StructObject::RegisterSymbols();
-        // RegisterFunction("Struct::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
-        //     if(args.size() == 0) {
-        //         Tools::errorf("Usage struct [string field] [string field] ...\n");
-        //         return true;
-        //     }
-        //
-        //     for(size_t i = 0; i < args.size(); i++) {
-        //         if (!args[i].isStringId() ) {
-        //             Tools::errorf("Usage struct [string field] [string field] ...\n");
-        //             return true;
-        //         }
-        //     }
-        //     StructObject* obj = new StructObject(args);
-        //     ret = Value(obj);
-        //
-        //
-        //     return true;
-        // });
 
         // ---------------------------------------------------------------------
         // CORE
@@ -135,16 +48,16 @@ namespace DreiZehn {
             std::stringstream stream(args[0].getStringRef());
             ret = RunScriptStream(stream, env);
             return true;
-        });
+        }, "run a script embedded in a string");
         // ---------------------------------------------------------------------
-        RegisterFunction("core::getType", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::getTypeName", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1) {
-                Tools::errorf("Usage: core::getType value");
+                Tools::errorf("Usage: core::getTypeName value");
                 return false;
             }
             ret = Value(args[0].getTypeName());
             return true;
-        });
+        }, "get the value type name (see also getType for integer result )");
         // ---------------------------------------------------------------------
         // Let the console Breath ... return a boolean can also be used to cancel
         // a main loop in script
@@ -155,10 +68,9 @@ namespace DreiZehn {
                 return true;
             }
             return false;
-        });
+        }, "let the programm breath - usally used for console.");
         // ---------------------------------------------------------------------
         // sleep ms
-        // a main loop in script
         // ---------------------------------------------------------------------
         RegisterFunction("core::sleep", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1) {
@@ -167,20 +79,53 @@ namespace DreiZehn {
             }
             Tools::sleep(args[0].asUInt());
             return true;
-        });
+        }, "sleep for x ms");
 
+        // ---------------------------------------------------------------------
+        // time
+        // ---------------------------------------------------------------------
+        RegisterFunction("core::time", [](std::vector<Value>& args, Value& ret) -> bool {
+            ret = Value(Tools::time());
+            return true;
+        }, "get the unix timestamp");
 
+        RegisterFunction("core::date", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (!args.empty() && !args[0].isString()) {
+                Tools::errorf("Usage core::date [strng format] [double time ]\n");
+                return true;
+            }
+            std::string fmt = (args.size() > 0) ? args[0].getStringRef() : "%Y-%m-%d %H:%M:%S";
+            double ts = (args.size() > 1) ? args[1].getDouble() : -1.0;
+
+            ret = Value(Tools::date(fmt, ts));
+            return true;
+        }, "Usage core::date format [double time]."
+            "\nExample: core::date \"%Y-%m-%d %H:%M:%S\"");
+
+        RegisterFunction("core::dateutc", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (!args.empty() && !args[0].isString()) {
+                Tools::errorf("Usage core::dateutc [string format] [double time ]\n");
+                return true;
+            }
+            std::string fmt = (args.size() > 0) ? args[0].getStringRef() : "%Y-%m-%d %H:%M:%S UTC";
+            double ts = (args.size() > 1) ? args[1].getDouble() : -1.0;
+
+            ret = Value(Tools::date(fmt, ts, true));
+            return true;
+        }, "Usage core::dateutc format [double time ]"
+           "\nExample: core::dateutc \"%Y-%m-%d %H:%M:%S\"");
         // ---------------------------------------------------------------------
         // Garbage collection
         // ---------------------------------------------------------------------
         RegisterFunction("core::gc", [](std::vector<Value>& args, Value& ret) -> bool {
             GarbageCollection::run();
             return true;
-        });
+        }, "Run the GarbageCollection manually");
+
         RegisterFunction("core::printgc", [](std::vector<Value>& args, Value& ret) -> bool {
             GarbageCollection::print();
             return true;
-        });
+        }, "Print the current GarbageCollection objects");
         // ---------------------------------------------------------------------
         RegisterFunction("core::printGlob", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("---------------- Globals ------------------\n");
@@ -193,7 +138,45 @@ namespace DreiZehn {
             }
             Tools::printf("------------------------------------------------------\n");
             return true;
-        });
+        }, "Print all global variables.");
+
+        // ---------------------------------------------------------------------
+        //
+        // ---------------------------------------------------------------------
+        RegisterFunction("core::getEnv", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() < 1 || !args[0].isString()) {
+                Tools::printf("Usage example: core::getenv \"PATH\"");
+                ret = EmptyStringValue;
+                return true;
+            }
+            const char* env_p = std::getenv(args[0].getStringRef().c_str());
+            if (env_p) {
+                ret = Value(std::string(env_p));
+            } else {
+                ret = EmptyStringValue;
+            }
+
+            return true;
+        }, "get a Environment variable. param variable name as string");
+
+        RegisterFunction("core::fetchEnv", [](std::vector<Value>& args, Value& ret) -> bool {
+            BaseValueObject* resObj = new BaseValueObject();
+            ret = Value(resObj);
+            for (char** env = environ; *env != nullptr; ++env) {
+                std::string env_entry(*env);
+                size_t pos = env_entry.find('=');
+                if (pos != std::string::npos) {
+                    std::string key = env_entry.substr(0, pos);
+                    std::string value = env_entry.substr(pos + 1);
+
+                    if (!resObj->addDynamicField(key,Value(value))) {
+                        Tools::warnf("Failed to set key:%s, Value:%s", key.c_str(), value.c_str());
+                    }
+                }
+            }
+
+            return true;
+        }, "get all Environment variables and add them as fields to a Object");
 
         // ---------------------------------------------------------------------
         // Help
@@ -207,7 +190,7 @@ namespace DreiZehn {
                 "help::const     => print the registered Constants\n"
             );
             return true;
-        });
+        }, "print the help overview");
         RegisterFunction("help::syntax", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf(
                 "Basics\n"
@@ -241,7 +224,7 @@ namespace DreiZehn {
 
             ) ;
             return true;
-        });
+        }, "basic Syntax informations");
 
 
         // ---------------------------------------------------------------------
@@ -253,11 +236,18 @@ namespace DreiZehn {
                 if (!filter.empty()) doFilter = true;
             }
 
-            std::vector<std::string> nativeNames;
+            struct NamedFunction {
+                uint32_t key;
+                std::string name;
+            };
+            std::vector<NamedFunction> filteredFunctions;
+
+            // std::vector<std::string> nativeNames;
             for (const auto& [key, value] : RegisteredFunctions) {
                 std::string name = SymbolTable::getName(key);
                 if (!doFilter || name.find(filter) != std::string::npos) {
-                    nativeNames.push_back(name);
+                    // nativeNames.push_back(name);
+                    filteredFunctions.push_back({key,name});
                 }
             }
 
@@ -269,12 +259,20 @@ namespace DreiZehn {
                 }
             }
 
-            std::sort(nativeNames.begin(), nativeNames.end());
+            // std::sort(nativeNames.begin(), nativeNames.end());
+            std::sort(filteredFunctions.begin(), filteredFunctions.end(),
+                      [](const NamedFunction& a, const NamedFunction& b) {
+                          return a.name < b.name;
+                      }
+            );
+
             std::sort(scriptNames.begin(), scriptNames.end());
 
-            Tools::printf("  --- Functions [%zu/%zu] --- \n", nativeNames.size(), RegisteredFunctions.size());
-            for (const std::string& name : nativeNames) {
-                Tools::printf("  - %s \n", name.c_str());
+            Tools::printf("  --- Functions [%zu/%zu] --- \n", filteredFunctions.size(), RegisteredFunctions.size());
+            for (const auto& func : filteredFunctions) {
+                uint32_t strId =  getFunctionDescStrId(func.key);
+                const std::string desc = (strId > 0 ) ? StringTable::get(strId) : "";
+                Tools::printf("  - %-30s %s\n", func.name.c_str(), desc.c_str());
             }
 
             if (scriptNames.size() > 0) {
@@ -285,7 +283,7 @@ namespace DreiZehn {
             }
 
             return true;
-        });
+        }, "list the registered functions. you can call it with a filter like `help::fn \"str\"`");
 
         // ---------------------------------------------------------------------
 
@@ -325,7 +323,7 @@ namespace DreiZehn {
                 Tools::printf("\n** To get fields and methods of an object use: help::objects \"String\"\n");
             }
             return true;
-        });
+        }, "list the registered object types. can be called with parameter id of the object type");
         // ---------------------------------------------------------------------
 
         RegisterFunction("help::const", [](std::vector<Value>& args, Value& ret) -> bool {
@@ -359,7 +357,7 @@ namespace DreiZehn {
 
 
             return true;
-        });
+        }, "list all registerd constants can be called with a filter.");
 
         // ---------------------------------------------------------------------
     } //RegisterCoreFunctions

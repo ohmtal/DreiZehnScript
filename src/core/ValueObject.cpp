@@ -173,7 +173,7 @@ namespace DreiZehn {
         if (mDynamicFieldValues.size() > 0) {
             Tools::printf(" ----- Dynamic Fields: %zu -----\n", mDynamicFieldValues.size());
             for ( auto& [key, index] : mDynmaicFieldIndex) {
-                Tools::printf("  .%s = %s \t[%p] [sym:%u]\n"
+                Tools::printf("  .%20s = %-30s [%p] [sym:%u]\n"
                 , SymbolTable::getName(key).c_str()
                 , mDynamicFieldValues[index]->toString().c_str()
                 , mDynamicFieldValues[index].get()
@@ -372,7 +372,6 @@ namespace DreiZehn {
 
     }
     // -------------------------------------------------------------------------
-
     bool ValueObject::onSetField(uint32_t fieldSymbolId, const Value& value) {
         Value* valPtr = onGetFieldPtr(fieldSymbolId);
         if (valPtr) {
@@ -380,6 +379,13 @@ namespace DreiZehn {
             return true;
         }
         return false;
+    }
+
+    bool  ValueObject::addDynamicField(const std::string & fieldName, const Value& value) {
+        if (!isValidVariableName(fieldName)) return false;
+        uint32_t id = SymbolTable::insert(fieldName);
+        insertUpdateDynamicField(id, value);
+        return true;
     }
     // -------------------------------------------------------------------------
     bool ValueObject::cloneBase(ValueObject* theClone) {

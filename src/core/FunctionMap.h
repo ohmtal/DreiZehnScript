@@ -18,11 +18,20 @@ namespace DreiZehn::FunctionMap {
     using CallBack =  std::function< bool ( std::vector<Value>&, Value& )>;
     using FuncLookupMap = std::unordered_map<uint32_t, CallBack>;
 
+    // symbolId, stringId
+    using DescLookupMap = std::unordered_map<uint32_t, uint32_t>;
+
     // Functions
     inline FuncLookupMap RegisteredFunctions;
+    inline DescLookupMap RegisteredFunctionsDesc;
 
-    inline void RegisterFunction(const std::string& name, CallBack cb) {
-        RegisteredFunctions[SymbolTable::insert(name) ] = cb;
+    inline void RegisterFunction(const std::string& name, CallBack cb, std::string desc = "") {
+        uint32_t symId = SymbolTable::insert(name);
+        RegisteredFunctions[symId ] = cb;
+        if (!desc.empty()) {
+            uint32_t strId = StringTable::insert(desc);
+            RegisteredFunctionsDesc[symId] = strId;
+        }
     }
 
     inline bool IsCFunction (uint32_t symbolId) {
@@ -36,6 +45,15 @@ namespace DreiZehn::FunctionMap {
         else
             return nullptr;
     }
+
+    inline uint32_t getFunctionDescStrId(uint32_t symbolId) {
+        auto it = RegisteredFunctionsDesc.find(symbolId);
+        if (it != RegisteredFunctionsDesc.end()) {
+            return it->second;
+        }
+        return 0;
+    }
+
 
     // ---------------------------------------------------------------------
     inline bool ArgsCheckString( const char* command,std::vector<Value>& args, uint32_t count) {

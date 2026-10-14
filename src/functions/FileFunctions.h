@@ -77,8 +77,8 @@ struct FileStreamObject : public ValueObject {
         static bool mSymbolsLoaded = false;
         if (mSymbolsLoaded) return;
 
-        writeProp = ValueObjectProperty("write", 1, 1, "write to stream, @param size", TypeFileStreamObject);
-        writelnProp = ValueObjectProperty("writeln", 1, 1, "write a line to stream, @param size", TypeFileStreamObject);
+        writeProp = ValueObjectProperty("write", 1, 1, "write to stream, @param string", TypeFileStreamObject);
+        writelnProp = ValueObjectProperty("writeln", 1, 1, "write a line to stream, @param string", TypeFileStreamObject);
         readProp = ValueObjectProperty("read", 1, 1, "read from stream, @param size", TypeFileStreamObject);
         readlnProp = ValueObjectProperty("readln", 1, 1, "read a line from stream, @param size", TypeFileStreamObject);
         seekProp = ValueObjectProperty("seek", 2, 2, "seek in stream, @param offset seekdir", TypeFileStreamObject);
@@ -92,7 +92,7 @@ struct FileStreamObject : public ValueObject {
     inline bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
         // ------- write
         if (writeProp.matchMethod(methodId, args) == 1) {
-            if (output && args[0].isStringId()) {
+            if (output && args[0].isString()) {
                 *output << args[0].getStringRef();
                 ret = Value(1);
             } else {
@@ -353,7 +353,7 @@ void RegisterFileFunctions(Environment& env) {
 
         ret = Value(fs);
         return true;
-    });
+    },"return a Filestream object: FileStream::open filename mode:[r,w,a,r+,w+,a+]. filename can be also `fs://stdin` or `fs://stdout`");
 
 
 

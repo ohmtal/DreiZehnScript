@@ -26,6 +26,8 @@ enum class ValueType : uint8_t {
 };
 
 
+
+
 constexpr uint64_t QNAN_MASK        = 0x7FF8000000000000ULL;
 constexpr uint64_t TAG_INT          = 0x0001000000000000ULL; // 1 (binary 001) =>  Integer
 constexpr uint64_t TAG_PTR          = 0x0002000000000000ULL; // 2 (binary 010) =>  Pointer

@@ -243,7 +243,7 @@ fn Game::reset this
     this.gameOver  = false
     this.score     = 0
     this.lastSpawn = Fenster->getTime
-    print "RESET " this "lastSpawn=" this.lastSpawn "GameOver:" this.gameOver
+    -- print "RESET " this "lastSpawn=" this.lastSpawn "GameOver:" this.gameOver
     Player->init
 
 end
@@ -448,14 +448,13 @@ fn ModuleLoop
     if Game.gameOver
         Fenster->text 90 (GAMEHEIGHT / 2 - 20) "Game over" 4 0xFFFFFF
 
-        Fenster->text 5 (GAMEHEIGHT - 20) \
-            ( str::format "fenstertime %f gameOverTime: %f" (Fenster->getTime) Game.gameOverTime) 1 0xFFFFFF
+        -- Fenster->text 5 (GAMEHEIGHT - 20) \
+        --    ( str::format "fenstertime %f gameOverTime: %f" (Fenster->getTime) Game.gameOverTime) 1 0xFFFFFF
 
         if (Fenster->getTime - Game.gameOverTime > 1000)
             Fenster->text 70 (GAMEHEIGHT / 2 + 30) "press space to restart" 2 0xFFFFFF
             if (Fenster->isKeyDown KEY_SPACE)
                 Game->reset
-                print "space pressed..." Game " gameover =" Game.gameOver
             end
         end
 

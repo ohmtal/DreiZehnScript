@@ -39,6 +39,25 @@ private:
     // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parsePrimary();
 
+    //TEST
+    inline bool checkCommaBreak(std::vector<std::unique_ptr<Expression>>& args) {
+        if (peek().mType == TokenType::Comma) {
+            advance();
+
+            // NOTE:
+            // i got it working with the nullptr args hack but if you cant use it to
+            // call a function with parameter inside a function call so you still need
+            // to encapsulate with ()
+            /*
+             a = 47; print core::date, a, "jiji"
+            */
+            if (args.empty()) return false; // never ?!
+            Expression* last = args.back().get();
+            if (!last) return true;
+        }
+        return false;
+    }
+
     // -------------------------------------------------------------------------
     // 0.6 added short if/then
     std::unique_ptr<Expression> parseMath(int minPrecedence = 0);

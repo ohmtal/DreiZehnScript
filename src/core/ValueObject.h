@@ -62,6 +62,9 @@ struct ValueObject {
     virtual Value* onGetFieldPtr(uint32_t fieldSymbolId);
     virtual bool onSetField(uint32_t fieldSymbolId, const Value& value);
 
+    // this does not check for insert allowed!
+    bool addDynamicField(const std::string & fieldName, const Value& value);
+
     virtual bool onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret);
     virtual Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args);
 

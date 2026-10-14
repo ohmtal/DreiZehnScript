@@ -80,6 +80,7 @@ const char* tokenTypeToString(TokenType type) {
         case TokenType::Import:         return "Import";
         case TokenType::Define:         return "Define";
         case TokenType::Global:         return "Global";
+        case TokenType::Comma:          return "Comma";
 
         case TokenType::EOFToken:       return "EOFToken";
 
@@ -151,7 +152,6 @@ bool isContinueToken(const Token& op) {
     && op.mType != TokenType::Else
     && op.mType != TokenType::ElIf
     && op.mType != TokenType::RSquare
-    // && op.mType != TokenType::RCurly
     && !isMathType(op)
     ;
 }
@@ -338,6 +338,7 @@ std::vector<Token> Lexer::tokenize() {
 
         if (peek() == '?') { advance(); tokens.push_back({TokenType::Question, "?"}); continue; }
         if (peek() == ':') { advance(); tokens.push_back({TokenType::Colon, ":"}); continue; }
+        if (peek() == ',') { advance(); tokens.push_back({TokenType::Comma, ","}); continue; }
 
         // ----------------------------------------------------------------
         // StringLiteral

@@ -1,0 +1,68 @@
+-- -----------------------------------------------------------------------------
+--  Copyright (c) 2026 Thomas Hühn (XXTH)
+--  SPDX-License-Identifier: MIT
+-- -----------------------------------------------------------------------------
+--  JSON Parser written in DreiZehn
+-- -----------------------------------------------------------------------------
+import File
+import String
+-- -----------------------------------------------------------------------------
+fn FileTool::load this
+    if this.filename == ""; return 0;;
+    fs = FileStream::open this.filename "r"
+    if (!fs); return 0;;
+    this.content = "";
+    while true
+        buff =  fs->read 1024
+        if (buff == 0) break;;
+        print buff
+        this.content += buff
+    end
+    fs->close
+    return true
+end
+-- -----------------------------------------------------------------------------
+fn FileTool::save this
+    if this.filename == ""; return 0;;
+    if this.content == ""; return 0;;
+    fs = FileStream::open this.filename "w"
+    if (!fs); return 0;;
+    result = fs->write this.content
+    fs->close
+    return result
+end
+-- -----------------------------------------------------------------------------
+fn FileTool::new filename
+    result = Object::new
+    result->setClassName "FileTool"
+    result.filename = filename
+    return result
+end
+
+-- -----------------------------------------------------------------------------
+--  TEST
+-- -----------------------------------------------------------------------------
+global doReload = false
+fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+fn rl; doReload = true;;
+-- -----------------------------------------------------------------------------
+fn testLoad
+    if sys::args.argc < 2; error "no script param for test avaiable :P";;
+    filename = sys::args.argv_1
+    ft = FileTool::new filename
+    ft->load
+    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    print ft.content
+    print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+end
+-- -----------------------------------------------------------------------------
+fn testSave
+    ft = FileTool::new "testFileTool.txt"
+    ft.content = "Gude alder babsack!\n"
+    if (ft->save) print "save success!"
+    else error "save failed!"
+    end
+end
+-- -----------------------------------------------------------------------------
+
+while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;

@@ -401,10 +401,14 @@ Struct [0x5576cc6a5440]
 ## 0.8g
 - [X] added noExec parameter to `include filename` 
 - [X] moved addons from ext/ and src/functions/ to addons/ and added cpp instead of h
-- [ ] remove fenster audio and implement MiniAudio instead 
-- [ ] linenoise.c does not work on ms
+- [X] linenoise.c does not work on ms
     => changed to cpp-linenoise in a thread
-        
+- [X] made linenoise optional 
+- [ ] * try to fix msvc build * 
+    - 1. disable all addons in cmake
+    - 2. start hunting 
+    
+- [ ] remove fenster audio and implement MiniAudio instead 
 ## 0.?? .... ongoing process ....
 
 - [ ] common/FileTools.13

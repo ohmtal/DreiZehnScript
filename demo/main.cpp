@@ -5,6 +5,15 @@
 // DreiZehn Implementation with Console
 // demo and showcase how to add DreiZehn to you project.
 //-----------------------------------------------------------------------------
+#ifdef DREIZEHN_LINENOISE
+    #include "demo/cpp-linenoise/linenoise.hpp"
+    #ifdef _WIN32
+    #include <conio.h>
+    #else
+    #include <sys/select.h>
+    #include <unistd.h>
+    #endif
+#endif
 
 #include <vector>
 #include <iostream>
@@ -26,15 +35,9 @@
 #include "addons/Raylib/RaylibFunctions.h"
 #endif
 
-#include "demo/cpp-linenoise/linenoise.hpp"
-#ifdef _WIN32
-#include <conio.h> // Für _kbhit() unter Windows
-#else
-#include <sys/select.h>
-#include <unistd.h>
-#endif
 
 
+#ifdef DREIZEHN_LINENOISE
 static std::string hints_callback(
     const char* input,
     int& color,
@@ -110,8 +113,10 @@ bool read_line_nonblocking(const char* prompt, std::string& line) {
 
     return (status == linenoise::EditStatus::Done);
 }
+#endif
 
 bool ConsoleCall(DreiZehn::Environment& env) {
+#ifdef DREIZEHN_LINENOISE
     static std::string line;
 
     if (read_line_nonblocking("> ", line)) {
@@ -124,6 +129,7 @@ bool ConsoleCall(DreiZehn::Environment& env) {
         std::stringstream stream(line);
         DreiZehn::RunScriptStream(stream, env);
     }
+#endif
     return true;
 }
 
@@ -188,13 +194,12 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------------------------------------
     // Console Mode
     // -------------------------------------------------------------------------
+#ifdef DREIZEHN_LINENOISE
     std::string line;
 
     linenoise::SetCompletionCallback(completion_callback);
     linenoise::SetHintsCallback(hints_callback);
 
-
-    std::vector<OpenBlock> blockStack;
     Tools::printf(">> Console ready .. type quit or exit to escape <<\n");
     while (true) {
 
@@ -202,6 +207,7 @@ int main(int argc, char* argv[]) {
         Tools::sleep(16);
 
     }
+#endif
     env.shutDown();
     return 0;
 }

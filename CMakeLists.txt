@@ -23,6 +23,9 @@ set(BUILD_WITH_RAYLIB ${WITH_RAYLIB_DEFAULT} CACHE BOOL "Build Application with 
 set(WITH_MA_DEFAULT OFF)
 set(BUILD_WITH_MA ${WITH_MA_DEFAULT} CACHE BOOL "Build Application with MiniAudio")
 
+set(WITH_LINENOISE_DEFAULT ON)
+set(BUILD_WITH_LINENOISE ${WITH_LINENOISE_DEFAULT} CACHE BOOL "Enable interactice console support.")
+
 
 set(SANITIZE_DEFAULT OFF)
 set(BUILD_WITH_SANITIZE ${SANITIZE_DEFAULT} CACHE BOOL "Build Application with -fsanitize=address -g")
@@ -44,6 +47,11 @@ set(PROJECT_SRC
 
     demo/main.cpp
 )
+
+
+if (BUILD_WITH_LINENOISE)
+    add_compile_definitions(DREIZEHN_LINENOISE)
+endif()
 
 # ------------- SDL3
 if (BUILD_WITH_SDL3)
@@ -134,5 +142,10 @@ if (BUILD_WITH_SANITIZE)
     target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
 endif()
 
-target_compile_definitions(DreiZehn PRIVATE NOMINMAX)
+if(WIN32 AND MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+    target_compile_definitions(DreiZehn PRIVATE NOMINMAX)
+    add_compile_options(/MP)
+endif()
 

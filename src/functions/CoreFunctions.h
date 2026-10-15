@@ -50,6 +50,18 @@ namespace DreiZehn {
             return true;
         }, "run a script embedded in a string");
         // ---------------------------------------------------------------------
+        RegisterFunction("core::isFunction", [&env](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 1 || !args[0].isString()) {
+                Tools::errorf("Usage: core::isFunction functionname\n");
+                ret = NumberNullValue;
+                return true;
+            }
+            uint32_t nameTokenSymbolId = SymbolTable::insert(args[0].getStringRef());
+            ret = Value(FunctionMap::IsFunction(nameTokenSymbolId));
+
+            return true;
+        }, "return if a function exists or not. useful to check a include failed");
+        // ---------------------------------------------------------------------
         RegisterFunction("core::getTypeName", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1) {
                 Tools::errorf("Usage: core::getTypeName value");

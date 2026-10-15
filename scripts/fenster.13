@@ -11,7 +11,7 @@ include "common/Pixel/PixelFire.13" true
 
 define WINDOW_W = 160
 define WINDOW_H 100
-define WINDOW_SCALE 4
+define WINDOW_SCALE 3
 define FONT_SCALE 1.5
 
 fenster = Fenster::new "DreiZehn Fenster" WINDOW_W WINDOW_H WINDOW_SCALE

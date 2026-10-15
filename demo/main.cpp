@@ -17,19 +17,18 @@
 #include "DreiZehn.h"
 
 #ifdef DREIZEHN_FENSTER
-#include "functions/FensterFunctions.h"
-#include "functions/FensterAudioFunctions.h"
+#include "addons/Fenster/Fenster.h"
 #endif
 
 #ifdef DREIZEHN_SDL3
-#include "functions/SDL3Functions.h"
+#include "addons/SDL3/SDL3Functions.h"
 #endif
 
 #ifdef DREIZEHN_RAYLIB
-#include "functions/RaylibFunctions.h"
+#include "addons/Raylib/RaylibFunctions.h"
 #endif
 
-#include "linenoise/linenoise.h"
+#include "demo/linenoise/linenoise.h"
 
 
 

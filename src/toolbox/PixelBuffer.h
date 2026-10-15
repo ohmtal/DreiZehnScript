@@ -30,6 +30,7 @@
 #include <fstream>
 #include <cstdint>
 
+namespace DreiZehn::PixelBuffer {
 
 
 struct pixel_buffer {
@@ -107,6 +108,53 @@ inline void blit(uint32_t dest_x, uint32_t dest_y, const pixel_buffer& src) {
 }
 
 }; // pixel buffer
+// -------------------------------------------------------------------------
+// Scale
+// -------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+void draw_scaled_pixel(pixel_buffer *f, int x, int y, int scale, uint32_t color) {
+    for (int dy = 0; dy < scale; dy++) {
+        for (int dx = 0; dx < scale; dx++) {
+            int screen_x = x * scale + dx;
+            int screen_y = y * scale + dy;
+
+            if (screen_x >= 0 && screen_x < f->width && screen_y >= 0 && screen_y < f->height) {
+                f->buffer[screen_y * f->width + screen_x] = color;
+            }
+        }
+    }
+}
+// ------------------------------------------------------------------------
+void scale_buffer_to_window(pixel_buffer *f, uint32_t *src_buf, uint32_t src_w, uint32_t src_h) {
+    if (!f || !f->buffer || !src_buf || f->width == 0 || f->height == 0) return;
+
+    uint64_t step_x = (static_cast<uint64_t>(src_w) << 16) / f->width;
+    uint64_t step_y = (static_cast<uint64_t>(src_h) << 16) / f->height;
+
+    uint32_t* dest_ptr = f->buffer;
+    uint64_t fp_y = 0;
+
+    for (uint32_t y = 0; y < f->height; y++) {
+        uint32_t src_y = fp_y >> 16;
+        uint32_t* src_row_ptr = &src_buf[src_y * src_w];
+
+        uint64_t fp_x = 0;
+        for (uint32_t x = 0; x < f->width; x++) {
+            uint32_t src_x = fp_x >> 16;
+            *dest_ptr++ = src_row_ptr[src_x];
+            fp_x += step_x;
+        }
+        fp_y += step_y;
+    }
+}
+
+
+void scale_buffer_to_window(pixel_buffer *f,pixel_buffer *pb) {
+    scale_buffer_to_window(f,pb->buffer, pb->width, pb->height);
+}
+
+// ------------------------------------------------------------------------
+
 // -------------------------------------------------------------------------
 // Rotation
 // -------------------------------------------------------------------------
@@ -444,3 +492,4 @@ int save_to_bmp(const char *filename, pixel_buffer *f ) {
     return 0; // success
 }
 // ------------------------------------------------------------------------
+} // namespace DreiZehn

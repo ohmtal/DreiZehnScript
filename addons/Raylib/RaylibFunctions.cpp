@@ -5,16 +5,15 @@
 // Raylib Function - Initial - i work also on a auto generator.
 //                           - autogen miss the structs inside stucts do far
 //-----------------------------------------------------------------------------
-#pragma once
+// #pragma once
 #include <stdio.h>
 #include <stdint.h>
 
 #include <vector>
 
-#include "core/FunctionMap.h"
-#include "core/VariableFrame.h"
-#include "Globals.h"
-#include "ArrayFunctions.h"
+#include "src/core/FunctionMap.h"
+#include "src/core/VariableFrame.h"
+#include "src/Globals.h"
 
 namespace DreiZehn::Raylib {
     #include "raylib-6.0/src/raylib.h"

@@ -4,6 +4,13 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(FORCE_02 ON)
+set(BUILD_WITH_FORCEO2 ${FORCE_02} CACHE BOOL "Build Application Release also with -02 on gcc")
+# -02 is faster on gcc (StarField2 > 300fps instead of 250fps)!!!
+if(NOT MSVC AND BUILD_WITH_FORCEO2)
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
+endif()
 
 set(DREIZEHN_SRC
 
@@ -56,31 +63,3 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/DreiZehn.h
 
 )
-
-# # ------------- SDL3
-# set (SDL3_LINKLIB "")
-# if (BUILD_WITH_SDL3)
-#     find_package(SDL3 REQUIRED)
-#     set (SDL3_LINKLIB SDL3::SDL3)
-#
-#     list(APPEND PROJECT_SRC "${CMAKE_CURRENT_LIST_DIR}/functions/SDL3Functions.h")
-#     add_compile_definitions(DREIZEHN_SDL3)
-# endif()
-#
-# # ------------- FENSTER
-# set(FENSTER_LINKLIB "")
-# if (BUILD_WITH_FENSTER)
-#     if (WIN32)
-#         set(FENSTER_LINKLIB "gdi32;winmm")
-#     elseif (APPLE)
-#         set(FENSTER_LINKLIB "-framework Cocoa;-framework AudioToolbox")
-#     else()
-#         set(FENSTER_LINKLIB "X11;asound")
-#     endif()
-#
-#     list(APPEND PROJECT_SRC "${CMAKE_CURRENT_LIST_DIR}/functions/FensterFunctions.h")
-#     list(APPEND PROJECT_SRC "${CMAKE_CURRENT_LIST_DIR}/functions/FensterAudioFunctions.h")
-#     add_compile_definitions(DREIZEHN_FENSTER)
-# endif()
-
-

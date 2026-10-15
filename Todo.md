@@ -399,7 +399,8 @@ Struct [0x5576cc6a5440]
 - [X] added `include filename`
         
 ## 0.8g
-
+- [X] added noExec parameter to `include filename` 
+- [X] moved addons from ext/ and src/functions/ to addons/ and added cpp instead of h
         
         
 ## 0.?? .... ongoing process ....

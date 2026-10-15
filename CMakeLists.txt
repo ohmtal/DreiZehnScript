@@ -30,81 +30,74 @@ set(BUILD_WITH_SANITIZE ${SANITIZE_DEFAULT} CACHE BOOL "Build Application with -
 set(LOADALL_DEFAULT ON)
 set(BUILD_WITH_LOADALL ${LOADALL_DEFAULT} CACHE BOOL "Build Application with load all available modules at start")
 
-set(FORCE_02 ON)
-set(BUILD_WITH_FORCEO2 ${FORCE_02} CACHE BOOL "Build Application Release also with -02 on gcc")
-# -02 is faster on gcc (StarField2 > 300fps instead of 250fps)!!!
-if(NOT MSVC AND BUILD_WITH_FORCEO2)
-    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
-    set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
-endif()
+
 # -----------------------------------------------------------------------------
 project(DreiZehn C CXX)
 
 include ("${CMAKE_CURRENT_LIST_DIR}/src/DreiZehn.cmake")
 
+set (LINK_LIBS)
+
 set(PROJECT_SRC
 
-    ext/linenoise/linenoise.c
-    ext/linenoise/linenoise.h
+    demo/linenoise/linenoise.c
+    demo/linenoise/linenoise.h
     demo/main.cpp
 )
 
 # ------------- SDL3
-set (SDL3_LINKLIB "")
 if (BUILD_WITH_SDL3)
     find_package(SDL3 REQUIRED)
-    set (SDL3_LINKLIB SDL3::SDL3)
 
-    # list(APPEND PROJECT_SRC "engine/functions/SDL3Functions.h")
+    list(APPEND LINK_LIBS SDL3::SDL3)
+    list(APPEND PROJECT_SRC "addons/SDL3/SDL3Functions.cpp")
     add_compile_definitions(DREIZEHN_SDL3)
 endif()
 
 # ------------- FENSTER
-set(FENSTER_LINKLIB "")
 if (BUILD_WITH_FENSTER)
     if (WIN32)
-        set(FENSTER_LINKLIB "gdi32;winmm")
+        list(APPEND LINK_LIBS "gdi32;winmm")
     elseif (APPLE)
-        set(FENSTER_LINKLIB "-framework Cocoa;-framework AudioToolbox")
+        list(APPEND LINK_LIBS "-framework Cocoa;-framework AudioToolbox")
     else()
-        set(FENSTER_LINKLIB "X11;asound")
+        list(APPEND LINK_LIBS "X11;asound")
     endif()
 
-    # list(APPEND PROJECT_SRC "engine/functions/FensterFunctions.h")
-    # list(APPEND PROJECT_SRC "engine/functions/FensterAudioFunctions.h")
+    list(APPEND PROJECT_SRC "addons/Fenster/FensterFunctions.cpp")
+    list(APPEND PROJECT_SRC "addons/Fenster/FensterAudioFunctions.cpp")
     add_compile_definitions(DREIZEHN_FENSTER)
 endif()
 
 # ------------- RayLib
-set(RAYLIB_LINKLIB "")
 if (BUILD_WITH_RAYLIB)
-    set(RAYLIB_DIR "${CMAKE_CURRENT_LIST_DIR}/ext/raylib-6.0/" CACHE PATH "Path to RayLib")
+    set(RAYLIB_DIR "${CMAKE_CURRENT_LIST_DIR}/addons/Raylib/raylib-6.0/" CACHE PATH "Path to RayLib")
     message( STATUS "\n Raylib directory is: " ${RAYLIB_DIR} )
     set(BUILD_EXAMPLES OFF CACHE BOOL "Build raylib examples" FORCE)
     set(BUILD_GAMES    OFF CACHE BOOL "Build raylib games"    FORCE)
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
     add_subdirectory("${RAYLIB_DIR}" "${CMAKE_BINARY_DIR}/raylib_build")
 
-    set(RAYLIB_LINKLIB "raylib")
+    list(APPEND LINK_LIBS "raylib")
 
+    list(APPEND PROJECT_SRC "addons/Raylib/RaylibFunctions.cpp")
     add_compile_definitions(DREIZEHN_RAYLIB)
 endif()
 
 # ------------- MiniAudio
-set(MA_LINKLIB "")
 if (BUILD_WITH_MINIAUDIO)
     set(MA_SRC
-        ${CMAKE_CURRENT_LIST_DIR}/ext/miniaudio/miniaudio.c
-        ${CMAKE_CURRENT_LIST_DIR}/ext/miniaudio/miniaudio.h
+        ${CMAKE_CURRENT_LIST_DIR}/addons/MiniAudio/miniaudio/miniaudio.c
+        ${CMAKE_CURRENT_LIST_DIR}/addons/MiniAudio/miniaudio/miniaudio.h
     )
     list(APPEND PROJECT_SRC ${MA_SRC})
 
     if (WIN32)
         # set(MA_LINKLIB "winmm")
     elseif (APPLE)
-        set(MA_LINKLIB "-framework CoreAudio" "-framework CoreFoundation" "-framework AudioToolbox")
+        list(APPEND LINK_LIBS "-framework CoreAudio" "-framework CoreFoundation" "-framework AudioToolbox")
     else()
-        set(MA_LINKLIB pthread m dl)
+        list(APPEND LINK_LIBS pthread m dl)
     endif()
 
     add_compile_definitions(DREIZEHN_MINIAUDIO)
@@ -130,14 +123,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 target_include_directories(${PROJECT_NAME} PRIVATE
      "${CMAKE_CURRENT_SOURCE_DIR}/"
      "${CMAKE_CURRENT_SOURCE_DIR}/src/"
-     "${CMAKE_CURRENT_SOURCE_DIR}/ext"
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${SDL3_LINKLIB}
-    ${FENSTER_LINKLIB}
-    ${RAYLIB_LINKLIB}
-    ${MA_LINKLIB}
+    ${LINK_LIBS}
 )
 
 if (BUILD_WITH_SANITIZE)

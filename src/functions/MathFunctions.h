@@ -41,27 +41,31 @@ namespace DreiZehn {
             ret = Value((min + (std::rand() % range)));
             return true;
         }, "integer random number between value1 and value2");
-
+        // ---------------------------------------------------------------------
+        RegisterFunction("math::rand", [](std::vector<Value>& args, Value& ret) -> bool {
+            ret = Value(std::rand());
+            return true;
+        }, "integer random number without a parameter like c std::rand");
         // ---------------------------------------------------------------------
         RegisterFunction("math::sin", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1) return false;
             ret = Value(std::sin(args[0].getDouble()));
             return true;
-        }, "return sine of value");
+        }, "return sine of value using std::sin");
 
         // ---------------------------------------------------------------------
         RegisterFunction("math::cos", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1) return false;
             ret = Value(std::cos(args[0].getDouble()));
             return true;
-        }, "return cosine of value");
+        }, "return cosine of value using std::cos");
 
         // ---------------------------------------------------------------------
         RegisterFunction("math::tan", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1) return false;
             ret = Value(std::tan(args[0].getDouble()));
             return true;
-        }, "return arc tangent of the radian value");
+        }, "return arc tangent of the radian value using std::tan");
 
         // ---------------------------------------------------------------------
         RegisterFunction("math::rad", [](std::vector<Value>& args, Value& ret) -> bool {

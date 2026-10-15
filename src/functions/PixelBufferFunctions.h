@@ -27,6 +27,7 @@
 // =============================================================================
 
 namespace DreiZehn {
+    using namespace PixelBuffer;
     const int TypePixelBuffer = RegisterUserObjectType("PixelBuffer");
 
 

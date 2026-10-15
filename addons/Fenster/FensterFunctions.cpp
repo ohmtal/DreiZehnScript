@@ -9,7 +9,7 @@
 //      - added X11 wmDeleteMessage message so my prog does not crash when
 //        Window is closed.
 //-----------------------------------------------------------------------------
-#pragma once
+// #pragma once
 #include <stdio.h>
 #include <stdint.h>
 #include <cstring>
@@ -17,16 +17,15 @@
 #include <fstream>
 #include <cstdint>
 
-#include "core/FunctionMap.h"
-#include "core/VariableFrame.h"
-#include "Globals.h"
-#include "ArrayFunctions.h"
+#include "src/core/FunctionMap.h"
+#include "src/core/VariableFrame.h"
+#include "src/Globals.h"
 
-#include "PixelBufferFunctions.h"
-#include "toolbox/PixelBuffer.h"
+#include "src/functions/PixelBufferFunctions.h"
+#include "src/toolbox/PixelBuffer.h"
 
 namespace DreiZehn::Fenster {
-    #include "ext/fenster/fenster.h"
+    #include "fenster/fenster.h"
 
      // ------------------------------------------------------------------------
      void draw_scaled_pixel(struct fenster *f, int x, int y, int scale, uint32_t color) {

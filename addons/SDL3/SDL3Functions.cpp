@@ -2,15 +2,15 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Core Commands
+// Basic SDL3 Bindings
 //-----------------------------------------------------------------------------
-#pragma once
+// #pragma once
 #include <SDL3/SDL.h>
 #include <cstring>
 
-#include "core/FunctionMap.h"
-#include "core/ValueObject.h"
-#include "core/VariableFrame.h"
+#include "src/core/FunctionMap.h"
+#include "src/core/ValueObject.h"
+#include "src/core/VariableFrame.h"
 
 namespace DreiZehn {
 

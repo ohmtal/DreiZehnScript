@@ -33,7 +33,7 @@ fn Parser::skipSpaces this
     while this->peek == " " or this->peek == "\r" \
             or this->peek == "\n" or this->peek == "\t"
 
-        print "SKIP:" this->advance
+        this->debug "SKIP:" this->advance
     end
 end
 

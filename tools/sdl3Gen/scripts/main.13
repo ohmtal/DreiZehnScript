@@ -7,6 +7,8 @@
 import All
 include "../../common/FileTools.13" true
 include "../../common/JSONParser.13" true
+include "scripts/sourceGen.13" false
+include "scripts/tokens.13" true
 -- -----------------------------------------------------------------------------
 if sys::args.argv_2 == ""
     error "missing parameter Usage: main.13 SDL_File.h"
@@ -19,14 +21,15 @@ fileTool = FileTool::new jsonFilename
 fileTool->load
 if fileTool.content == ""; error "Failed to load " jsonFilename end
 -- -----------------------------------------------------------------------------
-parser = Parser::new fileTool.content true
-
+-- not last boolean is debug flag
+parser = Parser::new fileTool.content false
+tokenWorker  = Tokens::new parser true
 
 -- -----------------------------------------------------------------------------
---  TEST
+--  TEST with CONSOLE
 -- -----------------------------------------------------------------------------
 global doReload = false
 fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
 fn rl; doReload = true;;
 -- -----------------------------------------------------------------------------
-while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;
+-- while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;

@@ -1,446 +1,116 @@
--- read from stdin
--- Example : ./parse_sdl SDL_rect.h | grep SDL_rect.h | sort -r | uniq | ../../DreiZehn parser.13 SDL_rect.h
--- Example : ./parse_sdl SDL_rect.h | grep SDL_rect.h | grep struct| sort -r | uniq | ../../DreiZehn parser.13 SDL_rect.h
-
-import Core
-import String
-import Vector
-
-
--- NOTE: when a function parameter have a "result" parameter THIS is what we want to return
-
+-- -----------------------------------------------------------------------------
+--  Copyright (c) 2026 Thomas Hühn (XXTH)
+--  SPDX-License-Identifier: MIT
+-- -----------------------------------------------------------------------------
+--  SDL3 Tokens DreiZehn
+-- NOTE: WiP
+-- -----------------------------------------------------------------------------
 import All
 
--- -----------------------------------------------------------------------------
-global args = sys::args
-filename = args.argv_2
-if (filename == "" || filename == 0)
-    error "USAGE: DreiZehn parser.13 SDL_filename.h"
-    error "EXAMPLE: DreiZehn parser.13 SDL_rect.h"
-    return 1
-end
 
-fn rl
-    run args.argv_1
-end
 
 -- -----------------------------------------------------------------------------
-define strSep "\""
-
-global Tokens = Vector::new
--- {"file":"SDL_stdinc.h",
-global filter = str::concat "{" strSep "file" strSep ":" strSep filename strSep ','
-
--- -----------------------------------------------------------------------------
-
--- -----------------------------------------------------------------------------
-fn Parser::advance this
-    if this._index_ >= this._len_
-        return ""
-    end
-
-    cur = this._line_[this._index_]
-    this._index_++
-    return cur
-end
-
-
-fn Parser::peek this offset
-    idx = this._index_
-    if offset
-        if idx + offset < 0 || idx + offset > this._len_; return "";;
-        idx += offset
-    end
-
-    return this._line_[idx]
-end
-
-fn Parser::skipSpaces this
-    while this->peek() == " " ||  \
-            this->peek() == "\r" || \
-            this->peek() == "\n" || \
-            this->peek() == "\t"
-
-        this->advance
+fn Tokens::debug this p1 p2 p3 p4 p5
+    if this._debug_
+        if p1==0 p1 ="";; if p2==0 p2 ="";; if p3==0 p3 ="";; if p4==0 p4 ="";;
+        if p5==0 p5 ="";;
+        print (str::format "PARSER DEBUG:  %s %s %s %s %s"  p1 p2 p3 p4 p5 )
     end
 end
 -- -----------------------------------------------------------------------------
--- {"file":"SDL_rect.h","kind":"function","name":"SDL_GetRectAndLineIntersectionFloat","return_type":"int","params":[{"name":"rect","type":"const SDL_FRect *"},{"name":"X1","type":"float *"},{"name":"Y1","type":"float *"},{"name":"X2","type":"float *"},{"name":"Y2","type":"float *"}]}
--- -----------------------------------------------------------------------------
-fn Parser::parse this
-    curlyPos = 0
-    squarePos = 0
-
-    str = ""
-    left = ""
-    token = 0
-
-    this.parent = 0
-    curVector = this
-
-    while this->peek != ""
-        startindex = this._index_
-
-        if this->peek == "{"
-            this->advance
-            curlyPos ++
-            token = Object::new
-            curVector->push token
-        end
-
-        if this->peek == "}"
-            this->advance
-            curlyPos --
-            if (curlyPos < 0); error "Parse error to many curly close!"; return 0;;
-            token = this->at curlyPos
-        end
-
-        if this->peek == "["
-            this->advance
-            squarePos++
-            newVector = Vector::new
-            newVector.parent = curVector
-            curVector = newVector
-
-            token->setField left curVector
-            left = ""
-        end
-        if this->peek == "]"
-            this->advance
-            squarePos--
-            curVector = curVector.parent
-            if (squarePos < 0); error "Parse error to many square close!"; return 0;;
-        end
-
-        if (this->peek == strSep)
-            this->advance
-            tmpStr = ""
-
-            while this->peek != strSep && this->peek != ""
-
-                if this->peek == "\\" and (this->peek 1) == strSep
-                    this->advance
-                end
-
-                prevPeek = this->peek
-                tmpStr += this->advance
-
-                if prevPeek != "\\" and this->peek == strSep break;;
-            end
-            if (left == "") left = tmpStr
-            else token->setField left tmpStr; left = "";;
---             print "str is >>" tmpStr "<<, left is >>" left "<<"
-            if (this->peek == "") return;;
-            this->advance
-        end
-
-        if (this->peek == ":")
-            this->advance
-            -- left is set before ...
-        end
-
-        if (this->peek == ",")
-            this->advance
-            -- left is set before ...
-        end
-
-        if startindex == this._index_; error "PARSE ERROR peek not moved! LINE" line; return 0;;
-    end
-
-    if (squarePos != 0) error "SQUARE COUNTER INVALID:" squarePos "!!! LINE:" LINES ; core::sleep 10000;;
-    if (curlyPos != 0) error "CURLY COUNTER INVALUD:" curlyPos "  LINE:" LINES ; core::sleep 10000;;
-
-end
+fn Tokens::run this
 
 
-fn parseLine line
-    log->writeln (str::concat "LINE: " line); log->flush
-    pos = (str::strpos line filter)
-    if pos != 0; return 0 ;;
+    forEach token this.jsonTree
 
 
-    parser = Vector::new
-    parser->setClassName "Parser"
-    parser._line_ = line
-    parser._len_ = str::strlen line
-    parser._index_ = 0
-    parser->parse
-
---     parser->dump
-
-
-    return parser
-end
--- -----------------------------------------------------------------------------
-fn ToToken tokenvector
-
-
-    forEach token tokenvector
         if (token.kind == "param")
-            print "SKIP PARAM: " token.function token.name
+            this->debug "SKIP PARAM: " token.function token.name
         elif (token.kind == "struct_field")
             structname = token.struct
-            field = Tokens->getField structname
+            field = this->getField structname
             if (field && field->getType == TypeObject  )
                 if (field.params && field.params->getType == TypeVector)
-                    print "ADD " token "TO" structname
+                    this->debug "ADD " token "TO" structname
                     field.params->push token
                 else
-                    print "add " token "TO NEW "  structname ".params"
+                    this->debug "add " token "TO NEW "  structname ".params"
                     field->setField "params" Vector::new
                     field.params->push token
                 end
             else
-                print "DID NOT FIND" structname "LET SEE IN AFTER PARSE!"
-                Tokens->push token
+                this->debug "DID NOT FIND" structname "LET SEE IN AFTER PARSE!"
+                this->push token
             end
 
         else
 
             if token.name
-                Tokens->setField token.name token
+                this->setField token.name token
             else
                 -- pus"h unknown
-                Tokens->push token
+                this->push token
             end
         end
     end
 
 end
--- -----------------------------------------------------------------------------
-fn readLoop
-    while  (buffer = fs->readln buffer_size) != 0
-        if buffer != ""
-            curParsed = parseLine buffer
-            if (curParsed)
-                ToToken curParsed
-            end
-        end
-    end
-end
--- -----------------------------------------------------------------------------
-fn createStruct dummy;;     # -- forward --
-fn createConst dummy;;     # -- forward --
 
-fn TokensTree
-    Tokens->dump
-    count = Tokens->getFieldCount
+-- -----------------------------------------------------------------------------
+fn Tokens::generateSource this
+    this->dump
+    count = this->getFieldCount
 
     forRange i count
-        token = Tokens->getField i
-        print "----------------------" (Tokens->getFieldName i) "------------------------------"
+        this->debug "----------------------" (this->getFieldName i) "------------------------------"
+        token = this->getField i
+
+        varType = getType token
+        if varType != type::object
+            this->debug "UNKNOWN TOKEN" token
+            continue
+        end
+
         forRange j token->getFieldCount
-            print "    " (token->getFieldName j) "=" (token->getField j)
+            this->debug "    " (token->getFieldName j) "=" (token->getField j)
         end
         if (token.kind == "constant_macro")
         else
+
             forEach subToken token.params
                 forRange j subToken->getFieldCount
-                    print "          " (subToken->getFieldName j) "=" (subToken->getField j)
+                    this->debug "          " (subToken->getFieldName j) "=" (subToken->getField j)
                 end
-                print "          ...."
+                this->debug "          ...."
             end
         end
 
-        if (token.kind == "struct"); print(createStruct token)
-        elif (token.kind == "constant_macro") print(createConst token)
-        else print "================ TODO:" token.kind token.name" =========================="
+--         if (token.kind == "struct"); print(createStruct token)
+--         elif (token.kind == "constant_macro") print(createConst token)
+        if (token.kind == "struct"); createStruct token
+        elif (token.kind == "constant_macro") createConst token
+        else this->debug "================ TODO:" token.kind token.name" =========================="
         end
     end
 
 
-    if (Tokens->size > 0)
+    if (this->size > 0)
         error "------------------------------------------------------------------------------"
-        error "        WE STILL HAVE " Tokens->size " TOKENS IN THE BAG!!!!"
+        error "        WE STILL HAVE " this->size " TOKENS IN THE BAG!!!!"
         error "------------------------------------------------------------------------------"
     end
 end
--- -----------------------------------------------------------------------------
-global REGISTER_CONST = ""
-global REGISTER_STR = "\n\n"
 
-getFieldSetFieldStr = "   inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override { \n"
-getFieldSetFieldStr +="      Value* ptr = onGetFieldPtr(fieldSymbolId);\n"
-getFieldSetFieldStr +="      if (ptr) { ret = *ptr; return true; }\n"
-getFieldSetFieldStr +="      return false;\n"
-getFieldSetFieldStr +="   }\n"
-getFieldSetFieldStr +="\n"
-getFieldSetFieldStr +="   inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) override {\n"
-getFieldSetFieldStr +="       Value* ptr = onGetFieldPtr(fieldSymbolId);\n"
-getFieldSetFieldStr +="       if (ptr) { *ptr = value; return true; }\n"
-getFieldSetFieldStr +="       return false;\n"
-getFieldSetFieldStr +="   }\n"
-getFieldSetFieldStr +="\n"
 -- -----------------------------------------------------------------------------
-fn createConst tokenObject
-    result = ""
-    result += str::format "REGISTER_CONST(%s);\n" tokenObject.name
-    REGISTER_CONST += result
-    return result
+fn Tokens::new jsonTree debug
+    this = Vector::new
+    this->setClassName "Tokens"
+    this._debug_ = debug
+    this.jsonTree = jsonTree
+    this->run
+    this->generateSource
+    return this
 end
--- -----------------------------------------------------------------------------
-fn createStruct tokenObject
-    result = ""
-    objname  = str::format "%sObject" tokenObject.name
-    typename = str::format "Type%s" objname
-
-    -- register type
-    result += str::format "const int %s =  RegisterUserObjectType(\"%s\");\n" typename tokenObject.name
-    result += "\n"
-    -- create struct
-    result += str::format "struct %s : public ValueObject {\n" objname
-    -- values and data
-    forEach param tokenObject.params
-        result += str::format "   Value m%s;" param.field
-        result += str::format " inline static ValueObjectProperty m%sProp;\n" param.field
-    end
-    result += str::format "   %s mData = {0}; \n" tokenObject.name
-    result += "\n"
-
-    -- constructor
-    result += str::format "   %s(): ValueObject(%s) {\n" objname typename
-    result += "      mSupportClone = true;\n"
-    result += "   }\n"
-
-    -- clone
-    result += "   virtual ValueObject* clone() override {\n"
-    result += str::format "      %s* clone = new %s();\n" objname objname
-    result += "      ValueObject::cloneBase(clone);"
-    forEach param tokenObject.params
-        result += str::format "         clone->m%s = this->m%s;\n" param.field param.field
-    end
-    result += "      return clone;\n"
-    result += "   }\n"
-
-    -- dataPrt
-    result += str::format "   inline virtual %s* dataPtr()  {\n" tokenObject.name
-    forEach param tokenObject.params
-        result += str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
-    end
-    result += "      return &mData;\n"
-    result += "   }\n"
-
-    -- dataPrt
-    result += "   inline virtual void syncFromData() {\n"
-    forEach param tokenObject.params
-        result += str::format "      m%s = Value((%s) mData.%s);\n" param.field param.type param.field
-    end
-    result += "   }\n"
-    -- data
---     result += str::format "   inline virtual const %s& data()  {\n" tokenObject.name
---     forEach param tokenObject.params
---     -- FIXME not allways getDouble!!
---         result += str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
---     end
---     result += "      return mData;\n"
---     result += "   }\n"
-
-
-    -- onGetFieldPtr
-    result += "   inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {\n"
-        forEach param tokenObject.params
-            result += str::format \
-                "        if (fieldSymbolId == m%sProp.mSymbolId) return &m%s;\n" \
-                param.field param.field
-        end
-        result += "      return ValueObject::onGetFieldPtr(fieldSymbolId);\n"
-        result += "   }\n"
-    }
-
-    -- other getter/setter
-    result += getFieldSetFieldStr
-
-    -- symbols
-    result += "\n"
-    result += "   inline static void RegisterSymbols() {\n"
-    result += "   static bool mSymbolsLoaded = false;\n"
-    result += "   if (mSymbolsLoaded) return ;\n"
-    forEach param tokenObject.params
-        result += str::format "      m%sProp = ValueObjectProperty(\"%s\",\"\",%s) ;\n" \
-                param.field param.field typename
-    end
-    result += "      mSymbolsLoaded = true;\n   }\n"
-
-    result += "\n};\n"
-
-    -- --------------------------
-    REGISTER_STR += str::format "%s::RegisterSymbols();\n" objname
-    REGISTER_STR += str::format "RegisterFunction(\"%s\", [](std::vector<Value>& args, Value& ret) -> bool {\n" \
-            tokenObject.name
-    REGISTER_STR += str::format "   %s* obj= new %s();\n" objname objname
-    iter = 0
-    forEach param tokenObject.params
-        -- FIXME not always getDouble!!
-        REGISTER_STR += str::format "   if (args.size() > %d) obj->m%s = args[%d].getDouble();\n" \
-                iter  param.field iter
-        iter++
-    end
-    REGISTER_STR += "   ret = Value(obj);\n"
-    REGISTER_STR += "   return true;\n"
-    REGISTER_STR += "});\n"
 
 
 
-    return result
-end
--- -----------------------------------------------------------------------------
-fn DebugPrint
-
-forRange i Tokens->getFieldCount
-    v = Tokens->getField i
-    print "DUMP " v.name ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    v->dump
-    if v.kind == "function"
-        if (v.params->getType == TypeVector)
-            forEach subTok v.params
-                print "     DUMP SUB >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-                subTok->dump
-            end
-        end
-    end
-end
-end
--- -----------------------------------------------------------------------------
---                      *** MAIN ***
--- -----------------------------------------------------------------------------
-
-
--- ~~~~~
-
-global log = FileStream::open "parser.log" "w"
-if (!log); error "Failed to open logfile"; return;;
-log->writeln "start parsing..."; log->flush
-
-global fs = FileStream::open "fs://stdin" "r"
-if (!fs); error "Failed to open stream"; return;;
-
-global buffer = ""
-global buffer_size = 1024
-
-
-readLoop
-print ".............. LOOP END ..................."
--- core::printgc
--- core::gc
--- core::printgc
--- -- core::sleep 1000;
--- DebugPrint;
--- return
-
-Tokens->dump
-print ".............. POST PROCESS ..................."
-ToToken Tokens
-
-print "..............TOKEN TREE ..................."
-TokensTree
-
-print ".............. REGISTER_STR ..................."
-print REGISTER_STR
-
-print ".............. REGISTER_CONST ..................."
-print REGISTER_CONST
-
-fs->close
-log->close
-fs = 0
-log = 0

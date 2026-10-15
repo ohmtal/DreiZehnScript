@@ -320,7 +320,7 @@ namespace DreiZehn {
     }
     // -------------------------------------------------------------------------
     Value CallExpression::evaluate(Environment& env) {
-        // test_fibo (33) 6.488u
+
         if (cbCache) return CallFunc(env,cbCache,arguments,mFuncSymbolId);
         if (sfCache) return CallScriptFunc(env,sfCache, arguments);
 
@@ -846,11 +846,19 @@ namespace DreiZehn {
         int start = startVal.getInt();
         int end = endVal.getInt();
 
+        int step = 1;
+        if (this->mStepExpr) {
+            // step is always positive !!
+            Value stepVal = this->mStepExpr->evaluate(env);
+            step = std::abs(stepVal.getInt());
+        }
+
         // Environment loopEnv(&env);
         // Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
         Value* iterValPtr = env.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
         if (start > end ) {
-            for (int i = start; i >= end; --i) {
+            // for (int i = start; i >= end; --i) {
+            for (int i = start; i >= end; i -= step) {
                 *iterValPtr = Value(i);
 
                 for (auto& statement : this->mBody) {
@@ -868,7 +876,7 @@ namespace DreiZehn {
             }
 
         } else {
-            for (int i = start; i <= end; ++i) {
+            for (int i = start; i <= end; i += step) {
                 *iterValPtr = Value(i);
 
                 for (auto& statement : this->mBody) {

@@ -269,6 +269,7 @@ public:
         char buffer[256];
 
         if (isInt()) {
+            int64_t intVal =
             snprintf(buffer, sizeof(buffer), "%d" , asInt());
             return std::string(buffer);
         }

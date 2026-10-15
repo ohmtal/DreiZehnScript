@@ -1,0 +1,109 @@
+-- -----------------------------------------------------------------------------
+--  Copyright (c) 2026 Thomas Hühn (XXTH)
+--  SPDX-License-Identifier: MIT
+-- -----------------------------------------------------------------------------
+--  Pixel Fire  written in DreiZehn
+--
+--  * it used PixelBuffer to create the fire
+--  * hardcore script test ;)
+-- -----------------------------------------------------------------------------
+
+fn PixelFire::initializePalette this
+    this.colorPalette = Vector::new
+    this.colorPalette->fill 256 0xFF000000
+
+    -- format 0xAARRGGBB
+    forRange i 256
+        if i < 85
+            -- 0 .. 84: black to red
+            this.colorPalette[i] = float::cast (0xFF << 24) | ((i * 3) << 16) | (0 << 8) | 0
+        elif i < 170
+            -- 85 .. 169: full red, add green == Yellow
+            this.colorPalette[i] = float::cast (0xFF << 24) | (255 << 16) | (((i - 85) * 3) << 8) | 0
+        else
+            -- 170 .. 255: full red and green (yellow) adding blue (white)
+            this.colorPalette[i] = float::cast (0xFF << 24) | (255 << 16) | (255 << 8) | ((i - 170) * 3)
+        end
+    end
+end
+
+fn PixelFire::igniteBottomRow this
+    bottomRowStart = (this.height - 1) * this.width
+    forRange x this.width
+        this.heatBuffer[ bottomRowStart + x] = ((math::random 0 9) ? 0 : 255)
+    end
+end
+
+fn PixelFire::update this
+    this->igniteBottomRow
+    forRange y (this.height-1)
+        forRange x this.width
+            belowIndex = (( y + 1 ) * this.width) + x
+            randomWind = (math::random 0 2) - 1
+            targetX = (x + randomWind + this.width) % this.width
+            targetIndex = ( y * this.width ) + targetX
+            baseHeat  = this.heatBuffer[belowIndex]
+            cooling = math::random 0 this.coolDown
+
+            newHeat = 0
+            if baseHeat > cooling
+                newHeat = baseHeat - cooling
+            end
+            this.heatBuffer[targetIndex] = newHeat
+
+            color = this.colorPalette[newHeat]
+            if newHeat == 0
+                color = 0
+            else
+                color = this.colorPalette[newHeat]
+            end
+            this->setPixel targetX y color
+        end
+    end
+end
+
+
+-- --- static constuctor
+fn PixelFire::new width height coolDown
+
+    if width <= 0 || height <= 0; return 0;;
+
+    this = PixelBuffer::new width height
+    this->setClassName "PixelFire"
+    this.width = width
+    this.height = height
+    this.heatBuffer = Vector::new
+    this.heatBuffer->fill (width * height) 0
+    this->initializePalette
+
+    if coolDown > 0
+        this.coolDown = coolDown
+    else
+        this.coolDown = 32
+    end
+
+
+    return this
+end
+
+-- -----------------------------------------------------------------------------
+--  TEST
+-- -----------------------------------------------------------------------------
+-- global doReload = false
+-- fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+-- fn rl; doReload = true;;
+-- -- -----------------------------------------------------------------------------
+-- global fire = 0
+-- fn test1
+--   fire = PixelFire::new 64 64
+--   fire.colorPalette->dump
+-- end
+-- fn test2
+--   fire->igniteBottomRow
+--   fire.heatBuffer->dump
+-- end
+-- -- -----------------------------------------------------------------------------
+--
+-- while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;
+
+

@@ -229,6 +229,13 @@ public:
                 }
                 break;
             }
+
+            case NodeType::IncludeStatement: {
+                if (auto* expr = dynamic_cast<IncludeStatement*>(node)) {
+                    return expr->execute(currentEnv);
+                }
+                break;
+            }
             // --- others ---
             default: {
                 // if (auto* expr = dynamic_cast<Expression*>(node)) {

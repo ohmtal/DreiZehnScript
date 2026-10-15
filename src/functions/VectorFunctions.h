@@ -278,7 +278,7 @@ namespace DreiZehn {
                 arr->mElements.push_back(arg);
             }
             return true;
-        });
+        }, "Return a new Vector Object. Optional fill with the given values.");
     }
 
 

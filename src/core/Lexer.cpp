@@ -78,6 +78,7 @@ const char* tokenTypeToString(TokenType type) {
         case TokenType::Colon:          return "Colon";
 
         case TokenType::Import:         return "Import";
+        case TokenType::Include:        return "Include";
         case TokenType::Define:         return "Define";
         case TokenType::Global:         return "Global";
         case TokenType::Comma:          return "Comma";
@@ -328,6 +329,7 @@ std::vector<Token> Lexer::tokenize() {
             else if (id == "and") { tokens.push_back({TokenType::And, "and"});  }
             else if (id == "or") { tokens.push_back({TokenType::Or, "or"});  }
             else if (id == "import") { tokens.push_back({TokenType::Import, "import"});  }
+            else if (id == "include") { tokens.push_back({TokenType::Include, "include"});  }
             else if (id == "define") { tokens.push_back({TokenType::Define, "define"});  }
             else if (id == "global") { tokens.push_back({TokenType::Global, "global"});  }
             else {
@@ -376,7 +378,42 @@ std::vector<Token> Lexer::tokenize() {
             tokens.push_back({TokenType::StringLiteral, strValue});
             continue;
         }
+        // StringLiteral 2
+        if (peek() == '\'') {
+            advance(); // eat
+            std::string strValue;
 
+            while (peek() != '\'' && peek() != '\0') {
+                if (peek() == '\\') {
+                    advance(); // eat '\\'
+
+                    if (peek() == '\0') break;
+
+                    if (peek() == 'n')      { strValue += '\n'; advance(); }
+                    else if (peek() == 't') { strValue += '\t'; advance(); } // \t
+                    else if (peek() == 'r') { strValue += '\r'; advance(); } // \r
+                    else if (peek() == '"') { strValue += '"';  advance(); }
+                    else if (peek() == '\'') { strValue += '\'';  advance(); }
+                    else if (peek() == '\\'){ strValue += '\\'; advance(); } // Backslash-Escaping
+                    else {
+                        strValue += advance();
+                    }
+                } else {
+                    strValue += advance();
+                }
+            }
+
+            if (peek() == '\'') {
+                advance(); // eat
+            } else {
+                Tools::errorf("[Lexer-ERROR] String not closed!\n");
+                tokens.clear();
+                return tokens;
+            }
+
+            tokens.push_back({TokenType::StringLiteral, strValue});
+            continue;
+        }
 
         // ---------- Comment ---------------
         if (peek() == '#') {

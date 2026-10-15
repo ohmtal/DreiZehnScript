@@ -61,7 +61,7 @@ enum class TokenType {
 
     , Question, Colon //short if then
 
-    , Define, Import
+    , Define, Import, Include
 
     , Global
 

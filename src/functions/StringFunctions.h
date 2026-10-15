@@ -356,14 +356,14 @@ namespace DreiZehn {
                     if (dStr.back() == '.') dStr.pop_back();
                     resultStr += dStr;
                 }
-                else if (val.isStringId()) {
+                else if (val.isString()) {
                     resultStr += val.getString();
                 }
             }
 
             ret = Value(resultStr);
             return true;
-        });
+        }, "Retrun a concat string of values. The values can be string, int or float.");
 
         // ---------------------------------------------------------------------
         RegisterFunction("str::format", [](std::vector<Value>& args, Value& ret) -> bool {
@@ -373,7 +373,7 @@ namespace DreiZehn {
             }
             ret = Value( formatString(args));
             return true;
-        });
+        }, "Return a formated string. Works like sprintf. first parameter is the format next are the values.");
 
         // ---------------------------------------------------------------------
         RegisterFunction("str::cast", [](std::vector<Value>& args, Value& ret) -> bool {
@@ -387,7 +387,7 @@ namespace DreiZehn {
             if (args[0].isDouble()) ret = Value (std::to_string(args[0].asFastDouble()));
 
             return true;
-        });
+        }, "return a converted  number to string and cast the variable to string type.");
 
         // ---------------------------------------------------------------------
         // ---------------------------------------------------------------------
@@ -402,16 +402,16 @@ namespace DreiZehn {
                 ret = Value(resDouble);
             }
             return true;
-        });
+        }, "return the number representation of a string.");
         // ---------------------------------------------------------------------
         RegisterFunction("str::strlen", [](std::vector<Value>& args, Value& ret) -> bool {
             if (!ArgsCheckString("str::len", args, 1)) return true;
             ret = Value((int32_t)args[0].getStringRef().length());
             return true;
-        });
+        } , "return the len of the given string.");
         // ---------------------------------------------------------------------
-        RegisterFunction("str::strstr", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (!ArgsCheckString("str::strstr", args, 2)) return true;
+        RegisterFunction("str::strpos", [](std::vector<Value>& args, Value& ret) -> bool {
+            if (!ArgsCheckString("str::strpos", args, 2)) return true;
             const char* str = args[0].getStringChars();
             const char* pos = strstr(str, args[1].getStringChars());
             if (!pos) {
@@ -420,7 +420,7 @@ namespace DreiZehn {
             }
             ret = Value((int32_t)(pos-str));
             return true;
-        });
+        }, "return the position of the string value2 inside value1. Returns -1 if not found.");
         // ---------------------------------------------------------------------
         RegisterFunction("str::ltrim", [](std::vector<Value>& args, Value& ret) -> bool {
             if (!ArgsCheckString("str::ltrim", args, 1)) return true;
@@ -428,7 +428,7 @@ namespace DreiZehn {
             FluxStr::ltrim(str);
             ret = Value(str);
             return true;
-        });
+        }, "return left side trimmed string");
         // ---------------------------------------------------------------------
         RegisterFunction("str::rtrim", [](std::vector<Value>& args, Value& ret) -> bool {
             if (!ArgsCheckString("str::ltrim", args, 1)) return true;
@@ -436,7 +436,7 @@ namespace DreiZehn {
             FluxStr::rtrim(str);
             ret = Value(str);
             return true;
-        });
+        }, "return right side trimmed string");
         // ---------------------------------------------------------------------
         RegisterFunction("str::trim", [](std::vector<Value>& args, Value& ret) -> bool {
             if (!ArgsCheckString("str::ltrim", args, 1)) return true;
@@ -444,19 +444,19 @@ namespace DreiZehn {
             FluxStr::trim(str);
             ret = Value(str);
             return true;
-        });
+        }, "return both sides trimmed string");
         // ---------------------------------------------------------------------
         RegisterFunction("str::toLower", [](std::vector<Value>& args, Value& ret) -> bool {
             if (!ArgsCheckString("str::toLower", args, 1)) return true;
             ret = Value(FluxStr::toLower(args[0].getStringRef()));
             return true;
-        });
+        }, "return converted to lower string");
         // ---------------------------------------------------------------------
         RegisterFunction("str::toUpper", [](std::vector<Value>& args, Value& ret) -> bool {
             if (!ArgsCheckString("str::toUpper", args, 1)) return true;
             ret = Value(FluxStr::toUpper(args[0].getStringRef()));
             return true;
-        });
+        }, "return converted to upper string");
         // ---------------------------------------------------------------------
         RegisterFunction("str::ord", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() < 1 || !args[0].isStringId()) {
@@ -470,26 +470,26 @@ namespace DreiZehn {
                 ret = Value(static_cast<int32_t>(str[offset]));
             }
             return true;
-        });
+        }, "return the oridinal value of a character given by string if not index is added it use 0");
         // ---------------------------------------------------------------------
         RegisterFunction("str::chr", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1) {
-                Tools::errorf("Usage: str::chr keycode (0..255)\n");
+                Tools::errorf("Usage: str::chr ascii (0..255)\n");
                 return true;
             }
 
-            int keycode = args[0].getInt();
+            int ascii = args[0].getInt();
 
-            if (keycode < 0 || keycode > 255) {
-                Tools::errorf("str::chr error: keycode %d out of bounds (0..255)!\n", keycode);
+            if (ascii < 0 || ascii > 255) {
+                Tools::errorf("str::chr error: ascii %d out of bounds (0..255)!\n", ascii);
                 return true;
             }
 
-            std::string result(1, static_cast<char>(keycode));
+            std::string result(1, static_cast<char>(ascii));
 
             ret = Value(result);
             return true;
-        });
+        }, "Return the characted of the given a ascii number.");
         // ---------------------------------------------------------------------
         RegisterFunction("str::substr", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() < 2 || !args[0].isStringId()) {
@@ -527,7 +527,7 @@ namespace DreiZehn {
 
             ret = Value(str.substr(static_cast<size_t>(start), static_cast<size_t>(count)));
             return true;
-        });
+        }, "return a substring from start. Len is optional.");
         // ---------------------------------------------------------------------
         RegisterFunction("str::replace", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() < 3 || !args[0].isStringId() || !args[1].isStringId()
@@ -555,7 +555,7 @@ namespace DreiZehn {
 
             ret = Value(result);
             return true;
-        });
+        }, "Replace a part of a string");
         // ---------------------------------------------------------------------
         // ---------------------------------------------------------------------
         RegisterFunction("str::wordcount", [](std::vector<Value>& args, Value& ret) -> bool {
@@ -578,7 +578,7 @@ namespace DreiZehn {
             ret =  Value(FluxStr::getWordCount(str,delim));
 
             return true;
-        });
+        }, "Get the count of Words - optional separator char");
         // ---------------------------------------------------------------------
         RegisterFunction("str::word", [](std::vector<Value>& args, Value& ret) -> bool {
              if (args.size() < 2 || !args[0].isStringId()) {
@@ -602,7 +602,7 @@ namespace DreiZehn {
             ret =  Value(FluxStr::getWord(str,index,delim));
 
             return true;
-        });
+        }, "Get a word at index - optional separator char");
         // ---------------------------------------------------------------------
         RegisterFunction("str::setword", [](std::vector<Value>& args, Value& ret) -> bool {
              if (args.size() < 3 || !args[0].isStringId()) {
@@ -627,7 +627,7 @@ namespace DreiZehn {
             ret =  Value(FluxStr::setWord(str,index,replace, delim));
 
             return true;
-        });
+        }, "Set a words at index - optional separator char");
         // ---------------------------------------------------------------------
         RegisterFunction("str::removeword", [](std::vector<Value>& args, Value& ret) -> bool {
              if (args.size() < 2 || !args[0].isStringId()) {
@@ -651,7 +651,7 @@ namespace DreiZehn {
             ret =  Value(FluxStr::removeWord(str,index,delim));
 
             return true;
-        });
+        }, "Remove a words at index - optional separator char");
         // ---------------------------------------------------------------------
 
 

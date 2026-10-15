@@ -196,6 +196,16 @@ namespace DreiZehn {
 
 
     // --------------------------------------------------------------------------------
+    std::shared_ptr<BlockStatement> IncludeScriptFile(const std::string& filename)
+    {
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            Tools::errorf("Script file cant be opened: %s\n", filename.c_str());
+            return nullptr;
+        }
+        return ParseScriptToAST(file);
+    }
+    // --------------------------------------------------------------------------------
     bool RunScriptFile(const std::string& filename, Environment& env) {
         std::ifstream file(filename);
         if (!file.is_open()) {

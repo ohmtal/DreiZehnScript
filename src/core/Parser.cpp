@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------------
 #include "Parser.h"
 #include "FunctionMap.h"
+#include <ScriptLoader.h>
 
 namespace DreiZehn {
 
@@ -487,8 +488,13 @@ namespace DreiZehn {
 
                 auto start = parseMath();
                 auto end = parseMath();
+                auto step= parseMath();
 
-                return std::make_unique<ForStatement>(SymbolTable::insert(varName), std::move(start), std::move(end));
+                return std::make_unique<ForStatement>(SymbolTable::insert(varName),
+                            std::move(start),
+                            std::move(end),
+                            std::move(step)
+                );
             }
             break;
 
@@ -589,17 +595,17 @@ namespace DreiZehn {
                 advance();
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::PrintParseError("Syntax-Error: variable name after define expected\n");
+                    Tools::PrintParseError("Syntax-Error: variable name after import expected\n");
                     return nullptr;
                 }
                 std::string modname = advance().mValue;
 
                 if (!Globals::gCurEnv) {
-                    Tools::PrintParseError("System-Error: current enviroment not set!\n");
+                    Tools::PrintParseError("System-Error Import: current enviroment not set!\n");
                     return nullptr;
                 }
                 if (modname.empty()) {
-                    Tools::PrintParseError("System-Error: module name empty.\n");
+                    Tools::PrintParseError("System-Error Import: module name empty.\n");
                     return nullptr;
                 }
                 // direct import
@@ -613,6 +619,29 @@ namespace DreiZehn {
 
                 return nullptr;
             }
+            break;
+
+            // ---- direct include ----
+            case TokenType::Include: {
+                advance();
+
+                if (peek().mType != TokenType::StringLiteral) {
+                    Tools::PrintParseError("Syntax-Error: filename after include expected\n");
+                    return nullptr;
+                }
+                std::string filename = advance().mValue;
+
+                if (filename.empty()) {
+                    Tools::PrintParseError("System-Error Include: filename empty.\n");
+                    return nullptr;
+                }
+
+                auto script = IncludeScriptFile(filename);
+                if (!script) return nullptr;
+
+                return std::make_unique<IncludeStatement>(std::move(script));
+            }
+
             break;
             // -----------------------------------------------------------------
             case TokenType::Global:  {

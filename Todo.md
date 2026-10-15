@@ -382,7 +382,7 @@ Struct [0x5576cc6a5440]
     - [X] changed dynamic fields also to unique_ptr ! this fixed it :D
 
 
-## 0.8f 
+## 0.8f  
 - [X] moved Parser header source to cpp
 - [X] moved Lexer header source to cpp
 - [X] print  0xff0000ff ==> -16776961 . its correct but bad 
@@ -395,7 +395,11 @@ Struct [0x5576cc6a5440]
 - [X] Comma hack to separate parameter at a function call. this works fine but when it is a function call WITH 
         parameter inside a function call - it still need the () !!!!! I dont want to change it to a foo(a,b,c)! i like my
         foo a b c  or now foo a,b,c
-
+- [X] added a third value to `for` the step.
+- [X] added `include filename`
+        
+## 0.8g        
+        
         
 ## 0.?? .... ongoing process ....
 

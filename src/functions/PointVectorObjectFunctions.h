@@ -122,7 +122,7 @@ namespace DreiZehn {
             if (args.size() > 2 ) v->mVec.z = args[2].getDouble();
             ret = Value(v);
             return true;
-        });
+        }, "Return a new Vector3 (3D float point) Object. Optional x,y,z");
 
     }
 

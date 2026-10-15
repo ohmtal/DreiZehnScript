@@ -9,26 +9,6 @@ import Vector
 
 -- NOTE: when a function parameter have a "result" parameter THIS is what we want to return
 
--- str::cast
--- str::chr
--- str::concat
--- str::format
--- str::ltrim
--- str::ord
--- str::removeword
--- str::replace
--- str::rtrim
--- str::setword
--- str::strlen
--- str::strstr
--- str::substr
--- str::toLower
--- str::toNumber
--- str::toUpper
--- str::trim
--- str::word
--- str::wordcount
-
 import All
 
 -- -----------------------------------------------------------------------------
@@ -175,7 +155,7 @@ end
 
 fn parseLine line
     log->writeln (str::concat "LINE: " line); log->flush
-    pos = (str::strstr line filter)
+    pos = (str::strpos line filter)
     if pos != 0; return 0 ;;
 
 

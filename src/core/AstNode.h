@@ -60,6 +60,7 @@ enum class NodeType {
     TernaryExpression
     // ,CurlyArgumentsExpression
     ,ForEachStatement
+    ,IncludeStatement
 };
 
 
@@ -97,6 +98,7 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::TernaryExpression:       return "TernaryExpression";
         // case NodeType::CurlyArgumentsExpression: return "CurlyArgumentsExpression";
         case NodeType::ForEachStatement:       return "ForEachStatement";
+        case NodeType::IncludeStatement:       return "IncludeStatement";
     }
     return "UnknownNodeType";
 }
@@ -471,8 +473,17 @@ struct ForStatement : public BlockStatement {
     std::unique_ptr<Expression> mStartExpr;
     std::unique_ptr<Expression> mEndExpr;
 
-    ForStatement(uint32_t nameSymId, std::unique_ptr<Expression> start, std::unique_ptr<Expression> end)
-    : mIteratorVarNameSymbolId(nameSymId), mStartExpr(std::move(start)), mEndExpr(std::move(end)) {
+    std::unique_ptr<Expression> mStepExpr;
+
+
+    ForStatement(uint32_t nameSymId, std::unique_ptr<Expression> start,
+                    std::unique_ptr<Expression> end,
+                    std::unique_ptr<Expression> step)
+    : mIteratorVarNameSymbolId(nameSymId)
+    , mStartExpr(std::move(start))
+    , mEndExpr(std::move(end))
+    , mStepExpr(std::move(step))
+    {
             mNodeType  = NodeType::ForStatement;
     }
 
@@ -537,5 +548,17 @@ struct WhileStatement : public BlockStatement {
         mNodeType  = NodeType::WhileStatement;
     }
     FlowStatus execute(Environment& env) override;
+};
+
+// Include -------------------------------------------------------------------------
+struct IncludeStatement : public FlowBaseStatement {
+    std::shared_ptr<BlockStatement> body;
+    IncludeStatement(std::shared_ptr<BlockStatement> b) : body(std::move(b)) {
+        mNodeType = NodeType::IncludeStatement;
+    }
+
+    inline FlowStatus execute(Environment& env) override {
+        return body->execute(env);
+    }
 };
 } //namespace

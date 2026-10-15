@@ -28,7 +28,7 @@
     - elif      Conditional elif
     - fn        start a function definition
     - end       end a if,else,elif,for, forRange, forEach the short alias is `;;`
-    - for       Start a loop `for i 1 10` count from 1 to 10 (inclusive)
+    - for       Start a loop `for i 1 10` count from 1 to 10 (inclusive), you can add a positive step value as 3th parameter. It auto detect forward or backward.
     - break     break a loop 
     - return    return [value] from a function optional a return value
     - continue  continue a loop 

@@ -6,6 +6,8 @@ import String
 import Fenster
 import Vector
 
+include "common/Pixel/PixelFire.13"
+
 define WINDOW_W = 160
 define WINDOW_H 100
 define WINDOW_SCALE 4
@@ -61,6 +63,11 @@ fenster->drawBuffer 60 20 pb90
 fenster->drawBuffer 100 20 pb180
 fenster->drawBuffer 140 20 pb270
 
+-- --------
+fire = PixelFire::new WINDOW_W 20 32
+
+-- --------
+
 
 Boulders = Vector::new
 d = 0
@@ -81,18 +88,27 @@ forRange i Boulders->size
     end
 end
 
+ticker = 0
+tickCount = 6
+
 while fenster->loop
+
+
     -- ESC
    if fenster->isKeyDown 27
        break
    end
-   fenster->rect 0 (WINDOW_H - 20) WINDOW_W 20 COLOR_DARKGRAY
-   fenster->text 20 (WINDOW_H - 16) "Hello Fenster!" FONT_SCALE 0xFFFFFF
-   fenster->text 20 (WINDOW_H - 8) \
-    (str::concat "mouse: x:" (fenster->getMouseX) ", y:" (fenster->getMouseY) ", down:" (fenster->getMouseDown)) \
-    FONT_SCALE 0xFFFFFF
+   fenster->rect 0 (WINDOW_H - 20) WINDOW_W 20 COLOR_BLACK
+   if fire
+        if (ticker == 0) fire->update;;
+        fenster->drawBuffer 0 (WINDOW_H - 20) fire
+   end
+   str =  str::concat "mouse: x:" fenster->getMouseX, ", y:" fenster->getMouseY, ", down:" fenster->getMouseDown
+   fenster->text 20 (WINDOW_H - 16) str FONT_SCALE COLOR_DARKGRAY
+   fenster->text 21 (WINDOW_H - 15) str FONT_SCALE COLOR_WHITE
 
 
+   ticker++; if ticker >= tickCount; ticker = 0;;
 
    if !core::breath; break;;
 end

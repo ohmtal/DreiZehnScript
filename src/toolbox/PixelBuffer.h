@@ -43,10 +43,18 @@ inline uint32_t get(uint32_t x, uint32_t y) {
     return buffer[y * width + x];
 }
 
-inline void set(uint32_t x, uint32_t y, uint32_t color) {
-    if (!buffer || x >= width || y >= height) return;
+inline bool set(uint32_t x, uint32_t y, uint32_t color) {
+    if (!buffer || x >= width || y >= height) return false;
     buffer[y * width + x] = color;
+    return true;
 }
+
+inline bool setAt(uint32_t index, uint32_t color) {
+    if (!buffer || index >= (width * height)) return false;
+    buffer[index] = color;
+    return true;
+}
+
 inline void blit(uint32_t dest_x, uint32_t dest_y, const pixel_buffer& src) {
     if (!this->buffer || !src.buffer) return;
 

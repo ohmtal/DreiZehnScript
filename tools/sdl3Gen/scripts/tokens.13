@@ -14,15 +14,14 @@ fn Tokens::debug this p1 p2 p3 p4 p5
     if this._debug_
         if p1==0 p1 ="";; if p2==0 p2 ="";; if p3==0 p3 ="";; if p4==0 p4 ="";;
         if p5==0 p5 ="";;
-        print (str::format "PARSER DEBUG:  %s %s %s %s %s"  p1 p2 p3 p4 p5 )
+        print (str::format "PARSER DEBUG: %s %s %s %s %s" p1 p2 p3 p4 p5 )
     end
 end
 -- -----------------------------------------------------------------------------
-fn Tokens::run this
+fn Tokens::run this jsonTree
 
 
-    forEach token this.jsonTree
-
+    forEach token jsonTree
 
         if (token.kind == "param")
             this->debug "SKIP PARAM: " token.function token.name
@@ -31,10 +30,12 @@ fn Tokens::run this
             field = this->getField structname
             if (field && field->getType == TypeObject  )
                 if (field.params && field.params->getType == TypeVector)
-                    this->debug "ADD " token "TO" structname
+                    if this._debug_; print "add >>>>" token "<<<<< to" structname;;
+--                     this->debug "ADD " (token) "TO" structname
                     field.params->push token
                 else
-                    this->debug "add " token "TO NEW "  structname ".params"
+                    if this._debug_; print "add >>>>" token "<<<<< to" structname;;
+--                     this->debug "add " (token) "TO NEW "  structname ".params"
                     field->setField "params" Vector::new
                     field.params->push token
                 end
@@ -62,7 +63,9 @@ fn Tokens::generateSource this
     count = this->getFieldCount
 
     forRange i count
-        this->debug "----------------------" (this->getFieldName i) "------------------------------"
+        fieldName = this->getFieldName i
+        if (fieldName == "_debug_") continue;;
+        this->debug "----------------------" fieldName "------------------------------"
         token = this->getField i
 
         varType = getType token
@@ -106,8 +109,7 @@ fn Tokens::new jsonTree debug
     this = Vector::new
     this->setClassName "Tokens"
     this._debug_ = debug
-    this.jsonTree = jsonTree
-    this->run
+    this->run jsonTree
     this->generateSource
     return this
 end

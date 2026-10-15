@@ -40,8 +40,6 @@ set (LINK_LIBS)
 
 set(PROJECT_SRC
 
-    demo/linenoise/linenoise.c
-    demo/linenoise/linenoise.h
     demo/main.cpp
 )
 

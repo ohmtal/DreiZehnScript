@@ -189,7 +189,7 @@ namespace DreiZehn {
         if (obj->onGetField(mFieldSymbolId, returnValue)) {
             return returnValue;
         }
-        Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
+        Tools::warnf("RunTime: Object %s have no field named: %s\n",
                       varValue.toString().c_str(),
                       SymbolTable::getName(mFieldSymbolId).c_str()
                       );
@@ -215,7 +215,7 @@ namespace DreiZehn {
 
         Value* valPtr= obj->onGetFieldPtr(mFieldSymbolId);
         if (!valPtr) {
-            Tools::errorf("RunTime Error: Object %s have no field named: %s\n",
+            Tools::warnf("RunTime: Object %s have no field named: %s\n",
                         varValue.toString().c_str(),
                         SymbolTable::getName(mFieldSymbolId).c_str()
             );

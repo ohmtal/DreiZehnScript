@@ -28,13 +28,42 @@
 #include "addons/Raylib/RaylibFunctions.h"
 #endif
 
-#include "demo/linenoise/linenoise.h"
+#include "demo/cpp-linenoise/linenoise.hpp"
+#ifdef _WIN32
+#include <conio.h> // Für _kbhit() unter Windows
+#else
+#include <sys/select.h>
+#include <unistd.h>
+#endif
 
 
+static std::string hints_callback(
+    const char* input,
+    int& color,
+    bool& bold
+) {
+    const std::string prefix = input ? input : "";
+    if (prefix.empty()) {
+        return "";
+    }
+
+    for (const auto& [key, value] : DreiZehn::FunctionMap::RegisteredFunctions) {
+        const std::string name = SymbolTable::getName(key);
+
+        if (name.compare(0, prefix.size(), prefix) == 0) {
+            color = 35;
+            bold = false;
+
+            return name.substr(prefix.size());
+        }
+    }
+
+    return "";
+}
 
 static void completion_callback(
     const char* input,
-    linenoiseCompletions* completions
+    std::vector<std::string>& completions
 ) {
     const std::string prefix = input ? input : "";
 
@@ -42,86 +71,75 @@ static void completion_callback(
         const std::string name = SymbolTable::getName(key);
 
         if (name.compare(0, prefix.size(), prefix) == 0) {
-            linenoiseAddCompletion(completions, name.c_str());
+            completions.push_back(name);
         }
     }
 }
-
-bool read_line(const char* prompt, std::string& line) {
-    char* buffer = linenoise(prompt);
-
-    if (buffer == nullptr) {
-        return false;
-    }
-
-    line = buffer;
-
-    if (!line.empty()) {
-        linenoiseHistoryAdd(buffer);
-    }
-
-    linenoiseFree(buffer);
-    return true;
-}
-
 
 
 bool read_line_nonblocking(const char* prompt, std::string& line) {
-    static struct linenoiseState ls;
-    static char buf[4096];
+    static linenoise::EditState st;
     static bool is_initialized = false;
 
     if (!is_initialized) {
-        linenoiseEditStart(&ls, -1, -1, buf, sizeof(buf), prompt);
+        linenoise::EditStart(st, prompt);
         is_initialized = true;
     }
 
+    bool has_input = false;
+    #ifdef _WIN32
+    has_input = _kbhit();
+    #else
     fd_set readfds;
     struct timeval tv = {0, 0};
-
     FD_ZERO(&readfds);
-    FD_SET(ls.ifd, &readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+    has_input = (select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv) > 0);
+    #endif
 
-    int retval = select(ls.ifd + 1, &readfds, NULL, NULL, &tv);
-
-    if (retval <= 0) {
+    if (!has_input) {
         return false;
     }
 
-    char *result_buffer = linenoiseEditFeed(&ls);
+    auto status = linenoise::EditFeed(st, line);
 
-    if (result_buffer == linenoiseEditMore) {
+    if (status == linenoise::EditStatus::More) {
         return false;
     }
 
-    linenoiseEditStop(&ls);
+    linenoise::EditStop(st);
     is_initialized = false;
 
-    if (result_buffer != nullptr) {
-        line = result_buffer;
-        if (!line.empty()) {
-            linenoiseHistoryAdd(result_buffer);
-        }
-        linenoiseFree(result_buffer);
-        return true;
-    }
-
-    line = "";
-    return false;
+    return (status == linenoise::EditStatus::Done);
 }
-
 
 bool ConsoleCall(DreiZehn::Environment& env) {
     static std::string line;
-    if (read_line_nonblocking("> ", line )) {
-        if (line == "exit") return false;
-        if (line == "quit") return false;
+
+    if (read_line_nonblocking("> ", line)) {
+        if (line == "exit" || line == "quit") return false;
+
+        if (!line.empty()) {
+            linenoise::AddHistory(line.c_str());
+        }
 
         std::stringstream stream(line);
         DreiZehn::RunScriptStream(stream, env);
     }
     return true;
 }
+
+// bool ConsoleCall(DreiZehn::Environment& env) {
+//     static std::string line;
+//     if (read_line_nonblocking("> ", line )) {
+//         if (line == "exit") return false;
+//         if (line == "quit") return false;
+//
+//         std::stringstream stream(line);
+//         DreiZehn::RunScriptStream(stream, env);
+//     }
+//     return true;
+// }
 
 // -------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
@@ -154,14 +172,6 @@ int main(int argc, char* argv[]) {
     };
 
 
-    // char buffer[256];
-    // BaseValueObject* obj = new BaseValueObject();
-    // obj->onSetField(SymbolTable::insert("argc"), Value(argc));
-    // FunctionMap::RegisterConstants("sys::args", Value(obj));
-    // for (int i = 0; i < argc; i++) {
-    //     snprintf(buffer, sizeof(buffer), "argv_%d" , i);
-    //     obj->onSetField(SymbolTable::insert(buffer), Value(std::string(argv[i])));
-    // }
     if (argc > 1) {
 
         std::string scriptPath = argv[1];
@@ -182,7 +192,8 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------------------------------------
     std::string line;
 
-    linenoiseSetCompletionCallback(completion_callback);
+    linenoise::SetCompletionCallback(completion_callback);
+    linenoise::SetHintsCallback(hints_callback);
 
 
     std::vector<OpenBlock> blockStack;
@@ -191,12 +202,6 @@ int main(int argc, char* argv[]) {
 
         if (!ConsoleCall(env)) break;
         Tools::sleep(16);
-        // read_line("> ", line);
-        // if (line == "exit") break;
-        // if (line == "quit") break;
-        //
-        // std::stringstream stream(line);
-        // RunScriptStream(stream, env);
 
     }
     env.shutDown();

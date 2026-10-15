@@ -401,7 +401,9 @@ Struct [0x5576cc6a5440]
 ## 0.8g
 - [X] added noExec parameter to `include filename` 
 - [X] moved addons from ext/ and src/functions/ to addons/ and added cpp instead of h
-        
+- [ ] remove fenster audio and implement MiniAudio instead 
+- [ ] linenoise.c does not work on ms
+    => changed to cpp-linenoise in a thread
         
 ## 0.?? .... ongoing process ....
 

@@ -352,7 +352,7 @@ namespace DreiZehn {
             return true;
         }
 
-        Tools::errorf("Runtime Error GetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
+        // Tools::errorf("Runtime Error GetField: Field %s not found.\n",SymbolTable::getName(fieldSymbolId).c_str());
         return false;
     }
     // -------------------------------------------------------------------------

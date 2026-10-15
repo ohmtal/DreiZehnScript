@@ -213,15 +213,15 @@ end
 -- fn rl; doReload = true;;
 -- -----------------------------------------------------------------------------
 -- 1. single line
-global p = 0
-fn test1
-    line = "{\"file\":\"SDL_rect.h\",\"kind\":\"function\",\"name\":\"SDL_GetRectAndLineIntersectionFloat\",\"return_type\":\"int\",\"params\":[{\"name\":\"rect\",\"type\":\"const SDL_FRect *\"},{\"name\":\"X1\",\"type\":\"float *\"},{\"name\":\"Y1\",\"type\":\"float *\"},{\"name\":\"X2\",\"type\":\"float *\"},{\"name\":\"Y2\",\"type\":\"float *\"}]}"
-
-    p = Parser::new line true
-
-    print "SIZE IS " p->size
-    p->printTree 0
-end
+-- global p = 0
+-- fn test1
+--     line = "{\"file\":\"SDL_rect.h\",\"kind\":\"function\",\"name\":\"SDL_GetRectAndLineIntersectionFloat\",\"return_type\":\"int\",\"params\":[{\"name\":\"rect\",\"type\":\"const SDL_FRect *\"},{\"name\":\"X1\",\"type\":\"float *\"},{\"name\":\"Y1\",\"type\":\"float *\"},{\"name\":\"X2\",\"type\":\"float *\"},{\"name\":\"Y2\",\"type\":\"float *\"}]}"
+--
+--     p = Parser::new line true
+--
+--     print "SIZE IS " p->size
+--     p->printTree 0
+-- end
 
 -- test1
 

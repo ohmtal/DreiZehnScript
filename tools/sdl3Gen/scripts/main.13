@@ -1,0 +1,32 @@
+-- -----------------------------------------------------------------------------
+--  Copyright (c) 2026 Thomas Hühn (XXTH)
+--  SPDX-License-Identifier: MIT
+-- -----------------------------------------------------------------------------
+--  SDL3 to  DreiZehn
+-- -----------------------------------------------------------------------------
+import All
+include "../../common/FileTools.13" true
+include "../../common/JSONParser.13" true
+-- -----------------------------------------------------------------------------
+if sys::args.argv_2 == ""
+    error "missing parameter Usage: main.13 SDL_File.h"
+    return false
+end
+-- -----------------------------------------------------------------------------
+jsonFilename = str::concat "json/" sys::args.argv_2  ".json"
+print "** loading " jsonFilename
+fileTool = FileTool::new jsonFilename
+fileTool->load
+if fileTool.content == ""; error "Failed to load " jsonFilename end
+-- -----------------------------------------------------------------------------
+parser = Parser::new fileTool.content true
+
+
+-- -----------------------------------------------------------------------------
+--  TEST
+-- -----------------------------------------------------------------------------
+global doReload = false
+fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+fn rl; doReload = true;;
+-- -----------------------------------------------------------------------------
+while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;

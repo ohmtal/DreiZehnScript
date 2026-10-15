@@ -15,7 +15,7 @@ fn FileTool::load this
     while true
         buff =  fs->read 1024
         if (buff == 0) break;;
-        print buff
+        -- print buff
         this.content += buff
     end
     fs->close

@@ -145,7 +145,7 @@ endif()
 if(WIN32 AND MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-    target_compile_definitions(DreiZehn PRIVATE NOMINMAX)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE NOMINMAX)
     add_compile_options(/MP)
 endif()
 

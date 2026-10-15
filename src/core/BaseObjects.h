@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------------
 #pragma once
 
+#include <algorithm>
 #include "core/Value.h"
 #include "core/ValueObject.h"
 #include "core/FunctionMap.h"

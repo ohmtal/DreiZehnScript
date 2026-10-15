@@ -22,7 +22,8 @@ enum class ValueType : uint8_t {
     Int,
     Pointer,
     ValuePointer,
-    StringId
+    StringId,
+    NONE
 };
 
 
@@ -114,7 +115,7 @@ public:
             case TAG_VALUE_PTR:    return ValueType::ValuePointer;
             case TAG_STRING_ID:    return ValueType::StringId;
             default:
-                __builtin_unreachable();
+                return ValueType::NONE;
         }
     }
 

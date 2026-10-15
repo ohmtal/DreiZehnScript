@@ -9,6 +9,7 @@
 #include <algorithm> // std::sort
 #include <cstdlib> // std::getenv
 
+#include "toolbox/Tools.h"
 #include "core/FunctionMap.h"
 #include "ScriptLoader.h"
 #include "core/GarbageCollection.h"

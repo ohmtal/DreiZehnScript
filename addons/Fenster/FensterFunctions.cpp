@@ -23,6 +23,7 @@
 
 #include "src/functions/PixelBufferFunctions.h"
 #include "src/toolbox/PixelBuffer.h"
+#include "core/Value.h"
 
 namespace DreiZehn::Fenster {
     #include "fenster/fenster.h"

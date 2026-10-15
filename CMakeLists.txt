@@ -36,6 +36,8 @@ project(DreiZehn C CXX)
 
 include ("${CMAKE_CURRENT_LIST_DIR}/src/DreiZehn.cmake")
 
+
+
 set (LINK_LIBS)
 
 set(PROJECT_SRC
@@ -131,3 +133,6 @@ if (BUILD_WITH_SANITIZE)
     target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address -g)
     target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
 endif()
+
+target_compile_definitions(DreiZehn PRIVATE NOMINMAX)
+

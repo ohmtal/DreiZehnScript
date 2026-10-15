@@ -95,7 +95,7 @@ namespace DreiZehn::Tools{
     // -------------------------------------------------------------------------
     #if defined(_WIN32) || defined(__WIN32__) || defined(MSC_VER)
     #include <windows.h>
-    #define platform_sleep(ms) Sleep(ms)
+    #define sleep(ms) Sleep(ms)
     #elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
     #include <time.h>
     inline void sleep(unsigned int ms) {

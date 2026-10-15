@@ -117,18 +117,18 @@ namespace DreiZehn::Tools{
     }
 
     // -------------------------------------------------------------------------
-    inline double time_tz(std::string_view tz_name = "") {
-        auto now = std::chrono::system_clock::now();
-
-        if (!tz_name.empty()) {
-            std::chrono::zoned_time zt{tz_name, now};
-            auto local_duration = zt.get_local_time().time_since_epoch();
-            return std::chrono::duration<double>(local_duration).count();
-        }
-
-        auto duration = now.time_since_epoch();
-        return std::chrono::duration<double>(duration).count();
-    }
+    // inline double time_tz(std::string_view tz_name = "") {
+    //     auto now = std::chrono::system_clock::now();
+    //
+    //     if (!tz_name.empty()) {
+    //         std::chrono::zoned_time zt{tz_name, now};
+    //         auto local_duration = zt.get_local_time().time_since_epoch();
+    //         return std::chrono::duration<double>(local_duration).count();
+    //     }
+    //
+    //     auto duration = now.time_since_epoch();
+    //     return std::chrono::duration<double>(duration).count();
+    // }
 
     // -------------------------------------------------------------------------
     inline std::string date(std::string format, double timestamp = -1.0, bool is_utc = false) {

@@ -6,7 +6,8 @@ import String
 import Fenster
 import Vector
 
-include "common/Pixel/PixelFire.13"
+-- include filename noExec
+include "common/Pixel/PixelFire.13" true
 
 define WINDOW_W = 160
 define WINDOW_H 100
@@ -36,8 +37,8 @@ count = pb->setData \
 0 0 0 0 0 0 0 0 \
 0 0 0 0 0 0 0 0 \
 0 0 0 0 0 0 0 0 \
-0 0 0 0xff00ff00 0 0 0 0 \
-0 0 0xff00ff00 0 0xff00ff00 0 0 0 \
+0 0 0 0xffffff00 0 0 0 0 \
+0 0 0xff00ffff 0 0xff00ffff 0 0 0 \
 0 0xff00ff00 0 0 0 0xff00ff00 0 0 \
 0xff00ff00 0 0 0 0 0 0xff00ff00 0
 
@@ -64,8 +65,13 @@ fenster->drawBuffer 100 20 pb180
 fenster->drawBuffer 140 20 pb270
 
 -- --------
-fire = PixelFire::new WINDOW_W 20 32
+fireParts = 4.0
+fireWidth = int::cast WINDOW_W / fireParts
+fire = PixelFire::new fireWidth 20 32
 
+fenster->text 16 (WINDOW_H - 30) \
+    (str::concat "fire pixels: " fireWidth * 20 " parts: " fireParts) \
+    1.0 COLOR_WHITE
 -- --------
 
 
@@ -89,7 +95,7 @@ forRange i Boulders->size
 end
 
 ticker = 0
-tickCount = 6
+tickCount = 4
 
 while fenster->loop
 
@@ -98,10 +104,13 @@ while fenster->loop
    if fenster->isKeyDown 27
        break
    end
+
    fenster->rect 0 (WINDOW_H - 20) WINDOW_W 20 COLOR_BLACK
    if fire
         if (ticker == 0) fire->update;;
-        fenster->drawBuffer 0 (WINDOW_H - 20) fire
+        forRange partX fireParts
+            fenster->drawBuffer (fireWidth * partX) (WINDOW_H - 20) fire
+        end
    end
    str =  str::concat "mouse: x:" fenster->getMouseX, ", y:" fenster->getMouseY, ", down:" fenster->getMouseDown
    fenster->text 20 (WINDOW_H - 16) str FONT_SCALE COLOR_DARKGRAY

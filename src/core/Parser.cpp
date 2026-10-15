@@ -635,11 +635,12 @@ namespace DreiZehn {
                     Tools::PrintParseError("System-Error Include: filename empty.\n");
                     return nullptr;
                 }
+                auto noExecCond = parseMath();
 
                 auto script = IncludeScriptFile(filename);
                 if (!script) return nullptr;
 
-                return std::make_unique<IncludeStatement>(std::move(script));
+                return std::make_unique<IncludeStatement>(std::move(script), std::move(noExecCond));
             }
 
             break;

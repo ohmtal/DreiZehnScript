@@ -552,13 +552,23 @@ struct WhileStatement : public BlockStatement {
 
 // Include -------------------------------------------------------------------------
 struct IncludeStatement : public FlowBaseStatement {
-    std::shared_ptr<BlockStatement> body;
-    IncludeStatement(std::shared_ptr<BlockStatement> b) : body(std::move(b)) {
+    std::shared_ptr<BlockStatement> mBody;
+     std::unique_ptr<Expression> mNoExecCondition;
+
+    IncludeStatement(std::shared_ptr<BlockStatement> b, std::unique_ptr<Expression> cond)
+        : mBody(std::move(b)), mNoExecCondition(std::move(cond))
+    {
         mNodeType = NodeType::IncludeStatement;
     }
 
     inline FlowStatus execute(Environment& env) override {
-        return body->execute(env);
+        Value noExecValue = Value(false);
+        if (mNoExecCondition) {
+            noExecValue = mNoExecCondition->evaluate(env);
+            Tools::warnf("noExecValue = %d %d\n", noExecValue.getInt(), noExecValue.getBool());
+        }
+        if (noExecValue.getBool()) return {FlowSignal::None};
+        return mBody->execute(env);
     }
 };
 } //namespace

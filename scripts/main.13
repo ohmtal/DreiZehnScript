@@ -18,9 +18,12 @@ global loader::ModuleName = ""
 -- functions. If none found it's set as an variable type. So we need to tell
 -- there parser we have this function. The "run" loader override them later.
 -- So they are basically "virual":
-fn ModuleCreate end
-fn ModuleLoop end
-fn ModuleDelete end
+-- fn ModuleCreate end
+-- fn ModuleLoop end
+-- fn ModuleDelete end
+
+-- using include to predefine the functions
+include "scripts/modules/stub.13" true
 
 # ------------------------------------------------------------------------------
 -- since i had the namespace object call not in place when i designed this

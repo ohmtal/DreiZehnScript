@@ -1,0 +1,6 @@
+-- DreiZehn Module Stub
+
+fn ModuleCreate end
+fn ModuleLoop end
+fn ModuleDelete end
+

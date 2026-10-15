@@ -30,7 +30,7 @@ end
 fn PixelFire::igniteBottomRow this
     bottomRowStart = (this.height - 1) * this.width
     forRange x this.width
-        this.heatBuffer[ bottomRowStart + x] = ((math::random 0 9) ? 0 : 255)
+        this.heatBuffer[ bottomRowStart + x] = ((math::random 0 10) ? 0 : 255)
     end
 end
 

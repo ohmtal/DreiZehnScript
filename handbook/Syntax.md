@@ -39,6 +39,7 @@
     - and       logical and alias for `&&`
     - or        logical or alias for `||`   
     - import    import one module `import Math` or `import All` to import all modules
+    - include   import one script file. Usage: `import "/scripts/file.13" true`. Last parameter means no Execute and is optional. default false.
     - define    define a constants `define HALF_PI 3.14159265358979323846 / 2.0`, optional "=" `define FOO = "bar"`
     - global    define a variable as global. Must be done early in script so the parser know which var is global
     

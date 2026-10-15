@@ -4,6 +4,8 @@ import Debug
 import Math
 import String
 
+fn Holy::Cow; print "Muhhhh!";end;
+
 global doReload = false
 fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
 fn rl; doReload = true;;

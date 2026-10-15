@@ -20,7 +20,13 @@
 #if defined(_WIN32)
 #define environ _environ
 #else
-extern char** environ;
+#ifdef __cplusplus
+extern "C" {
+    #endif
+    extern char **environ;
+    #ifdef __cplusplus
+}
+#endif
 #endif
 
 namespace DreiZehn {

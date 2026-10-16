@@ -15,6 +15,13 @@
 #include <iomanip>
 #include <ctime>
 
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <time.h>
+#endif
+
+
 namespace DreiZehn::Tools{
 
     // ------------------------------------------------------------------
@@ -93,21 +100,33 @@ namespace DreiZehn::Tools{
 
 
     // -------------------------------------------------------------------------
-    #if defined(_WIN32) || defined(__WIN32__) || defined(MSC_VER)
-    #include <windows.h>
-    #define sleep(ms) Sleep(ms)
-    #elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-    #include <time.h>
     inline void sleep(unsigned int ms) {
+       #if defined(_WIN32)
+        ::Sleep(ms); 
+       #else
         struct timespec ts;
         ts.tv_sec = ms / 1000;
         ts.tv_nsec = (ms % 1000) * 1000000;
         nanosleep(&ts, NULL);
+       #endif
     }
+
+/*
+#if defined(_WIN32) || defined(__WIN32__) || defined(_MSC_VER) || defined(WIN32)
+    #include <windows.h>
+    #define sleep(ms) ::Sleep(ms)
+    #elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    #include <time.h>
+        static inline void sleep(unsigned int ms) {
+            struct timespec ts;
+            ts.tv_sec = ms / 1000;
+            ts.tv_nsec = (ms % 1000) * 1000000;
+            nanosleep(&ts, NULL);
+        }
     #else
     #error "UNKNOWN OS"
-    #endif
-
+#endif
+*/
     // -------------------------------------------------------------------------
     // time in UTC
     inline double time() {

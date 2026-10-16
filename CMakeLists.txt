@@ -146,6 +146,9 @@ if(WIN32 AND MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     target_compile_options(${PROJECT_NAME}  PRIVATE "/Zc:wchar_t-")
     target_compile_definitions(${PROJECT_NAME} PRIVATE
+        WIN32_LEAN_AND_MEAN
+        NOGDI
+        NOUSER
         NOMINMAX
         UNICODE
         _UNICODE

@@ -46,10 +46,15 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/functions/VectorFunctions.h
     ${CMAKE_CURRENT_LIST_DIR}/functions/PointVectorObjectFunctions.h
 
+    ${CMAKE_CURRENT_LIST_DIR}/functions/SysFunctions.h
+    ${CMAKE_CURRENT_LIST_DIR}/functions/SysFunctions.cpp
+
 
     # ToolBox
     ${CMAKE_CURRENT_LIST_DIR}/toolbox/SymbolTable.h
     ${CMAKE_CURRENT_LIST_DIR}/toolbox/Tools.h
+    ${CMAKE_CURRENT_LIST_DIR}/toolbox/SysTools.h
+    ${CMAKE_CURRENT_LIST_DIR}/toolbox/SysTools.cpp
 
     # Bytecode compiler TODO
     # ${CMAKE_CURRENT_LIST_DIR}/bytecode/AstNode_bytecode.cpp

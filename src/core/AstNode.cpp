@@ -177,9 +177,15 @@ namespace DreiZehn {
         // if (ptr) return *ptr;
         // // ... fallback ---->
         // ------ ......... ------
+        Value returnValue = NumberNullValue;
+
+        if (!mVarExpr) {
+             Tools::errorf("RunTime Error expression is invalid\n");
+             return returnValue;
+
+        }
 
         Value varValue = mVarExpr->evaluate(env);
-        Value returnValue = NumberNullValue;
         if (!varValue.isPointer()) {
             Tools::errorf("RunTime Error: Object %s not found.\n",varValue.toString().c_str());
             return returnValue;
@@ -231,10 +237,15 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     Value MethodExpression::evaluate(Environment& env) {
 
+        if (!mVarExpr) {
+            Tools::errorf("RunTime Error expression is invalid\n");
+            return NumberNullValue;
+
+        }
         Value objectPointer = mVarExpr->evaluate(env);
         if (!objectPointer.isPointer()) {
             Tools::errorf("RunTime Error: Object %s not found.\n", objectPointer.toString().c_str());
-            return Value();
+            return NumberNullValue;
         }
         ValueObject* obj = objectPointer.asPointerObject();
         if (!obj) {

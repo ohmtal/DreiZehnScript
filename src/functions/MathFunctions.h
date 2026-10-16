@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Core Commands
+// Math
 //-----------------------------------------------------------------------------
 #pragma once
 #include <ctime>

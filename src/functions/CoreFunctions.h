@@ -7,7 +7,7 @@
 #pragma once
 #include <string>
 #include <algorithm> // std::sort
-#include <cstdlib> // std::getenv
+
 
 #include "toolbox/Tools.h"
 #include "core/FunctionMap.h"
@@ -16,18 +16,7 @@
 
 
 
-// for FetchEnv
-#if defined(_WIN32)
-#define environ _environ
-#else
-#ifdef __cplusplus
-extern "C" {
-    #endif
-    extern char **environ;
-    #ifdef __cplusplus
-}
-#endif
-#endif
+
 
 namespace DreiZehn {
 
@@ -159,43 +148,6 @@ namespace DreiZehn {
             return true;
         }, "Print all global variables.");
 
-        // ---------------------------------------------------------------------
-        //
-        // ---------------------------------------------------------------------
-        RegisterFunction("core::getEnv", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() < 1 || !args[0].isString()) {
-                Tools::printf("Usage example: core::getenv \"PATH\"");
-                ret = EmptyStringValue;
-                return true;
-            }
-            const char* env_p = std::getenv(args[0].getStringRef().c_str());
-            if (env_p) {
-                ret = Value(std::string(env_p));
-            } else {
-                ret = EmptyStringValue;
-            }
-
-            return true;
-        }, "get a Environment variable. param variable name as string");
-
-        RegisterFunction("core::fetchEnv", [](std::vector<Value>& args, Value& ret) -> bool {
-            BaseValueObject* resObj = new BaseValueObject();
-            ret = Value(resObj);
-            for (char** env = environ; *env != nullptr; ++env) {
-                std::string env_entry(*env);
-                size_t pos = env_entry.find('=');
-                if (pos != std::string::npos) {
-                    std::string key = env_entry.substr(0, pos);
-                    std::string value = env_entry.substr(pos + 1);
-
-                    if (!resObj->addDynamicField(key,Value(value))) {
-                        Tools::warnf("Failed to set key:%s, Value:%s", key.c_str(), value.c_str());
-                    }
-                }
-            }
-
-            return true;
-        }, "get all Environment variables and add them as fields to a Object");
 
         // ---------------------------------------------------------------------
         // Help

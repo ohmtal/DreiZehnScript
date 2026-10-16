@@ -7,8 +7,8 @@ import File
 log = FileStream::open "stdin.log" "a"
 if (!log); error "Failed to open logfile"; return;;
 log->writeln (str::concat "New Connection..."(core::dateutc) ); log->flush
-remoteIP =  core::getEnv "SOCAT_PEERADDR"
-remotePort =  core::getEnv "SOCAT_PEERPORT"
+remoteIP =  sys::getEnv "SOCAT_PEERADDR"
+remotePort =  sys::getEnv "SOCAT_PEERPORT"
 
 log->writeln (str::format "Connection from: %s:%s" remoteIP remotePort); log->flush
 

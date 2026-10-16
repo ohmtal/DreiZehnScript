@@ -67,6 +67,8 @@ enum class TokenType {
 
     , Comma
 
+    , KeyValue // =>
+
     , NoToken // for peekPrev pos < 1
     , EOFToken
 };

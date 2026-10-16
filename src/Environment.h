@@ -236,6 +236,15 @@ public:
                 }
                 break;
             }
+
+            case NodeType::KeyValueExpression: {
+                if (auto* expr = dynamic_cast<KeyValueExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
+
+
             // --- others ---
             default: {
                 // if (auto* expr = dynamic_cast<Expression*>(node)) {

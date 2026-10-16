@@ -61,6 +61,7 @@ enum class NodeType {
     // ,CurlyArgumentsExpression
     ,ForEachStatement
     ,IncludeStatement
+    ,KeyValueExpression
 };
 
 
@@ -99,6 +100,7 @@ constexpr const char* NodeTypeToString(NodeType type) {
         // case NodeType::CurlyArgumentsExpression: return "CurlyArgumentsExpression";
         case NodeType::ForEachStatement:       return "ForEachStatement";
         case NodeType::IncludeStatement:       return "IncludeStatement";
+        case NodeType::KeyValueExpression:       return "KeyValueExpression";
     }
     return "UnknownNodeType";
 }
@@ -570,5 +572,17 @@ struct IncludeStatement : public FlowBaseStatement {
         if (noExecValue.getBool()) return {FlowSignal::None};
         return mBody->execute(env);
     }
+};
+
+// KeyValueExpression ----------------------------------------------------------------------
+struct KeyValueExpression : public Expression {
+    std::unique_ptr<Expression> mKeyExpr;
+    std::unique_ptr<Expression> mValueExpr;
+
+    KeyValueExpression(std::unique_ptr<Expression> key, std::unique_ptr<Expression> value)
+    :  mKeyExpr(std::move(key)), mValueExpr(std::move(value)) {
+        mNodeType  = NodeType::KeyValueExpression;
+    }
+    Value evaluate(Environment& env) override;
 };
 } //namespace

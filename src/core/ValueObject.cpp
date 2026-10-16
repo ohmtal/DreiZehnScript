@@ -89,7 +89,10 @@ namespace DreiZehn {
         return mDynamicFieldValues.size();
     }
     Value* ValueObject::getDynamicFieldPtrByIndex(size_t index) {
-        if (index >= mDynamicFieldValues.size()) return nullptr;
+        if (index >= mDynamicFieldValues.size()) {
+            Tools::warnf("Vector array index: %zu out of bounds.", index);
+            return nullptr;
+        }
         return mDynamicFieldValues[index].get();
     }
 
@@ -133,8 +136,8 @@ namespace DreiZehn {
         return std::string(buff);
     }
     // -------------------------------------------------------------------------
-    void ValueObject::DumpBase() {
-        Tools::printSeparator(40);
+    void ValueObject::Dump() {
+        // Tools::printSeparator(40);
         Tools::printf(" ----- %s [assigned:%d] [%p]----- \n", mObjectTypeName.c_str(), mAssigned, (void*) this);
 
         if (!mClassName.empty()) {
@@ -196,7 +199,7 @@ namespace DreiZehn {
     Value* ValueObject::onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args) {
         if (methodNameSymbolId == sGetFieldId) {
             if (args.size() != 1   ) {
-                Tools::errorf("get a field value by fieldname Usage: \"fieldname\" OR index od dynamic field\n");
+                Tools::errorf("get a field value by fieldname Usage: \"fieldname\" OR index of dynamic field\n");
                 return nullptr;
             }
             Value* valPtr = nullptr;
@@ -236,7 +239,7 @@ namespace DreiZehn {
             return true;
         }
        else if (methodNameSymbolId == sDumpMethodId) {
-            DumpBase();
+            Dump();
 
             ret = Value(1);
             return true;
@@ -273,7 +276,13 @@ namespace DreiZehn {
                 ret = NumberNullValue;
                 return true;
             }
-            uint32_t fieldId = SymbolTable::insert(args[0].getStringRef());
+            std::string fieldName = args[0].getStringRef();
+            if (!isValidVariableName(fieldName)) {
+                Tools::warnf("Field `%s` is not a valid variable name\n", fieldName.c_str());
+                ret = NumberNullValue;
+                return true;
+            }
+            uint32_t fieldId = SymbolTable::insert(fieldName);
             Value* pre = getDynamicFieldPtr(fieldId);
             Value post = args[1];
             if (pre && pre->isPointer())  pre->asPointerObject()->setAssigned(false);

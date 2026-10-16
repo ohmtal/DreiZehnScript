@@ -17,7 +17,6 @@
 #include "core/FunctionMap.h"
 #include "core/VariableFrame.h"
 #include "Globals.h"
-#include "ArrayFunctions.h"
 
 #include "toolbox/PixelBuffer.h"
 

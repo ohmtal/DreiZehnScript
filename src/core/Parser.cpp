@@ -35,6 +35,7 @@ namespace DreiZehn {
         if (type == TokenType::Assign) return 0;
         if (type == TokenType::Dot) return 0;
         if (type == TokenType::Arrow) return 0;
+        if (type == TokenType::KeyValue) return 0;
         if (isMathAssignOperatorType(type)) return 0;
 
         return -1;
@@ -303,6 +304,22 @@ namespace DreiZehn {
                     }
                 }
                 return std::make_unique<MethodExpression>(std::move(left), methodSymbolId, std::move(args));
+            } else
+            if (op.mType == TokenType::KeyValue) {
+                if (!left) {
+                    Tools::PrintParseError("Key Value Assignment but no Key Expression!");
+                    return nullptr;
+                }
+                auto rhs = parseMath(0);
+                if (!rhs) {
+                    Tools::PrintParseError("Key Value Assignment but no Value Expression!");
+                    return nullptr;
+                }
+
+                left = std::make_unique<KeyValueExpression>(
+                    std::move(left), std::move(rhs)
+                );
+                continue;
             }
 
 

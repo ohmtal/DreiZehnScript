@@ -8,6 +8,7 @@
 #include "Environment.h"
 #include "core/FunctionMap.h"
 #include <string.h>
+#include "core/BaseObjects.h"
 
 
 namespace DreiZehn {
@@ -119,53 +120,56 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     Value ArrayVariableExpression::evaluate(Environment& env) {
         if (!mVarExpr || !mIndexExpr ) {
-            Tools::errorf("RunTime Error: Array Field invalid Variable or index");
+            Tools::warnf("RunTime Error: Array Field invalid Variable or index\n");
             return NumberNullValue;
         }
         Value varValue = mVarExpr->evaluate(env);
         Value indexValue = mIndexExpr->evaluate(env);
-        if (!indexValue.isNumber()) {
-            Tools::errorf("RunTime Error: Array Variable: %s. Only number keys allowed\n",varValue.toString().c_str());
-            return NumberNullValue;
-        }
-        size_t index = (size_t)indexValue.getUInt();
+        if (indexValue.isNumber()) {
+            size_t index = (size_t)indexValue.getUInt();
 
-        if (varValue.isString()) {
-            std::string str = varValue.getStringRef();
-            if (index >= str.length()) {
-                return EmptyStringValue;
+            if (varValue.isString()) {
+                std::string str = varValue.getStringRef();
+                if (index >= str.length()) {
+                    return EmptyStringValue;
+                }
+                std::string result(1, static_cast<char>(str[index]));
+                return Value(result);
             }
-            std::string result(1, static_cast<char>(str[index]));
-            return Value(result);
-        }
 
             // only works on objects which support onGetArrayIndexPtr
-        if (!varValue.isPointer() ) {
-            return NumberNullValue;
+            if (!varValue.isPointer() ) {
+                return NumberNullValue;
+            }
+            Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr(index);
+            if (valPtr) return Value(*valPtr);
+        } else if (indexValue.isString() && varValue.isPointer()) {
+            Value* valPtr = varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
+            if (valPtr) return Value(*valPtr);
         }
-        Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr(index);
-        if (valPtr) return Value(*valPtr);
 
         return NumberNullValue;
     }
 
     Value* ArrayVariableExpression::evaluatePtr(Environment& env) {
         if (!mVarExpr || !mIndexExpr ) {
-            Tools::errorf("RunTime Error: Array Field invalid Variable or index");
+            Tools::warnf("RunTime Error: Array Field invalid Variable or index\n");
             return nullptr;
         }
         Value varValue = mVarExpr->evaluate(env);
-        Value indexValue = mIndexExpr->evaluate(env);
-        if (!indexValue.isNumber()) {
-            Tools::errorf("RunTime Error: Array Variable: %s. Only integer keys allowed\n",varValue.toString().c_str());
-            return nullptr;
-        }
-        // only works on objects which support onGetArrayIndexPtr
         if (!varValue.isPointer() ) {
             return nullptr;
         }
-        Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
-        return valPtr;
+
+        Value indexValue = mIndexExpr->evaluate(env);
+        if (indexValue.isNumber()) {
+            return varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
+        } else if (indexValue.isString()) {
+
+            return varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
+        }
+        // only works on objects which support onGetArrayIndexPtr
+        return nullptr;
     }
     // -------------------------------------------------------------------------
     // ObjectFieldExpression
@@ -1017,5 +1021,19 @@ namespace DreiZehn {
             if (status.signal != FlowSignal::None) return status;
         }
         return FlowStatus (FlowSignal::None) ;
+    }
+    // -------------------------------------------------------------------------
+    Value KeyValueExpression::evaluate(Environment& env) {
+        if (!mKeyExpr || !mValueExpr) {
+            Tools::PrintRuntimeError("KeyValueExpression error key or value missing");
+            return NumberNullValue;
+        }
+        Value keyVal = mKeyExpr->evaluate(env);
+        if (!keyVal.isString())  {
+            Tools::PrintRuntimeError("KeyValueExpression value must be a string,.");
+            return NumberNullValue;
+        }
+        auto obj = new KeyValueObject(keyVal.getStringRef(), mValueExpr->evaluate(env));
+        return Value(obj);
     }
 }

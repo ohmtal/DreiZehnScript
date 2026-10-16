@@ -15,6 +15,14 @@ namespace DreiZehn{
 class Value;
 namespace FunctionMap{ struct  ScriptFunction; using CallBack = std::function< bool ( std::vector<Value>&, Value& )>; }
 
+
+// =============================================================================
+// --- RegisterUserObjectType ---
+// =============================================================================
+struct ValueObject;
+int RegisterUserObjectType(std::string typeName);
+const char* GetObjectTypeName(ValueObject* object);
+
 // =============================================================================
 // --- ValueObject ---
 // =============================================================================
@@ -45,7 +53,6 @@ struct ValueObject {
 
     std::vector<std::unique_ptr<Value>> mDynamicFieldValues;
     std::unordered_map<uint32_t, size_t > mDynmaicFieldIndex;
-    // std::unordered_map<uint32_t, Value > mDynmaicFields;
 
     FunctionMap::ScriptFunction* getScriptMethod(uint32_t methodId);
 
@@ -71,7 +78,16 @@ struct ValueObject {
     virtual inline size_t onGetArraySize() {
         return 0;
     }
+
+    // .... array by integer index ....
     virtual inline Value* onGetArrayIndexPtr(size_t arrayIndex) {
+        Tools::warnf("%s does not support array getter by index key: %zu.\n", GetObjectTypeName(this), arrayIndex);
+        return nullptr;
+    }
+
+    // .... array by string key ....
+    virtual inline Value* onGetArrayByStringPtr(std::string strKey) {
+        Tools::warnf("%s does not support array getter by string key: %s.\n", GetObjectTypeName(this), strKey.c_str());
         return nullptr;
     }
 
@@ -91,7 +107,8 @@ struct ValueObject {
 
     }
 
-    void DumpBase();
+
+    virtual void Dump();
 
 
 protected:
@@ -163,12 +180,7 @@ struct ValueObjectProperty {
 
 
 
-// =============================================================================
-// --- RegisterUserObjectType ---
-// =============================================================================
 
-int RegisterUserObjectType(std::string typeName);
-const char* GetObjectTypeName(ValueObject* object);
 
 
 } //namespace

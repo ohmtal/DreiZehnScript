@@ -27,8 +27,12 @@ struct fenster_audio {
   dispatch_semaphore_t full;
 };
 #elif defined(_WIN32)
-#include <mmsystem.h>
+#define NOGDI
+#define NOUSER
 #include <windows.h>
+#include <mmsystem.h>
+#include <cstdint>
+#pragma comment(lib, "winmm.lib") 
 struct fenster_audio {
   WAVEHDR header;
   HWAVEOUT wo;
@@ -106,7 +110,8 @@ FENSTER_API int fenster_audio_open(struct fenster_audio *fa) {
   WAVEFORMATEX wfx = {WAVE_FORMAT_PCM, 1, FENSTER_SAMPLE_RATE, FENSTER_SAMPLE_RATE * 2, 1, 16, 0};
   waveOutOpen(&fa->wo, WAVE_MAPPER, &wfx, 0, 0, CALLBACK_NULL);
   for (int i = 0; i < 2; i++) {
-    fa->hdr[i].lpData = fa->buf[i];
+    //fa->hdr[i].lpData = fa->buf[i];
+    fa->hdr[i].lpData = reinterpret_cast<LPSTR>(fa->buf[i]);
     fa->hdr[i].dwBufferLength = FENSTER_AUDIO_BUFSZ * 2;
     waveOutPrepareHeader(fa->wo, &fa->hdr[i], sizeof(WAVEHDR));
     waveOutWrite(fa->wo, &fa->hdr[i], sizeof(WAVEHDR));

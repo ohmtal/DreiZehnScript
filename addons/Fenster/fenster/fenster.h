@@ -7,7 +7,21 @@
 #include <objc/NSObjCRuntime.h>
 #include <objc/objc-runtime.h>
 #elif defined(_WIN32)
+/*
+#ifdef NOGDI
+#undef NOGDI
+#endif
+#ifdef NOUSER
+#undef NOUSER
+#endif
+#ifdef WIN32_LEAN_AND_MEAN
+#undef WIN32_LEAN_AND_MEAN
+#endif
+*/
 #include <windows.h>
+// #include <mmsystem.h>
+// #pragma comment(lib, "winmm.lib")
+// #include <wingdi.h>
 #else
 #define _DEFAULT_SOURCE 1
 #include <X11/XKBlib.h>
@@ -185,7 +199,9 @@ static LRESULT CALLBACK fenster_wndproc(HWND hwnd, UINT msg, WPARAM wParam,
     HDC hdc = BeginPaint(hwnd, &ps);
     HDC memdc = CreateCompatibleDC(hdc);
     HBITMAP hbmp = CreateCompatibleBitmap(hdc, f->width, f->height);
-    HBITMAP oldbmp = SelectObject(memdc, hbmp);
+    // HBITMAP oldbmp = SelectObject(memdc, hbmp);
+    HBITMAP oldbmp = (HBITMAP)SelectObject(memdc, hbmp);
+
     BINFO bi = {{sizeof(bi), f->width, -f->height, 1, 32, BI_BITFIELDS}};
     bi.bmiColors[0].rgbRed = 0xff;
     bi.bmiColors[1].rgbGreen = 0xff;
@@ -220,11 +236,13 @@ static LRESULT CALLBACK fenster_wndproc(HWND hwnd, UINT msg, WPARAM wParam,
     PostQuitMessage(0);
     break;
   default:
-    return DefWindowProc(hwnd, msg, wParam, lParam);
+    //return DefWindowProc(hwnd, msg, wParam, lParam);
+      return DefWindowProcA(hwnd, msg, wParam, lParam);
   }
   return 0;
 }
 
+/*
 FENSTER_API int fenster_open(struct fenster *f) {
   HINSTANCE hInstance = GetModuleHandle(NULL);
   WNDCLASSEX wc = {0};
@@ -234,9 +252,14 @@ FENSTER_API int fenster_open(struct fenster *f) {
   wc.hInstance = hInstance;
   wc.lpszClassName = f->title;
   RegisterClassEx(&wc);
-  f->hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, f->title, f->title,
-                           WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-                           f->width, f->height, NULL, NULL, hInstance, NULL);
+  //XXTH 
+  // f->hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, f->title, f->title,
+  //                         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+  //                         f->width, f->height, NULL, NULL, hInstance, NULL);
+
+  f->hwnd = CreateWindowExA(WS_EX_CLIENTEDGE, wc.lpszClassName, wc.lpszClassName,
+      WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+      f->width, f->height, NULL, NULL, hInstance, NULL);
 
   if (f->hwnd == NULL)
     return -1;
@@ -245,6 +268,34 @@ FENSTER_API int fenster_open(struct fenster *f) {
   UpdateWindow(f->hwnd);
   return 0;
 }
+*/
+
+FENSTER_API int fenster_open(struct fenster* f) {
+    HINSTANCE hInstance = GetModuleHandle(NULL);
+
+    WNDCLASSEXA wc = { 0 };
+    wc.cbSize = sizeof(WNDCLASSEXA);
+    wc.style = CS_VREDRAW | CS_HREDRAW;
+    wc.lpfnWndProc = fenster_wndproc;
+    wc.hInstance = hInstance;
+
+    wc.lpszClassName = f->title;
+
+    RegisterClassExA(&wc);
+
+    f->hwnd = CreateWindowExA(WS_EX_CLIENTEDGE, wc.lpszClassName, wc.lpszClassName,
+        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+        f->width, f->height, NULL, NULL, hInstance, NULL);
+
+    if (f->hwnd == NULL)
+        return -1;
+    SetWindowLongPtr(f->hwnd, GWLP_USERDATA, (LONG_PTR)f);
+    ShowWindow(f->hwnd, SW_NORMAL);
+    UpdateWindow(f->hwnd);
+    return 0;
+}
+
+
 
 FENSTER_API void fenster_close(struct fenster *f) { (void)f; }
 

@@ -6,8 +6,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "No build type selected, defaulting to Debug")
-    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build." FORCE)
+    message(STATUS "No build type selected, defaulting to RelWithDebInfo")
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build." FORCE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
@@ -79,7 +79,12 @@ endif()
 
 # ------------- RayLib
 if (BUILD_WITH_RAYLIB)
-    set(RAYLIB_DIR "${CMAKE_CURRENT_LIST_DIR}/addons/Raylib/raylib-6.0/" CACHE PATH "Path to RayLib")
+
+   if (MSVC AND BUILD_WITH_FENSTER)
+       message(FATAL_ERROR "Compilation failed: Raylib and Fenster cannot be enabled simultaneously on Windows due to API conflicts. Please disable one of them.")
+   endif()
+
+   set(RAYLIB_DIR "${CMAKE_CURRENT_LIST_DIR}/addons/Raylib/raylib-6.0/" CACHE PATH "Path to RayLib")
     message( STATUS "\n Raylib directory is: " ${RAYLIB_DIR} )
     set(BUILD_EXAMPLES OFF CACHE BOOL "Build raylib examples" FORCE)
     set(BUILD_GAMES    OFF CACHE BOOL "Build raylib games"    FORCE)
@@ -90,6 +95,9 @@ if (BUILD_WITH_RAYLIB)
 
     list(APPEND PROJECT_SRC "addons/Raylib/RaylibFunctions.cpp")
     add_compile_definitions(DREIZEHN_RAYLIB)
+
+
+
 endif()
 
 # ------------- MiniAudio
@@ -143,16 +151,26 @@ if (BUILD_WITH_SANITIZE)
 endif()
 
 if(WIN32 AND MSVC)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+    # my SDL3 line:
+    # ===========
+    # cmake -B build -S . `
+    # -DCMAKE_TOOLCHAIN_FILE="C:/opt/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+    # -DVCPKG_TARGET_TRIPLET=x64-windows `
+    # -A x64 -DBUILD_WITH_FENSTER=OFF -DBUILD_WITH_RAYLIB=OFF
+
+   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     target_compile_options(${PROJECT_NAME}  PRIVATE "/Zc:wchar_t-")
     target_compile_definitions(${PROJECT_NAME} PRIVATE
-        WIN32_LEAN_AND_MEAN
-        NOGDI
-        NOUSER
         NOMINMAX
         UNICODE
         _UNICODE
     )
+
+    if (BUILD_WITH_RAYLIB)
+        target_compile_definitions(${PROJECT_NAME} PRIVATE NOGDI NOUSER)
+    endif()
+
     add_compile_options(/MP)
 endif()
 

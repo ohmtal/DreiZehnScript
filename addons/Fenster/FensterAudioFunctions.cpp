@@ -23,6 +23,12 @@
 
 
 namespace DreiZehn::Fenster {
+#if defined(_WIN32)
+    #ifdef PlaySound
+    #undef PlaySound
+    #endif
+#endif
+
 #include "fenster/fenster_audio.h"
 }
 

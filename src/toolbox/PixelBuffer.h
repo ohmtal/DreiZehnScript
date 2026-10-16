@@ -351,7 +351,7 @@ static inline void fill(pixel_buffer *f, int start_x, int start_y, uint32_t old,
 
     if (!stack) return;
 
-    stack[top++] = (ScanlinePoint){start_x, start_y};
+    stack[top++] = {start_x, start_y};
 
     while (top > 0) {
         ScanlinePoint p = stack[--top];
@@ -377,7 +377,7 @@ static inline void fill(pixel_buffer *f, int start_x, int start_y, uint32_t old,
                         if (!new_stack) { free(stack); return; }
                         stack = new_stack;
                     }
-                    stack[top++] = (ScanlinePoint){x, y - 1};
+                    stack[top++] = {x, y - 1};
                     span_above = true;
                 } else if (span_above && f->get(x, y - 1) != old) {
                     span_above = false;
@@ -392,7 +392,7 @@ static inline void fill(pixel_buffer *f, int start_x, int start_y, uint32_t old,
                         if (!new_stack) { free(stack); return; }
                         stack = new_stack;
                     }
-                    stack[top++] = (ScanlinePoint){x, y + 1};
+                    stack[top++] = { start_x, start_y };
                     span_below = true;
                 } else if (span_below && f->get(x, y + 1) != old) {
                     span_below = false;

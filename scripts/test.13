@@ -7,14 +7,36 @@ import String
 fn Holy::Cow; print "Muhhhh!";end;
 
 global doReload = false
-fn postRL; doReload = false if (sys::args->count) > 1; run (sys::args->value 0) ;; end
+fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
 fn rl; doReload = true;;
 -- -----------------------------------------------------------------------------
 
-print ("Array Test")
+
+fn Array::Tree this depth
+    forRange i this->count
+        if (getType this[i]) == type::object && (this[i]->getType) == TypeArray
+            forRange d depth; printraw "│  ";;
+            print "├──┬" (this->key i)
+            this[i]->Tree depth + 1
+        else
+            forRange d depth; printraw "│  ";;
+
+            if i == (this->count - 1)
+                printraw "└── "
+            else
+                printraw "├── "
+            end
+
+            print (this->key i) "=>" (this->value i)
+        end
+    end
+end
+
+
+print ("*** Array Example ***")
 a = Array::new "x"=>10, "name"=>"hello"
 a["adress"] = Array::new "street" => "Elmstreet", "zip" => 12345
-forRange i a->count; print (a->key i) "=>" (a->value i);;
+a->Tree 0
 
 -- forRange i sys::args->count; print (sys::args->key i) "=>" (sys::args->value i);;
 

@@ -418,6 +418,9 @@ Struct [0x5576cc6a5440]
       this is because Array inherit from ValueObject's dynamic fields
     - I could add a method ->getKeys which return a array ..
     - THIS=> `a = Array::new "x"=>10, "name"=>"hello"; a["adress"] = Array::new "street" => "Elmstreet", "zip" => 12345; forRange i a->count; print (a->key i) "=>" (a->value i);;`
+    
+- [X] if args on AND (&&) are all evaluated also if the first one is false !! 
+    
 - [ ] check where i added an object with count and "_" values as an Object =>  instead it can be a array now! 
     - [ ] sys::args << need to change all script .. i added it alot .. lol
     - [ ] fetchEnv

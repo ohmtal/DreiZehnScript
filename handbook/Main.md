@@ -215,3 +215,34 @@ end
 print  "No more bottles of beer on the wall, no more bottles of beer." \
        "\nGo to the store and buy some more. 99 bottles of beer on the wall.\n";
 ```
+
+### Array Example
+
+```
+fn Array::Tree this depth
+    forRange i this->count
+        if (getType this[i]) == type::object && (this[i]->getType) == TypeArray
+            forRange d depth; printraw "│  ";;
+            print "├──┬" (this->key i)
+            this[i]->Tree depth + 1
+        else
+            forRange d depth; printraw "│  ";;
+
+            if i == (this->count - 1)
+                printraw "└── "
+            else
+                printraw "├── "
+            end
+
+            print (this->key i) "=>" (this->value i)
+        end
+    end
+end
+
+
+print ("*** Array Example ***")
+a = Array::new "x"=>10, "name"=>"hello"
+a["adress"] = Array::new "street" => "Elmstreet", "zip" => 12345
+a->Tree 0
+
+```

@@ -500,6 +500,16 @@ namespace DreiZehn {
             Tools::PrintParseError("left or right is missing:");
             return Value();
         }
+
+        if (mOp == TokenType::And) {
+                Value lVal = mLeft->evaluate(env);
+                int l = lVal.getUInt();
+                if (l == 0) return Value(0);
+                Value rVal = mRight->evaluate(env);
+                int r = rVal.getUInt();
+                return Value( l && r);
+        }
+
         Value lVal = mLeft->evaluate(env);
         Value rVal = mRight->evaluate(env);
 
@@ -553,11 +563,11 @@ namespace DreiZehn {
                 int r = rVal.getUInt();
                 return Value( l || r);
             }
-            case TokenType::And: {
-                int l = lVal.getUInt();
-                int r = rVal.getUInt();
-                return Value( l && r);
-            }
+            // case TokenType::And: {
+            //     int l = lVal.getUInt();
+            //     int r = rVal.getUInt();
+            //     return Value( l && r);
+            // }
             case TokenType::BitAnd: {
                 int l = lVal.getUInt();
                 int r = rVal.getUInt();

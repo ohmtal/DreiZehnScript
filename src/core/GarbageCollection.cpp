@@ -88,8 +88,9 @@ void GarbageCollection::doGarbageCollection(bool isShutDown) {
 
         mGarbageCollection.clear();
     } else {
+
         for (int i = 0; i < 3; i++) {
-            if (mGarbageCollection.size() < 256) return ;
+            size_t startcount = mGarbageCollection.size();
             std::vector<ValueObject*> byebye;
             std::vector<ValueObject*> muststay;
 
@@ -105,6 +106,7 @@ void GarbageCollection::doGarbageCollection(bool isShutDown) {
             for (auto* obj : byebye) {
                 delete obj;
             }
+            if (mGarbageCollection.size() == startcount) return ;
         }
     }
 }

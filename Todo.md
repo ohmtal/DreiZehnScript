@@ -409,7 +409,7 @@ Struct [0x5576cc6a5440]
     - 2. start hunting 
 - [X] Added KeyValue with => constuctor for Array and Struct :)
 - [X] Added ArrayObject / key value table 
-- [ ] Array: foreach array keys ...but how ..
+- [X] Array: foreach array keys ...but how ..
     - php does foreach ($array as $key => $value)
     - lua for key, value in pairs(my_table) do
     - python keys = my_dict.keys() ... for key in my_dict:
@@ -417,9 +417,9 @@ Struct [0x5576cc6a5440]
         `forRange i a->getFieldCount; print (a->getFieldName i) a[i];;`
       this is because Array inherit from ValueObject's dynamic fields
     - I could add a method ->getKeys which return a array ..
-- [ ] check where i added an object with count and "_" values as an Object 
-instead it can be a array now! 
-    - [ ] sys::args
+    - THIS=> `a = Array::new "x"=>10, "name"=>"hello"; a["adress"] = Array::new "street" => "Elmstreet", "zip" => 12345; forRange i a->count; print (a->key i) "=>" (a->value i);;`
+- [ ] check where i added an object with count and "_" values as an Object =>  instead it can be a array now! 
+    - [ ] sys::args << need to change all script .. i added it alot .. lol
     - [ ] fetchEnv
     - [ ] exec result - it's one dimanonal so i simply add the index as string too
     

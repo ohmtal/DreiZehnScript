@@ -82,13 +82,13 @@ namespace DreiZehn {
         // -------------------------------------------------------------------------
         Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args) override{
 
-            if (mAtProp.matchMethod(methodNameSymbolId, args)) {
+            if (mAtProp.matchMethod(methodNameSymbolId, args) == 1) {
                 if (mElements.size() > args[0].getInt()) {
                     return &mElements.at(args[0].getInt());
                 }
                 return nullptr;
             }
-            else if (mGetProp.matchMethod(methodNameSymbolId, args)) {
+            else if (mGetProp.matchMethod(methodNameSymbolId, args) == 1 ) {
                 if (mElements.size() > args[0].getInt()) {
                     return &mElements.at(args[0].getInt());
                 }

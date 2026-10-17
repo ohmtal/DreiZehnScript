@@ -7,10 +7,20 @@ import String
 fn Holy::Cow; print "Muhhhh!";end;
 
 global doReload = false
-fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+fn postRL; doReload = false if (sys::args->count) > 1; run (sys::args->value 0) ;; end
 fn rl; doReload = true;;
 -- -----------------------------------------------------------------------------
--- -----------------------------------------------------------------------------4
+
+print ("Array Test")
+a = Array::new "x"=>10, "name"=>"hello"
+a["adress"] = Array::new "street" => "Elmstreet", "zip" => 12345
+forRange i a->count; print (a->key i) "=>" (a->value i);;
+
+-- forRange i sys::args->count; print (sys::args->key i) "=>" (sys::args->value i);;
+
+
+while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;
+
 
 print ("while return value test")
 global iter = 0
@@ -24,7 +34,6 @@ while (str = doIter); print str;;
 
 -- o = Object::new; o.str = ""
 -- o=0; core::gc
-while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;
 
 myVar = 10
 define myVar "HUHU"

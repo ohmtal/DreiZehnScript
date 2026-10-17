@@ -131,7 +131,7 @@ namespace DreiZehn {
         }
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
-            if (mSetProp.matchMethod(methodId, args)) {
+            if (mSetProp.matchMethod(methodId, args) == 1) {
                 size_t count = std::min(args.size(), mDynamicFieldValues.size());
 
                 for(size_t i = 0; i < count; i++) {
@@ -149,6 +149,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     struct ArrayObject : public ValueObject {
 
+        inline static ValueObjectProperty mCountProp, mValueProp, mKeyProp;
 
         ArrayObject() : ValueObject(TypeArrayObject) {
             mSupportClone = true;
@@ -211,6 +212,39 @@ namespace DreiZehn {
             insertUpdateDynamicField(id, NumberNullValue);
             return getDynamicFieldPtr(id);
         }
+
+        // -------------------------------------------------------------------------
+        inline static void RegisterSymbols() {
+            static bool mSymbolsLoaded = false;
+            if (mSymbolsLoaded) return;
+            mCountProp   = ValueObjectProperty("count", 0,0,  "get the count of the array", TypeStructObject);
+            mValueProp   = ValueObjectProperty("value", 1,1,  "get the value at index", TypeStructObject);
+            mKeyProp   = ValueObjectProperty("key", 1,1,  "get the key at index", TypeStructObject);
+            mSymbolsLoaded = true;
+        }
+        // -------------------------------------------------------------------------
+        inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
+            if (mCountProp.matchMethod(methodId, args) == 1) {
+                ret =  Value((uint32_t)mDynamicFieldValues.size());
+                return true;
+            } else
+            if (mKeyProp.matchMethod(methodId, args)== 1) {
+                uint32_t index = 0;
+                if (SymbolIdByIndex(args[0].getUInt(), index) ) {
+                    ret = Value( SymbolTable::getName(index) );
+                } else  {
+                    ret =  NumberNullValue;
+                }
+                return true;
+            } else
+            if (mValueProp.matchMethod(methodId, args) == 1) {
+                Value* valPtr = getDynamicFieldPtrByIndex(args[0].getUInt());
+                if (valPtr) ret =  *valPtr;
+                else ret =  NumberNullValue;
+                return true;
+            } else
+            return ValueObject::onMethodCall(methodId, args, ret);
+        }
         // -------------------------------------------------------------------------
     };
 // ============================ RegisterBaseObject ==================================
@@ -263,6 +297,7 @@ inline void RegisterBaseObject(Environment& env) {
         return true;
     },"Constructor of Struct. return a Struct, @params [string fieldname] or [KeyValue ] ....");
     // ---------------------------------------------------------------------
+    ArrayObject::RegisterSymbols();
     RegisterFunction("Array::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
         if(args.size() == 0) {
             Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");

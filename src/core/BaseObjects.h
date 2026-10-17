@@ -299,10 +299,10 @@ inline void RegisterBaseObject(Environment& env) {
     // ---------------------------------------------------------------------
     ArrayObject::RegisterSymbols();
     RegisterFunction("Array::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
-        if(args.size() == 0) {
-            Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
-            return true;
-        }
+        // if(args.size() == 0) {
+        //     Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
+        //     return true;
+        // }
 
         for(size_t i = 0; i < args.size(); i++) {
             if (!args[i].isStringId() && !(args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
@@ -316,7 +316,23 @@ inline void RegisterBaseObject(Environment& env) {
 
         return true;
     },"Constructor of Array. return a Array, @params [string fieldname] or [KeyValue ] ....");
+    // ---------------------------------------------------------------------
+    // Helper
+    // ---------------------------------------------------------------------
+    RegisterFunction("obj::isType", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        if(args.size() != 2  || !args[1].isNumber()) {
+            Tools::errorf("Usage obj::isType var Type\n");
+            return true;
+        }
+        if ( !args[0].isPointer()) {
+            ret = Value(0);
+            return true;
+        }
 
+        bool isType = args[0].asPointerObject()->mType == args[1].asUInt();
+        ret = Value(isType);
+        return true;
+    },"Constructor of Array. return a Array, @params [string fieldname] or [KeyValue ] ....");
 }
 
 } //namespace

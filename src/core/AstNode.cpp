@@ -494,21 +494,55 @@ namespace DreiZehn {
 
     }
     // -------------------------------------------------------------------------
+    Value BinaryAndOrExpression::evaluate(Environment& env)  {
+        if (!mLeft.get() || !mRight.get()) {
+            Tools::PrintParseError("(&& ||) left or right is missing:");
+            return Value();
+        }
 
+        if (mOp == TokenType::And) {
+            Value lVal = mLeft->evaluate(env);
+            int l = lVal.getUInt();
+            if (l == 0) return Value(0);
+            Value rVal = mRight->evaluate(env);
+            int r = rVal.getUInt();
+            return Value( l && r);
+        } else
+        if (mOp == TokenType::Or) {
+            Value lVal = mLeft->evaluate(env);
+            int l = lVal.getUInt();
+            if (l == 1) return Value(1);
+            Value rVal = mRight->evaluate(env);
+            int r = rVal.getUInt();
+            return Value( l || r);
+        }
+
+        return NumberNullValue;
+
+    }
+    // -------------------------------------------------------------------------
     Value BinaryExpression::evaluate(Environment& env)  {
         if (!mLeft.get() || !mRight.get()) {
             Tools::PrintParseError("left or right is missing:");
             return Value();
         }
 
-        if (mOp == TokenType::And) {
-                Value lVal = mLeft->evaluate(env);
-                int l = lVal.getUInt();
-                if (l == 0) return Value(0);
-                Value rVal = mRight->evaluate(env);
-                int r = rVal.getUInt();
-                return Value( l && r);
-        }
+        // if (mOp == TokenType::And) {
+        //     Value lVal = mLeft->evaluate(env);
+        //     int l = lVal.getUInt();
+        //     if (l == 0) return Value(0);
+        //     Value rVal = mRight->evaluate(env);
+        //     int r = rVal.getUInt();
+        //     return Value( l && r);
+        // } else
+        // if (mOp == TokenType::Or) {
+        //     Value lVal = mLeft->evaluate(env);
+        //     int l = lVal.getUInt();
+        //     if (l == 1) return Value(1);
+        //     Value rVal = mRight->evaluate(env);
+        //     int r = rVal.getUInt();
+        //     return Value( l || r);
+        // }
 
         Value lVal = mLeft->evaluate(env);
         Value rVal = mRight->evaluate(env);
@@ -558,11 +592,11 @@ namespace DreiZehn {
                 double r = rVal.getDouble();
                 return Value(std::abs(l - r) < EPSILON ? 0 : 1);
             }
-            case TokenType::Or: {
-                int l = lVal.getUInt();
-                int r = rVal.getUInt();
-                return Value( l || r);
-            }
+            // case TokenType::Or: {
+            //     int l = lVal.getUInt();
+            //     int r = rVal.getUInt();
+            //     return Value( l || r);
+            // }
             // case TokenType::And: {
             //     int l = lVal.getUInt();
             //     int r = rVal.getUInt();
@@ -617,7 +651,7 @@ namespace DreiZehn {
             }
             default: break;
         }
-        return Value();
+        return NumberNullValue;
     }
 
 

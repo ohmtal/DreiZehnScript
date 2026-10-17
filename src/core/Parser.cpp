@@ -327,6 +327,8 @@ namespace DreiZehn {
 
             if (isMathOperatorType(op)) {
                 left = std::make_unique<BinaryOpExpression>(std::move(left), op.mType, std::move(right));
+            } else if (op.mType == TokenType::And || op.mType == TokenType::Or ) {
+                left = std::make_unique<BinaryAndOrExpression>(std::move(left), op.mType, std::move(right));
             } else {
                 left = std::make_unique<BinaryExpression>(std::move(left), op.mType, std::move(right));
             }

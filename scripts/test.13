@@ -14,7 +14,7 @@ fn rl; doReload = true;;
 
 fn Array::Tree this depth
     forRange i this->count
-        if (getType this[i]) == type::object && (this[i]->getType) == TypeArray
+        if (obj::isType this[i] TypeArray)
             forRange d depth; printraw "│  ";;
             print "├──┬" (this->key i)
             this[i]->Tree depth + 1

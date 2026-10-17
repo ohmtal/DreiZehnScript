@@ -52,7 +52,7 @@ namespace DreiZehn {
           }, "get a Environment variable. param variable name as string");
 
           RegisterFunction("sys::fetchEnv", [](std::vector<Value>& args, Value& ret) -> bool {
-              BaseValueObject* resObj = new BaseValueObject();
+              ArrayObject* resObj = new ArrayObject();
               ret = Value(resObj);
               for (char** env = environ; *env != nullptr; ++env) {
                   std::string env_entry(*env);
@@ -61,9 +61,7 @@ namespace DreiZehn {
                       std::string key = env_entry.substr(0, pos);
                       std::string value = env_entry.substr(pos + 1);
 
-                      if (!resObj->addDynamicField(key,Value(value))) {
-                          Tools::warnf("Failed to set key:%s, Value:%s", key.c_str(), value.c_str());
-                      }
+                      resObj->insertUpdateDynamicField(SymbolTable::insert(key),Value(value));
                   }
               }
 
@@ -79,13 +77,14 @@ namespace DreiZehn {
               if (!ArgsCheckString("sys::exec", args, 1)) return true;
               SysTools::ExecResult res = SysTools::ExecCommand(args[0].getString());
 
-              BaseValueObject* resObj = new BaseValueObject();
+              ArrayObject* resObj = new ArrayObject();
+              ArrayObject* outputObj = new ArrayObject();
               ret = Value(resObj);
-              resObj->addDynamicField("command", args[0]);
-              resObj->addDynamicField("exit_code", Value(res.exit_code));
-              resObj->addDynamicField("output_lines", Value((int)res.output.size()));
+              resObj->insertUpdateDynamicField(SymbolTable::insert("command"), args[0]);
+              resObj->insertUpdateDynamicField(SymbolTable::insert("exit_code"), Value(res.exit_code));
+              resObj->insertUpdateDynamicField(SymbolTable::insert("output"), Value(outputObj));
               for (int i = 0; i < res.output.size(); i++) {
-                resObj->addDynamicField("output_" + std::to_string(i), res.output[i]);
+                outputObj->insertUpdateDynamicField(SymbolTable::insert(std::to_string(i)), Value(res.output[i]));
               }
 
               return true;

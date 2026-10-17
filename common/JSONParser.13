@@ -209,7 +209,7 @@ end
 --  TEST
 -- -----------------------------------------------------------------------------
 -- global doReload = false
--- fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+-- fn postRL; doReload = false if sys::args->count > 1; run (sys::args->value 1) ;; end
 -- fn rl; doReload = true;;
 -- -----------------------------------------------------------------------------
 -- 1. single line
@@ -222,10 +222,10 @@ end
 --     print "SIZE IS " p->size
 --     p->printTree 0
 -- end
-
+--
 -- test1
-
-
-
+--
+--
+--
 -- while core::breath && !doReload; core::sleep 16; end
 -- if (doReload) postRL;;

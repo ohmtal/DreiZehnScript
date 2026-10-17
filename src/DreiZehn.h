@@ -27,13 +27,20 @@ void Init(Environment& env, int argc, char* argv[]) {
     RegisterBaseObject(env);
 
 
+    // char buffer[256];
+    // BaseValueObject* obj = new BaseValueObject();
+    // obj->onSetField(SymbolTable::insert("argc"), Value(argc));
+    // FunctionMap::RegisterConstants("sys::args", Value(obj));
+    // for (int i = 0; i < argc; i++) {
+    //     snprintf(buffer, sizeof(buffer), "argv_%d" , i);
+    //     obj->onSetField(SymbolTable::insert(buffer), Value(std::string(argv[i])));
+    // }
     char buffer[256];
-    BaseValueObject* obj = new BaseValueObject();
-    obj->onSetField(SymbolTable::insert("argc"), Value(argc));
+    ArrayObject* obj = new ArrayObject();
     FunctionMap::RegisterConstants("sys::args", Value(obj));
     for (int i = 0; i < argc; i++) {
-        snprintf(buffer, sizeof(buffer), "argv_%d" , i);
-        obj->onSetField(SymbolTable::insert(buffer), Value(std::string(argv[i])));
+        snprintf(buffer, sizeof(buffer), "%d" , i);
+        obj->insertUpdateDynamicField(SymbolTable::insert(buffer), Value(std::string(argv[i])));
     }
 
 

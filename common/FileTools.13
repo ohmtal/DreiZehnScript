@@ -42,27 +42,27 @@ end
 -- -----------------------------------------------------------------------------
 --  TEST
 -- -----------------------------------------------------------------------------
-global doReload = false
-fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
-fn rl; doReload = true;;
--- -----------------------------------------------------------------------------
-fn testLoad
-    if sys::args.argc < 2; error "no script param for test avaiable :P";;
-    filename = sys::args.argv_1
-    ft = FileTool::new filename
-    ft->load
-    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    print ft.content
-    print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-end
--- -----------------------------------------------------------------------------
-fn testSave
-    ft = FileTool::new "testFileTool.txt"
-    ft.content = "Gude alder babsack!\n"
-    if (ft->save) print "save success!"
-    else error "save failed!"
-    end
-end
--- -----------------------------------------------------------------------------
-
-while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;
+-- global doReload = false
+-- fn postRL; doReload = false if sys::args->count > 1; run (sys::args->value 1) ;; end
+-- fn rl; doReload = true;;
+-- -- -----------------------------------------------------------------------------
+-- fn testLoad
+--     if sys::args.argc < 2; error "no script param for test avaiable :P";;
+--     filename = sys::args.argv_1
+--     ft = FileTool::new filename
+--     ft->load
+--     print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+--     print ft.content
+--     print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+-- end
+-- -- -----------------------------------------------------------------------------
+-- fn testSave
+--     ft = FileTool::new "testFileTool.txt"
+--     ft.content = "Gude alder babsack!\n"
+--     if (ft->save) print "save success!"
+--     else error "save failed!"
+--     end
+-- end
+-- -- -----------------------------------------------------------------------------
+--
+-- while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;

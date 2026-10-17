@@ -421,11 +421,14 @@ Struct [0x5576cc6a5440]
     
 - [X] if args on AND (&&) are all evaluated also if the first one is false !! 
     
-- [ ] check where i added an object with count and "_" values as an Object =>  instead it can be a array now! 
-    - [ ] sys::args << need to change all script .. i added it alot .. lol
-    - [ ] fetchEnv
-    - [ ] exec result - it's one dimanonal so i simply add the index as string too
-    
+- [X] check where i added an object with count and "_" values as an Object =>  instead it can be a array now! 
+    - [X] sys::args << need to change all script .. i added it alot .. lol
+    - [X] fetchEnv
+    - [X] exec result - it's one dimanonal so i simply add the index as string too
+   
+- [X] Script Tree to c++
+
+## 0.9
     
 ## 0.?? .... ongoing process ....
 

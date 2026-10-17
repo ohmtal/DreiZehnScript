@@ -149,7 +149,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     struct ArrayObject : public ValueObject {
 
-        inline static ValueObjectProperty mCountProp, mValueProp, mKeyProp;
+        inline static ValueObjectProperty mCountProp, mValueProp, mKeyProp, mTreeProp;
 
         ArrayObject() : ValueObject(TypeArrayObject) {
             mSupportClone = true;
@@ -214,18 +214,43 @@ namespace DreiZehn {
         }
 
         // -------------------------------------------------------------------------
+        inline void PrintTree(int depth = 0) {
+            uint32_t keyindex = 0;
+            for (uint32_t i = 0; i < mDynamicFieldValues.size(); i++) {
+                const std::string key = SymbolTable::getName(SymbolIdByIndex(i, keyindex));
+                const Value* value = mDynamicFieldValues[i].get();
+                if (value->isPointer() && value->asPointerObject()->mType == TypeArrayObject) {
+                    for (int j = 0; j < depth; j++) Tools::printf("│  ");
+                    Tools::printf("├──┬ %s\n", key.c_str());
+                    static_cast<ArrayObject*>(value->asPointerObject())->PrintTree( depth + 1 );
+                } else {
+                    for (int j = 0; j < depth; j++) Tools::printf("│  ");
+                    if (i == mDynamicFieldValues.size() - 1 )  Tools::printf("└── ");
+                    else Tools::printf("├── ");
+                    Tools::printf("%s => %s\n", key.c_str(), value->toString().c_str());
+                }
+            }
+        }
+
+       // -------------------------------------------------------------------------
         inline static void RegisterSymbols() {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return;
             mCountProp   = ValueObjectProperty("count", 0,0,  "get the count of the array", TypeStructObject);
             mValueProp   = ValueObjectProperty("value", 1,1,  "get the value at index", TypeStructObject);
-            mKeyProp   = ValueObjectProperty("key", 1,1,  "get the key at index", TypeStructObject);
+            mKeyProp     = ValueObjectProperty("key", 1,1,  "get the key at index", TypeStructObject);
+            mTreeProp    = ValueObjectProperty("tree", 0,0,  "print a tree of the array", TypeStructObject);
             mSymbolsLoaded = true;
         }
         // -------------------------------------------------------------------------
         inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
             if (mCountProp.matchMethod(methodId, args) == 1) {
                 ret =  Value((uint32_t)mDynamicFieldValues.size());
+                return true;
+            } else
+            if (mTreeProp.matchMethod(methodId, args) == 1) {
+                this->PrintTree();
+                ret = Value(1);
                 return true;
             } else
             if (mKeyProp.matchMethod(methodId, args)== 1) {

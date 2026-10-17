@@ -90,7 +90,7 @@ end
 --  TEST
 -- -----------------------------------------------------------------------------
 -- global doReload = false
--- fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+-- fn postRL; doReload = false if sys::args->count > 1; run (sys::args->value 1) ;; end
 -- fn rl; doReload = true;;
 -- -- -----------------------------------------------------------------------------
 -- global fire = 0

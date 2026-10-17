@@ -7,7 +7,8 @@ import String
 fn Holy::Cow; print "Muhhhh!";end;
 
 global doReload = false
-fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+-- fn postRL; doReload = false if sys::args.argc > 1; run sys::args.argv_1 ;; end
+fn postRL; doReload = false if sys::args->count > 1; run (sys::args->value 1) ;; end
 fn rl; doReload = true;;
 -- -----------------------------------------------------------------------------
 
@@ -36,7 +37,7 @@ end
 print ("*** Array Example ***")
 a = Array::new "x"=>10, "name"=>"hello"
 a["adress"] = Array::new "street" => "Elmstreet", "zip" => 12345
-a->Tree 0
+a->tree
 
 -- forRange i sys::args->count; print (sys::args->key i) "=>" (sys::args->value i);;
 

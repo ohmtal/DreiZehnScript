@@ -266,7 +266,7 @@ public:
     }
     // -------------------------------------------------------------------------
     // Debug print
-    inline const std::string toString() {
+    inline const std::string toString() const {
         char buffer[256];
 
         if (isInt()) {

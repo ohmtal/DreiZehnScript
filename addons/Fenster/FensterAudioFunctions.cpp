@@ -39,7 +39,7 @@ namespace DreiZehn::Fenster {
 namespace DreiZehn {
     using namespace DreiZehn::Fenster;
 
-    const int TypeFensterAudioObject = RegisterUserObjectType("FensterAudio");
+    inline const int TypeFensterAudioObject = RegisterUserObjectType("FensterAudio");
 
     struct FensterAudioObject : public ValueObject {
         struct fenster_audio mFensterAudio = {0};

@@ -53,6 +53,7 @@ struct ValueObject {
 
     std::vector<std::unique_ptr<Value>> mDynamicFieldValues;
     std::unordered_map<uint32_t, size_t > mDynmaicFieldIndex;
+    bool mValidateFieldName = true;
 
     FunctionMap::ScriptFunction* getScriptMethod(uint32_t methodId);
 

@@ -404,11 +404,26 @@ Struct [0x5576cc6a5440]
 - [X] linenoise.c does not work on ms
     => changed to cpp-linenoise in a thread
 - [X] made linenoise optional 
-- [ ] * try to fix msvc build * 
+- [X] * try to fix msvc build * 
     - 1. disable all addons in cmake
     - 2. start hunting 
+- [X] Added KeyValue with => constuctor for Array and Struct :)
+- [X] Added ArrayObject / key value table 
+- [ ] Array: foreach array keys ...but how ..
+    - php does foreach ($array as $key => $value)
+    - lua for key, value in pairs(my_table) do
+    - python keys = my_dict.keys() ... for key in my_dict:
+    - at the moment it can be done with:
+        `forRange i a->getFieldCount; print (a->getFieldName i) a[i];;`
+      this is because Array inherit from ValueObject's dynamic fields
+    - I could add a method ->getKeys which return a array ..
+- [ ] check where i added an object with count and "_" values as an Object 
+instead it can be a array now! 
+    - [ ] sys::args
+    - [ ] fetchEnv
+    - [ ] exec result - it's one dimanonal so i simply add the index as string too
     
-- [ ] remove fenster audio and implement MiniAudio instead 
+    
 ## 0.?? .... ongoing process ....
 
 - [ ] common/FileTools.13
@@ -420,11 +435,11 @@ Struct [0x5576cc6a5440]
         - [X] lexer / tokenizer
         - [X] consts
         - [X] structs (basic)
-        - [ ] write a reusable load/save  file - should be in common scripts (new folder) 
-        - [ ] change the parser to recursive to handle multiple lines 
-        - [ ] remove stdin here and load the definition from file it does not change so often!
+        - [X] write a reusable load/save  file - should be in common scripts (new folder) 
+        - [X] change the parser to recursive to handle multiple lines 
+        - [X] remove stdin here and load the definition from file it does not change so often!
                 This enable my console again - i guess.
-        - [ ] separate the Tokenizer 
+        - [X] separate the Tokenizer 
         - [ ] load hints 
         - [ ] write a sourcefile directly -- now we can use templates 
         - [ ] functions
@@ -440,9 +455,9 @@ Struct [0x5576cc6a5440]
 ---
 
 ## still missing:
+- [ ] remove fenster audio and implement MiniAudio instead 
 - [ ] FileStream ->getError and test modi 
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works but depends on compiler! 
-- [ ] fix memleaks fenster_audio .... it's "fixed" but still leak << i guess i will replace it with MiniAudio! 
 
 ## maybe:
 - [ ] Handbook - CheatSheet for basic syntax and functions.

@@ -20,7 +20,7 @@ namespace DreiZehn {
         Value z = Value(0.0);
     };
 
-    const int TypeVector3Object =  RegisterUserObjectType("Vector3");
+    inline const int TypeVector3Object =  RegisterUserObjectType("Vector3");
 
     struct Vector3Object : public ValueObject {
         Vector3 mVec = {0};

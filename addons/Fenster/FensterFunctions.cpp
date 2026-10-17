@@ -82,7 +82,7 @@ namespace DreiZehn::Fenster {
 
 namespace DreiZehn {
     using namespace DreiZehn::Fenster;
-    const int TypeFensterObject = RegisterUserObjectType("Fenster");
+    inline const int TypeFensterObject = RegisterUserObjectType("Fenster");
     // ......................... FensterObject
 
     struct FensterObject : public ValueObject {

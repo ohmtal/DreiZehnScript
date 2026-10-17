@@ -192,7 +192,7 @@ namespace DreiZehn {
     // =============================================================================
 
 
-    //  const int TypeStringObject =  RegisterUserObjectType("String");
+    //  inline const int TypeStringObject =  RegisterUserObjectType("String");
     //
     // struct StringObject : public ValueObject {
     //     Value mValue;

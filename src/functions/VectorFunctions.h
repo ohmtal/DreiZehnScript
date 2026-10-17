@@ -19,7 +19,7 @@
 namespace DreiZehn {
 
 
-    const int TypeVectorObject =  RegisterUserObjectType("Vector");
+    inline const int TypeVectorObject =  RegisterUserObjectType("Vector");
 
     struct VectorValueObject : public ValueObject {
         std::vector<Value> mElements;

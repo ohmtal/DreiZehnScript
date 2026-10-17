@@ -14,7 +14,7 @@
 
 namespace DreiZehn {
 
-    const int TypeSDL_FPointObject =  RegisterUserObjectType("SDL_FPoint");
+    inline const int TypeSDL_FPointObject =  RegisterUserObjectType("SDL_FPoint");
 
     struct SDL_FPointObject : public ValueObject {
         Value my; inline static ValueObjectProperty myProp;
@@ -69,7 +69,7 @@ namespace DreiZehn {
     };
 
 
-    const int Type_SDL_Window_Object =  RegisterUserObjectType("SDL_Window");
+    inline const int Type_SDL_Window_Object =  RegisterUserObjectType("SDL_Window");
 
     struct SDL_Window_Object : ValueObject {
         SDL_Window* value = nullptr;
@@ -80,7 +80,7 @@ namespace DreiZehn {
         }
     };
 
-    const int Type_SDL_Renderer_Object =  RegisterUserObjectType("SDL_Renderer");
+    inline const int Type_SDL_Renderer_Object =  RegisterUserObjectType("SDL_Renderer");
     struct SDL_Renderer_Object : ValueObject {
         SDL_Renderer* value = nullptr;
         SDL_Renderer_Object(SDL_Renderer* rend) : ValueObject(Type_SDL_Renderer_Object), value(rend) {}
@@ -90,7 +90,7 @@ namespace DreiZehn {
         }
     };
 
-    const int Type_SDL_Event_Object =  RegisterUserObjectType("SDL_Event_Object");
+    inline const int Type_SDL_Event_Object =  RegisterUserObjectType("SDL_Event_Object");
     struct SDL_Event_Object : ValueObject {
         SDL_Event value;
         SDL_Event_Object() : ValueObject(Type_SDL_Event_Object) { std::memset(&value, 0, sizeof(SDL_Event)); }

@@ -19,14 +19,15 @@
 
 namespace DreiZehn {
 
-    const int TypeKeyValueObject =  RegisterUserObjectType("KeyValue");
-    const int TypeBaseObject =  RegisterUserObjectType("Object");
-    const int TypeStructObject =  RegisterUserObjectType("Struct");
-    const int TypeArrayObject =  RegisterUserObjectType("Array");
+    inline const int TypeKeyValueObject =  RegisterUserObjectType("KeyValue");
+    inline const int TypeBaseObject =  RegisterUserObjectType("Object");
+    inline const int TypeStructObject =  RegisterUserObjectType("Struct");
+    inline const int TypeArrayObject =  RegisterUserObjectType("Array");
 
     // -------------------------------------------------------------------------
     struct KeyValueObject : public ValueObject {
-        std::string mKey = "";
+        // std::string mKey = "";
+        uint32_t mKeyId = 0;
         Value mValue = NumberNullValue;
         KeyValueObject() : ValueObject(TypeKeyValueObject) {
             mSupportClone = false;
@@ -35,16 +36,16 @@ namespace DreiZehn {
         KeyValueObject(const std::string& key, const Value& value) : ValueObject(TypeKeyValueObject) {
             mSupportClone = false;
             mAutoCreateDynamicFields = false;
-            mKey = key;
+            mKeyId = SymbolTable::insert( key );
             mValue = value;
         }
         std::string  toString() override{
-            return std::string(mKey + " => " + mValue.toString());
+            return std::string(SymbolTable::getName( mKeyId)  + " => " + mValue.toString());
         }
         // -------------------------------------------------------------------------
         void Dump() override {
             ValueObject::Dump();
-            Tools::printf("%s => %s\n", mKey.c_str(), mValue.toString().c_str());
+            Tools::printf("%s => %s\n", SymbolTable::getName( mKeyId).c_str(), mValue.toString().c_str());
         }
     };
     // -------------------------------------------------------------------------
@@ -73,18 +74,21 @@ namespace DreiZehn {
             mSupportClone = true;
             mAutoCreateDynamicFields = false;
 
-            for(int64_t i = args.size() - 1; i >= 0;  i--) {
+            for(int64_t i = 0; i <  args.size() ; i++) {
                 Value v = NumberNullValue;
 
+                uint32_t id = 0;
                 std::string fieldName = "";
 
                 if (args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject )) {
                     KeyValueObject* kv = static_cast<KeyValueObject*>(args[i].asPointerObject());
-                    fieldName = kv->mKey;
+                    id = kv->mKeyId;
+                    fieldName = SymbolTable::getName(id);
                     v = kv->mValue;
 
                 } else if (args[i].isString()) {
                     fieldName = args[i].getStringRef();
+                    id = SymbolTable::insert(fieldName);
                 } else {
                     continue;
                 }
@@ -94,10 +98,16 @@ namespace DreiZehn {
                     continue;
                 }
 
-                uint32_t id = SymbolTable::insert(fieldName);
                 insertUpdateDynamicField(id, v);
             }
         }
+        // -------------------------------------------------------------------------
+        virtual ValueObject* clone() override {
+            StructObject* clone = new StructObject();
+            ValueObject::cloneBase(clone);
+            return clone;
+        }
+        // -------------------------------------------------------------------------
         // .... array by integer index ....
         inline size_t onGetArraySize() override{
             return mDynamicFieldValues.size();
@@ -136,7 +146,74 @@ namespace DreiZehn {
         }
 
     };
+    // -------------------------------------------------------------------------
+    struct ArrayObject : public ValueObject {
 
+
+        ArrayObject() : ValueObject(TypeArrayObject) {
+            mSupportClone = true;
+            mValidateFieldName = false;
+        }
+
+        ArrayObject(std::vector<Value>& args) : ValueObject(TypeArrayObject) {
+            mSupportClone = true;
+            mValidateFieldName = false;
+
+            for(int64_t i = 0; i <  args.size() ; i++) {
+                Value v = NumberNullValue;
+
+                uint32_t id = 0;
+                std::string fieldName = "";
+
+                if (args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject )) {
+                    KeyValueObject* kv = static_cast<KeyValueObject*>(args[i].asPointerObject());
+                    id = kv->mKeyId;
+                    fieldName = SymbolTable::getName(id);
+                    v = kv->mValue;
+
+                } else if (args[i].isString()) {
+                    fieldName = args[i].getStringRef();
+                    id = SymbolTable::insert(fieldName);
+                } else {
+                    continue;
+                }
+
+                insertUpdateDynamicField(id, v);
+            }
+        }
+        // -------------------------------------------------------------------------
+        virtual ValueObject* clone() override {
+            ArrayObject* clone = new ArrayObject();
+            ValueObject::cloneBase(clone);
+            return clone;
+        }
+        // -------------------------------------------------------------------------
+        bool onGetField(uint32_t fieldSymbolId, Value& ret) override{
+            return false;
+        }
+        Value* onGetFieldPtr(uint32_t fieldSymbolId ) override{
+            return nullptr;
+        }
+        // -------------------------------------------------------------------------
+        // .... array by integer index ....
+        inline size_t onGetArraySize() override{
+            return mDynamicFieldValues.size();
+        }
+        // -------------------------------------------------------------------------
+        inline Value* onGetArrayIndexPtr(size_t arrayIndex) override{
+            return getDynamicFieldPtrByIndex(arrayIndex);
+        }
+        // .... array by string key ....
+        inline Value* onGetArrayByStringPtr(std::string strKey) override{
+            uint32_t id = SymbolTable::insert( strKey );
+            Value* valPtr =  getDynamicFieldPtr(id);
+            if (valPtr) return valPtr;
+            insertUpdateDynamicField(id, NumberNullValue);
+            return getDynamicFieldPtr(id);
+        }
+        // -------------------------------------------------------------------------
+    };
+// ============================ RegisterBaseObject ==================================
 inline void RegisterBaseObject(Environment& env) {
     static bool registered = false; if (registered) return; registered = true;
     using namespace FunctionMap;
@@ -185,7 +262,25 @@ inline void RegisterBaseObject(Environment& env) {
 
         return true;
     },"Constructor of Struct. return a Struct, @params [string fieldname] or [KeyValue ] ....");
+    // ---------------------------------------------------------------------
+    RegisterFunction("Array::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        if(args.size() == 0) {
+            Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
+            return true;
+        }
 
+        for(size_t i = 0; i < args.size(); i++) {
+            if (!args[i].isStringId() && !(args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
+                Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
+                return true;
+            }
+        }
+        ArrayObject* obj = new ArrayObject(args);
+        ret = Value(obj);
+
+
+        return true;
+    },"Constructor of Array. return a Array, @params [string fieldname] or [KeyValue ] ....");
 
 }
 

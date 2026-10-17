@@ -172,10 +172,18 @@ namespace DreiZehn {
             Tools::printSeparator(40);
         }
 
-
-        if (mDynamicFieldValues.size() > 0) {
+        if (!mDynamicFieldValues.empty()) {
             Tools::printf(" ----- Dynamic Fields: %zu -----\n", mDynamicFieldValues.size());
-            for ( auto& [key, index] : mDynmaicFieldIndex) {
+
+            for (size_t index = 0 ; index <  mDynamicFieldValues.size(); index++) {
+                uint32_t key = 0;
+                for (const auto& [map_key, map_index] : mDynmaicFieldIndex) {
+                    if (map_index == index) {
+                        key = map_key;
+                        break;
+                    }
+                }
+
                 Tools::printf("  .%20s = %-30s [%p] [sym:%u]\n"
                 , SymbolTable::getName(key).c_str()
                 , mDynamicFieldValues[index]->toString().c_str()
@@ -186,6 +194,7 @@ namespace DreiZehn {
 
             Tools::printSeparator(40);
         }
+
         if (mMethodMap.size() > 0) {
             Tools::printf(" ----- Script Methods (cached): %zu -----\n", mMethodMap.size());
             for ( auto& [key, method] : mMethodMap) {
@@ -277,7 +286,7 @@ namespace DreiZehn {
                 return true;
             }
             std::string fieldName = args[0].getStringRef();
-            if (!isValidVariableName(fieldName)) {
+            if (mValidateFieldName && !isValidVariableName(fieldName)) {
                 Tools::warnf("Field `%s` is not a valid variable name\n", fieldName.c_str());
                 ret = NumberNullValue;
                 return true;
@@ -391,7 +400,7 @@ namespace DreiZehn {
     }
 
     bool  ValueObject::addDynamicField(const std::string & fieldName, const Value& value) {
-        if (!isValidVariableName(fieldName)) return false;
+        if (mValidateFieldName &&  !isValidVariableName(fieldName)) return false;
         uint32_t id = SymbolTable::insert(fieldName);
         insertUpdateDynamicField(id, value);
         return true;

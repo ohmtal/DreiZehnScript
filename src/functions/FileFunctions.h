@@ -21,7 +21,7 @@
 
 namespace DreiZehn {
 
-const int TypeFileStreamObject = RegisterUserObjectType("FileStream");
+inline const int TypeFileStreamObject = RegisterUserObjectType("FileStream");
 
 
 struct FileStreamObject : public ValueObject {

@@ -45,6 +45,14 @@ namespace DreiZehn {
             mNextSlotIndex--;
         }
         // --------------------------------------
+        int resolve(uint32_t symbolId) const {
+            auto it = mSymbolIdToSlot.find(symbolId);
+            if (it != mSymbolIdToSlot.end()) {
+                return it->second;
+            }
+            return -1;
+        }
+        // --------------------------------------
 
         uint32_t getSymbolIdForSlot(int slot) const {
             return mSlotToSymbolId.at(slot);

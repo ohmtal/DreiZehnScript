@@ -24,12 +24,17 @@ enum  OpCodes : uint32_t {
 
     OP_LESS_EQUAL,
 
+    // Global Variables
     OP_LOAD_VAR,
     OP_SAVE_VAR,
 
-    // for future use ...
-    OP_GET_LOCAL,   // fetch var
-    OP_SET_LOCAL,   // write var
+    // Local Variables:
+    OP_GET_LOCAL,
+    OP_SET_LOCAL,
+
+    //Function Call
+    OP_CALL_C_FUNCTION,
+    OP_CALL_SF_FUNCTION,
 
     // Math
     OP_INC_LOCAL, //++ -- += -= using emitted value
@@ -62,6 +67,9 @@ inline OpCodeInfo OpCodeInfos[] = {
     {"OP_GET_LOCAL", 1},
     {"OP_SET_LOCAL", 1},
 
+    {"OP_CALL_C_FUNCTION", 0}, //SPECIAL emittedCount variable
+    {"OP_CALL_SF_FUNCTION", 0}, //SPECIAL emittedCount variable
+
     {"OP_INC_LOCAL", 2},
     // // "OP_DEC_LOCAL" use inc local with emitted neg value!
 
@@ -81,14 +89,45 @@ inline void disassembleInstruction(const uint32_t* code, size_t offset) {
 
     Tools::printf("%04zu: ", offset);
 
+
     if (opcode < OP_INVALID) {
         Tools::printf("%s", OpCodeInfos[opcode].name);
-        if (OpCodeInfos[opcode].emittedCount > 0) {
-            Tools::printf(" Args: ");
-            for (U32 i = 1; i <= OpCodeInfos[opcode].emittedCount; i++ ) {
-                Tools::printf("%u ", code[offset + i]);
+
+        switch (opcode) {
+            case OP_CALL_C_FUNCTION: {
+                offset++;
+                void* cb = nullptr;
+                std::memcpy(&cb, &code[offset], sizeof(void*));
+                offset += 2;
+
+                U32 argCount = code[offset++];
+                Tools::printf("  Pointer: %p, Args: %u", cb, argCount);
             }
+            break;
+
+            case OP_CALL_SF_FUNCTION: {
+                //TODO TEST not implemented yet
+                offset++;
+                void* cb = nullptr;
+                std::memcpy(&cb, &code[offset], sizeof(void*));
+                offset += 2;
+
+                U32 argCount = code[offset++];
+                Tools::printf("  Pointer: %p, Args: %u", cb, argCount);
+            }
+            break;
+            default:
+                if (OpCodeInfos[opcode].emittedCount > 0) {
+                    Tools::printf(" Args: ");
+                    for (U32 i = 1; i <= OpCodeInfos[opcode].emittedCount; i++ ) {
+                        Tools::printf("%u ", code[offset + i]);
+                    }
+                }
+                break;
         }
+
+
+
     } else {
         Tools::printf("UNKNOWN_OPCODE [%u]", opcode);
     }
@@ -113,6 +152,15 @@ struct BytecodeChunk {
         U32 startIp = (U32)mByteCodes.size();
         mByteCodes.resize(startIp + 2);
         std::memcpy(&mByteCodes[startIp], &val, sizeof(Value));
+        return startIp;
+    }
+
+    U32 emitPointer(void* ptr) {
+        U32 startIp = (U32)mByteCodes.size();
+        mByteCodes.resize(startIp + 2);
+
+        std::memcpy(&mByteCodes[startIp], &ptr, sizeof(void*));
+
         return startIp;
     }
 

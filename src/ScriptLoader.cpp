@@ -194,6 +194,13 @@ namespace DreiZehn {
         return true;
     }
 
+    Value RunScriptStreamByteCode(std::istream& stream, Environment& env) {
+
+        auto mainProgram = ParseScriptToAST(stream);
+        if (!mainProgram) return false;
+
+        return  env.CompileExec(mainProgram.get());
+    }
 
     // --------------------------------------------------------------------------------
     std::shared_ptr<BlockStatement> IncludeScriptFile(const std::string& filename)

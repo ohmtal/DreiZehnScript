@@ -65,12 +65,12 @@ public:
         // TODO  CallExpression
 
         // AssignStatement --------------------------------------------------------
-        else if (auto* assignStmt = dynamic_cast<AssignStatement*>(node)) {
-            compileExpression(assignStmt->mRhs.get(), chunk, scope);
-            U32 localSlot = scope.insert(assignStmt->mVarNameSymbolId);
-            chunk.emit(OP_SET_LOCAL);
-            chunk.emit(localSlot);
-        }
+        // else if (auto* assignStmt = dynamic_cast<AssignStatement*>(node)) {
+        //     compileExpression(assignStmt->mRhs.get(), chunk, scope);
+        //     U32 localSlot = scope.insert(assignStmt->mVarNameSymbolId);
+        //     chunk.emit(OP_SET_LOCAL);
+        //     chunk.emit(localSlot);
+        // }
         // --- operation
         else if (auto* binary = dynamic_cast<BinaryOpExpression*>(node)) {
             compileExpression(binary->mLeft.get(), chunk, scope);

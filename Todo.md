@@ -428,12 +428,15 @@ Struct [0x5576cc6a5440]
    
 - [X] Script Tree to c++
 
-## 0.9
-    
-## 0.?? .... ongoing process ....
+## 0.9 Bytecode
 
-- [ ] common/FileTools.13
-- [ ] common/JSONParser.13
+todos listed here: [TodoByteCode](./TodoByteCode.md)
+
+
+##  SDL3 parser .... ongoing process ....
+
+- [X] common/FileTools.13
+- [X] common/JSONParser.13
     
 - [ ] sdl3 clang header tool 
     - [X] test and move into DreiZehn tools
@@ -447,9 +450,9 @@ Struct [0x5576cc6a5440]
                 This enable my console again - i guess.
         - [X] separate the Tokenizer 
         - [ ] load hints 
-        - [ ] write a sourcefile directly -- now we can use templates 
+        - [ ] write a sourcefile  
         - [ ] functions
-            - adding a templete for function parameter to know what is an array like the points:
+            - adding  hints for function parameter to know what is an array like the points:
             - `bool SDL_GetRectEnclosingPointsFloat(const SDL_FPoint *points, int count, const SDL_FRect *clip, SDL_FRect *result);`
                 - "points": { "passing": "array", "size_by": "count" },
                 - "clip": { "passing": "in_ref" },
@@ -466,12 +469,10 @@ Struct [0x5576cc6a5440]
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works but depends on compiler! 
 
 ## maybe:
-- [ ] Handbook - CheatSheet for basic syntax and functions.
-- [ ] MiniAudio bindings (cmake already prepared)
+- [ ] Handbook: CheatSheet for basic syntax and functions.
 - [ ] while `foo = "abc"; print foo[2]` is working foo[2] = "a" is not. 
       ok yes, it is only working with object which support it like Vector
       not sure if i want do change this
-- [ ] Bytecode continue .... 
 
 ## maybe maybe
 - need a die command ?! 

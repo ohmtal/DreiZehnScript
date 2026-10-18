@@ -15,6 +15,8 @@
 namespace DreiZehn {
 
 class Environment;
+struct BytecodeChunk;
+class CompilerScope;
 
 enum class FlowSignal {
     None,
@@ -107,9 +109,19 @@ constexpr const char* NodeTypeToString(NodeType type) {
 
 
 // base node -------------------------------------------------------------------
+struct Expression;
+
 struct ASTNode {
     NodeType mNodeType = NodeType::BaseNode;
     virtual ~ASTNode() = default;
+
+    virtual bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+        return false;
+    }
+
+    virtual bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, Expression* rhs) {
+        return false;
+    }
 };
 
 // base expression -------------------------------------------------------------
@@ -122,6 +134,7 @@ struct Expression : public ASTNode {
     virtual Value* evaluatePtr(Environment& env) {
         return nullptr;
     }
+
 };
 
 
@@ -139,6 +152,10 @@ public:
         mNodeType = NodeType::BlockStatement;
     }
     FlowStatus execute(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
+
 };
 
 
@@ -156,6 +173,8 @@ struct LiteralExpression : public Expression {
         }
 
     Value evaluate(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
 };
 
 // Values directly pushed in (ConstantsMap)-------------------------------------------------------------------
@@ -169,6 +188,7 @@ struct ValueExpression : public Expression {
     inline Value evaluate(Environment& env) override {
         return mValue;
     }
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
 };
 
 // Variables -------------------------------------------------------------------
@@ -195,6 +215,10 @@ struct VariableExpression : public Expression {
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, Expression* rhs) override;
+
 };
 
 
@@ -208,6 +232,9 @@ struct VariableReferenceExpression : public Expression {
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 // VariablePointerExpression  (*fooptr)----------------------------------------------------------
@@ -222,6 +249,8 @@ struct VariablePointerExpression : public Expression {
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 // ArrayVariableExpression --------------------------------------------------------------
@@ -235,6 +264,8 @@ struct ArrayVariableExpression : public Expression {
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 // ObjectFieldExpression --------------------------------------------------------------
@@ -252,6 +283,8 @@ struct ObjectFieldExpression : public Expression {
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 // function calls --------------------------------------------------------------
 struct CallExpression : public Expression {
@@ -269,6 +302,9 @@ struct CallExpression : public Expression {
     }
 
     Value evaluate(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 // method/field on Pointer  calls --------------------------------------------------------------
@@ -287,6 +323,9 @@ struct MethodExpression : public Expression {
 
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 
@@ -321,6 +360,9 @@ struct AssignStatement : public Expression {
 
     Value evaluate(Environment& env) override;
 
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
+
 };
 // Binary ----------------------------------------------------------------------
 struct BinaryExpression : public Expression {
@@ -335,6 +377,9 @@ struct BinaryExpression : public Expression {
     }
 
     Value evaluate(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 struct BinaryAndOrExpression : public Expression {
 
@@ -348,6 +393,8 @@ struct BinaryAndOrExpression : public Expression {
     }
 
     Value evaluate(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 // BinarySingleRightOpExpression  ----------------------------------------------
 // used for Not
@@ -362,6 +409,8 @@ struct BinarySingleRightOpExpression : public Expression {
     }
 
     Value evaluate(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 // BinaryOP --------------------------------------------------------------------
 struct BinaryOpExpression : public Expression {
@@ -375,6 +424,8 @@ struct BinaryOpExpression : public Expression {
     }
 
     Value evaluate(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 // BinaryInline ----------------------------------------------------------------------
 struct BinaryInlineExpression : public Expression {
@@ -386,6 +437,8 @@ struct BinaryInlineExpression : public Expression {
         mNodeType  = NodeType::BinaryInlineExpression;
     }
     Value evaluate(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 // AssingmentOP ------------------------------------------------------------------
@@ -402,6 +455,8 @@ struct AssignOPStatement : public Expression {
     }
 
      Value evaluate(Environment& env) override;
+     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 // short if => ? : ---------------------------------------------------------------
 struct TernaryExpression : public Expression {
@@ -428,6 +483,9 @@ struct TernaryExpression : public Expression {
             return mFalseBranch->evaluate(env);
         }
     }
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 // UnaryMinusExpression -----------------------------------------------------------
 struct UnaryMinusExpression : public Expression {
@@ -435,13 +493,16 @@ struct UnaryMinusExpression : public Expression {
 
     UnaryMinusExpression( std::unique_ptr<Expression> expr) : mExpr(std::move(expr)) { }
 
-    inline Value evaluate(Environment& env) {
+    inline Value evaluate(Environment& env) override {
         Value v = mExpr->evaluate(env);
         if (v.isInt()) return Value(v.asFastInt() * -1);
         if (v.isDouble()) return Value(v.asFastDouble() * -1);
         Tools::PrintRuntimeError( "Pointer Minus Operation not allowed!");
         return v;
     }
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 // If -------------------------------------------------------------------------
@@ -456,6 +517,9 @@ struct IfStatement : public BlockStatement {
     }
 
     FlowStatus execute(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 
 };
 struct ElseMarkerNode: public ASTNode {
@@ -475,6 +539,7 @@ struct FunctionDefineStartNode : public ASTNode {
     FunctionDefineStartNode(uint32_t symId) : mFnNameSymbolId(symId) {
         mNodeType  = NodeType::FunctionDefineStartNode;
     }
+
 };
 // end -------------------------------------------------------------------------
 struct FunctionDefineEndNode : public ASTNode {
@@ -503,6 +568,9 @@ struct ForStatement : public BlockStatement {
     }
 
     FlowStatus execute(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 // forRange -------------------------------------------------------------------------
 struct ForRangeStatement : public BlockStatement {
@@ -515,6 +583,9 @@ struct ForRangeStatement : public BlockStatement {
     }
 
     FlowStatus execute(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 // forEach -------------------------------------------------------------------------
@@ -528,6 +599,9 @@ struct ForEachStatement : public BlockStatement {
     }
 
     FlowStatus execute(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 // break -------------------------------------------------------------------------
@@ -538,6 +612,8 @@ struct BreakStatement : public FlowBaseStatement {
     inline FlowStatus execute(Environment& env) override {
         return FlowStatus (FlowSignal::Break);
     };
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 // continue  -------------------------------------------------------------------------
 struct ContinueStatement : public FlowBaseStatement {
@@ -547,6 +623,8 @@ struct ContinueStatement : public FlowBaseStatement {
     inline FlowStatus execute(Environment& env) override {
         return FlowStatus (FlowSignal::Continue);
     };
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 // return -------------------------------------------------------------------------
 struct ReturnStatement : public FlowBaseStatement {
@@ -555,6 +633,8 @@ struct ReturnStatement : public FlowBaseStatement {
         mNodeType  = NodeType::ReturnStatement;
     }
     FlowStatus execute(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 // While -------------------------------------------------------------------------
 struct WhileStatement : public BlockStatement {
@@ -563,6 +643,8 @@ struct WhileStatement : public BlockStatement {
         mNodeType  = NodeType::WhileStatement;
     }
     FlowStatus execute(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 // Include -------------------------------------------------------------------------
@@ -585,6 +667,9 @@ struct IncludeStatement : public FlowBaseStatement {
         if (noExecValue.getBool()) return {FlowSignal::None};
         return mBody->execute(env);
     }
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
 };
 
 // KeyValueExpression ----------------------------------------------------------------------
@@ -597,5 +682,8 @@ struct KeyValueExpression : public Expression {
         mNodeType  = NodeType::KeyValueExpression;
     }
     Value evaluate(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+
+
 };
 } //namespace

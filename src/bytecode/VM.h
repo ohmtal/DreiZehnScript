@@ -39,6 +39,10 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
         &&handle_OP_GET_LOCAL,   // fetch var
         &&handle_OP_SET_LOCAL,   // write var
 
+        // Functions
+        &&handle_OP_CALL_C_FUNCTION,
+        &&handle_OP_CALL_SF_FUNCTION,
+
         // Math
         &&handle_OP_INC_LOCAL,
         &&handle_OP_ADD,
@@ -74,6 +78,11 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
         vmStack.push_back(val);
     };
 
+    auto peekStack = [&vmStack](size_t distance) {
+        assert(distance < vmStack.size() && "RUNTIME ERROR INVALID STACK ADDRESS");
+        return vmStack[vmStack.size() - 1 - distance];
+    };
+
     uint32_t  ip = 0;
     uint32_t* code = chunk.mByteCodes.data();
     size_t codeSize = chunk.mByteCodes.size();
@@ -102,6 +111,14 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
         std::memcpy(&val, &code[ip], sizeof(Value));
         ip += 2;
         return val;
+    };
+
+    auto advancePointer = [code, &ip, codeSize]() -> void* {
+        assert(ip + 1 < codeSize && "RUNTIME ERROR: BYTECODE OVERFLOW READING INLINE POINTER");
+        void* ptr;
+        std::memcpy(&ptr, &code[ip], sizeof(void*));
+        ip += 2;
+        return ptr;
     };
 
     // magic macro:
@@ -158,7 +175,7 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
 
     // -------------------------------
     handle_OP_LOAD_VAR:{
-        // lookup
+        // FIXME cache ?!
         pushStack( Globals::MasterVariableFrame->getVariable(advanceU32()) );
         DISPATCH();
     }
@@ -179,13 +196,39 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
     // -------------------------------
     handle_OP_SET_LOCAL: {
         U32 slot = advanceU32();
-        if (slot >= locals.size()) {
-            locals.resize(slot + 1);
-        }
-        locals[slot] = popStack();
+        locals[slot] = peekStack(0);
         DISPATCH();
     }
+    // -------------------------------
+    handle_OP_CALL_C_FUNCTION: {
+        void* ptr = advancePointer();
+        FunctionMap::CallBack* cb = static_cast<FunctionMap::CallBack*>(ptr);
 
+        U32 argCount = advanceU32();
+
+        {
+            std::vector<Value> evaluatedArgs(argCount);
+            for (int i = (int)argCount - 1; i >= 0; i--) {
+                evaluatedArgs[i] = popStack();
+            }
+
+            Value returnValue = NumberNullValue;
+            bool success = (*cb)(evaluatedArgs, returnValue);
+
+            if (!success) {
+                Tools::errorf("Runtime Error in native function call\n");
+            }
+
+            pushStack(returnValue);
+        }
+
+        DISPATCH();
+    }
+    // -------------------------------
+    handle_OP_CALL_SF_FUNCTION: {
+        //FIXME
+        DISPATCH();
+    }
     // -------------------------------
     handle_OP_INC_LOCAL: {
         U32 slot = advanceU32();

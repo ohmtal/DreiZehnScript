@@ -10,6 +10,10 @@
 #include <string.h>
 #include "core/BaseObjects.h"
 
+#ifdef DREIZEHN_BYTECODE
+#include "bytecode/VMStructure.h"
+#include "bytecode/CompilerScope.h"
+#endif
 
 namespace DreiZehn {
     // -------------------------------------------------------------------------
@@ -40,6 +44,23 @@ namespace DreiZehn {
         }
         mEvaluated = true;
         return mEvaluatedValue;
+    }
+
+    bool LiteralExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+
+        uint32_t constIdx = chunk.addConstant(this->evaluate(env));
+        chunk.emit(OP_CONST);
+        chunk.emit(constIdx);
+        return true;
+    }
+    // -------------------------------------------------------------------------
+    // ValueExpression
+    // -------------------------------------------------------------------------
+    bool ValueExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        uint32_t constIdx = chunk.addConstant(this->evaluate(env));
+        chunk.emit(OP_CONST);
+        chunk.emit(constIdx);
+        return true;
     }
     // -------------------------------------------------------------------------
     // VariableExpression
@@ -77,6 +98,37 @@ namespace DreiZehn {
         return nullptr;
     }
 
+    bool VariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        if (mGlobalVariable) {
+            chunk.emit(OP_LOAD_VAR);
+            chunk.emit(mVariableNameSymbolId);
+        } else {
+            U32 localSlot = scope.resolve(mVariableNameSymbolId);
+            chunk.emit(OP_GET_LOCAL);
+            chunk.emit(localSlot);
+        }
+        return true;
+    }
+
+    bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, Expression* rhs) {
+        if (rhs) {
+            rhs->compile(env, chunk, scope);
+        }
+
+        if (mGlobalVariable) {
+            chunk.emit(OP_SAVE_VAR);
+            chunk.emit(mVariableNameSymbolId);
+        } else {
+            U32 localSlot = scope.insert(mVariableNameSymbolId);
+
+            chunk.emit(OP_SET_LOCAL);
+            chunk.emit(static_cast<U32>(localSlot));
+        }
+
+        return true;
+    }
+
+
     // -------------------------------------------------------------------------
     // VariableReferenceExpression
     // -------------------------------------------------------------------------
@@ -89,6 +141,12 @@ namespace DreiZehn {
         if (!mVarExpr) return nullptr;
         return mVarExpr->evaluatePtr(env);
     }
+
+    bool VariableReferenceExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
+
     // -------------------------------------------------------------------------
     // VariablePointerExpression
     // -------------------------------------------------------------------------
@@ -114,6 +172,10 @@ namespace DreiZehn {
         mCachedPtr  = nullptr;
 
         return mCachedPtr;
+    }
+    bool VariablePointerExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
     }
     // -------------------------------------------------------------------------
     // ArrayVariableExpression
@@ -170,6 +232,11 @@ namespace DreiZehn {
         }
         // only works on objects which support onGetArrayIndexPtr
         return nullptr;
+    }
+
+    bool ArrayVariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
     }
     // -------------------------------------------------------------------------
     // ObjectFieldExpression
@@ -236,6 +303,11 @@ namespace DreiZehn {
         }
         return valPtr;
     }
+
+    bool ObjectFieldExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
     // -------------------------------------------------------------------------
     // MethodExpression
     // -------------------------------------------------------------------------
@@ -286,6 +358,11 @@ namespace DreiZehn {
         }
 
         return obj->onMethodCallGetAssignPtr(mMethodNameSymbolId, evaluatedArgs);
+    }
+
+    bool MethodExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
     }
     // -------------------------------------------------------------------------
     // CallExpression
@@ -400,6 +477,33 @@ namespace DreiZehn {
 
     }
 #endif
+bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+    FunctionMap::CallBack* cb = FunctionMap::GetCFunction(mFuncSymbolId);
+
+    if (cb) {
+        U32 argCount = 0;
+        for (auto& argExpr : arguments) {
+            if (argExpr) {
+                argExpr->compile(env, chunk, scope);
+                argCount++;
+            }
+        }
+
+        chunk.emit(OP_CALL_C_FUNCTION);
+
+        chunk.emitPointer(cb);
+        // U32 startIp = (U32)chunk.mByteCodes.size();
+        // chunk.mByteCodes.resize(startIp + 2);
+        // std::memcpy(&chunk.mByteCodes[startIp], &cb, sizeof(void*));
+
+        chunk.emit(argCount);
+
+        return true;
+    }
+
+    return false;
+}
+
     // -------------------------------------------------------------------------
     // BinaryOpExpression
     // -------------------------------------------------------------------------
@@ -457,6 +561,10 @@ namespace DreiZehn {
         return Value();
 
     }
+    bool BinaryOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
     // -------------------------------------------------------------------------
     // ++ --
     Value BinaryInlineExpression::evaluate(Environment& env)  {
@@ -493,6 +601,10 @@ namespace DreiZehn {
         return Value();
 
     }
+    bool BinaryInlineExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
     // -------------------------------------------------------------------------
     Value BinaryAndOrExpression::evaluate(Environment& env)  {
         if (!mLeft.get() || !mRight.get()) {
@@ -520,7 +632,16 @@ namespace DreiZehn {
         return NumberNullValue;
 
     }
+    bool BinaryAndOrExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
     // -------------------------------------------------------------------------
+    bool BinaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
+
     Value BinaryExpression::evaluate(Environment& env)  {
         if (!mLeft.get() || !mRight.get()) {
             Tools::PrintParseError("left or right is missing:");
@@ -662,6 +783,11 @@ namespace DreiZehn {
         Value rVal = mRight->evaluate(env);
         return Value(!rVal.getInt());
     }
+    bool BinarySingleRightOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
+
     // -------------------------------------------------------------------------
     // STATEMENTS execute
     // -------------------------------------------------------------------------
@@ -687,6 +813,13 @@ namespace DreiZehn {
         return *valPtr;
 
     }
+    bool AssignStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+
+        // types must support compileAssignment!
+        return mVarExpr->compileAssignment(env, chunk, scope, mRhs.get());
+
+    }
+
     // -------------------------------------------------------------------------
 
     Value AssignOPStatement::evaluate(Environment& env) {
@@ -752,6 +885,10 @@ namespace DreiZehn {
         }
 
         return NumberNullValue;
+    }
+    bool AssignOPStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
     }
 
     // Value AssignOPStatement::evaluate(Environment& env) {
@@ -819,6 +956,16 @@ namespace DreiZehn {
     // }
 
     // -------------------------------------------------------------------------
+    bool TernaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+        //FIXME
+        return false;
+    }
+    // -------------------------------------------------------------------------
+    bool UnaryMinusExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
+    // -------------------------------------------------------------------------
     // FLOW STATEMENTS execute
     // -------------------------------------------------------------------------
     FlowStatus ReturnStatement::execute(Environment& env) {
@@ -835,6 +982,10 @@ namespace DreiZehn {
         return flowResult;
     };
 
+    bool ReturnStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
     // -------------------------------------------------------------------------
     FlowStatus IfStatement::execute(Environment& env){
         Value condVal = this->mCondition->evaluate(env);
@@ -858,7 +1009,10 @@ namespace DreiZehn {
         }
         return  FlowStatus (FlowSignal::None);
     }
-
+    bool IfStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
     // -------------------------------------------------------------------------
     FlowStatus ForRangeStatement::execute(Environment& env){
         if (!this->mCountExpr ) {
@@ -892,7 +1046,10 @@ namespace DreiZehn {
         }
         return  FlowStatus (FlowSignal::None);
     }
-
+    bool ForRangeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
     // -------------------------------------------------------------------------
     FlowStatus ForStatement::execute(Environment& env){
         if (!this->mStartExpr || !this->mEndExpr ) {
@@ -954,7 +1111,10 @@ namespace DreiZehn {
         }
         return FlowStatus (FlowSignal::None)  ;
     }
-
+    bool ForStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
     // -------------------------------------------------------------------------
     FlowStatus WhileStatement::execute(Environment& env){
         // Environment loopEnv(&env);
@@ -980,30 +1140,12 @@ namespace DreiZehn {
         }
         return FlowStatus (FlowSignal::None)  ;
     }
-//     FlowStatus WhileStatement::execute(Environment& env){
-//         Environment loopEnv(&env);
-//
-//         auto checkCondition = [&]() -> bool {
-//             Value condVal = this->mCondition->evaluate(loopEnv);
-//             return (condVal.getInt() != 0);
-//         };
-//
-//         while (checkCondition()) {
-//             for (auto& statement : this->mBody) {
-//                 FlowStatus status = env.execute(statement.get(), loopEnv);
-//
-//                 if (status.signal == FlowSignal::Break) {
-//                     return FlowStatus (FlowSignal::None);
-//                 }
-//                 if (status.signal == FlowSignal::Return) {
-//                     return status;
-//                 }
-//                 if (status.signal == FlowSignal::Continue) break;
-//
-//             }
-//         }
-//         return FlowStatus (FlowSignal::None)  ;
-//     }
+
+    bool WhileStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
+
     // -------------------------------------------------------------------------
     FlowStatus ForEachStatement::execute(Environment& env){
         if (!this->mVarExpr ) {
@@ -1057,6 +1199,11 @@ namespace DreiZehn {
 
         return  FlowStatus (FlowSignal::None)  ;
     }
+
+    bool ForEachStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
     // -------------------------------------------------------------------------
     FlowStatus BlockStatement::execute(Environment& env){
         for (auto& statement : this->mBody) {
@@ -1065,6 +1212,14 @@ namespace DreiZehn {
             if (status.signal != FlowSignal::None) return status;
         }
         return FlowStatus (FlowSignal::None) ;
+    }
+
+    bool BlockStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        for (auto& statement : mBody) {
+            if (!statement) continue;
+            statement->compile(env, chunk, scope);
+        }
+        return true;
     }
     // -------------------------------------------------------------------------
     Value KeyValueExpression::evaluate(Environment& env) {
@@ -1080,4 +1235,25 @@ namespace DreiZehn {
         auto obj = new KeyValueObject(keyVal.getStringRef(), mValueExpr->evaluate(env));
         return Value(obj);
     }
+
+    bool KeyValueExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+        //FIXME
+        return false;
+    }
+    // -------------------------------------------------------------------------
+    bool IncludeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+        //FIXME
+        return false;
+    }
+    // -------------------------------------------------------------------------
+    bool BreakStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+        //FIXME
+        return false;
+    }
+    // -------------------------------------------------------------------------
+    bool ContinueStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+        //FIXME
+        return false;
+    }
+    // -------------------------------------------------------------------------
 }

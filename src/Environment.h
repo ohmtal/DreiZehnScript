@@ -4,9 +4,9 @@
 //-----------------------------------------------------------------------------
 // Enviroment VM
 
-// #define DREIZEHN_BYTECODE
-// #define DREIZEHN_BYTECODE_PORTING
-// #define DEBUG_TRACE_EXECUTION
+#define DREIZEHN_BYTECODE
+#define DREIZEHN_BYTECODE_PORTING
+#define DEBUG_TRACE_EXECUTION
 
 // NOTE Example:
 // #ifdef DREIZEHN_BYTECODE
@@ -97,6 +97,60 @@ public:
         return mVariableFrame;
     }
 
+    // -------------------------------------------------------------------------
+    // Compile and CompileExec
+    // -------------------------------------------------------------------------
+
+    inline Value CompileExec(ASTNode* node) {
+        if (!node) return NumberNullValue;
+        BytecodeChunk chunk;
+        CompilerScope scope;
+        if (!Compile(node, *this, chunk, scope)) return NumberNullValue;
+        chunk.emit(OP_EXIT);
+        return runDirectThreadedVM(chunk, scope.getLocalCount());
+    }
+
+    inline bool Compile( ASTNode* node, Environment& currentEnv, BytecodeChunk& chunk, CompilerScope& scope)
+    {
+          if (!node) return false;
+          switch(node->mNodeType) {
+              case NodeType::LiteralExpression: {
+                  if (auto* expr = dynamic_cast<LiteralExpression*>(node)) {
+                      if (!expr->compile(currentEnv, chunk, scope)) return false;
+                  }
+                  break;
+              }
+              case NodeType::ValueExpression: {
+                  if (auto* expr = dynamic_cast<ValueExpression*>(node)) {
+                      if (!expr->compile(currentEnv, chunk, scope)) return false;
+                  }
+                  break;
+              }
+              case NodeType::VariableExpression: {
+                  if (auto* expr = dynamic_cast<VariableExpression*>(node)) {
+                      if (!expr->compile(currentEnv, chunk, scope)) return false;
+                  }
+                  break;
+              }
+              case NodeType::CallExpression: {
+                  if (auto* expr = dynamic_cast<CallExpression*>(node)) {
+                      if (!expr->compile(currentEnv, chunk, scope)) return false;
+                  }
+                  break;
+              }
+              //HACK FIXME only to make inital tests here
+              case NodeType::BlockStatement:
+              {
+                  auto* flowStmt = dynamic_cast<BlockStatement*>(node);
+                   if (!flowStmt->compile(currentEnv, chunk, scope)) return false;
+                   break;
+              }
+              default:
+                Tools::errorf("UNKNOWN Expression Compile: %s\n", NodeTypeToString(node->mNodeType));
+                return false;
+          }
+          return true;
+    }
 
     // -------------------------------------------------------------------------
     // EXECUTE :D - currentEnv for function calls

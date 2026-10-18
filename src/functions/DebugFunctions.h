@@ -40,6 +40,20 @@ namespace DreiZehn {
             Tools::printf("Garbage count    : %zu\n", GarbageCollection::size());
             return true;
         });
+        // ---------------------------------------------------------------------
+        // ---------------------------------------------------------------------
+        // DEBUG BYTECODE
+        // ---------------------------------------------------------------------
+        RegisterFunction("debug::bc", [&env](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 1 || !args[0].isStringId()) {
+                Tools::errorf("Usage: debug::bc codeled\n");
+                ret = NumberNullValue;
+                return true;
+            }
+            std::stringstream stream(args[0].getStringRef());
+            ret = RunScriptStreamByteCode(stream, env);
+            return true;
+        }, "run a script embedded in a string on BYTECODE VM");
 
     } //RegisterDebugFunctions
 

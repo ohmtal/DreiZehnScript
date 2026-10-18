@@ -50,6 +50,7 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
         &&handle_OP_MUL,
         &&handle_OP_DIV,
 
+        &&handle_OP_POP_STACK,
         &&handle_OP_EXIT,        // bye bye
         &&handle_OP_INVALID
     };
@@ -205,6 +206,7 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
         FunctionMap::CallBack* cb = static_cast<FunctionMap::CallBack*>(ptr);
 
         U32 argCount = advanceU32();
+        ValueType valType = static_cast<ValueType>(advanceU32());
 
         {
             std::vector<Value> evaluatedArgs(argCount);
@@ -219,7 +221,8 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
                 Tools::errorf("Runtime Error in native function call\n");
             }
 
-            pushStack(returnValue);
+            if (valType != ValueType::NONE)
+                pushStack(returnValue);
         }
 
         DISPATCH();
@@ -269,7 +272,15 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
         DISPATCH();
     }
     // -------------------------------
+    handle_OP_POP_STACK: {
+        popStack();
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_EXIT: {
+        #ifdef DEBUG_TRACE_EXECUTION
+        Tools::printf("STACK COUNT: %zu, RETURN VALUE IS: %s\n", vmStack.size(),(vmStack.empty() ? NumberNullValue : vmStack.back()).toString().c_str());
+        #endif
         return vmStack.empty() ? NumberNullValue : vmStack.back();
     }
     // -------------------------------

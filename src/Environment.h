@@ -51,7 +51,6 @@
 #ifdef DREIZEHN_BYTECODE
 #include "bytecode/VMStructure.h"
 #include "bytecode/CompilerScope.h"
-#include "bytecode/ASTCompiler.h"
 #include "bytecode/VM.h"
 #endif
 
@@ -107,42 +106,45 @@ public:
         CompilerScope scope;
         if (!Compile(node, *this, chunk, scope)) return NumberNullValue;
         chunk.emit(OP_EXIT);
-        return runDirectThreadedVM(chunk, scope.getLocalCount());
+        Value res = runDirectThreadedVM(chunk, scope.getLocalCount());
+        // #ifdef DEBUG_TRACE_EXECUTION
+        // Tools::printf("CompileExec VALUE IS: %s\n", res.toString().c_str());
+        // #endif
+        return res;
     }
 
     inline bool Compile( ASTNode* node, Environment& currentEnv, BytecodeChunk& chunk, CompilerScope& scope)
     {
           if (!node) return false;
           switch(node->mNodeType) {
-              case NodeType::LiteralExpression: {
-                  if (auto* expr = dynamic_cast<LiteralExpression*>(node)) {
-                      if (!expr->compile(currentEnv, chunk, scope)) return false;
-                  }
-                  break;
-              }
-              case NodeType::ValueExpression: {
-                  if (auto* expr = dynamic_cast<ValueExpression*>(node)) {
-                      if (!expr->compile(currentEnv, chunk, scope)) return false;
-                  }
-                  break;
-              }
-              case NodeType::VariableExpression: {
-                  if (auto* expr = dynamic_cast<VariableExpression*>(node)) {
-                      if (!expr->compile(currentEnv, chunk, scope)) return false;
-                  }
-                  break;
-              }
-              case NodeType::CallExpression: {
-                  if (auto* expr = dynamic_cast<CallExpression*>(node)) {
-                      if (!expr->compile(currentEnv, chunk, scope)) return false;
-                  }
-                  break;
-              }
-              //HACK FIXME only to make inital tests here
+              // case NodeType::LiteralExpression: {
+              //     if (auto* expr = dynamic_cast<LiteralExpression*>(node)) {
+              //         if (!expr->compile(currentEnv, chunk, scope)) return false;
+              //     }
+              //     break;
+              // }
+              // case NodeType::ValueExpression: {
+              //     if (auto* expr = dynamic_cast<ValueExpression*>(node)) {
+              //         if (!expr->compile(currentEnv, chunk, scope)) return false;
+              //     }
+              //     break;
+              // }
+              // case NodeType::VariableExpression: {
+              //     if (auto* expr = dynamic_cast<VariableExpression*>(node)) {
+              //         if (!expr->compile(currentEnv, chunk, scope)) return false;
+              //     }
+              //     break;
+              // }
+              // case NodeType::CallExpression: {
+              //     if (auto* expr = dynamic_cast<CallExpression*>(node)) {
+              //         if (!expr->compile(currentEnv, chunk, scope)) return false;
+              //     }
+              //     break;
+              // }
               case NodeType::BlockStatement:
               {
                   auto* flowStmt = dynamic_cast<BlockStatement*>(node);
-                   if (!flowStmt->compile(currentEnv, chunk, scope)) return false;
+                   if (!flowStmt->compile(currentEnv, chunk, scope, ValueType::NONE)) return false;
                    break;
               }
               default:

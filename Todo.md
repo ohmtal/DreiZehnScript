@@ -433,7 +433,7 @@ Struct [0x5576cc6a5440]
 todos listed here: [TodoByteCode](./TodoByteCode.md)
 
 
-##  SDL3 parser .... ongoing process ....
+##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 
 
 - [X] common/FileTools.13
 - [X] common/JSONParser.13

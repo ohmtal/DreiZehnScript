@@ -23,6 +23,7 @@ enum class ValueType : uint8_t {
     Pointer,
     ValuePointer,
     StringId,
+    ANY,
     NONE
 };
 
@@ -99,7 +100,6 @@ public:
     inline bool isValuePointer() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_VALUE_PTR); }
     inline bool isStringId() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_STRING_ID); }
     inline bool isString() const { return isStringId(); }
-
 
 
 

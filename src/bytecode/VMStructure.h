@@ -13,8 +13,10 @@
 
 namespace DreiZehn {
 
-typedef uint32_t U32; // dont want to break my fingers lol
-typedef int32_t  S32; // dont want to break my fingers lol
+// dont want to break my fingers every time
+typedef uint32_t U32;
+typedef int64_t  S64;
+typedef int32_t  S32;
 
 enum  OpCodes : uint32_t {
     OP_CONST,       // push const to stack
@@ -44,6 +46,7 @@ enum  OpCodes : uint32_t {
     OP_MUL,
     OP_DIV,
 
+    OP_POP_STACK,
     OP_EXIT,        // bye bye
     OP_INVALID
 };
@@ -78,6 +81,8 @@ inline OpCodeInfo OpCodeInfos[] = {
     {"OP_MUL", 0},
     {"OP_DIV", 0},
 
+    {"OP_POP_STACK", 0},
+
     {"OP_EXIT", 0},
     {"OP_INVALID", 0}
 };
@@ -101,7 +106,8 @@ inline void disassembleInstruction(const uint32_t* code, size_t offset) {
                 offset += 2;
 
                 U32 argCount = code[offset++];
-                Tools::printf("  Pointer: %p, Args: %u", cb, argCount);
+                U32 requestType = code[offset++];
+                Tools::printf("  Pointer: %p, Args: %u, requestType:%u", cb, argCount, requestType);
             }
             break;
 
@@ -113,7 +119,8 @@ inline void disassembleInstruction(const uint32_t* code, size_t offset) {
                 offset += 2;
 
                 U32 argCount = code[offset++];
-                Tools::printf("  Pointer: %p, Args: %u", cb, argCount);
+                U32 requestType = code[offset++];
+                Tools::printf("  Pointer: %p, Args: %u, requestType:%u", cb, argCount, requestType);
             }
             break;
             default:

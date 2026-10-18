@@ -51,7 +51,8 @@ namespace DreiZehn {
                 return true;
             }
             std::stringstream stream(args[0].getStringRef());
-            ret = RunScriptStreamByteCode(stream, env);
+            ret =  RunScriptStreamByteCode(stream, env);
+
             return true;
         }, "run a script embedded in a string on BYTECODE VM");
 

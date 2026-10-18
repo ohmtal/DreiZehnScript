@@ -13,7 +13,7 @@ namespace DreiZehn {
     bool RunScriptFile(const std::string& filename, Environment& env);
 
 
-    bool RunScriptStreamByteCode(std::istream& stream, Environment& env);
+    Value RunScriptStreamByteCode(std::istream& stream, Environment& env);
 
     std::shared_ptr<BlockStatement> IncludeScriptFile(const std::string& filename);
 }

@@ -1,0 +1,21 @@
+-- Byte Code testing
+
+fn niceLine str
+    space = 80 - 2 - (str::strlen str)
+    if space < 2; print str; return;;
+    halfSpace = space / 2
+    forRange i halfSpace; printraw "─";;
+    printraw " " str " "
+    forRange i halfSpace; printraw "─";;
+    print ""
+end
+
+niceLine "call C Func print"
+debug::bc 'print "Hello World!"'
+
+define foo = 47.11;
+global b = 20;
+
+niceLine "local, global, define, consts"
+debug::bc 'b = 78;a= 10.1;print "Local 10.1?" a "Global 78?" b ", CONST 1?:" true "DEFINE 47.11?" foo';
+print "should be 78:" b

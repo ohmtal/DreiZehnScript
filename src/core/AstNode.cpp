@@ -46,7 +46,7 @@ namespace DreiZehn {
         return mEvaluatedValue;
     }
 
-    bool LiteralExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+    bool LiteralExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
 
         uint32_t constIdx = chunk.addConstant(this->evaluate(env));
         chunk.emit(OP_CONST);
@@ -56,7 +56,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // ValueExpression
     // -------------------------------------------------------------------------
-    bool ValueExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool ValueExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         uint32_t constIdx = chunk.addConstant(this->evaluate(env));
         chunk.emit(OP_CONST);
         chunk.emit(constIdx);
@@ -98,12 +98,17 @@ namespace DreiZehn {
         return nullptr;
     }
 
-    bool VariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool VariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (mGlobalVariable) {
             chunk.emit(OP_LOAD_VAR);
             chunk.emit(mVariableNameSymbolId);
         } else {
-            U32 localSlot = scope.resolve(mVariableNameSymbolId);
+            S32 localSlot = scope.resolve(mVariableNameSymbolId);
+            if (localSlot < 0 ) {
+                std::string varName = SymbolTable::getName(mVariableNameSymbolId);
+                Tools::warnf("Variable not found: %s\n", varName.c_str());
+                return true; // do not stop!
+            }
             chunk.emit(OP_GET_LOCAL);
             chunk.emit(localSlot);
         }
@@ -111,10 +116,12 @@ namespace DreiZehn {
     }
 
     bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, Expression* rhs) {
+        // push right
         if (rhs) {
-            rhs->compile(env, chunk, scope);
+            rhs->compile(env, chunk, scope, ValueType::ANY);
         }
 
+        // save var
         if (mGlobalVariable) {
             chunk.emit(OP_SAVE_VAR);
             chunk.emit(mVariableNameSymbolId);
@@ -142,7 +149,7 @@ namespace DreiZehn {
         return mVarExpr->evaluatePtr(env);
     }
 
-    bool VariableReferenceExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool VariableReferenceExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -173,7 +180,7 @@ namespace DreiZehn {
 
         return mCachedPtr;
     }
-    bool VariablePointerExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool VariablePointerExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -234,7 +241,7 @@ namespace DreiZehn {
         return nullptr;
     }
 
-    bool ArrayVariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool ArrayVariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -304,7 +311,7 @@ namespace DreiZehn {
         return valPtr;
     }
 
-    bool ObjectFieldExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool ObjectFieldExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -360,7 +367,7 @@ namespace DreiZehn {
         return obj->onMethodCallGetAssignPtr(mMethodNameSymbolId, evaluatedArgs);
     }
 
-    bool MethodExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool MethodExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -477,14 +484,14 @@ namespace DreiZehn {
 
     }
 #endif
-bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
     FunctionMap::CallBack* cb = FunctionMap::GetCFunction(mFuncSymbolId);
 
     if (cb) {
         U32 argCount = 0;
         for (auto& argExpr : arguments) {
             if (argExpr) {
-                argExpr->compile(env, chunk, scope);
+                argExpr->compile(env, chunk, scope, ValueType::ANY);
                 argCount++;
             }
         }
@@ -492,11 +499,10 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         chunk.emit(OP_CALL_C_FUNCTION);
 
         chunk.emitPointer(cb);
-        // U32 startIp = (U32)chunk.mByteCodes.size();
-        // chunk.mByteCodes.resize(startIp + 2);
-        // std::memcpy(&chunk.mByteCodes[startIp], &cb, sizeof(void*));
-
         chunk.emit(argCount);
+
+        chunk.emit(static_cast<U32>(requestType));
+
 
         return true;
     }
@@ -561,7 +567,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return Value();
 
     }
-    bool BinaryOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool BinaryOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -601,7 +607,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return Value();
 
     }
-    bool BinaryInlineExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool BinaryInlineExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -632,12 +638,12 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return NumberNullValue;
 
     }
-    bool BinaryAndOrExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool BinaryAndOrExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
     // -------------------------------------------------------------------------
-    bool BinaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool BinaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -783,7 +789,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         Value rVal = mRight->evaluate(env);
         return Value(!rVal.getInt());
     }
-    bool BinarySingleRightOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool BinarySingleRightOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -813,7 +819,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return *valPtr;
 
     }
-    bool AssignStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+    bool AssignStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
 
         // types must support compileAssignment!
         return mVarExpr->compileAssignment(env, chunk, scope, mRhs.get());
@@ -886,7 +892,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         return NumberNullValue;
     }
-    bool AssignOPStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool AssignOPStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -956,12 +962,12 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     // }
 
     // -------------------------------------------------------------------------
-    bool TernaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+    bool TernaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         //FIXME
         return false;
     }
     // -------------------------------------------------------------------------
-    bool UnaryMinusExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool UnaryMinusExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -982,8 +988,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return flowResult;
     };
 
-    bool ReturnStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
-        //FIXME
+    bool ReturnStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        //FIXME need a JUMP ADRESS !!
         return false;
     }
     // -------------------------------------------------------------------------
@@ -1009,7 +1015,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
         return  FlowStatus (FlowSignal::None);
     }
-    bool IfStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool IfStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -1046,7 +1052,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
         return  FlowStatus (FlowSignal::None);
     }
-    bool ForRangeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool ForRangeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -1111,7 +1117,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
         return FlowStatus (FlowSignal::None)  ;
     }
-    bool ForStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool ForStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -1141,7 +1147,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return FlowStatus (FlowSignal::None)  ;
     }
 
-    bool WhileStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool WhileStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -1200,7 +1206,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return  FlowStatus (FlowSignal::None)  ;
     }
 
-    bool ForEachStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool ForEachStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
@@ -1214,10 +1220,11 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return FlowStatus (FlowSignal::None) ;
     }
 
-    bool BlockStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool BlockStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        // we fetch the last RESULT
         for (auto& statement : mBody) {
             if (!statement) continue;
-            statement->compile(env, chunk, scope);
+            statement->compile(env, chunk, scope, requestType);
         }
         return true;
     }
@@ -1236,22 +1243,22 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return Value(obj);
     }
 
-    bool KeyValueExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope){
+    bool KeyValueExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
     }
     // -------------------------------------------------------------------------
-    bool IncludeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+    bool IncludeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         //FIXME
         return false;
     }
     // -------------------------------------------------------------------------
-    bool BreakStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+    bool BreakStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         //FIXME
         return false;
     }
     // -------------------------------------------------------------------------
-    bool ContinueStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+    bool ContinueStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         //FIXME
         return false;
     }

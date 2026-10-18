@@ -45,7 +45,7 @@ namespace DreiZehn {
             mNextSlotIndex--;
         }
         // --------------------------------------
-        int resolve(uint32_t symbolId) const {
+        int resolve(S32 symbolId) const {
             auto it = mSymbolIdToSlot.find(symbolId);
             if (it != mSymbolIdToSlot.end()) {
                 return it->second;

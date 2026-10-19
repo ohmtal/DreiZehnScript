@@ -20,11 +20,13 @@ typedef int32_t  S32;
 
 enum  OpCodes : uint32_t {
     OP_CONST,       // push const to stack
+    OP_PUSH_VALUE,
 
     OP_JUMP,
     OP_JUMP_IF_FALSE,
 
     OP_LESS_EQUAL,
+    OP_LESS,
 
     // Global Variables
     OP_LOAD_VAR,
@@ -40,11 +42,17 @@ enum  OpCodes : uint32_t {
 
     // Math
     OP_INC_LOCAL, //++ -- += -= using emitted value
-    // // OP_DEC_LOCAL, //--  <<  use inc local with emitted neg value!
+    OP_INC_EXPR,    // HACK fest this break a bytecode execute !
+
     OP_ADD,
     OP_SUB,
     OP_MUL,
     OP_DIV,
+
+    // Loop
+    OP_FOR_RANGE,
+    OP_LOOP_INCREMENT_JUMP,
+
 
     OP_POP_STACK,
     OP_EXIT,        // bye bye
@@ -58,11 +66,13 @@ struct OpCodeInfo {
 
 inline OpCodeInfo OpCodeInfos[] = {
     {"OP_CONST", 1},
+    {"OP_PUSH_VALUE", 0},
 
     {"OP_JUMP", 0},
     {"OP_JUMP_IF_FALSE", 0},
 
     {"OP_LESS_EQUAL", 0},
+    {"OP_LESS", 0},
 
     {"OP_LOAD_VAR", 1},
     {"OP_SAVE_VAR", 1},
@@ -74,12 +84,15 @@ inline OpCodeInfo OpCodeInfos[] = {
     {"OP_CALL_SF_FUNCTION", 0}, //SPECIAL emittedCount variable
 
     {"OP_INC_LOCAL", 2},
-    // // "OP_DEC_LOCAL" use inc local with emitted neg value!
+    {"OP_INC_EXPR", 3},
 
     {"OP_ADD", 0},
     {"OP_SUB", 0},
     {"OP_MUL", 0},
     {"OP_DIV", 0},
+
+    {"OP_FOR_RANGE", 2},
+    {"OP_LOOP_INCREMENT_JUMP", 3},
 
     {"OP_POP_STACK", 0},
 
@@ -99,6 +112,14 @@ inline void disassembleInstruction(const uint32_t* code, size_t offset) {
         Tools::printf("%s", OpCodeInfos[opcode].name);
 
         switch (opcode) {
+            case OP_PUSH_VALUE: {
+                offset++;
+                Value val;
+                std::memcpy(&val, &code[offset], sizeof(Value));
+                offset += 2;
+                Tools::printf("  Value: %s",val.toString().c_str());
+            }
+            break;
             case OP_CALL_C_FUNCTION: {
                 offset++;
                 void* cb = nullptr;
@@ -110,7 +131,6 @@ inline void disassembleInstruction(const uint32_t* code, size_t offset) {
                 Tools::printf("  Pointer: %p, Args: %u, requestType:%u", cb, argCount, requestType);
             }
             break;
-
             case OP_CALL_SF_FUNCTION: {
                 //TODO TEST not implemented yet
                 offset++;
@@ -169,6 +189,21 @@ struct BytecodeChunk {
         std::memcpy(&mByteCodes[startIp], &ptr, sizeof(void*));
 
         return startIp;
+    }
+
+    U32 tell() {
+        return (U32)mByteCodes.size();
+    }
+
+    bool patch(U32 pos, U32 code) {
+        if (pos >= mByteCodes.size()) return false;
+        mByteCodes[pos] = code;
+        return true;
+    }
+
+    U32 emitS32 (S32 op) {
+        mByteCodes.push_back((U32)op);
+        return (U32)mByteCodes.size() - 1;
     }
 
     U32 emit(U32 op) {

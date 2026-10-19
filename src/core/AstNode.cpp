@@ -127,7 +127,6 @@ namespace DreiZehn {
             chunk.emit(mVariableNameSymbolId);
         } else {
             U32 localSlot = scope.insert(mVariableNameSymbolId);
-
             chunk.emit(OP_SET_LOCAL);
             chunk.emit(static_cast<U32>(localSlot));
         }
@@ -567,9 +566,25 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return Value();
 
     }
+    // --------
     bool BinaryOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+        if (!mLeft.get() || !mRight.get()) {
+            Tools::PrintParseError("left or right is missing:");
+            return false;
+        }
+        this->mLeft->compile(env,chunk, scope, requestType);
+        this->mRight->compile(env,chunk, scope, requestType);
+
+        switch (this->mOp) {
+            case TokenType::Plus    : chunk.emit(OP_ADD); break;
+            case TokenType::Minus   : chunk.emit(OP_SUB); break;
+            case TokenType::Mul     : chunk.emit(OP_MUL); break;
+            case TokenType::Div     : chunk.emit(OP_DIV); break;
+            default:
+                Tools::errorf("COMPILE ERROR BinaryOpExpression : unknown TokenType: %d", (int)this->mOp);
+                return false;
+        }
+        return true;
     }
     // -------------------------------------------------------------------------
     // ++ --
@@ -607,8 +622,36 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return Value();
 
     }
-    bool BinaryInlineExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
+    bool BinaryInlineExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+        if (!mExpr) return false;
+
+        S32 inc = (mOp == TokenType::PlusPlus) ? 1 : - 1;
+
+
+        // 1. i need to know if it's a local - this is not save LOL
+        if (mExpr->mNodeType == NodeType::VariableExpression) {
+            VariableExpression* vExpr = static_cast<VariableExpression*>(mExpr.get());
+            if (!vExpr->mGlobalVariable) {
+                S32 localSlot = scope.resolve(vExpr->mVariableNameSymbolId);
+                if (localSlot < 0 ) {
+                    std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
+                    Tools::warnf("Variable not found: %s\n", varName.c_str());
+                    return true; // do not stop!
+                }
+
+                chunk.emit(OP_INC_LOCAL);
+                chunk.emit(localSlot);
+                chunk.emitS32(inc);
+
+
+                return true;
+            }
+        }
+
+        chunk.emit(OP_INC_EXPR);
+        chunk.emitPointer(mExpr.get());
+        chunk.emitS32(inc);
+
         return false;
     }
     // -------------------------------------------------------------------------
@@ -989,8 +1032,10 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     };
 
     bool ReturnStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME need a JUMP ADRESS !!
-        return false;
+        if (this->mExpression) this->mExpression->compile(env,chunk,scope, ValueType::ANY);
+        // NOTE really exit ?! or i need a last jump
+        chunk.emit(OP_EXIT);
+        return true;
     }
     // -------------------------------------------------------------------------
     FlowStatus IfStatement::execute(Environment& env){
@@ -1019,6 +1064,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         //FIXME
         return false;
     }
+    // -------------------------------------------------------------------------
+    // For Range
     // -------------------------------------------------------------------------
     FlowStatus ForRangeStatement::execute(Environment& env){
         if (!this->mCountExpr ) {
@@ -1052,10 +1099,100 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
         return  FlowStatus (FlowSignal::None);
     }
+    // ------
     bool ForRangeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+        if (!this->mCountExpr ) {
+            Tools::errorf("Runtime Error: range need a count border!\n");
+            return false;
+        }
+
+        // add iter values to registers
+        U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
+        // set the start iter to 0
+        chunk.emit(OP_PUSH_VALUE);
+        chunk.emitValue(Value(0));
+        chunk.emit(OP_SET_LOCAL);
+        chunk.emit(iteratorSlot);
+
+        // set the limit (count)
+        this->mCountExpr->compile(env,chunk,scope,ValueType::Int);
+
+        chunk.emit(OP_FOR_RANGE);
+        U32 exitIPPatch = chunk.tell();
+        chunk.emit(0); //exitIP placeholder
+        chunk.emit(iteratorSlot);
+
+        U32 bodyStart = chunk.tell();
+        for (auto& statement : mBody) {
+            statement->compile(env,chunk,scope,ValueType::NONE);
+        }
+
+        chunk.emit(OP_LOOP_INCREMENT_JUMP);
+        chunk.emit(iteratorSlot);
+        chunk.emit(bodyStart);
+        chunk.emitS32(1); //increment
+
+        chunk.patch(exitIPPatch, chunk.tell());
+        return true;
     }
+    //NOTE works but  too slow .. need something like in ElfScript!
+    // one billion test : 10.786u
+    // // bool ForRangeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+    // //     if (!this->mCountExpr ) {
+    // //         Tools::errorf("Runtime Error: range need a count border!\n");
+    // //         return false;
+    // //     }
+    // //
+    // //     // add iter values to registers
+    // //     U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
+    // //     U32 endValueTmpSlot = scope.allocateTemporarySlot();
+    // //
+    // //     // set the start iter to 0
+    // //     chunk.emit(OP_PUSH_VALUE);
+    // //     chunk.emitValue(Value(0));
+    // //     chunk.emit(OP_SET_LOCAL);
+    // //     chunk.emit(iteratorSlot);
+    // //
+    // //     // set the end iter:
+    // //     this->mCountExpr->compile(env,chunk,scope,ValueType::Int);
+    // //     chunk.emit(OP_SET_LOCAL);
+    // //     chunk.emit(endValueTmpSlot);
+    // //
+    // //
+    // //     U32 loopConditionAddr = chunk.tell();
+    // //
+    // //     // ITER
+    // //     chunk.emit(OP_GET_LOCAL);
+    // //     chunk.emit(iteratorSlot);
+    // //     chunk.emit(OP_GET_LOCAL);
+    // //     chunk.emit(endValueTmpSlot);
+    // //     chunk.emit(OP_LESS);
+    // //
+    // //     chunk.emit(OP_JUMP_IF_FALSE);
+    // //     U32 exitJumpPlaceholder = chunk.tell();
+    // //     chunk.emit(0); // space for patch
+    // //
+    // //     for (auto& statement : mBody) {
+    // //         //NOTE not sure about the ValueType
+    // //         statement->compile(env,chunk,scope,ValueType::ANY);
+    // //     }
+    // //
+    // //     chunk.emit(OP_INC_LOCAL);
+    // //     chunk.emit(iteratorSlot);
+    // //     chunk.emit(1);
+    // //
+    // //     chunk.emit(OP_JUMP);
+    // //     chunk.emit(loopConditionAddr);
+    // //
+    // //     // patch jmp
+    // //     U32 loopEndAddr = chunk.tell();
+    // //     chunk.patch(exitJumpPlaceholder, loopEndAddr);
+    // //
+    // //     scope.freeTemporarySlot();
+    // //
+    // //
+    // //     return true;
+    // // }
     // -------------------------------------------------------------------------
     FlowStatus ForStatement::execute(Environment& env){
         if (!this->mStartExpr || !this->mEndExpr ) {

@@ -62,27 +62,31 @@ local is not assigned at all so if a gc is running we are in trouble!
     - [ ] VariablePointerExpression
     - [ ] ObjectFieldExpression
 
+- [X] BinaryOpExpression
+- [X] RangeStatement 
+- [X] BinaryInlineExpression
+    - [X] local var 
+    - [X] *NOTE* others this BREAK compiled bytecode since it use the AST !!!!
+
 ---
  
+- [ ] ReturnStatement - break_POPCount, break_Exit_OP
+- [ ] ContinueStatement
+- [ ] BreakStatement
+
 - [ ] CallExpression script functions 
 - [ ] VariableReferenceExpression
 - [ ] VariablePointerExpression
 - [ ] ArrayVariableExpression
 - [ ] MethodExpression
 - [ ] BinaryExpression
-- [ ] BinaryOpExpression
-- [ ] BinaryInlineExpression
 - [ ] IfStatement
 - [ ] ElIfStatement
 - [ ] FunctionDefineStartNode ??
 - [ ] ForStatement
-- [ ] BreakStatement
-- [ ] ContinueStatement
-- [ ] ReturnStatement
 - [ ] WhileStatement
 - [ ] AssignOPStatement
 - [ ] ObjectFieldExpression
-- [ ] RangeStatement
 - [ ] TernaryExpression
 - [ ] ForEachStatement
 - [ ] IncludeStatement << tricky ?! or the same as a BlockStatement

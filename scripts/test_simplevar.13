@@ -6,41 +6,41 @@ define JLOOPS 25
 define ILOOPS 1000000
 define HLOOPS ILOOPS / 2
 
-globalX = 0.0
+global varX = 0.0
 
 forRange j JLOOPS
     forRange i ILOOPS
-        globalX++
+        varX++
     end
-    print  "SUM (++) IS: " globalX
+    print  "SUM (++) IS: " varX
 
     forRange i ILOOPS
-        globalX--
+        varX--
     end
-    print  "SUM (--) IS: " globalX
+    print  "SUM (--) IS: " varX
 
-    globalX = 66
-    print  "set Sum to 66 == " (globalX * 1)
+    varX = 66
+    print  "set Sum to 66 == " (varX * 1)
 
     forRange i ILOOPS
-        globalX = globalX * (i + 1)
-        globalX = globalX / (i + 1)
+        varX = varX * (i + 1)
+        varX = varX / (i + 1)
     end
-    print  "SUM (*/ %i+1) IS: " globalX
+    print  "SUM (*/ %i+1) IS: " varX
 
     ran = 0.0
     forRange i HLOOPS
         ran = math::randomf * i
-        globalX = globalX - ran
-        globalX = globalX + ran
+        varX = varX - ran
+        varX = varX + ran
     end
     print  "last ran" ran
-    print  "SUM (rand +-) IS: " globalX
+    print  "SUM (rand +-) IS: " varX
 end
 
-globalX = globalX - 33.0
+varX = varX - 33.0
 print "---------------------"
 print "---------------------"
-print  "Final sum should be 33.0 == " globalX
+print  "Final sum should be 33.0 == " varX
 print "---------------------"
 print "---------------------"

@@ -142,6 +142,7 @@ stupid iterator test ;)
 - 🐢 DreiZehn(0.8e): 0.814u 0.004s 0:00.82 98.7%     0+0k 0+0io 0pf+0w 
 - 🐢 DreiZehn(0.8b): 0.982u 0.004s 0:00.98 100.0%    0+0k 0+0io 0pf+0w
 - ElfScript 0.7a: 2.688u 0.003s 0:02.69 99.6% 0+0k 0+0io 0pf+0w
+- 👾 DreiZehn(0.9a): 2.740u 0.005s 0:02.75 99.6%     0+0k 0+0io 0pf+0w
 - Lua (5.5.0): 3.504u 0.003s 0:03.52 99.4% 0+0k 0+0io 0pf+0w
 - PHP (8.5.8): 3.644u 0.019s 0:03.66 99.7% 0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.4a): 8.512u 0.000s 0:08.54 99.6%     0+0k 0+0io 0pf+0w

@@ -1,4 +1,4 @@
-# DreiZehn Todo ByteCode
+# DreiZehn Todo ByteCode / Interpreter HYBRID !! 
 
 ## Version 0.9
 
@@ -56,6 +56,7 @@ local is not assigned at all so if a gc is running we are in trouble!
 
 - [ ] AssignStatement ( compileAssignment )
     - [X] VariableExpression
+    - !!! ADD HYBRID MODE !!! like in the BinaryInlineExpression
     - [ ] ArrayVariableExpression
     - [ ] MethodExpression
     - [ ] VariableReferenceExpression

@@ -14,10 +14,6 @@ fn niceLine str
 end
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-niceLine "forRange"
-debug::bc 'forRange i 10; printraw "**" i "**";;print " <<<"'
-return
-# ------------------------------------------------------------------------------
 niceLine "call C Func print"
 debug::bc 'print "Hello World!"'
 
@@ -46,18 +42,15 @@ debug::bc "return math::randomf"
 # ------------------------------------------------------------------------------
 niceLine "forRange"
 -- debug::bc 'forRange i 10; ;;print " <<<"'
-debug::bc 'forRange i 10; printraw i ; printraw "**";;print " <<<"'
+debug::bc 'forRange i 10; printraw "**" i "**";;print " <<<"'
 
+niceLine "INC/DEC"
+debug::bc 'a = 5; a++;print "6==" a; a--; print "5==" a'
+global globA = 5;
+debug::bc 'globA++;print "6==" globA; globA--; print "5==" globA'
 
-fn runVarTest
-    ft = FileTool::new "scripts/test_simplevar.13"
-    ft->load
-    debug::bc ft.content
-end
-
--- runVarTest
-
---- counter
--- debug::bc 'printraw ">>>>"; forRange i 1000000000;;print " <<<"'
+-- Bus error:
+-- global arrayA = Array::new "a" => 5
+-- debug::bc 'arrayA[0]++;print "6==" arrayA[0]; arrayA[0]--; print "5==" arrayA[0]'
 
 

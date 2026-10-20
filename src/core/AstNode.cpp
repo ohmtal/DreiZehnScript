@@ -512,29 +512,6 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return true;
     }
 
-    //FIXME THIS IS WRONG !!!
-    // FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFuncSymbolId);
-    // if (sf) {
-    //     auto& func = *(sf);
-    //     U32 functionStartIP = chunk.tell();
-    //     func.bytecodeAddress = functionStartIP;
-    //
-    //     CompilerScope functionScope;
-    //
-    //     for (const auto& paramName : func.parameterNames) {
-    //         functionScope.insert(SymbolTable::insert(paramName));
-    //     }
-    //
-    //     for (auto& statement : func.body) {
-    //         statement->compile(env, chunk, functionScope, ValueType::NONE);
-    //     }
-    //
-    //     chunk.emit(OP_PUSH_VALUE);
-    //     chunk.emitValue(NumberNullValue);
-    //     chunk.emit(OP_RETURN);
-    //
-    //     return true;
-    // }
 
 
     Tools::errorf("Unknown command: %s\n", SymbolTable::getName(mFuncSymbolId).c_str());
@@ -544,59 +521,130 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     // -------------------------------------------------------------------------
     // BinaryOpExpression
     // -------------------------------------------------------------------------
-    Value BinaryOpExpression::evaluate(Environment& env)  {
-        if (!mLeft.get() || !mRight.get()) {
+    Value BinaryOpExpression::evaluate(Environment& env) {
+        if (!mLeft || !mRight) [[unlikely]] {
             Tools::PrintParseError("left or right is missing:");
             return Value();
         }
+
         Value lVal = mLeft->evaluate(env);
         Value rVal = mRight->evaluate(env);
 
-        int mode = 0; //double
-        if (lVal.isInt() && rVal.isInt()) mode = 1; //int
-        else if (lVal.isString() || rVal.isString()) mode = 2; //string
+        // Typ-Flags analog zum Bytecode extrahieren
+        const bool l_is_double = ((lVal.mBits & QNAN_MASK) != QNAN_MASK);
+        const bool r_is_double = ((rVal.mBits & QNAN_MASK) != QNAN_MASK);
+        const bool is_both_int = lVal.isInt() && rVal.isInt();
 
         switch (mOp) {
             case TokenType::Plus: {
-                if (mode == 0) return Value(lVal.getDouble() + rVal.getDouble());
-                else if (mode == 1) return Value(lVal.getInt() + rVal.getInt());
-                else  if (mode == 2) return Value(std::string(lVal.toString() + rVal.toString()));
-                else  return NumberNullValue;
-                break;
+                if (l_is_double && r_is_double) [[likely]] {
+                    return Value(std::bit_cast<double>(lVal.mBits) + std::bit_cast<double>(rVal.mBits));
+                }
+                if (is_both_int) {
+                    return Value(lVal.asFastInt() + rVal.asFastInt());
+                }
+                return Value::handleGenericAdd(lVal, rVal);
             }
-            case TokenType::Minus:{
-                if (mode == 0) return Value(lVal.getDouble() - rVal.getDouble());
-                else if (mode == 1) return Value(lVal.getInt() - rVal.getInt());
-                else  return NumberNullValue;
-                break;
 
+            case TokenType::Minus: {
+                if (l_is_double && r_is_double) [[likely]] {
+                    return Value(std::bit_cast<double>(lVal.mBits) - std::bit_cast<double>(rVal.mBits));
+                }
+                if (is_both_int) {
+                    return Value(lVal.asFastInt() - rVal.asFastInt());
+                }
+                // Fallback für gemischte Numerik (Int - Double)
+                return Value(lVal.getDouble() - rVal.getDouble());
             }
-            case TokenType::Mul:{
-                double d = lVal.getDouble() * rVal.getDouble();
-                if (mode == 0) return (Value(d));
-                else if (mode == 1) return (Value(static_cast<int32_t>(d)));
-                else  return NumberNullValue;
-                break;
 
+            case TokenType::Mul: {
+                if (l_is_double && r_is_double) [[likely]] {
+                    return Value(std::bit_cast<double>(lVal.mBits) * std::bit_cast<double>(rVal.mBits));
+                }
+                if (is_both_int) {
+                    return Value(lVal.asFastInt() * rVal.asFastInt());
+                }
+                return Value(lVal.getDouble() * rVal.getDouble());
             }
 
             case TokenType::Div: {
+                if (l_is_double && r_is_double) [[likely]] {
+                    double r = std::bit_cast<double>(rVal.mBits);
+                    if (r == 0.0) [[unlikely]] return NumberNullValue;
+                    return Value(std::bit_cast<double>(lVal.mBits) / r);
+                }
+                if (is_both_int) {
+                    int32_t r = rVal.asFastInt();
+                    if (r == 0) [[unlikely]] return NumberNullValue;
+
+                    int32_t l = lVal.asFastInt();
+                    if (l % r == 0) return Value(l / r);
+                    return Value(static_cast<double>(l) / static_cast<double>(r));
+                }
+
                 double r = rVal.getDouble();
-                if (r == 0.0) return NumberNullValue;
-                double d = lVal.getDouble() / r;
-                if (mode == 0) return (Value(d));
-                else if (mode == 1) return (Value(static_cast<int32_t>(d)));
-                else  return NumberNullValue;
-                break;
-
+                if (r == 0.0) [[unlikely]] return NumberNullValue;
+                return Value(lVal.getDouble() / r);
             }
-            default: return Value(); // should not reached!
+
+            default:
+                return Value();
         }
-
-
-        return Value();
-
     }
+
+    // Value BinaryOpExpression::evaluate(Environment& env)  {
+    //     if (!mLeft.get() || !mRight.get()) {
+    //         Tools::PrintParseError("left or right is missing:");
+    //         return Value();
+    //     }
+    //     Value lVal = mLeft->evaluate(env);
+    //     Value rVal = mRight->evaluate(env);
+    //
+    //     int mode = 0; //double
+    //     if (lVal.isInt() && rVal.isInt()) mode = 1; //int
+    //     else if (lVal.isString() || rVal.isString()) mode = 2; //string
+    //
+    //     switch (mOp) {
+    //         case TokenType::Plus: {
+    //             if (mode == 0) return Value(lVal.getDouble() + rVal.getDouble());
+    //             else if (mode == 1) return Value(lVal.getInt() + rVal.getInt());
+    //             else  if (mode == 2) return Value(std::string(lVal.toString() + rVal.toString()));
+    //             else  return NumberNullValue;
+    //             break;
+    //         }
+    //         case TokenType::Minus:{
+    //             if (mode == 0) return Value(lVal.getDouble() - rVal.getDouble());
+    //             else if (mode == 1) return Value(lVal.getInt() - rVal.getInt());
+    //             else  return NumberNullValue;
+    //             break;
+    //
+    //         }
+    //         case TokenType::Mul:{
+    //             double d = lVal.getDouble() * rVal.getDouble();
+    //             if (mode == 0) return (Value(d));
+    //             else if (mode == 1) return (Value(static_cast<int32_t>(d)));
+    //             else  return NumberNullValue;
+    //             break;
+    //
+    //         }
+    //
+    //         case TokenType::Div: {
+    //             double r = rVal.getDouble();
+    //             if (r == 0.0) return NumberNullValue;
+    //             double d = lVal.getDouble() / r;
+    //             if (mode == 0) return (Value(d));
+    //             else if (mode == 1) return (Value(static_cast<int32_t>(d)));
+    //             else  return NumberNullValue;
+    //             break;
+    //
+    //         }
+    //         default: return Value(); // should not reached!
+    //     }
+    //
+    //
+    //     return Value();
+    //
+    // }
     // --------
     bool BinaryOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mLeft.get() || !mRight.get()) {
@@ -619,40 +667,74 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     }
     // -------------------------------------------------------------------------
     // ++ --
-    Value BinaryInlineExpression::evaluate(Environment& env)  {
+    Value BinaryInlineExpression::evaluate(Environment& env) {
+        Value* valPtr = mExpr->evaluatePtr(env);
 
-        Value * valPtr = mExpr->evaluatePtr(env);
-
-
-        if ( !valPtr  ) {
+        if (!valPtr) [[unlikely]] {
             Tools::PrintParseError("variable is missing or invalid");
             return Value();
         }
 
-        if (valPtr->isInt() ) {
-            int32_t lCurInt = valPtr->asInt();
-            switch (mOp) {
-                case TokenType::PlusPlus: lCurInt++; break;
-                case TokenType::MinusMinus: lCurInt--; break;
-                default: break;
+        if (valPtr->isInt()) [[likely]] {
+            int32_t val = valPtr->asFastInt();
+            if (mOp == TokenType::PlusPlus) {
+                val++;
+            } else if (mOp == TokenType::MinusMinus) {
+                val--;
             }
-            *valPtr = Value(lCurInt);
-            return *valPtr;
-        } else  { // must be a Double!
-            double lCurDouble = valPtr->getDouble();
-            switch (mOp) {
-                case TokenType::PlusPlus: lCurDouble += 1.0 ; break;
-                case TokenType::MinusMinus: lCurDouble -= 1.0 ; break;
-                default: break;
-            }
-            *valPtr = Value(lCurDouble);
+            *valPtr = Value(val);
             return *valPtr;
         }
 
+        if (((valPtr->mBits & QNAN_MASK) != QNAN_MASK)) {
+            double val = std::bit_cast<double>(valPtr->mBits);
+            if (mOp == TokenType::PlusPlus) {
+                val += 1.0;
+            } else if (mOp == TokenType::MinusMinus) {
+                val -= 1.0;
+            }
+            *valPtr = Value(val);
+            return *valPtr;
+        }
 
+        Tools::PrintParseError("Runtime Error: Invalid type for increment/decrement operator!");
         return Value();
-
     }
+
+    // Value BinaryInlineExpression::evaluate(Environment& env)  {
+    //
+    //     Value * valPtr = mExpr->evaluatePtr(env);
+    //
+    //
+    //     if ( !valPtr  ) {
+    //         Tools::PrintParseError("variable is missing or invalid");
+    //         return Value();
+    //     }
+    //
+    //     if (valPtr->isInt() ) {
+    //         int32_t lCurInt = valPtr->asInt();
+    //         switch (mOp) {
+    //             case TokenType::PlusPlus: lCurInt++; break;
+    //             case TokenType::MinusMinus: lCurInt--; break;
+    //             default: break;
+    //         }
+    //         *valPtr = Value(lCurInt);
+    //         return *valPtr;
+    //     } else  { // must be a Double!
+    //         double lCurDouble = valPtr->getDouble();
+    //         switch (mOp) {
+    //             case TokenType::PlusPlus: lCurDouble += 1.0 ; break;
+    //             case TokenType::MinusMinus: lCurDouble -= 1.0 ; break;
+    //             default: break;
+    //         }
+    //         *valPtr = Value(lCurDouble);
+    //         return *valPtr;
+    //     }
+    //
+    //
+    //     return Value();
+    //
+    // }
     // ---------------------
     bool BinaryInlineExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (!mExpr) return false;
@@ -726,6 +808,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return NumberNullValue;
 
     }
+    // -------------------------------
     bool BinaryAndOrExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
 
         if (!mLeft.get() || !mRight.get()) {
@@ -951,73 +1034,65 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
     // -------------------------------------------------------------------------
     Value AssignOPStatement::evaluate(Environment& env) {
+        Value* valuePtr = mVarExpr->evaluatePtr(env);
 
-        Value * valuePtr = mVarExpr->evaluatePtr(env);
-
-        if ( !valuePtr || !this->mRhs ) {
+        if (!valuePtr || !mRhs) [[unlikely]] {
             Tools::PrintParseError("AssignOP: variable or right is missing or invalid");
             return NumberNullValue;
         }
-        Value rightHand = this->mRhs->evaluate(env);
 
+        Value rightHand = mRhs->evaluate(env);
 
-        if (valuePtr->isDouble() && rightHand.isDouble()) {
-            double doubleval = valuePtr->asFastDouble();
-            switch(this->mOp) {
-                case TokenType::AssignPlus:  doubleval += rightHand.asFastDouble(); break;
-                case TokenType::AssignMinus: doubleval -= rightHand.asFastDouble(); break;
-                case TokenType::AssignMul:   doubleval *= rightHand.asFastDouble(); break;
-                case TokenType::AssignDiv:  {
-                    double r = rightHand.asFastDouble();
-                    r != 0.0 ? doubleval /= r : doubleval = 0; break;
-                }
-                default: return NumberNullValue;
-            }
-            *valuePtr = Value(doubleval);
-            return *valuePtr;
-
-        } else if (valuePtr->isInt( ) && rightHand.isInt()) {
-            int32_t intval = valuePtr->asFastInt();
-            switch(this->mOp) {
-                case TokenType::AssignPlus:  intval += rightHand.asFastInt(); break;
-                case TokenType::AssignMinus: intval -= rightHand.asFastInt(); break;
-                case TokenType::AssignMul:   intval *= rightHand.asFastInt(); break;
-                case TokenType::AssignDiv:  {
-                    int32_t r = rightHand.asFastInt();
-                    r != 0 ? intval /= r : intval = 0; break;
-                }
-                default: break;
-            }
-            *valuePtr = Value(intval);
-            return *valuePtr;
-
-        } else if (valuePtr->isString( )) {
-            if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (valuePtr->getStringRef() +  rightHand.toString() );
-            else return NumberNullValue;
-            return *valuePtr;
-
-        } else {
-            double doubleval = valuePtr->getDouble();
-            switch(this->mOp) {
-                case TokenType::AssignPlus:  doubleval += rightHand.getDouble(); break;
-                case TokenType::AssignMinus: doubleval -= rightHand.getDouble(); break;
-                case TokenType::AssignMul:   doubleval *= rightHand.getDouble(); break;
-                case TokenType::AssignDiv: {
-                    double r = rightHand.asFastDouble();
-                    r != 0.0 ? doubleval /= r : doubleval = 0; break;
-                }
-                default: return NumberNullValue;
-            }
-            *valuePtr = Value(doubleval);
+        if (mOp == TokenType::AssignPlus && valuePtr->isString()) {
+            *valuePtr = Value::handleGenericAdd(*valuePtr, rightHand);
             return *valuePtr;
         }
 
-        return NumberNullValue;
-    }
+        Value result;
+        const bool l_is_double = ((valuePtr->mBits & QNAN_MASK) != QNAN_MASK);
+        const bool r_is_double = ((rightHand.mBits & QNAN_MASK) != QNAN_MASK);
+        const bool is_both_int = valuePtr->isInt() && rightHand.isInt();
 
-    bool AssignOPStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+        switch (mOp) {
+            case TokenType::AssignPlus: {
+                if (l_is_double && r_is_double) [[likely]] result = Value(std::bit_cast<double>(valuePtr->mBits) + std::bit_cast<double>(rightHand.mBits));
+                else if (is_both_int)                      result = Value(valuePtr->asFastInt() + rightHand.asFastInt());
+                else                                       result = Value(valuePtr->getDouble() + rightHand.getDouble());
+                break;
+            }
+            case TokenType::AssignMinus: {
+                if (l_is_double && r_is_double) [[likely]] result = Value(std::bit_cast<double>(valuePtr->mBits) - std::bit_cast<double>(rightHand.mBits));
+                else if (is_both_int)                      result = Value(valuePtr->asFastInt() - rightHand.asFastInt());
+                else                                       result = Value(valuePtr->getDouble() - rightHand.getDouble());
+                break;
+            }
+            case TokenType::AssignMul: {
+                if (l_is_double && r_is_double) [[likely]] result = Value(std::bit_cast<double>(valuePtr->mBits) * std::bit_cast<double>(rightHand.mBits));
+                else if (is_both_int)                      result = Value(valuePtr->asFastInt() * rightHand.asFastInt());
+                else                                       result = Value(valuePtr->getDouble() * rightHand.getDouble());
+                break;
+            }
+            case TokenType::AssignDiv: {
+                if (l_is_double && r_is_double) [[likely]] {
+                    double r = std::bit_cast<double>(rightHand.mBits);
+                    result = (r == 0.0) ? NumberNullValue : Value(std::bit_cast<double>(valuePtr->mBits) / r);
+                } else if (is_both_int) {
+                    int32_t r = rightHand.asFastInt();
+                    if (r == 0) [[unlikely]] return NumberNullValue;
+                    int32_t l = valuePtr->asFastInt();
+                    result = (l % r == 0) ? Value(l / r) : Value(static_cast<double>(l) / static_cast<double>(r));
+                } else {
+                    double r = rightHand.getDouble();
+                    result = (r == 0.0) ? NumberNullValue : Value(valuePtr->getDouble() / r);
+                }
+                break;
+            }
+            default:
+                return NumberNullValue;
+        }
+
+        *valuePtr = result;
+        return *valuePtr;
     }
 
     // Value AssignOPStatement::evaluate(Environment& env) {
@@ -1030,59 +1105,66 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     //     }
     //     Value rightHand = this->mRhs->evaluate(env);
     //
-    //     int mode = 0;
-    //     if (valuePtr->isDouble()) mode = 0; //double
-    //     if (valuePtr->isInt() && rightHand.isInt()) mode = 1; //int
-    //     else if (valuePtr->isStringId() ) mode = 2; //string
     //
-    //     switch(this->mOp) {
-    //         case TokenType::AssignPlus: {
-    //             if (mode == 0) {
-    //                 *valuePtr = Value(valuePtr->asFastDouble() + rightHand.getDouble());
-    //                 return *valuePtr;
-    //             } else if (mode == 1) {
-    //                 *valuePtr = Value(valuePtr->asFastInt() + rightHand.getInt());
-    //                 return *valuePtr;
-    //             } else {
-    //                 *valuePtr = Value (valuePtr->getStringRef() +  rightHand.toString() );
-    //                 return *valuePtr;
+    //     if (valuePtr->isDouble() && rightHand.isDouble()) {
+    //         double doubleval = valuePtr->asFastDouble();
+    //         switch(this->mOp) {
+    //             case TokenType::AssignPlus:  doubleval += rightHand.asFastDouble(); break;
+    //             case TokenType::AssignMinus: doubleval -= rightHand.asFastDouble(); break;
+    //             case TokenType::AssignMul:   doubleval *= rightHand.asFastDouble(); break;
+    //             case TokenType::AssignDiv:  {
+    //                 double r = rightHand.asFastDouble();
+    //                 r != 0.0 ? doubleval /= r : doubleval = 0; break;
     //             }
+    //             default: return NumberNullValue;
     //         }
-    //         case TokenType::AssignMinus: {
-    //             if (mode == 0) {
-    //                 *valuePtr = Value(valuePtr->asFastDouble() - rightHand.getDouble());
-    //                 return *valuePtr;
-    //             } else if (mode == 1) {
-    //                 *valuePtr = Value(valuePtr->asFastInt() - rightHand.getInt());
-    //                 return *valuePtr;
+    //         *valuePtr = Value(doubleval);
+    //         return *valuePtr;
+    //
+    //     } else if (valuePtr->isInt( ) && rightHand.isInt()) {
+    //         int32_t intval = valuePtr->asFastInt();
+    //         switch(this->mOp) {
+    //             case TokenType::AssignPlus:  intval += rightHand.asFastInt(); break;
+    //             case TokenType::AssignMinus: intval -= rightHand.asFastInt(); break;
+    //             case TokenType::AssignMul:   intval *= rightHand.asFastInt(); break;
+    //             case TokenType::AssignDiv:  {
+    //                 int32_t r = rightHand.asFastInt();
+    //                 r != 0 ? intval /= r : intval = 0; break;
     //             }
+    //             default: break;
     //         }
-    //         case TokenType::AssignMul: {
-    //             if (mode == 0) {
-    //                 *valuePtr = Value(valuePtr->asFastDouble() * rightHand.getDouble());
-    //                 return *valuePtr;
-    //             } else if (mode == 1) {
-    //                 *valuePtr = Value(valuePtr->asFastInt() * rightHand.getInt());
-    //                 return *valuePtr;
+    //         *valuePtr = Value(intval);
+    //         return *valuePtr;
+    //
+    //     } else if (valuePtr->isString( )) {
+    //         if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (valuePtr->getStringRef() +  rightHand.toString() );
+    //         else return NumberNullValue;
+    //         return *valuePtr;
+    //
+    //     } else {
+    //         double doubleval = valuePtr->getDouble();
+    //         switch(this->mOp) {
+    //             case TokenType::AssignPlus:  doubleval += rightHand.getDouble(); break;
+    //             case TokenType::AssignMinus: doubleval -= rightHand.getDouble(); break;
+    //             case TokenType::AssignMul:   doubleval *= rightHand.getDouble(); break;
+    //             case TokenType::AssignDiv: {
+    //                 double r = rightHand.asFastDouble();
+    //                 r != 0.0 ? doubleval /= r : doubleval = 0; break;
     //             }
+    //             default: return NumberNullValue;
     //         }
-    //         case TokenType::AssignDiv:  {
-    //             if (mode == 0) {
-    //                 double rh = rightHand.getDouble();
-    //                 *valuePtr = Value(valuePtr->asFastDouble() / (rh == 0.0 ? EPSILON : rh));
-    //                 return *valuePtr;
-    //             } else if (mode == 1) {
-    //                 int32_t rh = rightHand.getDouble();
-    //                 if (rh == 0) *valuePtr  = NumberNullValue;
-    //                 else *valuePtr = Value(valuePtr->asFastInt() / rh);
-    //                 return *valuePtr;
-    //             }
-    //         }
-    //         default: return NumberNullValue;
+    //         *valuePtr = Value(doubleval);
+    //         return *valuePtr;
     //     }
     //
     //     return NumberNullValue;
     // }
+
+    bool AssignOPStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        //FIXME
+        return false;
+    }
+
 
     // -------------------------------------------------------------------------
     bool TernaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {

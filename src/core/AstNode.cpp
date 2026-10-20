@@ -530,15 +530,14 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         Value lVal = mLeft->evaluate(env);
         Value rVal = mRight->evaluate(env);
 
-        // Typ-Flags analog zum Bytecode extrahieren
-        const bool l_is_double = ((lVal.mBits & QNAN_MASK) != QNAN_MASK);
-        const bool r_is_double = ((rVal.mBits & QNAN_MASK) != QNAN_MASK);
+        const bool l_is_double = lVal.isDouble();
+        const bool r_is_double = rVal.isDouble();
         const bool is_both_int = lVal.isInt() && rVal.isInt();
 
         switch (mOp) {
             case TokenType::Plus: {
                 if (l_is_double && r_is_double) [[likely]] {
-                    return Value(std::bit_cast<double>(lVal.mBits) + std::bit_cast<double>(rVal.mBits));
+                    return Value(lVal.asFastDouble() + rVal.asFastDouble());
                 }
                 if (is_both_int) {
                     return Value(lVal.asFastInt() + rVal.asFastInt());
@@ -548,7 +547,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
             case TokenType::Minus: {
                 if (l_is_double && r_is_double) [[likely]] {
-                    return Value(std::bit_cast<double>(lVal.mBits) - std::bit_cast<double>(rVal.mBits));
+                    return Value(lVal.asFastDouble() - rVal.asFastDouble());
                 }
                 if (is_both_int) {
                     return Value(lVal.asFastInt() - rVal.asFastInt());
@@ -559,7 +558,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
             case TokenType::Mul: {
                 if (l_is_double && r_is_double) [[likely]] {
-                    return Value(std::bit_cast<double>(lVal.mBits) * std::bit_cast<double>(rVal.mBits));
+                    return Value(lVal.asFastDouble() * rVal.asFastDouble());
                 }
                 if (is_both_int) {
                     return Value(lVal.asFastInt() * rVal.asFastInt());
@@ -569,9 +568,9 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
             case TokenType::Div: {
                 if (l_is_double && r_is_double) [[likely]] {
-                    double r = std::bit_cast<double>(rVal.mBits);
+                    double r = rVal.asFastDouble();
                     if (r == 0.0) [[unlikely]] return NumberNullValue;
-                    return Value(std::bit_cast<double>(lVal.mBits) / r);
+                    return Value(lVal.asFastDouble() / r);
                 }
                 if (is_both_int) {
                     int32_t r = rVal.asFastInt();
@@ -686,8 +685,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return *valPtr;
         }
 
-        if (((valPtr->mBits & QNAN_MASK) != QNAN_MASK)) {
-            double val = std::bit_cast<double>(valPtr->mBits);
+        if (valPtr->isDouble()) {
+            double val = valPtr->asFastDouble();
             if (mOp == TokenType::PlusPlus) {
                 val += 1.0;
             } else if (mOp == TokenType::MinusMinus) {
@@ -1049,33 +1048,33 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
 
         Value result;
-        const bool l_is_double = ((valuePtr->mBits & QNAN_MASK) != QNAN_MASK);
-        const bool r_is_double = ((rightHand.mBits & QNAN_MASK) != QNAN_MASK);
+        const bool l_is_double = valuePtr->isDouble();
+        const bool r_is_double = rightHand.isDouble();
         const bool is_both_int = valuePtr->isInt() && rightHand.isInt();
 
         switch (mOp) {
             case TokenType::AssignPlus: {
-                if (l_is_double && r_is_double) [[likely]] result = Value(std::bit_cast<double>(valuePtr->mBits) + std::bit_cast<double>(rightHand.mBits));
+                if (l_is_double && r_is_double) [[likely]] result = Value(valuePtr->asFastDouble() + rightHand.asFastDouble());
                 else if (is_both_int)                      result = Value(valuePtr->asFastInt() + rightHand.asFastInt());
                 else                                       result = Value(valuePtr->getDouble() + rightHand.getDouble());
                 break;
             }
             case TokenType::AssignMinus: {
-                if (l_is_double && r_is_double) [[likely]] result = Value(std::bit_cast<double>(valuePtr->mBits) - std::bit_cast<double>(rightHand.mBits));
+                if (l_is_double && r_is_double) [[likely]] result = Value(valuePtr->asFastDouble() - rightHand.asFastDouble());
                 else if (is_both_int)                      result = Value(valuePtr->asFastInt() - rightHand.asFastInt());
                 else                                       result = Value(valuePtr->getDouble() - rightHand.getDouble());
                 break;
             }
             case TokenType::AssignMul: {
-                if (l_is_double && r_is_double) [[likely]] result = Value(std::bit_cast<double>(valuePtr->mBits) * std::bit_cast<double>(rightHand.mBits));
+                if (l_is_double && r_is_double) [[likely]] result = Value(valuePtr->asFastDouble() * rightHand.asFastDouble());
                 else if (is_both_int)                      result = Value(valuePtr->asFastInt() * rightHand.asFastInt());
                 else                                       result = Value(valuePtr->getDouble() * rightHand.getDouble());
                 break;
             }
             case TokenType::AssignDiv: {
                 if (l_is_double && r_is_double) [[likely]] {
-                    double r = std::bit_cast<double>(rightHand.mBits);
-                    result = (r == 0.0) ? NumberNullValue : Value(std::bit_cast<double>(valuePtr->mBits) / r);
+                    double r = rightHand.asFastDouble();
+                    result = (r == 0.0) ? NumberNullValue : Value(valuePtr->asFastDouble() / r);
                 } else if (is_both_int) {
                     int32_t r = rightHand.asFastInt();
                     if (r == 0) [[unlikely]] return NumberNullValue;

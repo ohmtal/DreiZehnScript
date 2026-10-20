@@ -46,13 +46,13 @@ constexpr uint64_t QNAN_AND_TAG_MASK = 0x7FFF000000000000ULL; // ==> QNAN_MASK |
 
 class Value {
 private:
+    uint64_t mBits; // 8 byte value
 
     explicit Value(uint64_t b) : mBits(b) {}
 
     std::string toStringSlowPath() const;
 
 public:
-    uint64_t mBits; // 8 byte value
     // Default constructor
     Value() : mBits(0) {}
     // // // // // Value() : mBits(QNAN_MASK | TAG_INT) {}
@@ -124,54 +124,54 @@ public:
     //     return (isPointer() && asPointerObject()->mType == ValueObjectType::String);
     // }
 
-    inline bool isNumber() {ValueType t = getType(); return (t == ValueType::Int || t == ValueType::Double);}
+    FORCE_INLINE bool isNumber() {ValueType t = getType(); return (t == ValueType::Int || t == ValueType::Double);}
 
     // -------------------------------------------------------------------------
     // --- Getter (Unboxing) ---
     // -------------------------------------------------------------------------
-    inline double asFastDouble() const {
+    FORCE_INLINE double asFastDouble() const {
         return std::bit_cast<double>(mBits);
     }
     // -------------------------------------------------------------------------
-    inline double asDouble() const {
+    FORCE_INLINE double asDouble() const {
         assert(isDouble());
         return std::bit_cast<double>(mBits);
     }
     // -------------------------------------------------------------------------
-    inline int32_t asFastInt() const {
+    FORCE_INLINE int32_t asFastInt() const {
         return static_cast<int32_t>(mBits & 0xFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
-    inline int32_t asInt() const {
+    FORCE_INLINE int32_t asInt() const {
         assert(isInt());
         return static_cast<int32_t>(mBits & 0xFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
-    inline uint32_t asUInt() const {
+    FORCE_INLINE uint32_t asUInt() const {
         assert(isInt());
         return static_cast<uint32_t>(mBits & 0xFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
-    inline uint32_t asString() const {
+    FORCE_INLINE uint32_t asString() const {
         assert(isString());
         return static_cast<uint32_t>(mBits & 0xFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
-    inline void* asPointer() const {
+    FORCE_INLINE void* asPointer() const {
         assert(isPointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<void*>(ptrBits);
     }
 
     // -------------------------------------------------------------------------
-    inline ValueObject* asPointerObject() const {
+    FORCE_INLINE ValueObject* asPointerObject() const {
         assert(isPointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<ValueObject*>(ptrBits);
     }
 
 
-    inline Value* asValuePointer() const {
+    FORCE_INLINE Value* asValuePointer() const {
         assert(isValuePointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<Value*>(ptrBits);

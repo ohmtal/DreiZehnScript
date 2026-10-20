@@ -80,16 +80,20 @@ local is not assigned at all so if a gc is running we are in trouble!
 
 
 ### 0.9c: 
-    
-- [ ] CallExpression parameter Bug:
+
+- [X] CallExpression parameter Bug:
 ```
 > fn jo p; print "jo" p;;
 > debug::bc "jo";
 Segmentation fault (core dumped)
-
 ```
+- [X] lot of optimize .. i got the speed back but i do not now where i lost it, so...
+
+### 0.9d:
+
 - [ ] BinaryInlineExpression
-    - [X] local + global var 
+    - [X] local 
+    - [ ] global var - calculate wrong! i guess my new optimized code ?! 
     - [ ] others hackfest via expr pointer ^^ 
 
 - [ ] AssignStatement ( compileAssignment )

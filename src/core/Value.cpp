@@ -74,7 +74,7 @@ Value Value::handleGenericAdd(const DreiZehn::Value& a, const DreiZehn::Value& b
             else if (b_is_double) result_str += std::to_string(b.getDouble());
             else                  result_str += "Value";
 
-            return Value(StringTable::insert( result_str));
+            return Value(result_str);
         }
 
         return Value(0);

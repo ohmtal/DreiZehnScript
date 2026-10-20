@@ -337,10 +337,15 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
 
-        if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-            PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) < std::bit_cast<double>(rVal.mBits) ? 1 : 0));
+        // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
+        //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) < std::bit_cast<double>(rVal.mBits) ? 1 : 0));
+        //     DISPATCH();
+        // }
+        if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
+            PUSH_STACK(Value(lVal.asFastDouble() < rVal.asFastDouble() ? 1 : 0));
             DISPATCH();
         }
+
 
         if (lVal.isInt() && rVal.isInt()) {
             PUSH_STACK(Value(lVal.asFastInt() < rVal.asFastInt() ? 1 : 0));
@@ -355,9 +360,13 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
 
-        if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-            PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) <= std::bit_cast<double>(rVal.mBits) ? 1 : 0));
-            DISPATCH();
+        // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
+        //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) <= std::bit_cast<double>(rVal.mBits) ? 1 : 0));
+        //     DISPATCH();
+        // }
+        if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
+             PUSH_STACK(Value(lVal.asFastDouble() <= rVal.asFastDouble() ? 1 : 0));
+              DISPATCH();
         }
 
         if (lVal.isInt() && rVal.isInt()) {
@@ -373,10 +382,15 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
 
-        if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-            PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) > std::bit_cast<double>(rVal.mBits) ? 1 : 0));
+        // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
+        //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) > std::bit_cast<double>(rVal.mBits) ? 1 : 0));
+        //     DISPATCH();
+        // }
+        if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
+            PUSH_STACK(Value(lVal.asFastDouble() > rVal.asFastDouble() ? 1 : 0));
             DISPATCH();
         }
+
 
         if (lVal.isInt() && rVal.isInt()) {
             PUSH_STACK(Value(lVal.asFastInt() > rVal.asFastInt() ? 1 : 0));
@@ -414,8 +428,12 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
 
-        if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-            PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) >= std::bit_cast<double>(rVal.mBits) ? 1 : 0));
+        // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
+        //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) >= std::bit_cast<double>(rVal.mBits) ? 1 : 0));
+        //     DISPATCH();
+        // }
+        if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
+            PUSH_STACK(Value(lVal.asFastDouble() >= rVal.asFastDouble() ? 1 : 0));
             DISPATCH();
         }
 
@@ -429,130 +447,115 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
     // -------------------------------
     handle_OP_EQUAL: {
+
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
 
-        if (lVal.mBits == rVal.mBits) [[likely]] {
-            PUSH_STACK(Value(1)); // Repräsentiert true
+        if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
+            PUSH_STACK(Value(lVal.asFastDouble() == rVal.asFastDouble() ? 1 : 0));
             DISPATCH();
         }
 
-        uint32_t l_tag = static_cast<uint32_t>((lVal.mBits & TAG_MASK) >> 48);
-        uint32_t r_tag = static_cast<uint32_t>((rVal.mBits & TAG_MASK) >> 48);
-
-        const bool l_is_double = ((lVal.mBits & QNAN_MASK) != QNAN_MASK);
-        const bool r_is_double = ((rVal.mBits & QNAN_MASK) != QNAN_MASK);
-
-        constexpr uint32_t ID_INT = 1;
-        constexpr uint32_t ID_PTR = 2;
-        constexpr uint32_t ID_STR = 4;
-
-        if (l_is_double && r_is_double) {
-            PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) == std::bit_cast<double>(rVal.mBits) ? 1 : 0));
+        if (lVal.isInt() && rVal.isInt()) {
+            PUSH_STACK(Value(lVal.asFastInt() == rVal.asFastInt() ? 1 : 0));
             DISPATCH();
         }
 
-        if (!l_is_double && !r_is_double && (l_tag == r_tag)) {
-            switch (l_tag) {
-                case ID_INT:
-                case ID_PTR:
-                    PUSH_STACK(Value(0));
-                    break;
-
-                case ID_STR:
-                    PUSH_STACK(Value(lVal.getStringRef() == rVal.getStringRef() ? 1 : 0));
-                    break;
-
-                default:
-                    PUSH_STACK(Value(0));
-                    break;
-            }
+        if (lVal.isPointer() && rVal.isPointer()) {
+            PUSH_STACK (Value(lVal.asPointer() == rVal.asPointer() ? 1 : 0));
             DISPATCH();
         }
 
-        const bool l_is_int = (!l_is_double && l_tag == ID_INT);
-        const bool r_is_int = (!r_is_double && r_tag == ID_INT);
-
-        if ((l_is_int && r_is_double) || (l_is_double && r_is_int)) {
-            PUSH_STACK(Value(lVal.getDouble() == rVal.getDouble() ? 1 : 0));
-        } else {
-            PUSH_STACK(NumberNullValue);
+        if (lVal.isString() && rVal.isString()) {
+            PUSH_STACK (lVal.getStringRef() == rVal.getStringRef());
+            DISPATCH();
         }
 
+        PUSH_STACK (Value(lVal.getDouble() == rVal.getDouble()));
         DISPATCH();
     }
-
-    // handle_OP_EQUAL: {
-    //
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     if (lVal.isPointer() && rVal.isPointer()) {
-    //         PUSH_STACK (Value(lVal.asPointer() == rVal.asPointer() ? 1 : 0));
-    //     } else if (lVal.isString() && rVal.isString()) {
-    //         PUSH_STACK (strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) == 0);
-    //     } else if (lVal.isString() || rVal.isString()) {
-    //         PUSH_STACK (NumberNullValue);
-    //     } else {
-    //         double l = lVal.getDouble();
-    //         double r = rVal.getDouble();
-    //         PUSH_STACK (Value(std::abs(l - r) < EPSILON ? 1 : 0));
-    //     }
-    //     DISPATCH();
-    // }
     // -------------------------------
     handle_OP_NOT_EQUAL: {
+
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
 
-        if (lVal.mBits == rVal.mBits) [[likely]] {
-            PUSH_STACK(Value(0)); // Repräsentiert false
+        if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
+            PUSH_STACK(Value(lVal.asFastDouble() != rVal.asFastDouble()));
             DISPATCH();
         }
 
-        uint32_t l_tag = static_cast<uint32_t>((lVal.mBits & TAG_MASK) >> 48);
-        uint32_t r_tag = static_cast<uint32_t>((rVal.mBits & TAG_MASK) >> 48);
-
-        const bool l_is_double = ((lVal.mBits & QNAN_MASK) != QNAN_MASK);
-        const bool r_is_double = ((rVal.mBits & QNAN_MASK) != QNAN_MASK);
-
-        constexpr uint32_t ID_INT = 1;
-        constexpr uint32_t ID_PTR = 2;
-        constexpr uint32_t ID_STR = 4;
-
-        if (l_is_double && r_is_double) {
-            PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) != std::bit_cast<double>(rVal.mBits) ? 1 : 0));
+        if (lVal.isInt() && rVal.isInt()) {
+            PUSH_STACK(Value(lVal.asFastInt() != rVal.asFastInt()));
             DISPATCH();
         }
 
-        if (!l_is_double && !r_is_double && (l_tag == r_tag)) {
-            switch (l_tag) {
-                case ID_INT:
-                case ID_PTR:
-                    PUSH_STACK(Value(1));
-                    break;
-
-                case ID_STR:
-                    PUSH_STACK(Value(lVal.getStringRef() != rVal.getStringRef() ? 1 : 0));
-                    break;
-
-                default:
-                    PUSH_STACK(Value(1));
-                    break;
-            }
+        if (lVal.isPointer() && rVal.isPointer()) {
+            PUSH_STACK (Value(lVal.asPointer() != rVal.asPointer()));
             DISPATCH();
         }
 
-        const bool l_is_int = (!l_is_double && l_tag == ID_INT);
-        const bool r_is_int = (!r_is_double && r_tag == ID_INT);
-
-        if ((l_is_int && r_is_double) || (l_is_double && r_is_int)) {
-            PUSH_STACK(Value(lVal.getDouble() != rVal.getDouble() ? 1 : 0));
-        } else {
-            PUSH_STACK(Value(1));
+        if (lVal.isString() && rVal.isString()) {
+            PUSH_STACK (lVal.getStringRef() != rVal.getStringRef());
+            DISPATCH();
         }
 
+        PUSH_STACK (Value(lVal.getDouble() != rVal.getDouble()));
         DISPATCH();
     }
+    // handle_OP_NOT_EQUAL: {
+    //     Value lVal = POP_STACK();
+    //     Value rVal = POP_STACK();
+    //
+    //     if (lVal.mBits == rVal.mBits) [[likely]] {
+    //         PUSH_STACK(Value(0)); // Repräsentiert false
+    //         DISPATCH();
+    //     }
+    //
+    //     uint32_t l_tag = static_cast<uint32_t>((lVal.mBits & TAG_MASK) >> 48);
+    //     uint32_t r_tag = static_cast<uint32_t>((rVal.mBits & TAG_MASK) >> 48);
+    //
+    //     const bool l_is_double = ((lVal.mBits & QNAN_MASK) != QNAN_MASK);
+    //     const bool r_is_double = ((rVal.mBits & QNAN_MASK) != QNAN_MASK);
+    //
+    //     constexpr uint32_t ID_INT = 1;
+    //     constexpr uint32_t ID_PTR = 2;
+    //     constexpr uint32_t ID_STR = 4;
+    //
+    //     if (l_is_double && r_is_double) {
+    //         PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) != std::bit_cast<double>(rVal.mBits) ? 1 : 0));
+    //         DISPATCH();
+    //     }
+    //
+    //     if (!l_is_double && !r_is_double && (l_tag == r_tag)) {
+    //         switch (l_tag) {
+    //             case ID_INT:
+    //             case ID_PTR:
+    //                 PUSH_STACK(Value(1));
+    //                 break;
+    //
+    //             case ID_STR:
+    //                 PUSH_STACK(Value(lVal.getStringRef() != rVal.getStringRef() ? 1 : 0));
+    //                 break;
+    //
+    //             default:
+    //                 PUSH_STACK(Value(1));
+    //                 break;
+    //         }
+    //         DISPATCH();
+    //     }
+    //
+    //     const bool l_is_int = (!l_is_double && l_tag == ID_INT);
+    //     const bool r_is_int = (!r_is_double && r_tag == ID_INT);
+    //
+    //     if ((l_is_int && r_is_double) || (l_is_double && r_is_int)) {
+    //         PUSH_STACK(Value(lVal.getDouble() != rVal.getDouble() ? 1 : 0));
+    //     } else {
+    //         PUSH_STACK(Value(1));
+    //     }
+    //
+    //     DISPATCH();
+    // }
 
     // handle_OP_NOT_EQUAL: {
     //     Value lVal = POP_STACK();
@@ -571,196 +574,196 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     //     DISPATCH();
     // }
     // // -------------------------------
-    // handle_OP_BIT_AND: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     U32 l = lVal.getUInt();
-    //     U32 r = rVal.getUInt();
-    //     PUSH_STACK ( Value( l & r) );
-    //     DISPATCH();
-    // }
-    // // -------------------------------
-    // handle_OP_BIT_OR: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     U32 l = lVal.getUInt();
-    //     U32 r = rVal.getUInt();
-    //     PUSH_STACK ( Value( l | r) );
-    //     DISPATCH();
-    // }
-    // // -------------------------------
-    // handle_OP_BIT_XOR: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     U32 l = lVal.getUInt();
-    //     U32 r = rVal.getUInt();
-    //     PUSH_STACK ( Value( l ^ r) );
-    //     DISPATCH();
-    // }
-    // // -------------------------------
-    // handle_OP_SHL: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     U32 l = lVal.getUInt();
-    //     U32 r = rVal.getUInt();
-    //     PUSH_STACK ( Value( l << r) );
-    //     DISPATCH();
-    // }
-    // // -------------------------------
-    // handle_OP_SHR: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     U32 l = lVal.getUInt();
-    //     U32 r = rVal.getUInt();
-    //     PUSH_STACK ( Value( l >> r) );
-    //     DISPATCH();
-    // }
-    // -------------------------------------------------------------------------
     handle_OP_BIT_AND: {
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
-
-        // FAST-PATH: Wenn beide getaggte Integers sind, extrahieren wir die 32-Bit direkt
-        constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
-        if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
-            uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
-            uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
-            PUSH_STACK(Value(l & r));
-        } else {
-            // SLOW-PATH: Fallback für Doubles oder andere Typen
-            PUSH_STACK(Value(lVal.getUInt() & rVal.getUInt()));
-        }
+        U32 l = lVal.getUInt();
+        U32 r = rVal.getUInt();
+        PUSH_STACK ( Value( l & r) );
         DISPATCH();
     }
-
-    // -------------------------------------------------------------------------
+    // -------------------------------
     handle_OP_BIT_OR: {
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
-
-        constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
-        if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
-            uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
-            uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
-            PUSH_STACK(Value(l | r));
-        } else {
-            PUSH_STACK(Value(lVal.getUInt() | rVal.getUInt()));
-        }
+        U32 l = lVal.getUInt();
+        U32 r = rVal.getUInt();
+        PUSH_STACK ( Value( l | r) );
         DISPATCH();
     }
-
-    // -------------------------------------------------------------------------
+    // -------------------------------
     handle_OP_BIT_XOR: {
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
-
-        constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
-        if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
-            uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
-            uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
-            PUSH_STACK(Value(l ^ r));
-        } else {
-            PUSH_STACK(Value(lVal.getUInt() ^ rVal.getUInt()));
-        }
+        U32 l = lVal.getUInt();
+        U32 r = rVal.getUInt();
+        PUSH_STACK ( Value( l ^ r) );
         DISPATCH();
     }
-
-    // -------------------------------------------------------------------------
+    // -------------------------------
     handle_OP_SHL: {
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
-
-        constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
-        if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
-            uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
-            uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
-            PUSH_STACK(Value(l << r));
-        } else {
-            PUSH_STACK(Value(lVal.getUInt() << rVal.getUInt()));
-        }
+        U32 l = lVal.getUInt();
+        U32 r = rVal.getUInt();
+        PUSH_STACK ( Value( l << r) );
         DISPATCH();
     }
-
-    // -------------------------------------------------------------------------
+    // -------------------------------
     handle_OP_SHR: {
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
-
-        constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
-        if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
-            uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
-            uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
-            PUSH_STACK(Value(l >> r));
-        } else {
-            PUSH_STACK(Value(lVal.getUInt() >> rVal.getUInt()));
-        }
+        U32 l = lVal.getUInt();
+        U32 r = rVal.getUInt();
+        PUSH_STACK ( Value( l >> r) );
         DISPATCH();
     }
-
-    // -------------------------------
-    // handle_OP_MODULO: {
+    // -------------------------------------------------------------------------
+    // handle_OP_BIT_AND: {
     //     Value lVal = POP_STACK();
     //     Value rVal = POP_STACK();
     //
-    //     if (lVal.isDouble() && rVal.isDouble()) {
-    //         double r = rVal.asFastDouble();
-    //         if (r == 0.0) {
-    //             Tools::PrintRuntimeError("Modulo Division by 0.0!");
-    //             PUSH_STACK(NumberNullValue);
-    //         } else {
-    //             PUSH_STACK(Value(std::fmod(lVal.asFastDouble(), r)));
-    //         }
+    //     // FAST-PATH: Wenn beide getaggte Integers sind, extrahieren wir die 32-Bit direkt
+    //     constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
+    //     if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
+    //         uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
+    //         uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
+    //         PUSH_STACK(Value(l & r));
     //     } else {
-    //         int64_t l = lVal.getInt64();
-    //         int64_t r = rVal.getInt64();
-    //         if (r == 0) {
-    //             Tools::PrintRuntimeError("Modulo Division by 0!");
-    //             PUSH_STACK(NumberNullValue);
-    //         } else {
-    //             int64_t res = l % r;
-    //             PUSH_STACK(Value(static_cast<uint32_t>(res)));
-    //         }
+    //         // SLOW-PATH: Fallback für Doubles oder andere Typen
+    //         PUSH_STACK(Value(lVal.getUInt() & rVal.getUInt()));
     //     }
     //     DISPATCH();
     // }
-    // -------------------------------------------------------------------------
+    //
+    // // -------------------------------------------------------------------------
+    // handle_OP_BIT_OR: {
+    //     Value lVal = POP_STACK();
+    //     Value rVal = POP_STACK();
+    //
+    //     constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
+    //     if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
+    //         uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
+    //         uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
+    //         PUSH_STACK(Value(l | r));
+    //     } else {
+    //         PUSH_STACK(Value(lVal.getUInt() | rVal.getUInt()));
+    //     }
+    //     DISPATCH();
+    // }
+    //
+    // // -------------------------------------------------------------------------
+    // handle_OP_BIT_XOR: {
+    //     Value lVal = POP_STACK();
+    //     Value rVal = POP_STACK();
+    //
+    //     constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
+    //     if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
+    //         uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
+    //         uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
+    //         PUSH_STACK(Value(l ^ r));
+    //     } else {
+    //         PUSH_STACK(Value(lVal.getUInt() ^ rVal.getUInt()));
+    //     }
+    //     DISPATCH();
+    // }
+    //
+    // // -------------------------------------------------------------------------
+    // handle_OP_SHL: {
+    //     Value lVal = POP_STACK();
+    //     Value rVal = POP_STACK();
+    //
+    //     constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
+    //     if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
+    //         uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
+    //         uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
+    //         PUSH_STACK(Value(l << r));
+    //     } else {
+    //         PUSH_STACK(Value(lVal.getUInt() << rVal.getUInt()));
+    //     }
+    //     DISPATCH();
+    // }
+    //
+    // // -------------------------------------------------------------------------
+    // handle_OP_SHR: {
+    //     Value lVal = POP_STACK();
+    //     Value rVal = POP_STACK();
+    //
+    //     constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
+    //     if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
+    //         uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
+    //         uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
+    //         PUSH_STACK(Value(l >> r));
+    //     } else {
+    //         PUSH_STACK(Value(lVal.getUInt() >> rVal.getUInt()));
+    //     }
+    //     DISPATCH();
+    // }
+
+    // -------------------------------
     handle_OP_MODULO: {
         Value lVal = POP_STACK();
         Value rVal = POP_STACK();
 
-        if (lVal.isInt() && rVal.isInt()) [[likely]] {
-            int32_t r = rVal.asFastInt();
-            if (r == 0) [[unlikely]] {
-                Tools::PrintRuntimeError("Modulo Division by 0!");
-                PUSH_STACK(NumberNullValue);
-            } else {
-                int32_t res = lVal.asFastInt() % r;
-                PUSH_STACK(Value(res)); // Behält das Vorzeichen korrekt bei!
-            }
-            DISPATCH();
-        }
-
-        if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) {
-            double r = std::bit_cast<double>(rVal.mBits);
-            if (r == 0.0) [[unlikely]] {
+        if (lVal.isDouble() && rVal.isDouble()) {
+            double r = rVal.asFastDouble();
+            if (r == 0.0) {
                 Tools::PrintRuntimeError("Modulo Division by 0.0!");
                 PUSH_STACK(NumberNullValue);
             } else {
-                PUSH_STACK(Value(std::fmod(std::bit_cast<double>(lVal.mBits), r)));
+                PUSH_STACK(Value(std::fmod(lVal.asFastDouble(), r)));
             }
-            DISPATCH();
-        }
-
-        double r = rVal.getDouble();
-        if (r == 0.0) [[unlikely]] {
-            Tools::PrintRuntimeError("Modulo Division by 0.0!");
-            PUSH_STACK(NumberNullValue);
         } else {
-            PUSH_STACK(Value(std::fmod(lVal.getDouble(), r)));
+            int64_t l = lVal.getInt64();
+            int64_t r = rVal.getInt64();
+            if (r == 0) {
+                Tools::PrintRuntimeError("Modulo Division by 0!");
+                PUSH_STACK(NumberNullValue);
+            } else {
+                int64_t res = l % r;
+                PUSH_STACK(Value(static_cast<uint32_t>(res)));
+            }
         }
-
         DISPATCH();
     }
+    // -------------------------------------------------------------------------
+    // handle_OP_MODULO: {
+    //     Value lVal = POP_STACK();
+    //     Value rVal = POP_STACK();
+    //
+    //     if (lVal.isInt() && rVal.isInt()) [[likely]] {
+    //         int32_t r = rVal.asFastInt();
+    //         if (r == 0) [[unlikely]] {
+    //             Tools::PrintRuntimeError("Modulo Division by 0!");
+    //             PUSH_STACK(NumberNullValue);
+    //         } else {
+    //             int32_t res = lVal.asFastInt() % r;
+    //             PUSH_STACK(Value(res)); // Behält das Vorzeichen korrekt bei!
+    //         }
+    //         DISPATCH();
+    //     }
+    //
+    //     if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) {
+    //         double r = std::bit_cast<double>(rVal.mBits);
+    //         if (r == 0.0) [[unlikely]] {
+    //             Tools::PrintRuntimeError("Modulo Division by 0.0!");
+    //             PUSH_STACK(NumberNullValue);
+    //         } else {
+    //             PUSH_STACK(Value(std::fmod(std::bit_cast<double>(lVal.mBits), r)));
+    //         }
+    //         DISPATCH();
+    //     }
+    //
+    //     double r = rVal.getDouble();
+    //     if (r == 0.0) [[unlikely]] {
+    //         Tools::PrintRuntimeError("Modulo Division by 0.0!");
+    //         PUSH_STACK(NumberNullValue);
+    //     } else {
+    //         PUSH_STACK(Value(std::fmod(lVal.getDouble(), r)));
+    //     }
+    //
+    //     DISPATCH();
+    // }
 
     // -------------------------------
     // -------------------------------
@@ -866,88 +869,132 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         DISPATCH();
     }
     // -------------------------------
-    // handle_OP_ADD: {
-    //     Value b = POP_STACK();
-    //     Value a = POP_STACK();
-    //     if (a.isInt() && b.isInt())
-    //         PUSH_STACK(Value(a.asFastInt() + b.asFastInt()));
-    //     else if (a.isString() || b.isString())
-    //         PUSH_STACK(Value(a.getStringRef() + b.getStringRef()));
-    //     else
-    //         PUSH_STACK(Value(a.getDouble() + b.getDouble()));
-    //     DISPATCH();
-    // }
     handle_OP_ADD: {
         Value b = POP_STACK();
         Value a = POP_STACK();
-
-        if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-            PUSH_STACK(Value(std::bit_cast<double>(a.mBits) + std::bit_cast<double>(b.mBits)));
+        if (a.isDouble() && b.isDouble())  [[likely]] {
+            PUSH_STACK(Value(a.asFastDouble() + b.asFastDouble()));
+            DISPATCH();
+        }
+        if (a.isInt() && b.isInt()) {
+            PUSH_STACK(Value(a.asFastInt() + b.asFastInt()));
             DISPATCH();
         }
 
-        uint32_t a_tag = static_cast<uint32_t>((a.mBits & TAG_MASK) >> 48);
-        uint32_t b_tag = static_cast<uint32_t>((b.mBits & TAG_MASK) >> 48);
-
-        uint32_t combined_type = (a_tag << 4) | b_tag;
-
-        constexpr uint32_t ID_INT = 1; // binary 001
-        constexpr uint32_t ID_STR = 4; // binary 100
-
-        switch (combined_type) {
-            case (ID_INT << 4) | ID_INT:
-                PUSH_STACK(Value(a.asFastInt() + b.asFastInt()));
-                break;
-
-            case (ID_STR << 4) | ID_STR:
-                PUSH_STACK(Value(a.getStringRef() + b.getStringRef()));
-                break;
-
-            default: [[unlikely]]
-                PUSH_STACK(Value::handleGenericAdd(a, b));
-                break;
-        }
+        PUSH_STACK(Value::handleGenericAdd(a, b));
         DISPATCH();
     }
 
+    // handle_OP_ADD: {
+    //     Value b = POP_STACK();
+    //     Value a = POP_STACK();
+    //
+    //     if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
+    //         PUSH_STACK(Value(std::bit_cast<double>(a.mBits) + std::bit_cast<double>(b.mBits)));
+    //         DISPATCH();
+    //     }
+    //
+    //      if (a.isInt() && b.isInt()) {
+    //         PUSH_STACK(Value(a.asFastInt() + b.asFastInt()));
+    //         DISPATCH();
+    //      }
+    //
+    //     if (a.isString() && b.isString()) {
+    //         PUSH_STACK(Value(a.getStringRef() + b.getStringRef()));
+    //         DISPATCH();
+    //     }
+    //
+    //
+    //
+    //     uint32_t a_tag = static_cast<uint32_t>((a.mBits & TAG_MASK) >> 48);
+    //     uint32_t b_tag = static_cast<uint32_t>((b.mBits & TAG_MASK) >> 48);
+    //
+    //     uint32_t combined_type = (a_tag << 4) | b_tag;
+    //
+    //     constexpr uint32_t ID_INT = 1; // binary 001
+    //     constexpr uint32_t ID_STR = 4; // binary 100
+    //
+    //     switch (combined_type) {
+    //         case (ID_INT << 4) | ID_INT:
+    //             PUSH_STACK(Value(a.asFastInt() + b.asFastInt()));
+    //             break;
+    //
+    //         case (ID_STR << 4) | ID_STR:
+    //             PUSH_STACK(Value(a.getStringRef() + b.getStringRef()));
+    //             break;
+    //
+    //         default: [[unlikely]]
+    //             PUSH_STACK(Value::handleGenericAdd(a, b));
+    //             break;
+    //     }
+    //     DISPATCH();
+    // }
+
     // -------------------------------
+    // handle_OP_SUB: {
+    //     Value b = POP_STACK();
+    //     Value a = POP_STACK();
+    //
+    //     if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
+    //         PUSH_STACK(Value(std::bit_cast<double>(a.mBits) - std::bit_cast<double>(b.mBits)));
+    //         DISPATCH();
+    //     }
+    //
+    //     if (a.isInt() && b.isInt()) {
+    //         PUSH_STACK(Value(a.asFastInt() - b.asFastInt()));
+    //     } else {
+    //         PUSH_STACK(Value(a.getDouble() - b.getDouble()));
+    //     }
+    //
+    //     DISPATCH();
+    // }
+
     handle_OP_SUB: {
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-            PUSH_STACK(Value(std::bit_cast<double>(a.mBits) - std::bit_cast<double>(b.mBits)));
+        if (a.isDouble() && b.isDouble())  [[likely]] {
+            PUSH_STACK(Value(a.asFastDouble() - b.asFastDouble()));
             DISPATCH();
         }
-
         if (a.isInt() && b.isInt()) {
             PUSH_STACK(Value(a.asFastInt() - b.asFastInt()));
-        } else {
-            PUSH_STACK(Value(a.getDouble() - b.getDouble()));
+            DISPATCH();
         }
-
+        PUSH_STACK(Value(a.getDouble() - b.getDouble()));
         DISPATCH();
     }
-
-    // handle_OP_SUB: {
+    // -------------------------------
+    // handle_OP_MUL: {
     //     Value b = POP_STACK();
     //     Value a = POP_STACK();
-    //     if (a.isInt() && b.isInt())
-    //         PUSH_STACK(Value(a.asFastInt() - b.asFastInt()));
-    //     else
-    //         PUSH_STACK(Value(a.getDouble() - b.getDouble()));
+    //
+    //     if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
+    //         PUSH_STACK(Value(std::bit_cast<double>(a.mBits) * std::bit_cast<double>(b.mBits)));
+    //         DISPATCH();
+    //     }
+    //
+    //     if (a.isInt() && b.isInt()) {
+    //         int32_t result;
+    //         if (!__builtin_mul_overflow(a.asFastInt(), b.asFastInt(), &result)) [[likely]] {
+    //             PUSH_STACK(Value(result));
+    //         } else {
+    //             PUSH_STACK(Value(static_cast<double>(a.asFastInt()) * static_cast<double>(b.asFastInt())));
+    //         }
+    //     } else {
+    //         PUSH_STACK(Value(a.getDouble() * b.getDouble()));
+    //     }
     //     DISPATCH();
     // }
-    // -------------------------------
+
     handle_OP_MUL: {
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-            PUSH_STACK(Value(std::bit_cast<double>(a.mBits) * std::bit_cast<double>(b.mBits)));
+        if (a.isDouble() && b.isDouble())  [[likely]] {
+            PUSH_STACK(Value(a.asFastDouble() * b.asFastDouble()));
             DISPATCH();
         }
-
         if (a.isInt() && b.isInt()) {
             int32_t result;
             if (!__builtin_mul_overflow(a.asFastInt(), b.asFastInt(), &result)) [[likely]] {
@@ -955,73 +1002,81 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
             } else {
                 PUSH_STACK(Value(static_cast<double>(a.asFastInt()) * static_cast<double>(b.asFastInt())));
             }
-        } else {
-            PUSH_STACK(Value(a.getDouble() * b.getDouble()));
+            DISPATCH();
         }
+        PUSH_STACK(Value(a.getDouble() * b.getDouble()));
         DISPATCH();
     }
-
-    // handle_OP_MUL: {
+    // -------------------------------
+    // handle_OP_DIV: {
     //     Value b = POP_STACK();
     //     Value a = POP_STACK();
-    //     if (a.isInt() && b.isInt())
-    //         PUSH_STACK(Value(a.asFastInt() * b.asFastInt()));
-    //     else
-    //         PUSH_STACK(Value(a.getDouble() * b.getDouble()));
+    //
+    //     if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
+    //         double b_val = std::bit_cast<double>(b.mBits);
+    //         if (b_val == 0.0) [[unlikely]] {
+    //             Tools::errorf("Runtime Error: Division by 0!");
+    //             DISPATCH_OPCODE(OP_INVALID);
+    //         }
+    //         PUSH_STACK(Value(std::bit_cast<double>(a.mBits) / b_val));
+    //         DISPATCH();
+    //     }
+    //
+    //     if (a.isInt() && b.isInt()) {
+    //         int32_t b_val = b.asFastInt();
+    //         if (b_val == 0) [[unlikely]] {
+    //             Tools::errorf("Runtime Error: Division by 0!");
+    //             DISPATCH_OPCODE(OP_INVALID);
+    //         }
+    //
+    //         int32_t a_val = a.asFastInt();
+    //         if (a_val % b_val == 0) {
+    //             PUSH_STACK(Value(a_val / b_val));
+    //         } else {
+    //             PUSH_STACK(Value(static_cast<double>(a_val) / static_cast<double>(b_val)));
+    //         }
+    //     } else {
+    //         double b_val = b.getDouble();
+    //         if (b_val == 0.0) [[unlikely]] {
+    //             Tools::errorf("Runtime Error: Division by 0!");
+    //             DISPATCH_OPCODE(OP_INVALID);
+    //         }
+    //         PUSH_STACK(Value(a.getDouble() / b_val));
+    //     }
     //     DISPATCH();
     // }
-    // -------------------------------
+
     handle_OP_DIV: {
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-            double b_val = std::bit_cast<double>(b.mBits);
-            if (b_val == 0.0) [[unlikely]] {
-                Tools::errorf("Runtime Error: Division by 0!");
-                DISPATCH_OPCODE(OP_INVALID);
+        const bool l_is_double = a.isDouble();
+        const bool r_is_double = b.isDouble();
+        const bool is_both_int = a.isInt() && b.isInt();
+        if (l_is_double && r_is_double) [[likely]] {
+            double r = b.asFastDouble();
+            if (r == 0.0) [[unlikely]] DISPATCH_OPCODE(OP_INVALID);;
+            PUSH_STACK(Value(a.asFastDouble() / r));
+            DISPATCH();
+        }
+        if (is_both_int) {
+            int32_t r = b.asFastInt();
+            if (r == 0) [[unlikely]] DISPATCH_OPCODE(OP_INVALID);;
+
+            int32_t l = a.asFastInt();
+            if (l % r == 0) {
+                PUSH_STACK(Value(l / r));
+                DISPATCH();
             }
-            PUSH_STACK(Value(std::bit_cast<double>(a.mBits) / b_val));
+            PUSH_STACK(Value(static_cast<double>(l) / static_cast<double>(r)));
             DISPATCH();
         }
 
-        if (a.isInt() && b.isInt()) {
-            int32_t b_val = b.asFastInt();
-            if (b_val == 0) [[unlikely]] {
-                Tools::errorf("Runtime Error: Division by 0!");
-                DISPATCH_OPCODE(OP_INVALID);
-            }
-
-            int32_t a_val = a.asFastInt();
-            if (a_val % b_val == 0) {
-                PUSH_STACK(Value(a_val / b_val));
-            } else {
-                PUSH_STACK(Value(static_cast<double>(a_val) / static_cast<double>(b_val)));
-            }
-        } else {
-            double b_val = b.getDouble();
-            if (b_val == 0.0) [[unlikely]] {
-                Tools::errorf("Runtime Error: Division by 0!");
-                DISPATCH_OPCODE(OP_INVALID);
-            }
-            PUSH_STACK(Value(a.getDouble() / b_val));
-        }
+        double r = b.getDouble();
+        if (r == 0.0) [[unlikely]]  DISPATCH_OPCODE(OP_INVALID);
+        PUSH_STACK(Value(a.getDouble() / r));
         DISPATCH();
     }
-
-    // handle_OP_DIV: {
-    //     Value b = POP_STACK();
-    //     Value a = POP_STACK();
-    //     if (b.getDouble() == 0.0) {
-    //         Tools::errorf("Runtime Error: Division by 0!");
-    //         DISPATCH_OPCODE(OP_INVALID);
-    //     }
-    //     if (a.isInt() && b.isInt())
-    //         PUSH_STACK(Value(a.asFastInt() / b.asFastInt()));
-    //     else
-    //         PUSH_STACK(Value(a.getDouble() / b.getDouble()));
-    //     DISPATCH();
-    // }
 
     // -------------------------------
     handle_OP_FOR_RANGE: {

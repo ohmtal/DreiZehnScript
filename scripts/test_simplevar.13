@@ -11,13 +11,10 @@ varX = 0.0
 
 forRange j JLOOPS
     forRange i ILOOPS
---         varX = varX + 1
         varX++
     end
     print  "SUM (++) IS: " varX
-
     forRange i ILOOPS
---         varX = varX - 1
         varX--
     end
     print  "SUM (--) IS: " varX
@@ -34,8 +31,8 @@ forRange j JLOOPS
     ran = 0.0
     forRange i HLOOPS
         ran = math::randomf * i
-        varX = varX - ran
-        varX = varX + ran
+        varX -=  ran
+        varX +=  ran
     end
     print  "last ran" ran
     print  "SUM (rand +-) IS: " varX

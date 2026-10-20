@@ -4,8 +4,10 @@ I used my Benchmark Script from ElfScript:
 
 - Lua 5.5.1: 1.243u 0.002s 0:01.25 99.2%     0+0k 0+0io 0pf+0w
 - Elfscript 0.7c: 1.354u 0.002s 0:01.36 99.2%     0+0k 0+0io 0pf+0w
+- 👾 DreiZehn(0.9b ?!): 1.873u 0.004s 0:01.88 99.4%     0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.9a): 1.410u 0.005s 0:01.42 99.2%     0+0k 0+0io 0pf+0w 
 - 👾 DreiZehn(0.9b ?!): 1.873u 0.004s 0:01.88 99.4%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.9c): 3.266u 0.001s 0:03.27 99.6%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8b): 3.306u 0.006s 0:03.32 99.3%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8e): 3.417u 0.001s 0:03.42 99.7%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8a): 3.835u 0.005s 0:03.86 99.2%     0+0k 0+0io 0pf+0w
@@ -33,6 +35,7 @@ Note 0.8b is 0.8a but using -02 optimized instead of -03.
 i need to write a better Benchmark here but for now its only a info for me.
 it can happen, that when i restart the prog that it's only peek 310 not 340
 
+- 🐢 DreiZehn(0.9c): peek: 315 FPS, low: 280 FPS - bummer
 - 🐢 DreiZehn(0.8e): peek: 340 FPS, low: 325 FPS
 
 
@@ -92,6 +95,7 @@ Note on 0.5b: While Variables  uses fast "++"/"--" fields only have the slower a
 
 Note on 0.5c: Added inline OP and OP assign :) Nearly as fast as global var
 
+- 🐢 DreiZehn(0.9c): 3.709u 0.004s 0:03.72 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8e): 3.969u 0.005s 0:03.98 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8b): 5.150u 0.003s 0:05.16 99.8%     0+0k 0+0io 0pf+0w 
 - 🐢 DreiZehn(0.8a): 5.529u 0.003s 0:05.55 99.4%     0+0k 0+0io 0pf+0w
@@ -121,6 +125,7 @@ print "Fib recursiv" num "=" (fib num)
 - Python (3.14.7): 0.649u 0.006s 0:00.65 98.4%     0+0k 0+0io 0pf+0w
 - ElfScript 0.8a: 1.199u 0.001s 0:01.20 99.1%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8e): 2.270u 0.002s 0:02.27 100.0%    0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.9c): 2.296u 0.003s 0:02.30 99.5%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8a): 2.396u 0.001s 0:02.40 99.5%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8b): 2.647u 0.004s 0:02.66 99.2%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7f): 2.339u 0.001s 0:02.34 99.5%     0+0k 0+0io 0pf+0w

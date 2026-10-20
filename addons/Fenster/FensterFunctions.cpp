@@ -148,7 +148,7 @@ namespace DreiZehn {
             unloadBuffers();
         }
 
-        inline static void RegisterSymbols() {
+        static void RegisterSymbols() {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return;
 
@@ -213,7 +213,7 @@ namespace DreiZehn {
             mSymbolsLoaded = true;
         }
         // -------------------------------------------------------------------------
-        inline bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
+        bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
             if (!mFenster.buf || !mBuffer.buffer ) {
                 Tools::errorf("Fenster Object is closed! Method: %s ignored.\n", SymbolTable::getName(methodId).c_str());
                 return true; // return false says method not found!
@@ -455,7 +455,7 @@ namespace DreiZehn {
 
         RegisterFunction("Fenster::new", [](std::vector<Value>& args, Value& ret) -> bool {
 
-            if (args.size() < 4 || !args[0].isStringId()
+            if (args.size() < 4 || !args[0].isString()
                 || !args[1].isNumber() || !args[2].isNumber() || !args[3].isNumber()) {
                 Tools::errorf("Usage: Fenster:new \"Window Title\" width height float scale\n");
                 return false;

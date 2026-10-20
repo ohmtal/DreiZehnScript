@@ -5,8 +5,6 @@
 // Enviroment VM
 #pragma once
 //-----------------------------------------------------------------------------
-#define DREIZEHN_BYTECODE
-#define DREIZEHN_BYTECODE_PORTING
 // #ifdef _DEBUG
 // #define DEBUG_TRACE_EXECUTION
 // #endif
@@ -32,14 +30,11 @@
 #include "toolbox/Tools.h"
 
 // Byte Code
-#ifdef DREIZEHN_BYTECODE
 #include "bytecode/VMStructure.h"
 #include "bytecode/CompilerScope.h"
 #include "bytecode/VM.h"
-#endif
 
 namespace DreiZehn {
-
 
     enum class BlockType { Function, ForLoop, WhileLoop, IfBlock };
 
@@ -108,13 +103,20 @@ public:
         for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
             func.bytecodeAddress = chunk.tell();
 
-            CompilerScope functionScope;
+            // CompilerScope functionScope;
+            // for (const auto& paramName : func.parameterNames) {
+            //     functionScope.insert(SymbolTable::insert(paramName));
+            // }
+            //
+            // for (auto& statement : func.body) {
+            //     statement->compile(env, chunk, functionScope, ValueType::NONE);
+            // }
             for (const auto& paramName : func.parameterNames) {
-                functionScope.insert(SymbolTable::insert(paramName));
+                scope.insert(SymbolTable::insert(paramName));
             }
 
             for (auto& statement : func.body) {
-                statement->compile(env, chunk, functionScope, ValueType::NONE);
+                statement->compile(env, chunk, scope, ValueType::NONE);
             }
 
             chunk.emit(OP_PUSH_VALUE);

@@ -49,7 +49,7 @@ namespace DreiZehn::Raylib {
             return res;
         }
 
-        inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
+          Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
             if (fieldSymbolId == prop_Color_r.mSymbolId) return &r;
             if (fieldSymbolId == prop_Color_g.mSymbolId) return &g;
             if (fieldSymbolId == prop_Color_b.mSymbolId) return &b;
@@ -58,13 +58,13 @@ namespace DreiZehn::Raylib {
             return nullptr;
         }
 
-        inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
+          bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
             Value* ptr = onGetFieldPtr(fieldSymbolId);
             if (ptr) { ret = *ptr; return true; }
             return false;
         }
 
-        inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
+          bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
             Value* ptr = onGetFieldPtr(fieldSymbolId);
             if (ptr) { *ptr = value; return true; }
             return false;

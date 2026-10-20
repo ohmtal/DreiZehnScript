@@ -70,15 +70,6 @@ local is not assigned at all so if a gc is running we are in trouble!
     `global r = 0; print (debug::bc "r = Array::new; l=Array::new; core::printgc"); print r;`
 
     
-- [ ] AssignStatement ( compileAssignment )
-    - [X] VariableExpression
-    - [ ] ObjectFieldExpression
-    - [ ] ArrayVariableExpression
-    - [ ] MethodExpression
-    - [ ] VariableReferenceExpression
-    - [ ] VariablePointerExpression
-
-    
     
 - [X] BinaryOpExpression
 - [X] RangeStatement 
@@ -87,9 +78,27 @@ local is not assigned at all so if a gc is running we are in trouble!
 - [X] BinaryExpression
 - [X] CallExpression script functions with precopile 
 
+
+### 0.9c: 
+    
+- [ ] CallExpression parameter Bug:
+```
+> fn jo p; print "jo" p;;
+> debug::bc "jo";
+Segmentation fault (core dumped)
+
+```
 - [ ] BinaryInlineExpression
     - [X] local + global var 
     - [ ] others hackfest via expr pointer ^^ 
+
+- [ ] AssignStatement ( compileAssignment )
+    - [X] VariableExpression
+    - [ ] ObjectFieldExpression
+    - [ ] ArrayVariableExpression
+    - [ ] MethodExpression
+    - [ ] VariableReferenceExpression
+    - [ ] VariablePointerExpression
 
     
 - [ ] AssignOPStatement

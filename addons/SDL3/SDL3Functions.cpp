@@ -14,51 +14,51 @@
 
 namespace DreiZehn {
 
-    inline const int TypeSDL_FPointObject =  RegisterUserObjectType("SDL_FPoint");
+     const int TypeSDL_FPointObject =  RegisterUserObjectType("SDL_FPoint");
 
     struct SDL_FPointObject : public ValueObject {
-        Value my; inline static ValueObjectProperty myProp;
-        Value mx; inline static ValueObjectProperty mxProp;
+        Value my;  inline static ValueObjectProperty myProp;
+        Value mx;  inline static ValueObjectProperty mxProp;
         SDL_FPoint mData = {0};
 
         SDL_FPointObject(): ValueObject(TypeSDL_FPointObject) {
             mSupportClone = true;
         }
-        virtual ValueObject* clone() override {
+         ValueObject* clone() override {
             SDL_FPointObject* clone = new SDL_FPointObject();
             clone->my = this->my;
             clone->mx = this->mx;
             return clone;
         }
-        inline virtual SDL_FPoint* dataPtr()  {
+        SDL_FPoint* dataPtr()  {
             mData.y = (float)my.getDouble();
             mData.x = (float)mx.getDouble();
             return &mData;
         }
-        inline virtual const SDL_FPoint& data()  {
+        const SDL_FPoint& data()  {
             mData.y = (float)my.getDouble();
             mData.x = (float)mx.getDouble();
             return mData;
         }
-        inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
+        Value* onGetFieldPtr(uint32_t fieldSymbolId) override {
             if (fieldSymbolId == myProp.mSymbolId) return &my;
             if (fieldSymbolId == mxProp.mSymbolId) return &mx;
             return ValueObject::onGetFieldPtr(fieldSymbolId);
         }
-        inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
+        bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
             Value* ptr = onGetFieldPtr(fieldSymbolId);
             if (ptr) { ret = *ptr; return true; }
             return false;
         }
 
-        inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
+        bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
             Value* ptr = onGetFieldPtr(fieldSymbolId);
             if (ptr) { *ptr = value; return true; }
             return false;
         }
 
 
-        inline static void RegisterSymbols() {
+         static void RegisterSymbols() {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return ;
             myProp = ValueObjectProperty("y","",TypeSDL_FPointObject) ;
@@ -69,7 +69,7 @@ namespace DreiZehn {
     };
 
 
-    inline const int Type_SDL_Window_Object =  RegisterUserObjectType("SDL_Window");
+     const int Type_SDL_Window_Object =  RegisterUserObjectType("SDL_Window");
 
     struct SDL_Window_Object : ValueObject {
         SDL_Window* value = nullptr;
@@ -80,7 +80,7 @@ namespace DreiZehn {
         }
     };
 
-    inline const int Type_SDL_Renderer_Object =  RegisterUserObjectType("SDL_Renderer");
+     const int Type_SDL_Renderer_Object =  RegisterUserObjectType("SDL_Renderer");
     struct SDL_Renderer_Object : ValueObject {
         SDL_Renderer* value = nullptr;
         SDL_Renderer_Object(SDL_Renderer* rend) : ValueObject(Type_SDL_Renderer_Object), value(rend) {}
@@ -90,7 +90,7 @@ namespace DreiZehn {
         }
     };
 
-    inline const int Type_SDL_Event_Object =  RegisterUserObjectType("SDL_Event_Object");
+     const int Type_SDL_Event_Object =  RegisterUserObjectType("SDL_Event_Object");
     struct SDL_Event_Object : ValueObject {
         SDL_Event value;
         SDL_Event_Object() : ValueObject(Type_SDL_Event_Object) { std::memset(&value, 0, sizeof(SDL_Event)); }
@@ -234,7 +234,7 @@ namespace DreiZehn {
                 Tools::errorf("SDL_CreateRenderer: Invalid SDL_Window!\n");
                 return false;
             }
-            const char* name = (args.size() > 1 && args[1].isStringId()) ? args[1].getStringRef().c_str() : nullptr;
+            const char* name = (args.size() > 1 && args[1].isString()) ? args[1].getStringRef().c_str() : nullptr;
 
             SDL_Renderer* rend = SDL_CreateRenderer(winObj->value, name);
             if (!rend) {

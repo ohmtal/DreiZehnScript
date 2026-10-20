@@ -45,7 +45,7 @@ namespace DreiZehn {
         // DEBUG BYTECODE
         // ---------------------------------------------------------------------
         RegisterFunction("debug::bc", [&env](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() != 1 || !args[0].isStringId()) {
+            if (args.size() != 1 || !args[0].isString()) {
                 Tools::errorf("Usage: debug::bc codeled\n");
                 ret = NumberNullValue;
                 return true;

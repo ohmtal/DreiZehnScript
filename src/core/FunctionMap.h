@@ -63,7 +63,7 @@ namespace DreiZehn::FunctionMap {
         }
 
         for (int i = 0; i < count; i++) {
-            if (!args[i].isStringId() ) {
+            if (!args[i].isString() ) {
                 Tools::errorf("Usage: %s  [string value] %d times",command, count);
                 return false;
             }

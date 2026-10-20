@@ -238,7 +238,7 @@ namespace DreiZehn {
     //     inline bool onSetField(uint32_t fieldSymbolId, const Value& value) override{
     //         Value* ptr = onGetFieldPtr(fieldSymbolId);
     //         if (!ptr) return ValueObject::onSetField(fieldSymbolId, value);
-    //         if (value.isStringId() ) {
+    //         if (value.isString() ) {
     //             *ptr = value;
     //         } else {
     //             *ptr = EmptyStringValue;
@@ -271,7 +271,7 @@ namespace DreiZehn {
     //                     if (dStr.back() == '.') dStr.pop_back();
     //                     resultStr += dStr;
     //                 }
-    //                 else if (val.isStringId()) {
+    //                 else if (val.isString()) {
     //                     resultStr += val.getString();
     //                 }
     //             }
@@ -333,7 +333,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // StringObject::RegisterSymbols();
         // RegisterFunction("String::new", [](std::vector<Value>& args, Value& ret) -> bool {
-        //     if (args.size() != 1 || !args[0].isStringId()) {
+        //     if (args.size() != 1 || !args[0].isString()) {
         //         Tools::errorf("Usage: String::new string\n");
         //         return false;
         //     }
@@ -459,7 +459,7 @@ namespace DreiZehn {
         }, "return converted to upper string");
         // ---------------------------------------------------------------------
         RegisterFunction("str::ord", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() < 1 || !args[0].isStringId()) {
+            if (args.size() < 1 || !args[0].isString()) {
                 Tools::errorf("Usage: str::ord string [index]\n");
                 return true;
             }
@@ -492,7 +492,7 @@ namespace DreiZehn {
         }, "Return the characted of the given a ascii number.");
         // ---------------------------------------------------------------------
         RegisterFunction("str::substr", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() < 2 || !args[0].isStringId()) {
+            if (args.size() < 2 || !args[0].isString()) {
                 Tools::errorf("Usage: str::substr string start [count]\n");
                 return true;
             }
@@ -530,8 +530,8 @@ namespace DreiZehn {
         }, "return a substring from start. Len is optional.");
         // ---------------------------------------------------------------------
         RegisterFunction("str::replace", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() < 3 || !args[0].isStringId() || !args[1].isStringId()
-                || !args[2].isStringId()
+            if (args.size() < 3 || !args[0].isString() || !args[1].isString()
+                || !args[2].isString()
             ) {
                 Tools::errorf("Usage: str::replace str search repl\n");
                 return true;
@@ -559,7 +559,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // ---------------------------------------------------------------------
         RegisterFunction("str::wordcount", [](std::vector<Value>& args, Value& ret) -> bool {
-             if (args.size() < 1 || !args[0].isStringId()) {
+             if (args.size() < 1 || !args[0].isString()) {
 
                 Tools::errorf("Usage: str::wordcount str [separator]\n");
                 return true;
@@ -581,7 +581,7 @@ namespace DreiZehn {
         }, "Get the count of Words - optional separator char");
         // ---------------------------------------------------------------------
         RegisterFunction("str::word", [](std::vector<Value>& args, Value& ret) -> bool {
-             if (args.size() < 2 || !args[0].isStringId()) {
+             if (args.size() < 2 || !args[0].isString()) {
 
                 Tools::errorf("Usage: str::word str index [separator]\n");
                 return true;
@@ -605,7 +605,7 @@ namespace DreiZehn {
         }, "Get a word at index - optional separator char");
         // ---------------------------------------------------------------------
         RegisterFunction("str::setword", [](std::vector<Value>& args, Value& ret) -> bool {
-             if (args.size() < 3 || !args[0].isStringId()) {
+             if (args.size() < 3 || !args[0].isString()) {
 
                 Tools::errorf("Usage: str::setword str index newword [separator]\n");
                 return true;
@@ -630,7 +630,7 @@ namespace DreiZehn {
         }, "Set a words at index - optional separator char");
         // ---------------------------------------------------------------------
         RegisterFunction("str::removeword", [](std::vector<Value>& args, Value& ret) -> bool {
-             if (args.size() < 2 || !args[0].isStringId()) {
+             if (args.size() < 2 || !args[0].isString()) {
 
                 Tools::errorf("Usage: str::removeword str index [separator]\n");
                 return true;

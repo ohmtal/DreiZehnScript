@@ -212,7 +212,7 @@ namespace DreiZehn {
                 return nullptr;
             }
             Value* valPtr = nullptr;
-            if (args[0].isStringId()) {
+            if (args[0].isString()) {
                 return getDynamicFieldPtr(SymbolTable::insert(args[0].getStringRef()));
             } else {
                 return getDynamicFieldPtrByIndex(args[0].getUInt());
@@ -238,7 +238,7 @@ namespace DreiZehn {
 
         // ------ Base methods ----------
         if (methodNameSymbolId == sClassNameMethodId) {
-            if (args.size() != 1 || !args[0].isStringId()) {
+            if (args.size() != 1 || !args[0].isString()) {
                 Tools::errorf("Usage: setClassName string ClassName\n");
                 ret = NumberNullValue;
                 return true;
@@ -256,7 +256,7 @@ namespace DreiZehn {
 
         // -------- isScriptMethod ----
         else if (methodNameSymbolId == sIsMethodId) {
-            if (args.size() != 1 || !args[0].isStringId()) {
+            if (args.size() != 1 || !args[0].isString()) {
                 Tools::errorf("Usage: isScriptMethod string MethodName\n");
                 ret = NumberNullValue;
                 return true;
@@ -280,7 +280,7 @@ namespace DreiZehn {
         }
         // ----------- setField ---------------
         else if (methodNameSymbolId == sSetFieldId) {
-            if (args.size() != 2  || !args[0].isStringId() ) {
+            if (args.size() != 2  || !args[0].isString() ) {
                 Tools::errorf("set a field by fieldname Usage: \"fieldname\" value\n");
                 ret = NumberNullValue;
                 return true;
@@ -311,7 +311,7 @@ namespace DreiZehn {
                 return true;
             }
             Value* valPtr = nullptr;
-            if (args[0].isStringId()) {
+            if (args[0].isString()) {
                 // valPtr = getDynamicFieldPtr(SymbolTable::insert(args[0].getStringRef()));
                 if (onGetField(SymbolTable::insert(args[0].getStringRef()),ret))
                     return true;

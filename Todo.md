@@ -437,6 +437,8 @@ it's the same problem.
     - NOTE: lol since yesterday 500ms lost on scripts/testBC_simplevar.13 
         did if have a lucky binary yesterday ? 
         
+- [ ] TOO much is inlined! 
+        
 - [ ] FIXME _DEBUG or DREIZEHN_DEBUG flag! 
 - [X] DECISION pure byte code ot ast/bytecode hybrid ==> HYBRID ! 
 - [ ] Objects:

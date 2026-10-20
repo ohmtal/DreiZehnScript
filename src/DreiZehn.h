@@ -119,7 +119,7 @@ void Init(Environment& env, int argc, char* argv[]) {
             return true;
         }
 
-        if (args[0].isStringId() ) {
+        if (args[0].isString() ) {
             Tools::printf("Loading Script: %s\n", args[0].getStringRef().c_str());
             bool success = false;
             success = RunScriptFile(args[0].getStringRef(), env);
@@ -153,7 +153,7 @@ void Init(Environment& env, int argc, char* argv[]) {
         else
             if (args[0].isDouble()) ret = Value(args[0].getInt());
             else
-                if (args[0].isStringId()) ret = Value( std::atoi( args[0].getStringRef().c_str()));
+                if (args[0].isString()) ret = Value( std::atoi( args[0].getStringRef().c_str()));
                 else
                     Tools::PrintRuntimeError("Cant cast pointer to integer!\n");
 
@@ -173,7 +173,7 @@ void Init(Environment& env, int argc, char* argv[]) {
         else
             if (args[0].isInt()) ret = Value(args[0].getDouble());
             else
-                if (args[0].isStringId()) ret = Value( std::atof( args[0].getStringRef().c_str()));
+                if (args[0].isString()) ret = Value( std::atof( args[0].getStringRef().c_str()));
                 else
                     Tools::PrintRuntimeError("Cant cast pointer to float!\n");
 

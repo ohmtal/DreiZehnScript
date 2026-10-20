@@ -54,7 +54,7 @@ namespace DreiZehn {
             mSupportClone = true;
 
         }
-        virtual ValueObject* clone() override {
+         ValueObject* clone() override {
             BaseValueObject* clone = new BaseValueObject();
             ValueObject::cloneBase(clone);
             return clone;
@@ -102,7 +102,7 @@ namespace DreiZehn {
             }
         }
         // -------------------------------------------------------------------------
-        virtual ValueObject* clone() override {
+         ValueObject* clone() override {
             StructObject* clone = new StructObject();
             ValueObject::cloneBase(clone);
             return clone;
@@ -183,7 +183,7 @@ namespace DreiZehn {
             }
         }
         // -------------------------------------------------------------------------
-        virtual ValueObject* clone() override {
+         ValueObject* clone() override {
             ArrayObject* clone = new ArrayObject();
             ValueObject::cloneBase(clone);
             return clone;
@@ -310,7 +310,7 @@ inline void RegisterBaseObject(Environment& env) {
         }
 
         for(size_t i = 0; i < args.size(); i++) {
-            if (!args[i].isStringId() && !(args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
+            if (!args[i].isString() && !(args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
                 Tools::errorf("Usage Struct::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
                 return true;
             }
@@ -330,7 +330,7 @@ inline void RegisterBaseObject(Environment& env) {
         // }
 
         for(size_t i = 0; i < args.size(); i++) {
-            if (!args[i].isStringId() && !(args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
+            if (!args[i].isString() && !(args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
                 Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
                 return true;
             }

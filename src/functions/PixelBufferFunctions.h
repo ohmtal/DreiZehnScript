@@ -272,7 +272,7 @@ namespace DreiZehn {
             if (saveProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer) return false;
 
-                if (!args[0].isStringId()) {
+                if (!args[0].isString()) {
                     ret = NumberNullValue;
                     return true;
                 }
@@ -285,7 +285,7 @@ namespace DreiZehn {
             if (loadProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer) return false;
 
-                if (!args[0].isStringId()) {
+                if (!args[0].isString()) {
                     ret = NumberNullValue;
                     return true;
                 }

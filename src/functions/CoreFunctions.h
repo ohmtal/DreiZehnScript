@@ -36,7 +36,7 @@ namespace DreiZehn {
         // CORE
         // ---------------------------------------------------------------------
         RegisterFunction("core::eval", [&env](std::vector<Value>& args, Value& ret) -> bool {
-            if (args.size() != 1 || !args[0].isStringId()) {
+            if (args.size() != 1 || !args[0].isString()) {
                 Tools::errorf("Usage: core::eval codeled\n");
                 ret = NumberNullValue;
                 return true;
@@ -202,7 +202,7 @@ namespace DreiZehn {
         RegisterFunction("help::fn", [](std::vector<Value>& args, Value& ret) -> bool {
             bool doFilter = false;
             std::string filter;
-            if (!args.empty() && args[0].isStringId()) {
+            if (!args.empty() && args[0].isString()) {
                 filter = args[0].getString();
                 if (!filter.empty()) doFilter = true;
             }
@@ -265,7 +265,7 @@ namespace DreiZehn {
             if (args.size() > 0) {
                 int id = 0;
 
-                if (args[0].isStringId()) {
+                if (args[0].isString()) {
                     for (id = 1; id <= gLastValueObjectType; id++) {
                         if (args[0].getString() == gUserObjectTypes[id].mName){
                             break;
@@ -300,7 +300,7 @@ namespace DreiZehn {
         RegisterFunction("help::const", [](std::vector<Value>& args, Value& ret) -> bool {
             bool doFilter = false;
             std::string filter;
-            if (!args.empty() && args[0].isStringId()) {
+            if (!args.empty() && args[0].isString()) {
                 filter = args[0].getString();
                 if (!filter.empty()) doFilter = true;
             }

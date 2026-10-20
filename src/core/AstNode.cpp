@@ -492,7 +492,6 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
         return true;
     }
-
     FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFuncSymbolId);
     if (sf) {
         U32 argCount = 0;
@@ -555,7 +554,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         int mode = 0; //double
         if (lVal.isInt() && rVal.isInt()) mode = 1; //int
-        else if (lVal.isStringId() || rVal.isStringId()) mode = 2; //string
+        else if (lVal.isString() || rVal.isString()) mode = 2; //string
 
         switch (mOp) {
             case TokenType::Plus: {
@@ -831,9 +830,9 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             case TokenType::Equal: {
                 if (lVal.isPointer() && rVal.isPointer()) {
                     return Value(lVal.asPointer() == rVal.asPointer() ? 1 : 0);
-                } else if (lVal.isStringId() && rVal.isStringId()) {
+                } else if (lVal.isString() && rVal.isString()) {
                     return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) == 0;
-                } else if (lVal.isStringId() || rVal.isStringId()) {
+                } else if (lVal.isString() || rVal.isString()) {
                     return NumberNullValue;
                 }
                 double l = lVal.getDouble();
@@ -843,9 +842,9 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             case TokenType::NotEqual: {
                 if (lVal.isPointer() && rVal.isPointer()) {
                     return Value(lVal.asPointer() != rVal.asPointer() ? 1 : 0);
-                } else if (lVal.isStringId() && rVal.isStringId()) {
+                } else if (lVal.isString() && rVal.isString()) {
                     return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) != 0;
-                }  else if (lVal.isStringId() || rVal.isStringId()) {
+                }  else if (lVal.isString() || rVal.isString()) {
                     return Value(1);
                 }
                 double l = lVal.getDouble();
@@ -992,7 +991,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             *valuePtr = Value(intval);
             return *valuePtr;
 
-        } else if (valuePtr->isStringId( )) {
+        } else if (valuePtr->isString( )) {
             if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (valuePtr->getStringRef() +  rightHand.toString() );
             else return NumberNullValue;
             return *valuePtr;

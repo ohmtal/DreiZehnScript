@@ -27,6 +27,7 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/core/Parser.h
     ${CMAKE_CURRENT_LIST_DIR}/core/Parser.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/Value.h
+    ${CMAKE_CURRENT_LIST_DIR}/core/Value.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/ValueObject.h
     ${CMAKE_CURRENT_LIST_DIR}/core/ValueObject.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/VariableFrame.h
@@ -55,12 +56,12 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/toolbox/SysTools.h
     ${CMAKE_CURRENT_LIST_DIR}/toolbox/SysTools.cpp
 
-    # Bytecode compiler TODO
-    # ${CMAKE_CURRENT_LIST_DIR}/bytecode/AstNode_bytecode.cpp
-    # ${CMAKE_CURRENT_LIST_DIR}/bytecode/ASTCompiler.h
-    # ${CMAKE_CURRENT_LIST_DIR}/bytecode/CompilerScope.h
-    # ${CMAKE_CURRENT_LIST_DIR}/bytecode/VM.h
-    # ${CMAKE_CURRENT_LIST_DIR}/bytecode/VMStructure.h
+    # Bytecode compiler
+    ${CMAKE_CURRENT_LIST_DIR}/bytecode/CompilerScope.h
+    ${CMAKE_CURRENT_LIST_DIR}/bytecode/VM.h
+    ${CMAKE_CURRENT_LIST_DIR}/bytecode/VM.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/bytecode/VMStructure.h
+    ${CMAKE_CURRENT_LIST_DIR}/bytecode/VMStructure.cpp
 
 
     ${CMAKE_CURRENT_LIST_DIR}/Globals.h

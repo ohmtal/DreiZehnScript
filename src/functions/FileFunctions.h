@@ -102,7 +102,7 @@ struct FileStreamObject : public ValueObject {
         }
         // ------- writeln
         if (writelnProp.matchMethod(methodId, args) == 1) {
-            if (output && args[0].isStringId()) {
+            if (output && args[0].isString()) {
                 *output << args[0].getStringRef() << "\r\n";
                 ret = Value(1);
             } else {
@@ -294,7 +294,7 @@ void RegisterFileFunctions(Environment& env) {
 
     // Constructor
     RegisterFunction("FileStream::open", [](std::vector<Value>& args, Value& ret) -> bool {
-        if (args.size() != 2 || !args[0].isStringId() || !args[1].isStringId()) {
+        if (args.size() != 2 || !args[0].isString() || !args[1].isString()) {
             Tools::errorf("Usage: FileStream::open filename mode");
             ret = NumberNullValue;
             return true;

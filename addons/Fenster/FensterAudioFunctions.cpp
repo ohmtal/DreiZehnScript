@@ -39,7 +39,7 @@ namespace DreiZehn::Fenster {
 namespace DreiZehn {
     using namespace DreiZehn::Fenster;
 
-    inline const int TypeFensterAudioObject = RegisterUserObjectType("FensterAudio");
+    const int TypeFensterAudioObject = RegisterUserObjectType("FensterAudio");
 
     struct FensterAudioObject : public ValueObject {
         struct fenster_audio mFensterAudio = {0};
@@ -66,7 +66,7 @@ namespace DreiZehn {
             }
         }
 
-        inline static void RegisterSymbols() {
+         static void RegisterSymbols() {
             static bool mSymbolsLoaded = false;
             if (mSymbolsLoaded) return;
 
@@ -90,7 +90,7 @@ namespace DreiZehn {
             mSymbolsLoaded = true;
         }
         // -------------------------------------------------------------------------
-        inline bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
+         bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
 
             if (mClosed) {
                 ret = NumberNullValue;

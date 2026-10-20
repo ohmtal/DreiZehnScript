@@ -21,6 +21,7 @@ namespace DreiZehn {
     // to not show up when it's an assign
     bool AssignActive = false;
     // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // LiteralExpression :: optimized
     Value LiteralExpression::evaluate(Environment& env) {
 
@@ -472,8 +473,8 @@ namespace DreiZehn {
     }
 #endif
 bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
-    FunctionMap::CallBack* cb = FunctionMap::GetCFunction(mFuncSymbolId);
 
+    FunctionMap::CallBack* cb = FunctionMap::GetCFunction(mFuncSymbolId);
     if (cb) {
         U32 argCount = 0;
         for (auto& argExpr : arguments) {
@@ -482,21 +483,62 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
                 argCount++;
             }
         }
-
         chunk.emit(OP_CALL_C_FUNCTION);
-
         chunk.emitPointer(cb);
         chunk.emit(argCount);
 
         if (requestType == ValueType::NONE) {
             chunk.emit(OP_POP_STACK);
         }
-
-
-
         return true;
     }
 
+    FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFuncSymbolId);
+    if (sf) {
+        U32 argCount = 0;
+        for (auto& argExpr : arguments) {
+            if (argExpr) {
+                argExpr->compile(env, chunk, scope, ValueType::ANY);
+                argCount++;
+            }
+        }
+
+        chunk.emit(OP_CALL_SF_FUNCTION);
+        chunk.emit(sf->bytecodeAddress);
+        chunk.emit(argCount);
+
+        if (requestType == ValueType::NONE) {
+            chunk.emit(OP_POP_STACK);
+        }
+        return true;
+    }
+
+    //FIXME THIS IS WRONG !!!
+    // FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFuncSymbolId);
+    // if (sf) {
+    //     auto& func = *(sf);
+    //     U32 functionStartIP = chunk.tell();
+    //     func.bytecodeAddress = functionStartIP;
+    //
+    //     CompilerScope functionScope;
+    //
+    //     for (const auto& paramName : func.parameterNames) {
+    //         functionScope.insert(SymbolTable::insert(paramName));
+    //     }
+    //
+    //     for (auto& statement : func.body) {
+    //         statement->compile(env, chunk, functionScope, ValueType::NONE);
+    //     }
+    //
+    //     chunk.emit(OP_PUSH_VALUE);
+    //     chunk.emitValue(NumberNullValue);
+    //     chunk.emit(OP_RETURN);
+    //
+    //     return true;
+    // }
+
+
+    Tools::errorf("Unknown command: %s\n", SymbolTable::getName(mFuncSymbolId).c_str());
     return false;
 }
 
@@ -1071,9 +1113,17 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     };
 
     bool ReturnStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        if (this->mExpression) this->mExpression->compile(env,chunk,scope, ValueType::ANY);
-        // NOTE really exit ?! or i need a last jump
-        chunk.emit(OP_EXIT);
+
+        if (this->mExpression) {
+            this->mExpression->compile(env, chunk, scope, ValueType::ANY);
+        } else {
+            chunk.emit(OP_PUSH_VALUE);
+            chunk.emitValue(NumberNullValue);
+        }
+
+        chunk.emit(OP_RETURN);
+
+
         return true;
     }
     // -------------------------------------------------------------------------

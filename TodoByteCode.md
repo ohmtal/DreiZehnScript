@@ -78,16 +78,21 @@ local is not assigned at all so if a gc is running we are in trouble!
     - [ ] VariableReferenceExpression
     - [ ] VariablePointerExpression
 
+    
+    
 - [X] BinaryOpExpression
 - [X] RangeStatement 
 - [X] BinaryAndOrExpression
 - [X] IfStatement
 - [X] BinaryExpression
-
+- [X] CallExpression script functions with precopile 
 
 - [ ] BinaryInlineExpression
     - [X] local + global var 
     - [ ] others hackfest via expr pointer ^^ 
+
+    
+- [ ] AssignOPStatement
 
 ---
  
@@ -100,10 +105,8 @@ local is not assigned at all so if a gc is running we are in trouble!
 - [ ] VariablePointerExpression
 - [ ] ArrayVariableExpression
 - [ ] MethodExpression
-- [ ] FunctionDefineStartNode ??
 - [ ] ForStatement
 - [ ] WhileStatement
-- [ ] AssignOPStatement
 - [ ] ObjectFieldExpression
 - [ ] TernaryExpression
 - [ ] ForEachStatement

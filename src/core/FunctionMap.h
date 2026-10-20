@@ -77,6 +77,7 @@ namespace DreiZehn::FunctionMap {
     struct ScriptFunction {
         std::vector<std::string> parameterNames;
         std::vector<std::shared_ptr<ASTNode>> body;
+        uint32_t bytecodeAddress = 0;
     };
 
     inline std::unordered_map<uint32_t, ScriptFunction> RegisteredScriptFunctions;

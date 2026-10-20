@@ -4,33 +4,13 @@
 //-----------------------------------------------------------------------------
 // Enviroment VM
 #pragma once
-
-
+//-----------------------------------------------------------------------------
 #define DREIZEHN_BYTECODE
 #define DREIZEHN_BYTECODE_PORTING
-#ifdef _DEBUG
+// #ifdef _DEBUG
 // #define DEBUG_TRACE_EXECUTION
-#endif
-
-// NOTE Example:
-// #ifdef DREIZEHN_BYTECODE
-//     auto* forStmt = dynamic_cast<ForStatement*>(node);
-//     BytecodeChunk chunk;
-//     CompilerScope scope;
-//
-//     ASTCompiler::compileExpression(forStmt, chunk, scope);
-//
-//     //TODO: ASTCompiler::compileForStatement(forStmt, chunk, scope);
-//
-//     chunk.emit(OP_EXIT);
-//
-//     runDirectThreadedVM(chunk, scope.getLocalCount());
-// #else
+// #endif
 //-----------------------------------------------------------------------------
-
-
-
-
 #include <string>
 #include <vector>
 #include <cctype>
@@ -109,7 +89,7 @@ public:
         BytecodeChunk chunk;
         CompilerScope scope;
         if (!Compile(node, *this, chunk, scope)) return NumberNullValue;
-        chunk.emit(OP_EXIT);
+
         Value res = runDirectThreadedVM(chunk, scope.getLocalCount());
         #ifdef DEBUG_TRACE_EXECUTION
         Tools::printf("CompileExec VALUE IS: %s\n", res.toString().c_str());
@@ -117,45 +97,48 @@ public:
         return res;
     }
 
-    inline bool Compile( ASTNode* node, Environment& currentEnv, BytecodeChunk& chunk, CompilerScope& scope)
+    inline bool Compile( ASTNode* node, Environment& env, BytecodeChunk& chunk, CompilerScope& scope)
     {
-          if (!node) return false;
-          switch(node->mNodeType) {
-              // case NodeType::LiteralExpression: {
-              //     if (auto* expr = dynamic_cast<LiteralExpression*>(node)) {
-              //         if (!expr->compile(currentEnv, chunk, scope)) return false;
-              //     }
-              //     break;
-              // }
-              // case NodeType::ValueExpression: {
-              //     if (auto* expr = dynamic_cast<ValueExpression*>(node)) {
-              //         if (!expr->compile(currentEnv, chunk, scope)) return false;
-              //     }
-              //     break;
-              // }
-              // case NodeType::VariableExpression: {
-              //     if (auto* expr = dynamic_cast<VariableExpression*>(node)) {
-              //         if (!expr->compile(currentEnv, chunk, scope)) return false;
-              //     }
-              //     break;
-              // }
-              // case NodeType::CallExpression: {
-              //     if (auto* expr = dynamic_cast<CallExpression*>(node)) {
-              //         if (!expr->compile(currentEnv, chunk, scope)) return false;
-              //     }
-              //     break;
-              // }
-              case NodeType::BlockStatement:
-              {
-                  auto* flowStmt = dynamic_cast<BlockStatement*>(node);
-                   if (!flowStmt->compile(currentEnv, chunk, scope, ValueType::NONE)) return false;
-                   break;
-              }
-              default:
+        if (!node) return false;
+
+
+        chunk.emit(OP_JUMP);
+        U32 globalStartPatch = chunk.tell();
+        chunk.emit(0);
+        for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
+            func.bytecodeAddress = chunk.tell();
+
+            CompilerScope functionScope;
+            for (const auto& paramName : func.parameterNames) {
+                functionScope.insert(SymbolTable::insert(paramName));
+            }
+
+            for (auto& statement : func.body) {
+                statement->compile(env, chunk, functionScope, ValueType::NONE);
+            }
+
+            chunk.emit(OP_PUSH_VALUE);
+            chunk.emitValue(NumberNullValue);
+            chunk.emit(OP_RETURN);
+        }
+        U32 mainScriptStartIP = chunk.tell();
+        chunk.patch(globalStartPatch, mainScriptStartIP); // Patch den globalen JUMP hierher
+
+        CompilerScope globalScope;
+        switch(node->mNodeType) {
+            case NodeType::BlockStatement:
+            {
+                auto* flowStmt = dynamic_cast<BlockStatement*>(node);
+                if (!flowStmt->compile(env, chunk, scope, ValueType::NONE)) return false;
+                break;
+            }
+            default:
                 Tools::errorf("UNKNOWN Expression Compile: %s\n", NodeTypeToString(node->mNodeType));
                 return false;
-          }
-          return true;
+        }
+
+        chunk.emit(OP_EXIT);
+        return true;
     }
 
     // -------------------------------------------------------------------------

@@ -25,6 +25,12 @@ namespace DreiZehn {
 #ifndef MAX_BC_STACK_SIZE
 #define MAX_BC_STACK_SIZE 1024
 #endif
+
+#ifndef MAX_BC_CALL_STACK
+#define MAX_BC_CALL_STACK 1024
+#endif
+
+
 // #define PUSH_STACK(val)      (vmStack[_STK++] = (val))
 #ifdef _DEBUG
     #define PUSH_STACK(val) \
@@ -133,6 +139,9 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
         &&handle_OP_LOOP_INCREMENT_JUMP,
 
         &&handle_OP_POP_STACK,
+
+        &&handle_OP_RETURN,
+
         &&handle_OP_EXIT,        // bye bye
         &&handle_OP_INVALID
     };
@@ -144,6 +153,10 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
     // Local register
     std::vector<Value> locals;
     locals.resize(numLocals);
+    // -----------------------
+    U32 callStack[MAX_BC_CALL_STACK];
+    U32 _CS = 0; // Call-Stack Pointer
+    U32 framePointer = 0; // current local variables start point
     // -----------------------
     // stack register
     S32 _STK = 0;
@@ -465,14 +478,16 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
     }
     // -------------------------------
     handle_OP_GET_LOCAL: {
-        U32 slot = ADVANCE_U32();
+        // frame pointer for call stack
+        U32 slot = framePointer + ADVANCE_U32();
         assert(slot < locals.size() && "RUNTIME ERROR: LOCAL REGISTER OUT OF BOUNDS");
         PUSH_STACK(locals[slot]);
         DISPATCH();
     }
     // -------------------------------
     handle_OP_SET_LOCAL: {
-        U32 slot = ADVANCE_U32();
+        // frame pointer for call stack
+        U32 slot = framePointer + ADVANCE_U32();
         if (slot >= locals.size()) {
             locals.resize(slot + 1);
         } else {
@@ -511,7 +526,21 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
     }
     // -------------------------------
     handle_OP_CALL_SF_FUNCTION: {
-        //FIXME
+        U32 targetIP = ADVANCE_U32();
+        U32 argCount = ADVANCE_U32();
+
+        callStack[_CS++] = ip;
+
+        PUSH_STACK(Value(static_cast<double>(framePointer)));
+        PUSH_STACK(Value(static_cast<double>(argCount)));
+
+        framePointer = _STK - 2 - argCount;
+
+        for (S32 i = argCount - 1; i >= 0; --i) {
+            locals[framePointer + i] = PEEK_STACK(2 + (argCount - 1 - i));
+        }
+
+        ip = targetIP;
         DISPATCH();
     }
     // -------------------------------
@@ -650,21 +679,29 @@ inline Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals = 64) {
         DISPATCH();
     }
     // -------------------------------
-//     FIXME BREAK
-//     U32 exitIP = advanceU32();   //
-//     U32 popCount = advanceU32(); // ForRange uses 2 for example!
-//
-//     // 1. Stack sauber aufräumen
-//     for (U32 i = 0; i < popCount; i++) {
-//         popStack();
-//     }
-//
-//     // 2. Aus der Schleife springen
-//     ip = exitIP;
-//     DISPATCH();
-    // -------------------------------
     handle_OP_POP_STACK: {
         POP_STACK();
+        DISPATCH();
+    }
+    // -------------------------------
+    handle_OP_RETURN: {
+
+        if (_CS == 0) {
+            DISPATCH_OPCODE(OP_EXIT);
+        }
+
+        Value returnValue = POP_STACK();
+
+        U32 argCount        = static_cast<U32>(POP_STACK().getDouble());
+        U32 oldFramePointer = static_cast<U32>(POP_STACK().getDouble());
+
+        _STK = framePointer;
+
+        framePointer = oldFramePointer;
+
+        PUSH_STACK(returnValue);
+
+        ip = callStack[--_CS];
         DISPATCH();
     }
     // -------------------------------

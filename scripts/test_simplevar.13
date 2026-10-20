@@ -1,6 +1,6 @@
 # Benchmark-Test for DreiZehn Script (0.8)
-import Core
-import Math
+-- import Core
+-- import Math
 
 define JLOOPS 25
 define ILOOPS 1000000

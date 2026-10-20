@@ -74,6 +74,8 @@ enum  OpCodes : uint32_t {
 
 
     OP_POP_STACK,
+
+    OP_RETURN,
     OP_EXIT,        // bye bye
     OP_INVALID
 };
@@ -132,6 +134,7 @@ inline OpCodeInfo OpCodeInfos[] = {
 
     {"OP_POP_STACK", 0},
 
+    {"OP_RETURN", 0},
     {"OP_EXIT", 0},
     {"OP_INVALID", 0}
 };

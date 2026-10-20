@@ -23,10 +23,26 @@ enum  OpCodes : uint32_t {
     OP_PUSH_VALUE,
 
     OP_JUMP,
+    OP_JUMP_IF_TRUE_NO_POP,
+    OP_JUMP_IF_FALSE_NO_POP,
     OP_JUMP_IF_FALSE,
 
     OP_LESS_EQUAL,
     OP_LESS,
+
+    OP_GREATER,
+    OP_GREATER_EQUAL,
+    OP_EQUAL,
+    OP_NOT_EQUAL,
+
+    OP_BIT_AND,
+    OP_BIT_OR,
+    OP_BIT_XOR,
+    OP_SHL,
+    OP_SHR,
+    OP_MODULO,
+
+
 
     // Global Variables
     OP_LOAD_VAR,
@@ -42,15 +58,18 @@ enum  OpCodes : uint32_t {
 
     // Math
     OP_INC_LOCAL, //++ -- += -= using emitted value
-    OP_INC_EXPR,    // HACK fest this break a bytecode execute !
+    OP_INC_PTR,   // HACK fest hybrid
 
     OP_ADD,
     OP_SUB,
     OP_MUL,
     OP_DIV,
 
+
+
     // Loop
     OP_FOR_RANGE,
+    OP_FOR_STEP_INIT,
     OP_LOOP_INCREMENT_JUMP,
 
 
@@ -68,11 +87,26 @@ inline OpCodeInfo OpCodeInfos[] = {
     {"OP_CONST", 1},
     {"OP_PUSH_VALUE", 0},
 
-    {"OP_JUMP", 0},
-    {"OP_JUMP_IF_FALSE", 0},
+    {"OP_JUMP", 1},
+    {"OP_JUMP_IF_TRUE_NO_POP", 1},
+    {"OP_JUMP_IF_FALSE_NO_POP", 1},
+    {"OP_JUMP_IF_FALSE", 1},
 
     {"OP_LESS_EQUAL", 0},
     {"OP_LESS", 0},
+
+    {"OP_GREATER", 0 },
+    {"OP_GREATER_EQUAL", 0 },
+    {"OP_EQUAL", 0 },
+    {"OP_NOT_EQUAL", 0 },
+
+    {"OP_BIT_AND", 0 },
+    {"OP_BIT_OR", 0 },
+    {"OP_BIT_XOR", 0 },
+    {"OP_SHL", 0 },
+    {"OP_SHR", 0 },
+    {"OP_MODULO", 0 },
+
 
     {"OP_LOAD_VAR", 1},
     {"OP_SAVE_VAR", 1},
@@ -84,14 +118,16 @@ inline OpCodeInfo OpCodeInfos[] = {
     {"OP_CALL_SF_FUNCTION", 0}, //SPECIAL emittedCount variable
 
     {"OP_INC_LOCAL", 2},
-    {"OP_INC_EXPR", 3},
+    {"OP_INC_PTR", 3},
 
     {"OP_ADD", 0},
     {"OP_SUB", 0},
     {"OP_MUL", 0},
     {"OP_DIV", 0},
 
+
     {"OP_FOR_RANGE", 2},
+    {"OP_FOR_STEP_INIT", 3 },
     {"OP_LOOP_INCREMENT_JUMP", 3},
 
     {"OP_POP_STACK", 0},
@@ -127,8 +163,7 @@ inline void disassembleInstruction(const uint32_t* code, size_t offset) {
                 offset += 2;
 
                 U32 argCount = code[offset++];
-                U32 requestType = code[offset++];
-                Tools::printf("  Pointer: %p, Args: %u, requestType:%u", cb, argCount, requestType);
+                Tools::printf("  Pointer: %p, Args: %u", cb, argCount);
             }
             break;
             case OP_CALL_SF_FUNCTION: {

@@ -10,11 +10,13 @@ global varX = 0.0
 
 forRange j JLOOPS
     forRange i ILOOPS
+--         varX = varX + 1
         varX++
     end
     print  "SUM (++) IS: " varX
 
     forRange i ILOOPS
+--         varX = varX - 1
         varX--
     end
     print  "SUM (--) IS: " varX
@@ -23,8 +25,8 @@ forRange j JLOOPS
     print  "set Sum to 66 == " (varX * 1)
 
     forRange i ILOOPS
-        varX = varX * (i + 1)
-        varX = varX / (i + 1)
+        varX = varX * (i + 1.01)
+        varX = varX / (i + 1.01)
     end
     print  "SUM (*/ %i+1) IS: " varX
 

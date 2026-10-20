@@ -45,12 +45,41 @@ niceLine "forRange"
 debug::bc 'forRange i 10; printraw "**" i "**";;print " <<<"'
 
 niceLine "INC/DEC"
-debug::bc 'a = 5; a++;print "6==" a; a--; print "5==" a'
+debug::bc 'a = 5; a++;print "local 6==" a; a--; print "local 5==" a'
 global globA = 5;
-debug::bc 'globA++;print "6==" globA; globA--; print "5==" globA'
+debug::bc 'globA++;print "glob 6==" globA; globA--; print "glob 5==" globA'
 
--- Bus error:
--- global arrayA = Array::new "a" => 5
--- debug::bc 'arrayA[0]++;print "6==" arrayA[0]; arrayA[0]--; print "5==" arrayA[0]'
+-- FIXME
+-- -- global arrayA = Array::new "a" => 5
+-- -- debug::bc 'arrayA[0]++' ;print "array:" arrayA[0]
+-- -- debug::bc 'arrayA[0]--;'; print "array:" arrayA[0]
+-- -- -- Bus error dont have getter sofar:
+-- -- -- debug::bc 'arrayA[0]++;print "6==" arrayA[0]; arrayA[0]--; print "5==" arrayA[0]'
 
+niceLine "if or and elif else end continue break while"
+
+code  = 'a= 20\n'
+code += 'forRange i a\n'
+code += '   if i == 5; printraw "FIVE!"\n'
+code += '   elif i == 6; printraw "SIX!"\n'
+code += '   elif (i > 8) && (i < 10); printraw "NINE!"\n'
+code += '   elif (i == 10 ); printraw "TEN continue >> "; continue\n'
+code += '   elif (i == 13 ); printraw "DreiZehn break!"; break\n'
+code += '   else printraw i\n'
+code += '   end\n'
+code += '   printraw " :: "\n'
+code += 'end\n'
+code += 'print "<<<"\n'
+print code
+debug::bc code
+
+print "\n...... WHILE < 100 => 10 continue and 12 break ...."
+debug::bc 'i = 0;while i < 100; i++; if i == 10 continue; elif i == 12; break;; printraw i " ";;printraw "\\n"'
+
+
+niceLine "for step"
+print "forward:"
+debug::bc 'for i 0 10; printraw i " ";;printraw "\\n"'
+print "BACKWARD step 2:"
+debug::bc 'for i 10 0 2; printraw i " ";;printraw "\\n"'
 

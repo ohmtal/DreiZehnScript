@@ -74,17 +74,6 @@ namespace DreiZehn {
 
     Value* VariableExpression::evaluatePtr(Environment& env) {
 
-        // if (mGlobalVariable) Tools::printf("<<<< %s >>> found a global :D\n",SymbolTable::getName(mVariableNameSymbolId).c_str());
-        // if (mGlobalVariable) {
-        //     if (mCacheValue /*&& mCacheFrameID == frameID*/) {
-        //         return mCacheValue;
-        //     }
-        //     VariableFrame* frame = Globals::MasterVariableFrame;
-        //     mCacheFrameID = 0 ; //frame->getFrameId(); //should be 0
-        //     mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
-        //     return mCacheValue;
-        //
-        // } else {
         VariableFrame* frame = env.getVariableFrame();
         uint32_t frameID = frame->getFrameId();
         if (mCacheValue && mCacheFrameID == frameID) {
@@ -93,7 +82,6 @@ namespace DreiZehn {
         mCacheFrameID = frameID;
         mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
         return mCacheValue;
-        // }
 
         return nullptr;
     }
@@ -500,7 +488,10 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         chunk.emitPointer(cb);
         chunk.emit(argCount);
 
-        chunk.emit(static_cast<U32>(requestType));
+        if (requestType == ValueType::NONE) {
+            chunk.emit(OP_POP_STACK);
+        }
+
 
 
         return true;
@@ -512,7 +503,6 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     // -------------------------------------------------------------------------
     // BinaryOpExpression
     // -------------------------------------------------------------------------
-
     Value BinaryOpExpression::evaluate(Environment& env)  {
         if (!mLeft.get() || !mRight.get()) {
             Tools::PrintParseError("left or right is missing:");
@@ -622,6 +612,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return Value();
 
     }
+    // ---------------------
     bool BinaryInlineExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (!mExpr) return false;
 
@@ -645,10 +636,23 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
 
                 return true;
+            } else {
+                // PUSH VAR
+                chunk.emit(OP_LOAD_VAR);
+                chunk.emit(vExpr->mVariableNameSymbolId);
+                // PUSH INC
+                chunk.emit(OP_PUSH_VALUE);
+                chunk.emitValue(Value(inc));
+                // ADD INC
+                chunk.emit(OP_ADD);
+                // SAVE VAR
+                chunk.emit(OP_SAVE_VAR);
+                chunk.emit(vExpr->mVariableNameSymbolId);
+                return true;
             }
         }
-
-        chunk.emit(OP_INC_EXPR);
+        //Hybrid HACK fest !!!!
+        chunk.emit(OP_INC_PTR);
         chunk.emitPointer(mExpr.get());
         chunk.emitS32(inc);
 
@@ -682,37 +686,81 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
     }
     bool BinaryAndOrExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
+
+        if (!mLeft.get() || !mRight.get()) {
+            Tools::PrintParseError("(&& ||) left or right is missing:");
+            return false;
+        }
+
+        mLeft->compile(env,chunk,scope, ValueType::ANY);
+
+        if (mOp == TokenType::Or) {
+            chunk.emit(OP_JUMP_IF_TRUE_NO_POP);
+            U32 jumpOffset = chunk.tell();
+            chunk.emit(0); //placeholder
+            chunk.emit(OP_POP_STACK);
+            mRight->compile(env,chunk,scope, ValueType::ANY);
+            chunk.patch(jumpOffset, chunk.tell());
+
+        } else { // TokenType::And
+            chunk.emit(OP_JUMP_IF_FALSE_NO_POP);
+            U32 jumpOffset = chunk.tell(); // Zeigt direkt auf den kommenden Platzhalter
+            chunk.emit(0); // placeholder
+
+            chunk.emit(OP_POP_STACK);
+            mRight->compile(env, chunk, scope, ValueType::ANY);
+
+            chunk.patch(jumpOffset, chunk.tell());
+        }
+
+        if (requestType == ValueType::NONE)
+             chunk.emit(OP_POP_STACK);
+
         return false;
     }
     // -------------------------------------------------------------------------
     bool BinaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
-    }
+        if (!mLeft.get() || !mRight.get()) {
+            Tools::PrintParseError("left or right is missing:");
+            return false;
+        }
 
+        mRight->compile(env, chunk, scope, ValueType::ANY);
+        mLeft->compile(env, chunk, scope, ValueType::ANY);
+
+        switch (mOp) {
+            case TokenType::Greater:      chunk.emit(OP_GREATER); break;
+            case TokenType::GreaterEqual: chunk.emit(OP_GREATER_EQUAL); break;
+            case TokenType::Less:         chunk.emit(OP_LESS); break;
+            case TokenType::LowerEqual:   chunk.emit(OP_LESS_EQUAL); break;
+            case TokenType::Equal:        chunk.emit(OP_EQUAL); break;
+            case TokenType::NotEqual:     chunk.emit(OP_NOT_EQUAL); break;
+
+            case TokenType::BitAnd:       chunk.emit(OP_BIT_AND); break;
+            case TokenType::BitOr:        chunk.emit(OP_BIT_OR); break;
+            case TokenType::BitXOr:       chunk.emit(OP_BIT_XOR); break;
+            case TokenType::SHL:          chunk.emit(OP_SHL); break;
+            case TokenType::SHR:          chunk.emit(OP_SHR); break;
+            case TokenType::Modulo:       chunk.emit(OP_MODULO); break;
+
+            default:
+                Tools::PrintParseError("Unknown binary operator");
+                return false;
+        }
+
+        if (requestType == ValueType::NONE) {
+            chunk.emit(OP_POP_STACK);
+        }
+
+        return true;
+    }
+    // -------------------
     Value BinaryExpression::evaluate(Environment& env)  {
         if (!mLeft.get() || !mRight.get()) {
             Tools::PrintParseError("left or right is missing:");
             return Value();
         }
 
-        // if (mOp == TokenType::And) {
-        //     Value lVal = mLeft->evaluate(env);
-        //     int l = lVal.getUInt();
-        //     if (l == 0) return Value(0);
-        //     Value rVal = mRight->evaluate(env);
-        //     int r = rVal.getUInt();
-        //     return Value( l && r);
-        // } else
-        // if (mOp == TokenType::Or) {
-        //     Value lVal = mLeft->evaluate(env);
-        //     int l = lVal.getUInt();
-        //     if (l == 1) return Value(1);
-        //     Value rVal = mRight->evaluate(env);
-        //     int r = rVal.getUInt();
-        //     return Value( l || r);
-        // }
 
         Value lVal = mLeft->evaluate(env);
         Value rVal = mRight->evaluate(env);
@@ -762,16 +810,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
                 double r = rVal.getDouble();
                 return Value(std::abs(l - r) < EPSILON ? 0 : 1);
             }
-            // case TokenType::Or: {
-            //     int l = lVal.getUInt();
-            //     int r = rVal.getUInt();
-            //     return Value( l || r);
-            // }
-            // case TokenType::And: {
-            //     int l = lVal.getUInt();
-            //     int r = rVal.getUInt();
-            //     return Value( l && r);
-            // }
+
             case TokenType::BitAnd: {
                 int l = lVal.getUInt();
                 int r = rVal.getUInt();
@@ -870,7 +909,6 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     }
 
     // -------------------------------------------------------------------------
-
     Value AssignOPStatement::evaluate(Environment& env) {
 
         Value * valuePtr = mVarExpr->evaluatePtr(env);
@@ -935,6 +973,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         return NumberNullValue;
     }
+
     bool AssignOPStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         //FIXME
         return false;
@@ -1060,10 +1099,39 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
         return  FlowStatus (FlowSignal::None);
     }
-    bool IfStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+    // ----------------
+    bool IfStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+        if (!mCondition.get() ) {
+            Tools::PrintParseError("If expression is missing condition or then-branch:");
+            return false;
+        }
+
+        mCondition->compile(env, chunk, scope, ValueType::ANY);
+
+        chunk.emit(OP_JUMP_IF_FALSE);
+        U32 jumpToElseOffset = chunk.tell();
+        chunk.emit(0);
+
+        for (auto& statement : mBody) {
+            statement->compile(env,chunk,scope,ValueType::NONE);
+        }
+
+        if (mElseBranch.get()) {
+            chunk.emit(OP_JUMP);
+            U32 jumpToEndOffset = chunk.tell();
+            chunk.emit(0);
+
+            chunk.patch(jumpToElseOffset, chunk.tell());
+            mElseBranch->compile(env, chunk, scope, ValueType::NONE);
+            chunk.patch(jumpToEndOffset, chunk.tell());
+        }
+        else {
+            chunk.patch(jumpToElseOffset, chunk.tell());
+        }
+
+        return true;
     }
+
     // -------------------------------------------------------------------------
     // For Range
     // -------------------------------------------------------------------------
@@ -1105,7 +1173,6 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             Tools::errorf("Runtime Error: range need a count border!\n");
             return false;
         }
-
         // add iter values to registers
         U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
         // set the start iter to 0
@@ -1123,16 +1190,32 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         chunk.emit(iteratorSlot);
 
         U32 bodyStart = chunk.tell();
+
+        LoopInfo loop;
+        scope.mLoopStack.push_back(loop);
+
         for (auto& statement : mBody) {
             statement->compile(env,chunk,scope,ValueType::NONE);
         }
+        U32 continueIP = chunk.tell();
 
         chunk.emit(OP_LOOP_INCREMENT_JUMP);
         chunk.emit(iteratorSlot);
         chunk.emit(bodyStart);
         chunk.emitS32(1); //increment
 
-        chunk.patch(exitIPPatch, chunk.tell());
+        U32 loopEndIP = chunk.tell();
+        chunk.patch(exitIPPatch, loopEndIP);
+
+        LoopInfo finishedLoop = scope.mLoopStack.back();
+        scope.mLoopStack.pop_back();
+        for (U32 breakPlaceholder : finishedLoop.breakOffsets) {
+            chunk.patch(breakPlaceholder, loopEndIP);
+        }
+        for (U32 contPlaceholder : finishedLoop.continueOffsets) {
+            chunk.patch(contPlaceholder, continueIP);
+        }
+
         return true;
     }
     //NOTE works but  too slow .. need something like in ElfScript!
@@ -1254,9 +1337,66 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
         return FlowStatus (FlowSignal::None)  ;
     }
+    // ---------------------
     bool ForStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+        if (!mStartExpr || !mEndExpr ) {
+            Tools::PrintParseError("For-Loop is missing Start, End or Step expression:");
+            return false;
+        }
+
+        U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
+
+        // push start, end, increment
+        mStartExpr->compile(env, chunk, scope, ValueType::ANY);
+        mEndExpr->compile(env, chunk, scope, ValueType::ANY);
+        if (mStepExpr)
+            mStepExpr->compile(env, chunk, scope, ValueType::ANY);
+        else {
+            chunk.emit(OP_PUSH_VALUE);
+            chunk.emitValue(Value(1));
+        }
+
+        chunk.emit(OP_FOR_STEP_INIT);
+        U32 exitIPPatch = chunk.tell();
+        chunk.emit(0); // place holder for loop end
+        U32 incrementIPPatch = chunk.tell();
+        chunk.emit(0); // incrementIPPatch
+        chunk.emit(iteratorSlot);
+
+        LoopInfo loop;
+        scope.mLoopStack.push_back(loop);
+
+        U32 bodyStart = chunk.tell();
+        for (auto& statement : mBody) {
+            statement->compile(env, chunk, scope, ValueType::NONE);
+        }
+
+        U32 continueIP = chunk.tell();
+
+        chunk.emit(OP_LOOP_INCREMENT_JUMP);
+        chunk.emit(iteratorSlot);
+        chunk.emit(bodyStart);
+        U32 incrementCodePosPatch = chunk.tell();
+        chunk.emitS32(0); // increment - patched at runtime
+
+        // we patch here the increment position for increment
+        chunk.patch(incrementIPPatch, incrementCodePosPatch);
+
+        U32 loopEndIP = chunk.tell();
+        chunk.patch(exitIPPatch, loopEndIP);
+
+
+        LoopInfo finishedLoop = scope.mLoopStack.back();
+        scope.mLoopStack.pop_back();
+
+        for (U32 breakPlaceholder : finishedLoop.breakOffsets) {
+            chunk.patch(breakPlaceholder, loopEndIP);
+        }
+        for (U32 contPlaceholder : finishedLoop.continueOffsets) {
+            chunk.patch(contPlaceholder, continueIP);
+        }
+
+        return true;
     }
     // -------------------------------------------------------------------------
     FlowStatus WhileStatement::execute(Environment& env){
@@ -1284,10 +1424,45 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return FlowStatus (FlowSignal::None)  ;
     }
 
-    bool WhileStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+    bool WhileStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+        if (!mCondition.get()) {
+            Tools::PrintParseError("While loop is missing condition:");
+            return false;
+        }
+        U32 loopStartIP = chunk.tell();
+        mCondition->compile(env, chunk, scope, ValueType::ANY);
+        chunk.emit(OP_JUMP_IF_FALSE);
+        U32 exitIPPatch = chunk.tell();
+        chunk.emit(0); // placeholder
+
+        LoopInfo loop;
+        scope.mLoopStack.push_back(loop);
+
+        for (auto& statement : mBody) {
+            statement->compile(env, chunk, scope, ValueType::NONE);
+        }
+
+        LoopInfo finishedLoop = scope.mLoopStack.back();
+        scope.mLoopStack.pop_back();
+
+        chunk.emit(OP_JUMP);
+        chunk.emit(loopStartIP);
+
+        U32 loopEndIP = chunk.tell();
+
+        chunk.patch(exitIPPatch, loopEndIP);
+
+        for (U32 breakPlaceholder : finishedLoop.breakOffsets) {
+            chunk.patch(breakPlaceholder, loopEndIP);
+        }
+
+        for (U32 contPlaceholder : finishedLoop.continueOffsets) {
+            chunk.patch(contPlaceholder, loopStartIP);
+        }
+
+        return true;
     }
+
 
     // -------------------------------------------------------------------------
     FlowStatus ForEachStatement::execute(Environment& env){
@@ -1391,13 +1566,30 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     }
     // -------------------------------------------------------------------------
     bool BreakStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
-        //FIXME
-        return false;
+        if (scope.mLoopStack.empty()) {
+            Tools::PrintParseError("Error: 'break' outside of loop context!");
+            return false;
+        }
+        chunk.emit(OP_JUMP);
+        U32 breakPlaceholder = chunk.tell();
+        chunk.emit(0); // placeholder for
+        scope.mLoopStack.back().breakOffsets.push_back(breakPlaceholder);
+        return true;
     }
     // -------------------------------------------------------------------------
     bool ContinueStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
-        //FIXME
-        return false;
+        if (scope.mLoopStack.empty()) {
+            Tools::PrintParseError("Error: 'continue' outside of loop context!");
+            return false;
+        }
+
+        chunk.emit(OP_JUMP);
+        U32 continuePlaceholder = chunk.tell();
+        chunk.emit(0); // placeholder
+
+        scope.mLoopStack.back().continueOffsets.push_back(continuePlaceholder);
+
+        return true;
     }
     // -------------------------------------------------------------------------
 }

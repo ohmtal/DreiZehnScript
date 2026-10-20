@@ -3,10 +3,14 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // Enviroment VM
+#pragma once
+
 
 #define DREIZEHN_BYTECODE
 #define DREIZEHN_BYTECODE_PORTING
+#ifdef _DEBUG
 // #define DEBUG_TRACE_EXECUTION
+#endif
 
 // NOTE Example:
 // #ifdef DREIZEHN_BYTECODE
@@ -23,7 +27,7 @@
 //     runDirectThreadedVM(chunk, scope.getLocalCount());
 // #else
 //-----------------------------------------------------------------------------
-#pragma once
+
 
 
 
@@ -107,9 +111,9 @@ public:
         if (!Compile(node, *this, chunk, scope)) return NumberNullValue;
         chunk.emit(OP_EXIT);
         Value res = runDirectThreadedVM(chunk, scope.getLocalCount());
-        // #ifdef DEBUG_TRACE_EXECUTION
-        // Tools::printf("CompileExec VALUE IS: %s\n", res.toString().c_str());
-        // #endif
+        #ifdef DEBUG_TRACE_EXECUTION
+        Tools::printf("CompileExec VALUE IS: %s\n", res.toString().c_str());
+        #endif
         return res;
     }
 

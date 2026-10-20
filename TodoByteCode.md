@@ -1,13 +1,28 @@
-# DreiZehn Todo ByteCode / Interpreter HYBRID !! 
+# DreiZehn Todo ByteCode 
 
-## Version 0.9
+### DECISION pure byte code ot ast/bytecode hybrid 
+In OP_CALL_C_FUNCTION i use a pointer from Compile ... this works fine as long
+i always compile the AST and not want to save the bytecode. Same for Import 
+which is done in Parser. So I can change this all or do a inline bytecode which
+depends on the AST Expression. 
+
+- "A": always compile from code - hybrid solution 
+- "B": rewrite some parts and make it byte code execution only. 
+
+I guess "B" would by slower. "A": Pushing the C-Function pointer at compiletime 
+is faster the look it up every time at runtime. 
+
+    
+## Version 0.9 ByteCode
 
 **NOTE:** Ast-Interpreter get slower every line of code i add ^^
 
-- [ ] Objects:
-    - [ ] change the methodCall to Lambda !!!! so i can directly lookup it
-    - [ ] how does the assingptr on method match the bytecode ? 
 
+
+
+- NOTE: IMPORT is not an expression and done directly
+
+    
 ### NodeTypes:
 
 ```
@@ -50,24 +65,29 @@ global r = 0;  (debug::bc "r = math::randomf"); print r;
 ```
 - [X] Stack grow also if we have no assign!! mhh where to handle this ...
         ==> need to add a param to compile and add POP_STACK if we have no use
-- [ ] bytecode must handle object assignment / garbage collection! Global is set by internalSetVariable but 
+- [X] bytecode must handle object assignment / garbage collection! Global is set by internalSetVariable but 
 local is not assigned at all so if a gc is running we are in trouble! 
     `global r = 0; print (debug::bc "r = Array::new; l=Array::new; core::printgc"); print r;`
 
+    
 - [ ] AssignStatement ( compileAssignment )
     - [X] VariableExpression
-    - !!! ADD HYBRID MODE !!! like in the BinaryInlineExpression
+    - [ ] ObjectFieldExpression
     - [ ] ArrayVariableExpression
     - [ ] MethodExpression
     - [ ] VariableReferenceExpression
     - [ ] VariablePointerExpression
-    - [ ] ObjectFieldExpression
 
 - [X] BinaryOpExpression
 - [X] RangeStatement 
-- [X] BinaryInlineExpression
-    - [X] local var 
-    - [X] *NOTE* others this BREAK compiled bytecode since it use the AST !!!!
+- [X] BinaryAndOrExpression
+- [X] IfStatement
+- [X] BinaryExpression
+
+
+- [ ] BinaryInlineExpression
+    - [X] local + global var 
+    - [ ] others hackfest via expr pointer ^^ 
 
 ---
  
@@ -80,9 +100,6 @@ local is not assigned at all so if a gc is running we are in trouble!
 - [ ] VariablePointerExpression
 - [ ] ArrayVariableExpression
 - [ ] MethodExpression
-- [ ] BinaryExpression
-- [ ] IfStatement
-- [ ] ElIfStatement
 - [ ] FunctionDefineStartNode ??
 - [ ] ForStatement
 - [ ] WhileStatement

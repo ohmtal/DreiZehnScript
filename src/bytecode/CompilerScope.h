@@ -17,6 +17,11 @@
 
 namespace DreiZehn {
 
+    struct LoopInfo {
+        std::vector<U32> continueOffsets; // continue jump point
+        std::vector<U32> breakOffsets; // all break patches
+    };
+
     class CompilerScope {
     private:
         std::unordered_map<uint32_t, int> mSymbolIdToSlot;
@@ -24,6 +29,8 @@ namespace DreiZehn {
         int mNextSlotIndex = 0;
 
     public:
+        std::vector<LoopInfo> mLoopStack;
+
         uint32_t insert(uint32_t symbolId) {
             auto it = mSymbolIdToSlot.find(symbolId);
             if (it != mSymbolIdToSlot.end()) {

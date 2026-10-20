@@ -429,8 +429,21 @@ Struct [0x5576cc6a5440]
 - [X] Script Tree to c++
 
 ## 0.9 Bytecode
+- [ ] AST-Interpreter: StarField2 is really slow now dropped down from 340 in 0.8e to now 285
+but why ?! - i added array ...and moved the SDL3 Functions to cpp?! I just fetched 0.8
+it's the same problem.
+    - [X] is it the SDL3 move to cpp ? => NO
+    - [X] i switch to linenoise cpp => NO
 
+- [X] DECISION pure byte code ot ast/bytecode hybrid ==> HYBRID ! 
+- [ ] Objects:
+    - [ ] change the methodCall to Lambda !!!! so i can directly looked up
+    - [ ] how does the assingptr on method match the bytecode ? 
+
+    
 todos listed here: [TodoByteCode](./TodoByteCode.md)
+
+
 
 
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 

@@ -16,7 +16,6 @@
 #include "core/AstNode.h"
 #include "core/VariableFrame.h"
 #include "VMStructure.h"
-#include "VM.h"
 
 namespace DreiZehn {
     //-----------------------------------------------------------------------------

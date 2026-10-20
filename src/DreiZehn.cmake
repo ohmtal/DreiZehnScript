@@ -53,8 +53,13 @@ set(DREIZEHN_SRC
     # ToolBox
     ${CMAKE_CURRENT_LIST_DIR}/toolbox/SymbolTable.h
     ${CMAKE_CURRENT_LIST_DIR}/toolbox/Tools.h
+    ${CMAKE_CURRENT_LIST_DIR}/toolbox/Tools.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/toolbox/fluxStr.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/toolbox/fluxStr.h
     ${CMAKE_CURRENT_LIST_DIR}/toolbox/SysTools.h
     ${CMAKE_CURRENT_LIST_DIR}/toolbox/SysTools.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/toolbox/PixelBuffer.h
+    ${CMAKE_CURRENT_LIST_DIR}/toolbox/PixelBuffer.cpp
 
     # Bytecode compiler
     ${CMAKE_CURRENT_LIST_DIR}/bytecode/CompilerScope.h

@@ -158,55 +158,6 @@ public:
 
     }
 
-//     inline Value getVariable(uint32_t id) {
-//         auto it = mVariables.find(id);
-//         if (it != mVariables.end()) {
-//             return it->second;
-//         }
-//
-//         if (mParentFrame != nullptr) {
-//             return mParentFrame->getVariable(id);
-//         }
-//
-//         std::string varName = SymbolTable::getName(id);
-//         Tools::warnf("Variable not found: %s\n", varName.c_str());
-//         return Value();
-//     }
-
-    // inline Value* lookUpVariablePtr(uint32_t id) {
-    //     auto it = mVariables.find(id);
-    //     if (it != mVariables.end()) {
-    //         return &it->second;
-    //     }
-    //
-    //     if (mParentFrame != nullptr) {
-    //         return mParentFrame->lookUpVariablePtr(id);
-    //     }
-    //     return nullptr;
-    // }
-    //
-    // inline Value* getVariablePtr(uint32_t id, bool isAssignVar = false) {
-    //
-    //     auto it = mVariables.find(id);
-    //     if (it != mVariables.end()) {
-    //         return &it->second;
-    //     }
-    //
-    //     Value* lookUp = nullptr;
-    //     if (mParentFrame != nullptr) {
-    //         lookUp = mParentFrame->lookUpVariablePtr(id);
-    //     }
-    //     if (lookUp) return lookUp;
-    //
-    //     if (!isAssignVar) {
-    //         std::string varName = SymbolTable::getName(id);
-    //         Tools::warnf("Variable not found: %s\n", varName.c_str());
-    //     }
-    //
-    //     mVariables[id] = NumberNullValue;
-    //     return &mVariables[id];
-    //
-    // }
 
 };
 // -----------------------------------------------------------------------------

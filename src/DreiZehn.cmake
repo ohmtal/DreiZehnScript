@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(FORCE_02 ON)
+set(FORCE_02 OFF)
 set(BUILD_WITH_FORCEO2 ${FORCE_02} CACHE BOOL "Build Application Release also with -02 on gcc")
 # -02 is faster on gcc (StarField2 > 300fps instead of 250fps)!!!
 if(NOT MSVC AND BUILD_WITH_FORCEO2)

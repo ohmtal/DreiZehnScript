@@ -30,12 +30,13 @@ void disassembleInstruction(const uint32_t* code, size_t offset) {
             break;
             case OP_CALL_C_FUNCTION: {
                 offset++;
+                U32 symId = code[offset++];
                 void* cb = nullptr;
                 std::memcpy(&cb, &code[offset], sizeof(void*));
                 offset += 2;
 
                 U32 argCount = code[offset++];
-                Tools::printf("  Pointer: %p, Args: %u", cb, argCount);
+                Tools::printf("  SymId:%u Pointer: %p, Args: %u", symId, cb, argCount);
             }
             break;
             case OP_CALL_SF_FUNCTION: {

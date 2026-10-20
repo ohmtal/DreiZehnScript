@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 include "common/FileTools.13" true
 # ------------------------------------------------------------------------------
-ft = FileTool::new "scripts/test_simplevar.13"
+ft = FileTool::new "scripts/test_simplevar.13";
 ft->load
 debug::bc ft.content
 

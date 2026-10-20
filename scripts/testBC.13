@@ -2,6 +2,12 @@
 
 # ------------------------------------------------------------------------------
 include "common/FileTools.13" true
+fn loadSource fileName
+    ft = FileTool::new (str::concat "scripts/" fileName);
+    if !ft; return "";;
+    if !ft->load; return "";;
+    return ft.content
+end
 # ------------------------------------------------------------------------------
 fn niceLine str
     space = 80 - 2 - (str::strlen str)
@@ -77,15 +83,18 @@ print "\n...... WHILE < 100 => 10 continue and 12 break ...."
 debug::bc 'i = 0;while i < 100; i++; if i == 10 continue; elif i == 12; break;; printraw i " ";;printraw "\\n"'
 
 
+-- -----------------------------------------------------------------------------
 niceLine "for step"
 print "forward:"
 debug::bc 'for i 0 10; printraw i " ";;printraw "\\n"'
 print "BACKWARD step 2:"
 debug::bc 'for i 10 0 2; printraw i " ";;printraw "\\n"'
 
-niceLine "fn"
-debug::bc 'fn foo; print "FOO!;;"'
 
 -- -----------------------------------------------------------------------------
 niceLine "functions"
 debug::bc 'fn lala; print "EXECUTED????"; return "EXIT?";;print "AFTER FUNC"; lala; print "STILL HERE?"'
+
+-- -----------------------------------------------------------------------------
+niceLine "globals"
+debug::bc loadSource "test_global.13"

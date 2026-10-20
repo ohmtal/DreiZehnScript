@@ -16,6 +16,7 @@
 #include "core/AstNode.h"
 #include "core/VariableFrame.h"
 #include "VMStructure.h"
+#include "core/FunctionMap.h"
 
 namespace DreiZehn {
     //-----------------------------------------------------------------------------
@@ -65,6 +66,11 @@ namespace DreiZehn {
     #define PEEK_S32() (S32)code[ip]
     #define ADVANCE_VALUE()  (*(Value*)&code[(ip += 2) - 2])
     #define ADVANCE_PTR() (*(void**)&code[(ip += 2) - 2])
+
+    #define PATCH_PTR( pos, ptr) \
+    do { \
+        std::memcpy(&code[pos], &ptr, sizeof(void*)); \
+    } while(0)
 
     // magic macro:
     #ifdef DEBUG_TRACE_EXECUTION
@@ -121,7 +127,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
         // Math
         &&handle_OP_INC_LOCAL,
-        &&handle_OP_INC_PTR,
 
         &&handle_OP_ADD,
         &&handle_OP_SUB,
@@ -158,108 +163,11 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     S32 _STK = 0;
     Value vmStack[MAX_BC_STACK_SIZE] = {0};
 
-    // auto popStack = [&vmStack, &_STK]() -> Value& {
-    //     assert(_STK > 0 && "RUNTIME ERROR INVALID STACK ACCESS!!");
-    //     Value& val = vmStack[_STK];
-    //     _STK--;
-    //     return val;
-    // };
-    // auto pushStack = [&vmStack, &_STK](Value val) {
-    //     _STK++;
-    //     vmStack[_STK] = val;
-    // };
-    //
-    // auto stackSize = [&_STK]() -> U32 {
-    //     return _STK + 1;
-    // };
-    //
-    // auto peekStack = [&vmStack, &_STK](U32 distance = 0) -> Value& {
-    //     assert(distance <= _STK && "RUNTIME ERROR INVALID STACK ADDRESS");
-    //     return vmStack[_STK - distance];
-    // };
-
-
-
-
-    // std::vector<Value> vmStack;
-    // vmStack.reserve(32);
-    //
-    // auto popStack = [&vmStack]() -> Value {
-    //     assert(!vmStack.empty() && "RUNTIME ERROR INVALID STACK ACCESS!!");
-    //     Value val = vmStack.back();
-    //     vmStack.pop_back();
-    //     return val;
-    // };
-    // auto pushStack = [&vmStack](Value val) {
-    //     vmStack.push_back(val);
-    // };
-    //
-    // auto peekStack = [&vmStack](size_t distance) {
-    //     assert(distance < vmStack.size() && "RUNTIME ERROR INVALID STACK ADDRESS");
-    //     return vmStack[vmStack.size() - 1 - distance];
-    // };
 
     uint32_t  ip = 0;
     uint32_t* code = chunk.mByteCodes.data();
     size_t codeSize = chunk.mByteCodes.size();
 
-
-    // auto advanceU32 = [code, &ip, codeSize]() -> U32 {
-    //     assert(ip < codeSize && "RUNTIME ERROR: BYTECODE OVERFLOW / UNEXPECTED END OF CODE");
-    //     return code[ip++];
-    // };
-    // #define ADVANCE_U32() code[ip++]
-
-    // auto advanceS32 = [code, &ip, codeSize]() -> S32 {
-    //     assert(ip < codeSize && "RUNTIME ERROR: BYTECODE OVERFLOW / UNEXPECTED END OF CODE");
-    //     return (S32)code[ip++];
-    // };
-    // #define ADVANCE_S32() (S32)code[ip++]
-
-    // auto peekU32 = [code, &ip]() -> U32 {
-    //     return code[ip];
-    // };
-    // #define PEEK_U32() code[ip]
-
-    // auto peekS32 = [code, &ip]() -> S32 {
-    //     return (S32)code[ip];
-    // };
-    // #define PEEK_S32() (S32)code[ip]
-
-    // auto advanceValue = [code, &ip, codeSize]() -> Value {
-    //     assert(ip + 1 < codeSize && "RUNTIME ERROR: BYTECODE OVERFLOW READING INLINE VALUE");
-    //     Value val;
-    //     std::memcpy(&val, &code[ip], sizeof(Value));
-    //     ip += 2;
-    //     return val;
-    // };
-
-    // #define ADVANCE_VALUE()  (*(Value*)&code[(ip += 2) - 2])
-
-    // auto advancePointer = [code, &ip, codeSize]() -> void* {
-    //     assert(ip + 1 < codeSize && "RUNTIME ERROR: BYTECODE OVERFLOW READING INLINE POINTER");
-    //     void* ptr;
-    //     std::memcpy(&ptr, &code[ip], sizeof(void*));
-    //     ip += 2;
-    //     return ptr;
-    // };
-
-    // #define ADVANCE_PTR() (*(void**)&code[(ip += 2) - 2])
-
-
-    // // magic macro:
-    // #ifdef DEBUG_TRACE_EXECUTION
-    // #define DISPATCH() \
-    // do { \
-    //     disassembleInstruction(code, ip); \
-    //     goto *dispatch_table[advanceU32()]; \
-    // } while(0)
-    // #else
-    // #define DISPATCH() goto *dispatch_table[ADVANCE_U32()]
-    // #endif
-    //
-    // #define DISPATCH_OPCODE(op) goto *dispatch_table[op]
-    // launch first command
 
     DISPATCH();
 
@@ -315,27 +223,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
 
     // -------------------------------
-    // handle_OP_LESS: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     double l = lVal.getDouble();
-    //     double r = rVal.getDouble();
-    //     PUSH_STACK (Value((r - l) > EPSILON ? 1 : 0));
-    //     DISPATCH();
-    // }
-    // // -------------------------------
-    // handle_OP_LESS_EQUAL: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     double l = lVal.getDouble();
-    //     double r = rVal.getDouble();
-    //     PUSH_STACK ( Value(l < (r + EPSILON) ? 1 : 0));
-    //     DISPATCH();
-    // }
-    // -------------------------------------------------------------------------
     handle_OP_LESS: {
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
 
         // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
         //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) < std::bit_cast<double>(rVal.mBits) ? 1 : 0));
@@ -357,8 +247,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
     // -------------------------------------------------------------------------
     handle_OP_LESS_EQUAL: {
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
 
         // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
         //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) <= std::bit_cast<double>(rVal.mBits) ? 1 : 0));
@@ -379,8 +269,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
     // -------------------------------
     handle_OP_GREATER: {
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
 
         // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
         //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) > std::bit_cast<double>(rVal.mBits) ? 1 : 0));
@@ -401,32 +291,10 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         DISPATCH();
     }
 
-    // handle_OP_GREATER: {
-    //
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     double l = lVal.getDouble();
-    //     double r = rVal.getDouble();
-    //     PUSH_STACK (Value((l - r) > EPSILON ? 1 : 0));
-    //     DISPATCH();
-    //
-    // }
-    // -------------------------------
-    // handle_OP_GREATER_EQUAL: {
-    //
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     double l = lVal.getDouble();
-    //     double r = rVal.getDouble();
-    //     PUSH_STACK ( Value(l > (r - EPSILON) ? 1 : 0));
-    //     DISPATCH();
-    //
-    // }
-
     // -------------------------------------------------------------------------
     handle_OP_GREATER_EQUAL: {
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
 
         // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
         //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) >= std::bit_cast<double>(rVal.mBits) ? 1 : 0));
@@ -448,8 +316,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     // -------------------------------
     handle_OP_EQUAL: {
 
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
 
         if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
             PUSH_STACK(Value(lVal.asFastDouble() == rVal.asFastDouble() ? 1 : 0));
@@ -477,8 +345,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     // -------------------------------
     handle_OP_NOT_EQUAL: {
 
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
 
         if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
             PUSH_STACK(Value(lVal.asFastDouble() != rVal.asFastDouble()));
@@ -503,80 +371,10 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         PUSH_STACK (Value(lVal.getDouble() != rVal.getDouble()));
         DISPATCH();
     }
-    // handle_OP_NOT_EQUAL: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //
-    //     if (lVal.mBits == rVal.mBits) [[likely]] {
-    //         PUSH_STACK(Value(0)); // Repräsentiert false
-    //         DISPATCH();
-    //     }
-    //
-    //     uint32_t l_tag = static_cast<uint32_t>((lVal.mBits & TAG_MASK) >> 48);
-    //     uint32_t r_tag = static_cast<uint32_t>((rVal.mBits & TAG_MASK) >> 48);
-    //
-    //     const bool l_is_double = ((lVal.mBits & QNAN_MASK) != QNAN_MASK);
-    //     const bool r_is_double = ((rVal.mBits & QNAN_MASK) != QNAN_MASK);
-    //
-    //     constexpr uint32_t ID_INT = 1;
-    //     constexpr uint32_t ID_PTR = 2;
-    //     constexpr uint32_t ID_STR = 4;
-    //
-    //     if (l_is_double && r_is_double) {
-    //         PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) != std::bit_cast<double>(rVal.mBits) ? 1 : 0));
-    //         DISPATCH();
-    //     }
-    //
-    //     if (!l_is_double && !r_is_double && (l_tag == r_tag)) {
-    //         switch (l_tag) {
-    //             case ID_INT:
-    //             case ID_PTR:
-    //                 PUSH_STACK(Value(1));
-    //                 break;
-    //
-    //             case ID_STR:
-    //                 PUSH_STACK(Value(lVal.getStringRef() != rVal.getStringRef() ? 1 : 0));
-    //                 break;
-    //
-    //             default:
-    //                 PUSH_STACK(Value(1));
-    //                 break;
-    //         }
-    //         DISPATCH();
-    //     }
-    //
-    //     const bool l_is_int = (!l_is_double && l_tag == ID_INT);
-    //     const bool r_is_int = (!r_is_double && r_tag == ID_INT);
-    //
-    //     if ((l_is_int && r_is_double) || (l_is_double && r_is_int)) {
-    //         PUSH_STACK(Value(lVal.getDouble() != rVal.getDouble() ? 1 : 0));
-    //     } else {
-    //         PUSH_STACK(Value(1));
-    //     }
-    //
-    //     DISPATCH();
-    // }
-
-    // handle_OP_NOT_EQUAL: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //     if (lVal.isPointer() && rVal.isPointer()) {
-    //         PUSH_STACK (Value(lVal.asPointer() != rVal.asPointer() ? 1 : 0));
-    //     } else if (lVal.isString() && rVal.isString()) {
-    //         PUSH_STACK (strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) != 0);
-    //     } else if (lVal.isString() || rVal.isString()) {
-    //         PUSH_STACK (Value(1));
-    //     } else {
-    //         double l = lVal.getDouble();
-    //         double r = rVal.getDouble();
-    //         PUSH_STACK (Value(std::abs(l - r) < EPSILON ? 0 : 1));
-    //     }
-    //     DISPATCH();
-    // }
     // // -------------------------------
     handle_OP_BIT_AND: {
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
         U32 l = lVal.getUInt();
         U32 r = rVal.getUInt();
         PUSH_STACK ( Value( l & r) );
@@ -584,8 +382,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
     // -------------------------------
     handle_OP_BIT_OR: {
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
         U32 l = lVal.getUInt();
         U32 r = rVal.getUInt();
         PUSH_STACK ( Value( l | r) );
@@ -593,8 +391,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
     // -------------------------------
     handle_OP_BIT_XOR: {
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
         U32 l = lVal.getUInt();
         U32 r = rVal.getUInt();
         PUSH_STACK ( Value( l ^ r) );
@@ -602,8 +400,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
     // -------------------------------
     handle_OP_SHL: {
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
         U32 l = lVal.getUInt();
         U32 r = rVal.getUInt();
         PUSH_STACK ( Value( l << r) );
@@ -611,99 +409,19 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
     // -------------------------------
     handle_OP_SHR: {
-        Value lVal = POP_STACK();
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
         U32 l = lVal.getUInt();
         U32 r = rVal.getUInt();
         PUSH_STACK ( Value( l >> r) );
         DISPATCH();
     }
-    // -------------------------------------------------------------------------
-    // handle_OP_BIT_AND: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //
-    //     // FAST-PATH: Wenn beide getaggte Integers sind, extrahieren wir die 32-Bit direkt
-    //     constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
-    //     if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
-    //         uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
-    //         uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
-    //         PUSH_STACK(Value(l & r));
-    //     } else {
-    //         // SLOW-PATH: Fallback für Doubles oder andere Typen
-    //         PUSH_STACK(Value(lVal.getUInt() & rVal.getUInt()));
-    //     }
-    //     DISPATCH();
-    // }
-    //
-    // // -------------------------------------------------------------------------
-    // handle_OP_BIT_OR: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //
-    //     constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
-    //     if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
-    //         uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
-    //         uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
-    //         PUSH_STACK(Value(l | r));
-    //     } else {
-    //         PUSH_STACK(Value(lVal.getUInt() | rVal.getUInt()));
-    //     }
-    //     DISPATCH();
-    // }
-    //
-    // // -------------------------------------------------------------------------
-    // handle_OP_BIT_XOR: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //
-    //     constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
-    //     if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
-    //         uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
-    //         uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
-    //         PUSH_STACK(Value(l ^ r));
-    //     } else {
-    //         PUSH_STACK(Value(lVal.getUInt() ^ rVal.getUInt()));
-    //     }
-    //     DISPATCH();
-    // }
-    //
-    // // -------------------------------------------------------------------------
-    // handle_OP_SHL: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //
-    //     constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
-    //     if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
-    //         uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
-    //         uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
-    //         PUSH_STACK(Value(l << r));
-    //     } else {
-    //         PUSH_STACK(Value(lVal.getUInt() << rVal.getUInt()));
-    //     }
-    //     DISPATCH();
-    // }
-    //
-    // // -------------------------------------------------------------------------
-    // handle_OP_SHR: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //
-    //     constexpr uint64_t INT_MARKER = QNAN_MASK | TAG_INT;
-    //     if (((lVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER) && ((rVal.mBits & QNAN_AND_TAG_MASK) == INT_MARKER)) [[likely]] {
-    //         uint32_t l = static_cast<uint32_t>(lVal.mBits & 0xFFFFFFFFULL);
-    //         uint32_t r = static_cast<uint32_t>(rVal.mBits & 0xFFFFFFFFULL);
-    //         PUSH_STACK(Value(l >> r));
-    //     } else {
-    //         PUSH_STACK(Value(lVal.getUInt() >> rVal.getUInt()));
-    //     }
-    //     DISPATCH();
-    // }
 
     // -------------------------------
     handle_OP_MODULO: {
-        Value lVal = POP_STACK();
+
         Value rVal = POP_STACK();
+        Value lVal = POP_STACK();
 
         if (lVal.isDouble() && rVal.isDouble()) {
             double r = rVal.asFastDouble();
@@ -727,67 +445,48 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         DISPATCH();
     }
     // -------------------------------------------------------------------------
-    // handle_OP_MODULO: {
-    //     Value lVal = POP_STACK();
-    //     Value rVal = POP_STACK();
-    //
-    //     if (lVal.isInt() && rVal.isInt()) [[likely]] {
-    //         int32_t r = rVal.asFastInt();
-    //         if (r == 0) [[unlikely]] {
-    //             Tools::PrintRuntimeError("Modulo Division by 0!");
-    //             PUSH_STACK(NumberNullValue);
-    //         } else {
-    //             int32_t res = lVal.asFastInt() % r;
-    //             PUSH_STACK(Value(res)); // Behält das Vorzeichen korrekt bei!
-    //         }
-    //         DISPATCH();
-    //     }
-    //
-    //     if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) {
-    //         double r = std::bit_cast<double>(rVal.mBits);
-    //         if (r == 0.0) [[unlikely]] {
-    //             Tools::PrintRuntimeError("Modulo Division by 0.0!");
-    //             PUSH_STACK(NumberNullValue);
-    //         } else {
-    //             PUSH_STACK(Value(std::fmod(std::bit_cast<double>(lVal.mBits), r)));
-    //         }
-    //         DISPATCH();
-    //     }
-    //
-    //     double r = rVal.getDouble();
-    //     if (r == 0.0) [[unlikely]] {
-    //         Tools::PrintRuntimeError("Modulo Division by 0.0!");
-    //         PUSH_STACK(NumberNullValue);
-    //     } else {
-    //         PUSH_STACK(Value(std::fmod(lVal.getDouble(), r)));
-    //     }
-    //
-    //     DISPATCH();
-    // }
-
-    // -------------------------------
     // -------------------------------
     handle_OP_LOAD_VAR:{
-        PUSH_STACK( Globals::MasterVariableFrame->getVariable(ADVANCE_U32()) );
+        U32 symID = ADVANCE_U32();
+        U32 ptrPOS = ip;
+        void* rawPtr = ADVANCE_PTR();
+        Value* valuePtr = nullptr;
+
+        if (rawPtr) {
+            valuePtr = static_cast<Value*>(rawPtr);
+            PUSH_STACK(*valuePtr);
+            DISPATCH();
+        }
+        VariableFrame* frame = Globals::MasterVariableFrame;
+        valuePtr = frame->getVariablePtr(symID);
+        PATCH_PTR(ptrPOS,valuePtr);
+        PUSH_STACK(*valuePtr);
+
         DISPATCH();
     }
     // -------------------------------
     handle_OP_SAVE_VAR:{
-        U32 varID = ADVANCE_U32();
-        Globals::MasterVariableFrame->setVariable(varID, POP_STACK(), true);
+        U32 symID = ADVANCE_U32();
+        U32 ptrPOS = ip;
+        void* rawPtr = ADVANCE_PTR();
+        Value* valuePtr = nullptr;
+
+        if (rawPtr) {
+            valuePtr = static_cast<Value*>(rawPtr);
+            *valuePtr = POP_STACK();
+            DISPATCH();
+        }
+        VariableFrame* frame = Globals::MasterVariableFrame;
+        valuePtr = frame->getVariablePtr(symID, true);
+        PATCH_PTR(ptrPOS,valuePtr);
+        *valuePtr = POP_STACK();
+
         DISPATCH();
     }
     // -------------------------------
     handle_OP_GET_LOCAL: {
         // frame pointer for call stack
         U32 slot = framePointer + ADVANCE_U32();
-        // // // assert(slot < locals.size() && "RUNTIME ERROR: LOCAL REGISTER OUT OF BOUNDS");
-        // // // this can happen with optional parameter !!!
-        // // if (slot >= locals.size()) {
-        // //     PUSH_STACK(NumberNullValue);
-        // // } else {
-        // //     PUSH_STACK(locals[slot]);
-        // // }
         PUSH_STACK(locals[slot]);
         DISPATCH();
     }
@@ -808,9 +507,16 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
     // -------------------------------
     handle_OP_CALL_C_FUNCTION: {
-        void* ptr = ADVANCE_PTR();
-        FunctionMap::CallBack* cb = static_cast<FunctionMap::CallBack*>(ptr);
-
+        U32 symID = ADVANCE_U32();
+        U32 ptrPOS = ip;
+        void* rawPtr = ADVANCE_PTR();
+        FunctionMap::CallBack* callPtr = nullptr;
+        if (!rawPtr) {
+            callPtr = FunctionMap::GetCFunction(symID);
+            PATCH_PTR(ptrPOS, callPtr);
+        } else {
+            callPtr = static_cast<FunctionMap::CallBack*>(rawPtr);
+        }
         U32 argCount = ADVANCE_U32();
 
         {
@@ -820,7 +526,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
             }
 
             Value returnValue = NumberNullValue;
-            bool success = (*cb)(evaluatedArgs, returnValue);
+            bool success = (*callPtr)(evaluatedArgs, returnValue);
 
             if (!success) {
                 Tools::errorf("Runtime Error in native function call\n");
@@ -854,18 +560,11 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     handle_OP_INC_LOCAL: {
         U32 slot = ADVANCE_U32();
         S32 inc = ADVANCE_S32();
-        locals[slot] = Value(locals[slot].getInt() + inc);
-        DISPATCH();
-    }
-    // -------------------------------
-    handle_OP_INC_PTR: {
-        // HACK fest
-        {
-            Expression* expr = static_cast<Expression*>(ADVANCE_PTR());
-            Value* value = expr->evaluatePtr(*Globals::gCurEnv);
-            S32 inc = ADVANCE_S32();
-            *value = Value(value->getInt() + inc);
+        if (locals[slot].isInt()) [[likely]] {
+            locals[slot] = Value(locals[slot].asFastInt() + inc);
+            DISPATCH();
         }
+        locals[slot] = Value(locals[slot].getInt() + inc);
         DISPATCH();
     }
     // -------------------------------
@@ -884,71 +583,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         PUSH_STACK(Value::handleGenericAdd(a, b));
         DISPATCH();
     }
-
-    // handle_OP_ADD: {
-    //     Value b = POP_STACK();
-    //     Value a = POP_STACK();
-    //
-    //     if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-    //         PUSH_STACK(Value(std::bit_cast<double>(a.mBits) + std::bit_cast<double>(b.mBits)));
-    //         DISPATCH();
-    //     }
-    //
-    //      if (a.isInt() && b.isInt()) {
-    //         PUSH_STACK(Value(a.asFastInt() + b.asFastInt()));
-    //         DISPATCH();
-    //      }
-    //
-    //     if (a.isString() && b.isString()) {
-    //         PUSH_STACK(Value(a.getStringRef() + b.getStringRef()));
-    //         DISPATCH();
-    //     }
-    //
-    //
-    //
-    //     uint32_t a_tag = static_cast<uint32_t>((a.mBits & TAG_MASK) >> 48);
-    //     uint32_t b_tag = static_cast<uint32_t>((b.mBits & TAG_MASK) >> 48);
-    //
-    //     uint32_t combined_type = (a_tag << 4) | b_tag;
-    //
-    //     constexpr uint32_t ID_INT = 1; // binary 001
-    //     constexpr uint32_t ID_STR = 4; // binary 100
-    //
-    //     switch (combined_type) {
-    //         case (ID_INT << 4) | ID_INT:
-    //             PUSH_STACK(Value(a.asFastInt() + b.asFastInt()));
-    //             break;
-    //
-    //         case (ID_STR << 4) | ID_STR:
-    //             PUSH_STACK(Value(a.getStringRef() + b.getStringRef()));
-    //             break;
-    //
-    //         default: [[unlikely]]
-    //             PUSH_STACK(Value::handleGenericAdd(a, b));
-    //             break;
-    //     }
-    //     DISPATCH();
-    // }
-
     // -------------------------------
-    // handle_OP_SUB: {
-    //     Value b = POP_STACK();
-    //     Value a = POP_STACK();
-    //
-    //     if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-    //         PUSH_STACK(Value(std::bit_cast<double>(a.mBits) - std::bit_cast<double>(b.mBits)));
-    //         DISPATCH();
-    //     }
-    //
-    //     if (a.isInt() && b.isInt()) {
-    //         PUSH_STACK(Value(a.asFastInt() - b.asFastInt()));
-    //     } else {
-    //         PUSH_STACK(Value(a.getDouble() - b.getDouble()));
-    //     }
-    //
-    //     DISPATCH();
-    // }
-
     handle_OP_SUB: {
         Value b = POP_STACK();
         Value a = POP_STACK();
@@ -965,28 +600,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         DISPATCH();
     }
     // -------------------------------
-    // handle_OP_MUL: {
-    //     Value b = POP_STACK();
-    //     Value a = POP_STACK();
-    //
-    //     if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-    //         PUSH_STACK(Value(std::bit_cast<double>(a.mBits) * std::bit_cast<double>(b.mBits)));
-    //         DISPATCH();
-    //     }
-    //
-    //     if (a.isInt() && b.isInt()) {
-    //         int32_t result;
-    //         if (!__builtin_mul_overflow(a.asFastInt(), b.asFastInt(), &result)) [[likely]] {
-    //             PUSH_STACK(Value(result));
-    //         } else {
-    //             PUSH_STACK(Value(static_cast<double>(a.asFastInt()) * static_cast<double>(b.asFastInt())));
-    //         }
-    //     } else {
-    //         PUSH_STACK(Value(a.getDouble() * b.getDouble()));
-    //     }
-    //     DISPATCH();
-    // }
-
     handle_OP_MUL: {
         Value b = POP_STACK();
         Value a = POP_STACK();
@@ -1008,44 +621,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         DISPATCH();
     }
     // -------------------------------
-    // handle_OP_DIV: {
-    //     Value b = POP_STACK();
-    //     Value a = POP_STACK();
-    //
-    //     if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((b.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-    //         double b_val = std::bit_cast<double>(b.mBits);
-    //         if (b_val == 0.0) [[unlikely]] {
-    //             Tools::errorf("Runtime Error: Division by 0!");
-    //             DISPATCH_OPCODE(OP_INVALID);
-    //         }
-    //         PUSH_STACK(Value(std::bit_cast<double>(a.mBits) / b_val));
-    //         DISPATCH();
-    //     }
-    //
-    //     if (a.isInt() && b.isInt()) {
-    //         int32_t b_val = b.asFastInt();
-    //         if (b_val == 0) [[unlikely]] {
-    //             Tools::errorf("Runtime Error: Division by 0!");
-    //             DISPATCH_OPCODE(OP_INVALID);
-    //         }
-    //
-    //         int32_t a_val = a.asFastInt();
-    //         if (a_val % b_val == 0) {
-    //             PUSH_STACK(Value(a_val / b_val));
-    //         } else {
-    //             PUSH_STACK(Value(static_cast<double>(a_val) / static_cast<double>(b_val)));
-    //         }
-    //     } else {
-    //         double b_val = b.getDouble();
-    //         if (b_val == 0.0) [[unlikely]] {
-    //             Tools::errorf("Runtime Error: Division by 0!");
-    //             DISPATCH_OPCODE(OP_INVALID);
-    //         }
-    //         PUSH_STACK(Value(a.getDouble() / b_val));
-    //     }
-    //     DISPATCH();
-    // }
-
     handle_OP_DIV: {
         Value b = POP_STACK();
         Value a = POP_STACK();

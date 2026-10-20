@@ -119,7 +119,7 @@ struct ASTNode {
         return false;
     }
 
-    virtual bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, Expression* rhs) {
+    virtual bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
         return false;
     }
 };
@@ -154,11 +154,7 @@ public:
     FlowStatus execute(Environment& env) override;
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
-
-
 };
-
-
 // constants -------------------------------------------------------------------
 struct LiteralExpression : public Expression {
     TokenType mType;
@@ -217,7 +213,7 @@ struct VariableExpression : public Expression {
     Value* evaluatePtr(Environment& env) override;
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
-    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, Expression* rhs) override;
+    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
 
 };
 

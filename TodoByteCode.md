@@ -91,6 +91,8 @@ Segmentation fault (core dumped)
 
 ### 0.9d:
 
+- [X] AssignOPStatement (not with direct path!)
+
 - [ ] BinaryInlineExpression
     - [X] local 
     - [ ] global var - calculate wrong! i guess my new optimized code ?! 
@@ -105,7 +107,6 @@ Segmentation fault (core dumped)
     - [ ] VariablePointerExpression
 
     
-- [ ] AssignOPStatement
 
 ---
  

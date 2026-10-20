@@ -440,7 +440,7 @@ it's the same problem.
 - [ ] TOO much is inlined! 
         
 - [ ] FIXME _DEBUG or DREIZEHN_DEBUG flag! 
-- [X] DECISION pure byte code ot ast/bytecode hybrid ==> HYBRID ! 
+- [X] DECISION pure byte code ot ast/bytecode hybrid ==> pure bytecode which caching ptr :P 
 - [ ] Objects:
     - [ ] change the methodCall to Lambda !!!! so i can directly looked up
     - [ ] how does the assingptr on method match the bytecode ? 

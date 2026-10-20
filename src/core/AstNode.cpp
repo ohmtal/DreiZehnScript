@@ -91,6 +91,7 @@ namespace DreiZehn {
         if (mGlobalVariable) {
             chunk.emit(OP_LOAD_VAR);
             chunk.emit(mVariableNameSymbolId);
+            chunk.emitPointer(nullptr); //space for cached ptr!
         } else {
             S32 localSlot = scope.resolve(mVariableNameSymbolId);
             if (localSlot < 0 ) {
@@ -104,16 +105,12 @@ namespace DreiZehn {
         return true;
     }
 
-    bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, Expression* rhs) {
-        // push right
-        if (rhs) {
-            rhs->compile(env, chunk, scope, ValueType::ANY);
-        }
-
+    bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
         // save var
         if (mGlobalVariable) {
             chunk.emit(OP_SAVE_VAR);
             chunk.emit(mVariableNameSymbolId);
+            chunk.emitPointer(nullptr); //space for cache ptr
         } else {
             U32 localSlot = scope.insert(mVariableNameSymbolId);
             chunk.emit(OP_SET_LOCAL);
@@ -484,7 +481,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             }
         }
         chunk.emit(OP_CALL_C_FUNCTION);
-        chunk.emitPointer(cb);
+        chunk.emit(mFuncSymbolId);
+        chunk.emitPointer(nullptr); //placeholder
         chunk.emit(argCount);
 
         if (requestType == ValueType::NONE) {
@@ -741,9 +739,10 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         S32 inc = (mOp == TokenType::PlusPlus) ? 1 : - 1;
 
 
-        // 1. i need to know if it's a local - this is not save LOL
+        // 1. i need to know if it's a local
         if (mExpr->mNodeType == NodeType::VariableExpression) {
             VariableExpression* vExpr = static_cast<VariableExpression*>(mExpr.get());
+            if (!vExpr) return false;
             if (!vExpr->mGlobalVariable) {
                 S32 localSlot = scope.resolve(vExpr->mVariableNameSymbolId);
                 if (localSlot < 0 ) {
@@ -758,27 +757,21 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
 
                 return true;
-            } else {
-                // PUSH VAR
-                chunk.emit(OP_LOAD_VAR);
-                chunk.emit(vExpr->mVariableNameSymbolId);
-                // PUSH INC
-                chunk.emit(OP_PUSH_VALUE);
-                chunk.emitValue(Value(inc));
-                // ADD INC
-                chunk.emit(OP_ADD);
-                // SAVE VAR
-                chunk.emit(OP_SAVE_VAR);
-                chunk.emit(vExpr->mVariableNameSymbolId);
-                return true;
             }
         }
-        //Hybrid HACK fest !!!!
-        chunk.emit(OP_INC_PTR);
-        chunk.emitPointer(mExpr.get());
-        chunk.emitS32(inc);
 
-        return false;
+        // load left
+        mExpr->compile(env,chunk,scope,ValueType::ANY);
+        // PUSH INC
+        chunk.emit(OP_PUSH_VALUE);
+        chunk.emitValue(Value(inc));
+        // ADD INC
+        chunk.emit(OP_ADD);
+        // SAVE VAR
+        mExpr->compileAssignment(env,chunk,scope);
+
+        return true;
+
     }
     // -------------------------------------------------------------------------
     Value BinaryAndOrExpression::evaluate(Environment& env)  {
@@ -848,8 +841,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return false;
         }
 
-        mRight->compile(env, chunk, scope, ValueType::ANY);
         mLeft->compile(env, chunk, scope, ValueType::ANY);
+        mRight->compile(env, chunk, scope, ValueType::ANY);
 
         switch (mOp) {
             case TokenType::Greater:      chunk.emit(OP_GREATER); break;
@@ -1026,8 +1019,13 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     }
     bool AssignStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
 
+         if (!mVarExpr || !mRhs) [[unlikely]] {
+             Tools::PrintParseError("AssignOP: variable or right is missing or invalid");
+             return false;
+         }
         // types must support compileAssignment!
-        return mVarExpr->compileAssignment(env, chunk, scope, mRhs.get());
+        mRhs->compile(env,chunk,scope,ValueType::ANY);
+        return mVarExpr->compileAssignment(env, chunk, scope);
 
     }
 
@@ -1160,8 +1158,21 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     // }
 
     bool AssignOPStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+
+        mVarExpr->compile(env,chunk,scope,ValueType::ANY);
+        mRhs->compile(env,chunk,scope,ValueType::ANY);
+
+        switch(mOp) {
+            case TokenType::AssignPlus:  chunk.emit(OP_ADD);  break;
+            case TokenType::AssignMinus: chunk.emit(OP_SUB);  break;
+            case TokenType::AssignMul:   chunk.emit(OP_MUL);  break;
+            case TokenType::AssignDiv:   chunk.emit(OP_DIV);  break;
+            default: return false;
+        }
+
+
+        mVarExpr->compileAssignment(env,chunk,scope);
+        return true;
     }
 
 

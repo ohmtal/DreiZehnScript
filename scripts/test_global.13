@@ -1,0 +1,14 @@
+
+define ILOOPS 1000000
+global a = 0
+forRange i ILOOPS
+    a++
+    a--
+    a++
+    a--
+    a++
+--     a = a + 1
+--     a = a * 2
+--     a = a / 2
+end
+print a

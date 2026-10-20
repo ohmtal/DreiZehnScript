@@ -58,7 +58,6 @@ enum  OpCodes : uint32_t {
 
     // Math
     OP_INC_LOCAL, //++ -- += -= using emitted value
-    OP_INC_PTR,   // HACK fest hybrid
 
     OP_ADD,
     OP_SUB,
@@ -110,8 +109,8 @@ constexpr OpCodeInfo OpCodeInfos[] = {
     {"OP_MODULO", 0 },
 
 
-    {"OP_LOAD_VAR", 1},
-    {"OP_SAVE_VAR", 1},
+    {"OP_LOAD_VAR", 3},
+    {"OP_SAVE_VAR", 3},
 
     {"OP_GET_LOCAL", 1},
     {"OP_SET_LOCAL", 1},
@@ -120,7 +119,6 @@ constexpr OpCodeInfo OpCodeInfos[] = {
     {"OP_CALL_SF_FUNCTION", 0}, //SPECIAL emittedCount variable
 
     {"OP_INC_LOCAL", 2},
-    {"OP_INC_PTR", 3},
 
     {"OP_ADD", 0},
     {"OP_SUB", 0},

@@ -113,11 +113,9 @@ Segmentation fault (core dumped)
     - var test local (O2, null output): 1.765u 0.000s 0:01.77 99.4%     0+0k 0+0io 0pf+0w
     - lol as fast as the local register .... but it's only one variable so no lookup time
 
-- [ ] BIG problem when precopile functions it does not know anything about the globals!
-    - 
+- [X] BIG problem when precopile functions it does not know anything about the globals!
     
     
-- [ ] ForEachStatement << this should enable StarField2 :)
 
 - [X] BUG recursive Function call: scripts/testBC_fibo.13 cause crash! - it crash at FIRST call?!
     - `debug::bc 'global num = 5; fn rec i;print i;i--;if i > 0; rec i; else return i;; end; print "i=" (rec num)'`
@@ -130,25 +128,42 @@ Segmentation fault (core dumped)
 
     - ***REWROTE CALLSTACK!!* needs to be optimized
     
-- [ ] speedup callStack - hold a pointer on current locals !!
-```
+- [X] speedup callStack - hold a pointer on current locals !! << BUT did not speedup!
+- [X] BinarySingleRightOpExpression (OP_NOT)    
+- [X] TernaryExpression
 
-- [ ] AssignStatement ( compileAssignment )
+- [X] ForEachStatement << this should enable StarField2 :)
+- **2026-10-21**:
+    - Now the StarField2.13 runs in BC mode :) => up to 500 FPS ... 400-500 ...
+
+- [X] compile return false but it not handled anywhere!!!! << CRASH!!
+
+- [X] KeyValueExpression
+- [X] garbage collection when callStack is removed 
+
+- [X] ArrayVariableExpression << this should enable StarField 5
+    - StarField 5 => about 500 FPS :)
+
+- [X] AssignStatement ( compileAssignment )
     - [X] VariableExpression local and global 
     - [X] ObjectFieldExpression with cache
-    - [ ] ArrayVariableExpression
-    - [ ] MethodExpression
-    - [ ] VariableReferenceExpression
-    - [ ] VariablePointerExpression
+    - [X] ArrayVariableExpression
+    - [X] MethodExpression
+    - [~] VariableReferenceExpression
+    - [~] VariablePointerExpression
 
     
+- [~] VariableReferenceExpression
+- [~] VariablePointerExpression
 
+- [X] IncludeStatement << tricky ?! or the same as a BlockStatement
+    - Not sure what happen to my Function patching ?! 
+    - Not sure how to skip the execute ... 
+    - maybe it's easy lol it does a ParseScriptToAST at parse time so i should
+      only handle the execute?! 
+    - tested works fine
+
+    
 ---
-
-- [ ] VariableReferenceExpression
-- [ ] VariablePointerExpression
-- [ ] ArrayVariableExpression
-- [ ] TernaryExpression
-- [ ] IncludeStatement << tricky ?! or the same as a BlockStatement
-- [ ] KeyValueExpression
+## CRITICAL BUT LATER:
 

@@ -48,7 +48,10 @@ namespace DreiZehn {
     }
 
     bool LiteralExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
-
+        if (requestType == ValueType::NONE) {
+            Tools::PrintRuntimeError("LiteralExpression without a request!");
+            return false;
+        }
         uint32_t constIdx = chunk.addConstant(this->evaluate(env));
         chunk.emit(OP_CONST);
         chunk.emit(constIdx);
@@ -58,6 +61,10 @@ namespace DreiZehn {
     // ValueExpression
     // -------------------------------------------------------------------------
     bool ValueExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (requestType == ValueType::NONE) {
+            Tools::PrintRuntimeError("ValueExpression without a request!");
+            return false;
+        }
         uint32_t constIdx = chunk.addConstant(this->evaluate(env));
         chunk.emit(OP_CONST);
         chunk.emit(constIdx);
@@ -97,7 +104,7 @@ namespace DreiZehn {
             if (localSlot < 0 ) {
                 std::string varName = SymbolTable::getName(mVariableNameSymbolId);
                 Tools::warnf("Variable not found: %s\n", varName.c_str());
-                return true; // do not stop!
+                return false; // do  stop!
             }
             chunk.emit(OP_GET_LOCAL);
             chunk.emit(localSlot);
@@ -124,55 +131,51 @@ namespace DreiZehn {
         return true;
     }
 
-
-    // -------------------------------------------------------------------------
-    // VariableReferenceExpression
-    // -------------------------------------------------------------------------
-    Value VariableReferenceExpression::evaluate(Environment& env) {
-        if (!mVarExpr) return Value();
-        Value* varValuePtr = mVarExpr->evaluatePtr(env);
-        return Value(varValuePtr);
-    }
-    Value* VariableReferenceExpression::evaluatePtr(Environment& env) {
-        if (!mVarExpr) return nullptr;
-        return mVarExpr->evaluatePtr(env);
-    }
-
-    bool VariableReferenceExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
-    }
-
-    // -------------------------------------------------------------------------
-    // VariablePointerExpression
-    // -------------------------------------------------------------------------
-    Value VariablePointerExpression::evaluate(Environment& env) {
-
-        Value* varValuePtr = this->evaluatePtr(env);
-
-        if (varValuePtr) {
-            return *varValuePtr;
-        }
-        return Value();
-    }
-    Value* VariablePointerExpression::evaluatePtr(Environment& env) {
-        if (!mVarExpr) return nullptr;
-
-        // TODO TESTME - same shit as i did on Variable cache test ?!
-        // if (mCachedPtr) return mCachedPtr;
-
-        Value* mCachedPtr = mVarExpr->evaluatePtr(env);
-        if (mCachedPtr->isValuePointer()) {
-            return mCachedPtr->asValuePointer();
-        }
-        mCachedPtr  = nullptr;
-
-        return mCachedPtr;
-    }
-    bool VariablePointerExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
-    }
+    // THIS IS NOT WORTH TO KEEP IT HERE !!!!!
+    // // // // -------------------------------------------------------------------------
+    // // // // VariableReferenceExpression
+    // // // // -------------------------------------------------------------------------
+    // // // Value VariableReferenceExpression::evaluate(Environment& env) {
+    // // //     if (!mVarExpr) return Value();
+    // // //     Value* varValuePtr = mVarExpr->evaluatePtr(env);
+    // // //     return Value(varValuePtr);
+    // // // }
+    // // // Value* VariableReferenceExpression::evaluatePtr(Environment& env) {
+    // // //     if (!mVarExpr) return nullptr;
+    // // //     return mVarExpr->evaluatePtr(env);
+    // // // }
+    // // //
+    // // // bool VariableReferenceExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+    // // //     return false;
+    // // // }
+    // // //
+    // // // // -------------------------------------------------------------------------
+    // // // // VariablePointerExpression
+    // // // // -------------------------------------------------------------------------
+    // // // Value VariablePointerExpression::evaluate(Environment& env) {
+    // // //
+    // // //     Value* varValuePtr = this->evaluatePtr(env);
+    // // //
+    // // //     if (varValuePtr) {
+    // // //         return *varValuePtr;
+    // // //     }
+    // // //     return Value();
+    // // // }
+    // // // Value* VariablePointerExpression::evaluatePtr(Environment& env) {
+    // // //     if (!mVarExpr) return nullptr;
+    // // //
+    // // //
+    // // //     Value* mCachedPtr = mVarExpr->evaluatePtr(env);
+    // // //     if (mCachedPtr->isValuePointer()) {
+    // // //         return mCachedPtr->asValuePointer();
+    // // //     }
+    // // //     mCachedPtr  = nullptr;
+    // // //
+    // // //     return mCachedPtr;
+    // // // }
+    // // // bool VariablePointerExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+    // // //     return false;
+    // // // }
     // -------------------------------------------------------------------------
     // ArrayVariableExpression
     // -------------------------------------------------------------------------
@@ -208,7 +211,7 @@ namespace DreiZehn {
 
         return NumberNullValue;
     }
-
+    // ----------------
     Value* ArrayVariableExpression::evaluatePtr(Environment& env) {
         if (!mVarExpr || !mIndexExpr ) {
             Tools::warnf("RunTime Error: Array Field invalid Variable or index\n");
@@ -229,21 +232,39 @@ namespace DreiZehn {
         // only works on objects which support onGetArrayIndexPtr
         return nullptr;
     }
-
+    // ----------------
     bool ArrayVariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+        if (!mVarExpr || !mIndexExpr ) {
+            Tools::warnf("RunTime Error: Array Field invalid Variable or index\n");
+            return false;
+        }
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
+        if (!mIndexExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
+
+        chunk.emit(OP_LOAD_ARRAY);
+        if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+
+        return true;
     }
+    // ----------------
+    bool ArrayVariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (!mVarExpr || !mIndexExpr ) {
+            Tools::warnf("RunTime Error: Array Field invalid Variable or index\n");
+            return false;
+        }
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
+        if (!mIndexExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
+
+        chunk.emit(OP_SAVE_ARRAY);
+        if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+        return true;
+    }
+
     // -------------------------------------------------------------------------
     // ObjectFieldExpression
     // -------------------------------------------------------------------------
     Value ObjectFieldExpression::evaluate(Environment& env) {
 
-        // ------ TEST ONLY << did not speed up ! >>------
-        // Value* ptr = this->evaluatePtr(env);
-        // if (ptr) return *ptr;
-        // // ... fallback ---->
-        // ------ ......... ------
         Value returnValue = NumberNullValue;
 
         if (!mVarExpr) {
@@ -269,6 +290,7 @@ namespace DreiZehn {
 
         return returnValue;
     }
+    // -------
     Value* ObjectFieldExpression::evaluatePtr(Environment& env) {
         if (!mVarExpr ) {
             Tools::errorf("RunTime Error: Field without an variable\n");
@@ -310,7 +332,7 @@ namespace DreiZehn {
             return false;
         }
         // PUSH VAR
-        mVarExpr->compile(env,chunk,scope,ValueType::Pointer);
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
 
         chunk.emit(OP_LOAD_OBJECT_FIELD);
         // Field symid
@@ -320,7 +342,7 @@ namespace DreiZehn {
         // SPACE FOR cached fieldvalue
         chunk.emitPointer(nullptr);
 
-        return false;
+        return true;
     }
     // -----------------------
     bool ObjectFieldExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
@@ -329,7 +351,7 @@ namespace DreiZehn {
             return false;
         }
         // PUSH VAR
-        mVarExpr->compile(env,chunk,scope,ValueType::Pointer);
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
 
         chunk.emit(OP_SAVE_OBJECT_FIELD);
         // Field symid
@@ -343,7 +365,7 @@ namespace DreiZehn {
             chunk.emit(OP_POP_STACK);
         }
 
-        return false;
+        return true;
     }
     // -------------------------------------------------------------------------
     // MethodExpression
@@ -376,8 +398,7 @@ namespace DreiZehn {
         return returnValue;
 
     }
-
-
+    // ---------------------
     Value* MethodExpression::evaluatePtr(Environment& env) {
         Value objectPointer = mVarExpr->evaluate(env);
         if (!objectPointer.isPointer()) {
@@ -406,20 +427,41 @@ namespace DreiZehn {
         U32 argCount = 0;
         for (auto& argExpr : mArguments) {
             if (argExpr) {
-                argExpr->compile(env, chunk, scope, ValueType::ANY);
+                if (!argExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
                 argCount++;
             }
         }
-        mVarExpr->compile(env,chunk,scope,ValueType::Pointer);
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
         chunk.emit(OP_CALL_OBJECT_METHOD);
         chunk.emit(mMethodNameSymbolId);
         chunk.emit(argCount);
 
-        if (requestType == ValueType::NONE) {
-            chunk.emit(OP_POP_STACK);
-        }
+        if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
         return true;
     }
+    // ---------------------
+    bool MethodExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+
+        if (!mVarExpr) {
+            Tools::errorf("Compile Error Method have no Variable\n");
+            return false;
+        }
+        U32 argCount = 0;
+        for (auto& argExpr : mArguments) {
+            if (argExpr) {
+                if (!argExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
+                argCount++;
+            }
+        }
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
+        chunk.emit(OP_SAVE_OBJECT_METHOD);
+        chunk.emit(mMethodNameSymbolId);
+        chunk.emit(argCount);
+
+        if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+        return true;
+    }
+
     // -------------------------------------------------------------------------
     // CallExpression
     // -------------------------------------------------------------------------
@@ -466,6 +508,8 @@ namespace DreiZehn {
 
         return functionResult;
     }
+
+
     // -------------------------------------------------------------------------
     Value CallExpression::evaluate(Environment& env) {
 
@@ -540,7 +584,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         U32 argCount = 0;
         for (auto& argExpr : arguments) {
             if (argExpr) {
-                argExpr->compile(env, chunk, scope, ValueType::ANY);
+                if (!argExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
                 argCount++;
             }
         }
@@ -560,7 +604,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         U32 argCount = 0;
         for (auto& argExpr : arguments) {
             if (argExpr) {
-                argExpr->compile(env, chunk, scope, ValueType::ANY);
+                if (!argExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
                 argCount++;
             }
         }
@@ -734,20 +778,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return false;
         }
 
-        // //HACK fest <<< not working!
-        // if (unary) {
-        //
-        //     this->mRight->compile(env,chunk, scope, ValueType::ANY);
-        //     chunk.emit(OP_PUSH_VALUE);
-        //     chunk.emitValue(Value(-1));
-        //     chunk.emit(OP_MUL);
-        //
-        //     this->mLeft->compile(env,chunk, scope, requestType);
-        //     return true;
-        // }
-
-        this->mLeft->compile(env,chunk, scope, requestType);
-        this->mRight->compile(env,chunk, scope, requestType);
+        if (!this->mLeft->compile(env,chunk, scope, requestType)) return false;
+        if (!this->mRight->compile(env,chunk, scope, requestType)) return false;
 
 
         switch (this->mOp) {
@@ -862,14 +894,14 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
 
         // load left
-        mExpr->compile(env,chunk,scope,ValueType::ANY);
+        if (!mExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
         // PUSH INC
         chunk.emit(OP_PUSH_VALUE);
         chunk.emitValue(Value(inc));
         // ADD INC
         chunk.emit(OP_ADD);
         // SAVE VAR
-        mExpr->compileAssignment(env,chunk,scope, requestType);
+        if (!mExpr->compileAssignment(env,chunk,scope, requestType)) return false;
 
         return true;
 
@@ -909,23 +941,24 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return false;
         }
 
-        mLeft->compile(env,chunk,scope, ValueType::ANY);
+        if (!mLeft->compile(env,chunk,scope, ValueType::ANY)) return false;
 
         if (mOp == TokenType::Or) {
             chunk.emit(OP_JUMP_IF_TRUE_NO_POP);
             U32 jumpOffset = chunk.tell();
             chunk.emit(0); //placeholder
+
             chunk.emit(OP_POP_STACK);
-            mRight->compile(env,chunk,scope, ValueType::ANY);
+            if (!mRight->compile(env,chunk,scope, ValueType::ANY)) return false;
             chunk.patch(jumpOffset, chunk.tell());
 
         } else { // TokenType::And
             chunk.emit(OP_JUMP_IF_FALSE_NO_POP);
-            U32 jumpOffset = chunk.tell(); // Zeigt direkt auf den kommenden Platzhalter
+            U32 jumpOffset = chunk.tell();
             chunk.emit(0); // placeholder
 
             chunk.emit(OP_POP_STACK);
-            mRight->compile(env, chunk, scope, ValueType::ANY);
+            if (!mRight->compile(env, chunk, scope, ValueType::ANY)) return false;
 
             chunk.patch(jumpOffset, chunk.tell());
         }
@@ -933,7 +966,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         if (requestType == ValueType::NONE)
              chunk.emit(OP_POP_STACK);
 
-        return false;
+        return true;
     }
     // -------------------------------------------------------------------------
     bool BinaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
@@ -942,8 +975,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return false;
         }
 
-        mLeft->compile(env, chunk, scope, ValueType::ANY);
-        mRight->compile(env, chunk, scope, ValueType::ANY);
+        if (!mLeft->compile(env, chunk, scope, ValueType::ANY)) return false;
+        if (!mRight->compile(env, chunk, scope, ValueType::ANY)) return false;
 
         switch (mOp) {
             case TokenType::Greater:      chunk.emit(OP_GREATER); break;
@@ -1084,13 +1117,20 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     // -------------------------------------------------------------------------
 
     Value BinarySingleRightOpExpression::evaluate(Environment& env)  {
-        if (!mRight) return Value();
         Value rVal = mRight->evaluate(env);
         return Value(!rVal.getInt());
     }
     bool BinarySingleRightOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+        if (requestType == ValueType::NONE) {
+            Tools::PrintRuntimeError("NOTExpression without a request!");
+            return false;
+        }
+        if (!mRight) return false;
+
+        if (!mRight->compile(env,chunk,scope,requestType)) return false;
+        chunk.emit(OP_NOT);
+
+        return true;
     }
 
     // -------------------------------------------------------------------------
@@ -1125,7 +1165,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
              return false;
          }
         // types must support compileAssignment!
-        mRhs->compile(env,chunk,scope,ValueType::ANY);
+        if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
         return mVarExpr->compileAssignment(env, chunk, scope, requestType);
 
     }
@@ -1260,9 +1300,44 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
     bool AssignOPStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
 
-        mVarExpr->compile(env,chunk,scope,ValueType::ANY);
-        mRhs->compile(env,chunk,scope,ValueType::ANY);
+        if (!mVarExpr || !mRhs) [[unlikely]] {
+            Tools::PrintParseError("AssignOP: variable or right is missing or invalid");
+            return false;
+        }
 
+        if (mVarExpr->mNodeType == NodeType::VariableExpression) {
+            VariableExpression* vExpr = dynamic_cast<VariableExpression*>(mVarExpr.get());
+            if (!vExpr) return false;
+            if (!vExpr->mGlobalVariable) {
+                if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
+                S32 localSlot = scope.resolve(vExpr->mVariableNameSymbolId);
+                if (localSlot < 0 ) {
+                    std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
+                    Tools::warnf("Variable not found: %s\n", varName.c_str());
+                    return true; // do not stop!
+                }
+
+                switch(mOp) {
+                    case TokenType::AssignPlus:  chunk.emit(OP_ADD_LOCAL);  break;
+                    case TokenType::AssignMinus: chunk.emit(OP_SUB_LOCAL);  break;
+                    case TokenType::AssignMul:   chunk.emit(OP_MUL_LOCAL);  break;
+                    case TokenType::AssignDiv:   chunk.emit(OP_DIV_LOCAL);  break;
+                    default: return false;
+                }
+
+                chunk.emit(localSlot);
+
+                if (requestType == ValueType::NONE) {
+                    chunk.emit(OP_POP_STACK);
+                }
+                return true;
+            }
+        }
+
+
+
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
+        if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
         switch(mOp) {
             case TokenType::AssignPlus:  chunk.emit(OP_ADD);  break;
             case TokenType::AssignMinus: chunk.emit(OP_SUB);  break;
@@ -1272,29 +1347,44 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
 
 
-        mVarExpr->compileAssignment(env,chunk,scope, requestType);
+        if (!mVarExpr->compileAssignment(env,chunk,scope, requestType)) return false;
         return true;
     }
 
 
     // -------------------------------------------------------------------------
     bool TernaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
-        //FIXME
-        // // inline Value evaluate(Environment& env) override {
-        // //     auto condVal = mCondition->evaluate(env);
-        // //     if (condVal.getBool() ) {
-        // //         return mTrueBranch->evaluate(env);
-        // //     } else {
-        // //         return mFalseBranch->evaluate(env);
-        // //     }
-        // // }
-        return false;
+        if (!mCondition || !mTrueBranch || ! mFalseBranch) {
+            Tools::PrintRuntimeError("TernaryExpression missing condition or true or false branch!");
+            return false;
+        }
+
+        if (!mCondition->compile(env,chunk,scope,requestType)) return false;
+        chunk.emit(OP_JUMP_IF_FALSE);
+        U32 falseJumpMarker = chunk.tell();
+        chunk.emit(0); //placeholder
+
+        // if true we use the true branch
+        if (!mTrueBranch->compile(env,chunk,scope,requestType)) return false;
+        chunk.emit(OP_JUMP);
+        U32 endJumpMarker = chunk.tell();
+        chunk.emit(0); //placeholder
+
+        chunk.patch(falseJumpMarker, chunk.tell());
+        if (!mFalseBranch->compile(env,chunk,scope, ValueType::ANY)) return false;
+        chunk.patch(endJumpMarker, chunk.tell());
+
+
+        return true;
     }
     // -------------------------------------------------------------------------
     bool UnaryMinusExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-
+        if (requestType == ValueType::NONE) {
+            Tools::PrintRuntimeError("Minus Expression without a request!");
+            return false;
+        }
         if (!mExpr) return false;
-        mExpr->compile(env,chunk,scope,requestType);
+        if (!mExpr->compile(env,chunk,scope,requestType)) return false;
         chunk.emit(OP_PUSH_VALUE);
         chunk.emitValue(Value(-1));
         chunk.emit(OP_MUL);
@@ -1321,7 +1411,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     bool ReturnStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
 
         if (this->mExpression) {
-            this->mExpression->compile(env, chunk, scope, ValueType::ANY);
+            if (!this->mExpression->compile(env, chunk, scope, ValueType::ANY)) return false;
         } else {
             chunk.emit(OP_PUSH_VALUE);
             chunk.emitValue(NumberNullValue);
@@ -1362,14 +1452,14 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return false;
         }
 
-        mCondition->compile(env, chunk, scope, ValueType::ANY);
+        if (!mCondition->compile(env, chunk, scope, ValueType::ANY)) return false;
 
         chunk.emit(OP_JUMP_IF_FALSE);
         U32 jumpToElseOffset = chunk.tell();
         chunk.emit(0);
 
         for (auto& statement : mBody) {
-            statement->compile(env,chunk,scope,ValueType::NONE);
+            if (!statement->compile(env,chunk,scope,ValueType::NONE)) return false;
         }
 
         if (mElseBranch.get()) {
@@ -1378,7 +1468,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             chunk.emit(0);
 
             chunk.patch(jumpToElseOffset, chunk.tell());
-            mElseBranch->compile(env, chunk, scope, ValueType::NONE);
+            if (!mElseBranch->compile(env, chunk, scope, ValueType::NONE)) return false;
             chunk.patch(jumpToEndOffset, chunk.tell());
         }
         else {
@@ -1433,7 +1523,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
 
         // set the limit (count)
-        this->mCountExpr->compile(env,chunk,scope,ValueType::Int);
+        if (!this->mCountExpr->compile(env,chunk,scope,ValueType::Int)) return false;
 
         chunk.emit(OP_FOR_RANGE);
         U32 exitIPPatch = chunk.tell();
@@ -1446,7 +1536,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         scope.mLoopStack.push_back(loop);
 
         for (auto& statement : mBody) {
-            statement->compile(env,chunk,scope,ValueType::NONE);
+            if (!statement->compile(env,chunk,scope,ValueType::NONE)) return false;
         }
         U32 continueIP = chunk.tell();
 
@@ -1541,11 +1631,12 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
 
         // push start, end, increment
-        mStartExpr->compile(env, chunk, scope, ValueType::ANY);
-        mEndExpr->compile(env, chunk, scope, ValueType::ANY);
-        if (mStepExpr)
-            mStepExpr->compile(env, chunk, scope, ValueType::ANY);
-        else {
+        if (!mStartExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
+        if (!mEndExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
+        if (mStepExpr){
+
+           if (!mStepExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
+        } else {
             chunk.emit(OP_PUSH_VALUE);
             chunk.emitValue(Value(1));
         }
@@ -1562,7 +1653,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         U32 bodyStart = chunk.tell();
         for (auto& statement : mBody) {
-            statement->compile(env, chunk, scope, ValueType::NONE);
+            if (!statement->compile(env, chunk, scope, ValueType::NONE)) return false;
         }
 
         U32 continueIP = chunk.tell();
@@ -1625,7 +1716,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return false;
         }
         U32 loopStartIP = chunk.tell();
-        mCondition->compile(env, chunk, scope, ValueType::ANY);
+        if (!mCondition->compile(env, chunk, scope, ValueType::ANY)) return false;
         chunk.emit(OP_JUMP_IF_FALSE);
         U32 exitIPPatch = chunk.tell();
         chunk.emit(0); // placeholder
@@ -1634,7 +1725,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         scope.mLoopStack.push_back(loop);
 
         for (auto& statement : mBody) {
-            statement->compile(env, chunk, scope, ValueType::NONE);
+            if (!statement->compile(env, chunk, scope, ValueType::NONE)) return false;
         }
 
         LoopInfo finishedLoop = scope.mLoopStack.back();
@@ -1713,10 +1804,53 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         return  FlowStatus (FlowSignal::None)  ;
     }
-
+    // ---------------------
     bool ForEachStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+        if (!this->mVarExpr ) {
+            Tools::errorf("Compile Error: foreach need a list expression!\n");
+            return false;
+        }
+        // add iter values to registers
+        U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
+
+        // compile object var expression
+        if (!this->mVarExpr->compile(env,chunk,scope,ValueType::Int)) return false;
+
+        chunk.emit(OP_FOR_EACH_INIT);
+        U32 exitIPPatch = chunk.tell();
+        chunk.emit(0); //exitIP placeholder
+        chunk.emit(iteratorSlot);
+
+        U32 bodyStart = chunk.tell();
+
+        LoopInfo loop;
+        scope.mLoopStack.push_back(loop);
+
+        for (auto& statement : mBody) {
+            if (!statement->compile(env,chunk,scope,ValueType::NONE)) return false;
+        }
+        U32 continueIP = chunk.tell();
+
+        chunk.emit(OP_FOR_EACH_INCREMENT_JUMP);
+        chunk.emit(iteratorSlot);
+        chunk.emit(bodyStart);
+
+        U32 loopEndIP = chunk.tell();
+        chunk.patch(exitIPPatch, loopEndIP);
+
+        LoopInfo finishedLoop = scope.mLoopStack.back();
+        scope.mLoopStack.pop_back();
+        for (U32 breakPlaceholder : finishedLoop.breakOffsets) {
+            chunk.patch(breakPlaceholder , 3); // we have 3 on the stack
+            chunk.patch(breakPlaceholder + 1, loopEndIP);
+        }
+        for (U32 contPlaceholder : finishedLoop.continueOffsets) {
+            chunk.patch(contPlaceholder, continueIP);
+        }
+
+        return true;
+
+
     }
     // -------------------------------------------------------------------------
     FlowStatus BlockStatement::execute(Environment& env){
@@ -1732,7 +1866,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         // we fetch the last RESULT
         for (auto& statement : mBody) {
             if (!statement) continue;
-            statement->compile(env, chunk, scope, requestType);
+            if (!statement->compile(env, chunk, scope, requestType)) return false;
         }
         return true;
     }
@@ -1750,16 +1884,58 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         auto obj = new KeyValueObject(keyVal.getStringRef(), mValueExpr->evaluate(env));
         return Value(obj);
     }
-
+    // --------------------
     bool KeyValueExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+        if (!mKeyExpr || !mValueExpr) {
+            Tools::PrintRuntimeError("Compile: KeyValueExpression error key or value missing");
+            return false;
+        }
+        if (!mKeyExpr->compile(env,chunk,scope, ValueType::ANY)) return false;
+        if (!mValueExpr->compile(env,chunk,scope, ValueType::ANY)) return false;
+
+        chunk.emit(OP_CREATE_KEYVALUE);
+
+        if (requestType == ValueType::NONE) {
+            chunk.emit(OP_POP_STACK);
+        }
+        return true;
     }
     // -------------------------------------------------------------------------
-    bool IncludeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
-        //FIXME
-        return false;
+    // Include
+    // -------------------------------------------------------------------------
+    FlowStatus IncludeStatement::execute(DreiZehn::Environment& env){
+        if (mNoExecCondition || !mBody) {
+            // default is true so i exit here !
+            return {FlowSignal::None};
+        }
+
+        Value noExecValue = Value(false);
+        noExecValue = mNoExecCondition->evaluate(env);
+        if (noExecValue.getBool()) return {FlowSignal::None};
+        return mBody->execute(env);
     }
+    bool IncludeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+        if (!mNoExecCondition || !mBody) {
+            // nothing to do here default is true!
+            return true;
+        }
+        // compile condition
+        if (!mNoExecCondition->compile(env,chunk,scope,ValueType::Int)) return false;
+        // jump if true
+        chunk.emit(OP_JUMP_IF_TRUE);
+        U32 jmpOverMarker = chunk.tell();
+        chunk.emit(0);
+        // the body
+        if (!mBody->compile(env,chunk,scope,requestType)) return false;
+        // path the jump
+        chunk.patch(jmpOverMarker, chunk.tell());
+
+        // if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+
+        return true;
+    }
+    // -------------------------------------------------------------------------
+    // Break
     // -------------------------------------------------------------------------
     bool BreakStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (scope.mLoopStack.empty()) {
@@ -1773,6 +1949,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         scope.mLoopStack.back().breakOffsets.push_back(breakPlaceholder);
         return true;
     }
+    // -------------------------------------------------------------------------
+    // Continue
     // -------------------------------------------------------------------------
     bool ContinueStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (scope.mLoopStack.empty()) {

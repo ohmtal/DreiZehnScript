@@ -21,6 +21,7 @@ typedef int32_t  S32;
 struct CallStack {
     U32 mIP = 0;
     std::vector<Value> mLocals;
+    ~CallStack();
 };
 
 enum  OpCodes : uint32_t {
@@ -31,7 +32,9 @@ enum  OpCodes : uint32_t {
     OP_JUMP_CLEAN_STACK,
     OP_JUMP_IF_TRUE_NO_POP,
     OP_JUMP_IF_FALSE_NO_POP,
+
     OP_JUMP_IF_FALSE,
+    OP_JUMP_IF_TRUE,
 
     OP_LESS_EQUAL,
     OP_LESS,
@@ -66,26 +69,39 @@ enum  OpCodes : uint32_t {
     OP_CALL_OBJECT_METHOD,
     OP_SAVE_OBJECT_METHOD,
 
+    // Array
+    OP_LOAD_ARRAY,
+    OP_SAVE_ARRAY,
+
     //Function Call
     OP_CALL_C_FUNCTION,
     OP_CALL_SF_FUNCTION,
 
 
     // Math
-    OP_INC_LOCAL, //++ -- += -= using emitted value
+    OP_INC_LOCAL, // ++ -- using emitted value
+
+    OP_ADD_LOCAL, // += using emitted value
+    OP_SUB_LOCAL, // -= using emitted value
+    OP_MUL_LOCAL, // *= using emitted value
+    OP_DIV_LOCAL, // /= using emitted value
 
     OP_ADD,
     OP_SUB,
     OP_MUL,
     OP_DIV,
 
-
+    OP_NOT,
 
     // Loop
     OP_FOR_RANGE,
     OP_FOR_STEP_INIT,
     OP_LOOP_INCREMENT_JUMP,
 
+    OP_FOR_EACH_INIT,
+    OP_FOR_EACH_INCREMENT_JUMP,
+
+    OP_CREATE_KEYVALUE,
 
     OP_POP_STACK,
 
@@ -107,7 +123,9 @@ constexpr OpCodeInfo OpCodeInfos[] = {
     {"OP_JUMP_CLEAN_STACK", 2},
     {"OP_JUMP_IF_TRUE_NO_POP", 1},
     {"OP_JUMP_IF_FALSE_NO_POP", 1},
+
     {"OP_JUMP_IF_FALSE", 1},
+    {"OP_JUMP_IF_TRUE", 1},
 
     {"OP_LESS_EQUAL", 0},
     {"OP_LESS", 0},
@@ -131,26 +149,41 @@ constexpr OpCodeInfo OpCodeInfos[] = {
     {"OP_GET_LOCAL", 1},
     {"OP_SET_LOCAL", 1},
 
-    {"OP_LOAD_OBJECT_FIELD", 5},
-    {"OP_SAVE_OBJECT_FIELD", 5},
+    {"OP_LOAD_OBJECT_FIELD", 1 + ( 2  * sizeof(void*) )},
+    {"OP_SAVE_OBJECT_FIELD", 1 + ( 2  * sizeof(void*) )},
 
     {"OP_CALL_OBJECT_METHOD", 2},
     {"OP_SAVE_OBJECT_METHOD", 2},
+
+    // Array
+    {"OP_LOAD_ARRAY", 0},
+    {"OP_SAVE_ARRAY", 0},
 
     {"OP_CALL_C_FUNCTION", 0}, //SPECIAL emittedCount variable
     {"OP_CALL_SF_FUNCTION", 2},
 
     {"OP_INC_LOCAL", 2},
+    {"OP_ADD_LOCAL", 1},
+    {"OP_SUB_LOCAL", 1},
+    {"OP_MUL_LOCAL", 1},
+    {"OP_DIV_LOCAL", 1},
 
     {"OP_ADD", 0},
     {"OP_SUB", 0},
     {"OP_MUL", 0},
     {"OP_DIV", 0},
 
+    {"OP_NOT", 0},
+
 
     {"OP_FOR_RANGE", 2},
     {"OP_FOR_STEP_INIT", 3 },
     {"OP_LOOP_INCREMENT_JUMP", 3},
+
+    {"OP_FOR_EACH_INIT", 2},
+    {"OP_FOR_EACH_INCREMENT_JUMP",2},
+
+    {"OP_CREATE_KEYVALUE", 0},
 
     {"OP_POP_STACK", 0},
 

@@ -6,32 +6,33 @@ define JLOOPS 25
 define ILOOPS 1000000
 define HLOOPS ILOOPS / 2
 
-if (sys::args->count > 2 && (sys::args->value 2) == "global")
-    global varX = 0.0; type = "GLOBAL"
+if (sys::args->count) > 2 && (sys::args->value 2) == "global"
+    global varX = 0.0;
+    type = "GLOBAL"
 else
     varX = 0.0; type = "LOCAL"
 end
 
+
 forRange j JLOOPS
     forRange i ILOOPS
-        varX++
+        varX += 1.0
     end
     print  "SUM (++) IS: " varX
     forRange i ILOOPS
-        varX--
+        varX -= 1.0
     end
     print  "SUM (--) IS: " varX
 
-    varX = 66
-    print  "set Sum to 66 == " (varX * 1)
+    varX = 66.0
+    print  "set Sum to 66 == " varX
 
-    forRange i ILOOPS
-        varX *=  (i + 1)
-        varX /=  (i + 1)
+    for i 0 (ILOOPS - 1)
+         varX *=  i + 1
+         varX /=  i + 1
     end
     print  "SUM (*/ %i+1) IS: " varX
 
-    ran = 0.0
     forRange i HLOOPS
         ran = math::randomf * i
         varX -= ran
@@ -41,10 +42,12 @@ forRange j JLOOPS
     print  "SUM (rand +-) IS: " varX
 end
 
+
 varX = varX - 33.0
 print "---------------------"
 print "  *** " type " ***"
 print "---------------------"
-print  "Final sum should be 33.0 == " varX
+print " VAR TYPE IS:" core::getTypeName varX
+print  " Final sum should be 33.0 == " varX
 print "---------------------"
 if type != "GLOBAL"; print " ... use parameter global for global test ...\n";;

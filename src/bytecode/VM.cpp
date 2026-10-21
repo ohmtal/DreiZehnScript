@@ -18,11 +18,12 @@
 #include "core/VariableFrame.h"
 #include "VMStructure.h"
 #include "core/FunctionMap.h"
+#include <core/BaseObjects.h>
 
 namespace DreiZehn {
     //-----------------------------------------------------------------------------
     #ifndef MAX_BC_STACK_SIZE
-    #define MAX_BC_STACK_SIZE 1024
+    #define MAX_BC_STACK_SIZE  1024
     #endif
 
 
@@ -90,7 +91,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
         &&handle_OP_JUMP_IF_TRUE_NO_POP,
         &&handle_OP_JUMP_IF_FALSE_NO_POP,
+
         &&handle_OP_JUMP_IF_FALSE,
+        &&handle_OP_JUMP_IF_TRUE,
 
         &&handle_OP_LESS_EQUAL,
         &&handle_OP_LESS,
@@ -119,8 +122,13 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         &&handle_OP_LOAD_OBJECT_FIELD,
         &&handle_OP_SAVE_OBJECT_FIELD,
 
+        // Object Methods
         &&handle_OP_CALL_OBJECT_METHOD,
         &&handle_OP_SAVE_OBJECT_METHOD,
+
+        // Array Var
+        &&handle_OP_LOAD_ARRAY,
+        &&handle_OP_SAVE_ARRAY,
 
         // Functions
         &&handle_OP_CALL_C_FUNCTION,
@@ -129,16 +137,27 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         // Math
         &&handle_OP_INC_LOCAL,
 
+        &&handle_OP_ADD_LOCAL, // += using emitted value
+        &&handle_OP_SUB_LOCAL, // -= using emitted value
+        &&handle_OP_MUL_LOCAL, // *= using emitted value
+        &&handle_OP_DIV_LOCAL, // /= using emitted value
+
         &&handle_OP_ADD,
         &&handle_OP_SUB,
         &&handle_OP_MUL,
         &&handle_OP_DIV,
 
+        &&handle_OP_NOT,
 
         //Loops
         &&handle_OP_FOR_RANGE,
         &&handle_OP_FOR_STEP_INIT,
         &&handle_OP_LOOP_INCREMENT_JUMP,
+
+        &&handle_OP_FOR_EACH_INIT,
+        &&handle_OP_FOR_EACH_INCREMENT_JUMP,
+
+        &&handle_OP_CREATE_KEYVALUE,
 
         &&handle_OP_POP_STACK,
 
@@ -154,7 +173,11 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     // -----------------------
     // stack register
     S32 _STK = 0;
-    Value vmStack[MAX_BC_STACK_SIZE] = {0};
+    // Value vmStack[MAX_BC_STACK_SIZE] = {0};
+
+    // TEST
+    std::vector<Value>vmStack;
+    vmStack.resize(MAX_BC_STACK_SIZE);
 
 
     uint32_t  ip = 0;
@@ -174,7 +197,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     handle_OP_CONST: {
         PUSH_STACK(chunk.mConstants[ADVANCE_U32()]);
         DISPATCH();
-
     }
     // -------------------------------
     handle_OP_PUSH_VALUE: {
@@ -191,7 +213,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         U32 count = ADVANCE_U32();
         ip = PEEK_U32();
         for (U32 i = 0; i < count; i++ ) {
-            POP_STACK();
+            (void) POP_STACK();
         }
         DISPATCH();
     }
@@ -222,14 +244,23 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     handle_OP_JUMP_IF_FALSE: {
         Value condition = POP_STACK();
 
-        if (condition.getInt() == 0) {
+        if (!condition.getBool()) {
             ip = PEEK_U32();
         } else {
             ip++; //contiune
         }
         DISPATCH();
     }
-
+    // -------------------------------
+    handle_OP_JUMP_IF_TRUE: {
+        Value condition = POP_STACK();
+        if (condition.getBool()) {
+            ip = PEEK_U32();
+        } else {
+            ip++; //contiune
+        }
+        DISPATCH();
+    }
     // -------------------------------
     handle_OP_LESS: {
         Value rVal = POP_STACK();
@@ -604,9 +635,86 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
         DISPATCH();
     }
+    // -----------------
     handle_OP_SAVE_OBJECT_METHOD : {
-        DISPATCH_OPCODE(OP_INVALID);
+        // pull method name id
+        U32 symID = ADVANCE_U32();
+        U32 argCount = ADVANCE_U32();
 
+        Value objectValue = POP_STACK();
+        if (!objectValue.isPointer()) [[unlikely]] {
+            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+        ValueObject* obj = objectValue.asPointerObject();
+        if (!obj) {
+            Tools::errorf("RunTime Error: Invalid Object: %s.\n", objectValue.toString().c_str());
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+
+        Value* destPrt = nullptr;
+        {
+            std::vector<Value> evaluatedArgs(argCount);
+            for (int i = (int)argCount - 1; i >= 0; i--) {
+                evaluatedArgs[i] = POP_STACK();
+            }
+
+            destPrt =  obj->onMethodCallGetAssignPtr(symID, evaluatedArgs);
+        }
+        if (!destPrt) [[unlikely]] {
+            Tools::errorf("Runtime Error in method call. cant find method\n");
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+
+        *destPrt = PEEK_STACK(0);
+        DISPATCH();
+    }
+    // -------------------------------------------------------------------------
+    // Array variable
+    // -------------------------------------------------------------------------
+    handle_OP_LOAD_ARRAY: {
+        Value indexValue = POP_STACK();
+        Value varValue = POP_STACK();
+
+        if (!varValue.isPointer()) {
+            Tools::PrintRuntimeError("Array is not an Object!");
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+        const Value* resultPtr = nullptr;
+        if (indexValue.isNumber()) [[likely]] {
+             resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
+        } else if (indexValue.isString()) {
+            resultPtr =varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
+        }
+        PUSH_STACK(resultPtr ? *resultPtr : NumberNullValue);
+        DISPATCH();
+    }
+    // ---------------------
+    handle_OP_SAVE_ARRAY: {
+        Value indexValue = POP_STACK();
+        Value varValue = POP_STACK();
+        Value assignValue = PEEK_STACK(0);
+
+        if (!varValue.isPointer()) {
+            Tools::PrintRuntimeError("Array is not an Object!");
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+        Value* resultPtr = nullptr;
+        if (indexValue.isNumber()) [[likely]] {
+            resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
+        } else if (indexValue.isString()) {
+            resultPtr =varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
+        }
+        if (resultPtr) [[likely]]{
+            *resultPtr = assignValue;
+            DISPATCH();
+        }
+        PEEK_STACK(0) = NumberNullValue;
         DISPATCH();
     }
     // -------------------------------------------------------------------------
@@ -702,10 +810,69 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
             PUSH_STACK(val);
             DISPATCH();
         }
+
         val = Value(val.getInt() + inc);
+        PUSH_STACK(val);
+
+        DISPATCH();
+    }
+    // -------------------------------
+    handle_OP_ADD_LOCAL: {
+        U32 slot = ADVANCE_U32();
+        Value b = POP_STACK();
+        Value& val = (*localsPtr)[slot];
+        if (val.isDouble() && b.isDouble()) [[likely]] {
+            val = Value(val.asFastDouble() + b.asFastDouble());
+            PUSH_STACK(val);
+            DISPATCH();
+        }
+        val = Value(val.getDouble() + b.getDouble());
         PUSH_STACK(val);
         DISPATCH();
     }
+    // -------------------------------
+    handle_OP_SUB_LOCAL: {
+        U32 slot = ADVANCE_U32();
+        Value b = POP_STACK();
+        Value& val = (*localsPtr)[slot];
+        if (val.isDouble() && b.isDouble()) [[likely]] {
+            val = Value(val.asFastDouble() - b.asFastDouble());
+            PUSH_STACK(val);
+            DISPATCH();
+        }
+        val = Value(val.getDouble() - b.getDouble());
+        PUSH_STACK(val);
+        DISPATCH();
+    }
+    // -------------------------------
+    handle_OP_MUL_LOCAL: {
+        U32 slot = ADVANCE_U32();
+        Value b = POP_STACK();
+        Value& val = (*localsPtr)[slot];
+        if (val.isDouble() && b.isDouble()) [[likely]] {
+            val = Value(val.asFastDouble() * b.asFastDouble());
+            PUSH_STACK(val);
+            DISPATCH();
+        }
+        val = Value(val.getDouble() * b.getDouble());
+        PUSH_STACK(val);
+        DISPATCH();
+    }
+    // -------------------------------
+    handle_OP_DIV_LOCAL: {
+        U32 slot = ADVANCE_U32();
+        Value b = POP_STACK();
+        Value& val = (*localsPtr)[slot];
+        if (val.isDouble() && b.isDouble()) [[likely]] {
+            val = Value(val.asFastDouble() / b.asFastDouble());
+            PUSH_STACK(val);
+            DISPATCH();
+        }
+        val = Value(val.getDouble() / b.getDouble());
+        PUSH_STACK(val);
+        DISPATCH();
+    }
+    // -------------------------------
     // -------------------------------
     handle_OP_ADD: {
         Value b = POP_STACK();
@@ -745,6 +912,11 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         Value b = POP_STACK();
         Value a = POP_STACK();
 
+        // if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((a.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
+        //     PUSH_STACK(Value(std::bit_cast<double>(a.mBits) * std::bit_cast<double>(b.mBits) ));
+        //     DISPATCH();
+        // }
+
         if (a.isDouble() && b.isDouble())  [[likely]] {
             PUSH_STACK(Value(a.asFastDouble() * b.asFastDouble()));
             DISPATCH();
@@ -768,7 +940,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
         const bool l_is_double = a.isDouble();
         const bool r_is_double = b.isDouble();
-        const bool is_both_int = a.isInt() && b.isInt();
         if (l_is_double && r_is_double) [[likely]] {
             double r = b.asFastDouble();
             if (r == 0.0) [[unlikely]] DISPATCH_OPCODE(OP_INVALID);;
@@ -776,6 +947,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
             DISPATCH();
         }
 
+        const bool is_both_int = a.isInt() && b.isInt();
         if (is_both_int) {
             int32_t r = b.asFastInt();
             if (r == 0) [[unlikely]] DISPATCH_OPCODE(OP_INVALID);;
@@ -796,8 +968,15 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
 
     // -------------------------------
+    handle_OP_NOT: {
+        Value a = POP_STACK();
+        PUSH_STACK(Value(!a.getBool()));
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_FOR_RANGE: {
         U32 exitIP = ADVANCE_U32();
+        U32 iterSlot = ADVANCE_U32();
         // // get count
         Value countValue = POP_STACK();
         S32 count = countValue.getInt();
@@ -805,7 +984,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
             ip = exitIP;
             DISPATCH();
         }
-        U32 iterSlot = ADVANCE_U32();
 
         PUSH_STACK(Value(count - 1)); // limit
         PUSH_STACK(Value(0));     // current value
@@ -860,14 +1038,77 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
             ip = targetIP;
         } else {
-            POP_STACK(); // pop index
-            POP_STACK(); // pop limit
+            (void) POP_STACK(); // pop index
+            (void) POP_STACK(); // pop limit
         }
         DISPATCH();
     }
     // -------------------------------
+    handle_OP_FOR_EACH_INIT:{
+        U32 exitIP = ADVANCE_U32();
+        U32 iterSlot = ADVANCE_U32();
+        Value objectValue = POP_STACK();
+        if (!objectValue.isPointer()) {
+            Tools::PrintRuntimeError("forEach without a object");
+            ip = exitIP;
+            DISPATCH();
+        }
+        size_t count = objectValue.asPointerObject()->onGetArraySize();
+        if (count == 0) {
+            ip = exitIP;
+            DISPATCH();
+        }
+
+        PUSH_STACK(objectValue); // current object
+        PUSH_STACK(Value((S32) count)); // count
+        PUSH_STACK(Value(0));    // current iter value
+
+        (*localsPtr)[iterSlot] =  *objectValue.asPointerObject()->onGetArrayIndexPtr(0);
+        DISPATCH(); //jump to body
+    }
+    // -------------------------------
+    handle_OP_FOR_EACH_INCREMENT_JUMP:{
+        U32 iterSlot = ADVANCE_U32(); // variable
+        U32 targetIP = ADVANCE_U32(); // body start
+
+        S32 currentIter = PEEK_STACK(0).asInt();
+        S32 count = PEEK_STACK(1).asInt();
+        ValueObject* obj = PEEK_STACK(2).asPointerObject();
+        currentIter++;
+        if (currentIter < count) {
+             PEEK_STACK(0) = Value(currentIter);
+            (*localsPtr)[iterSlot] =  *obj->onGetArrayIndexPtr(currentIter);
+             ip = targetIP;
+        } else {
+            (void) POP_STACK(); // pop object
+            (void) POP_STACK(); // pop index
+            (void) POP_STACK(); // pop limit
+        }
+        DISPATCH();
+    }
+
+    // -------------------------------
+    handle_OP_CREATE_KEYVALUE: {
+        Value valueVal = POP_STACK();
+        Value keyVal = POP_STACK();
+
+
+        if (!keyVal.isString())  {
+            Tools::PrintRuntimeError("KeyValueExpression value must be a string,.");
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+
+
+        auto obj = new KeyValueObject(keyVal.getStringRef(), valueVal);
+
+        PUSH_STACK(Value(obj));
+
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_POP_STACK: {
-        POP_STACK();
+        (void) POP_STACK();
         DISPATCH();
     }
     // -------------------------------
@@ -892,6 +1133,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         #ifdef DEBUG_TRACE_EXECUTION
         Tools::printf("*** STACK COUNT: %zu\n", STACK_SIZE());
         #endif
+
+
 
         return _STK == 0 ? NumberNullValue : PEEK_STACK(0);
     }

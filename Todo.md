@@ -437,14 +437,15 @@ it's the same problem.
     - NOTE: lol since yesterday 500ms lost on scripts/testBC_simplevar.13 
         did if have a lucky binary yesterday ? 
         
-- [ ] TOO much is inlined! 
+- [X] TOO much is inlined! 
         
-- [ ] FIXME _DEBUG or DREIZEHN_DEBUG flag! 
+- [X] DREIZEHN_DEBUG flag! 
 - [X] DECISION pure byte code ot ast/bytecode hybrid ==> pure bytecode which caching ptr :P 
-- [ ] Objects:
-    - [ ] change the methodCall to Lambda !!!! so i can directly looked up
-    - [ ] how does the assingptr on method match the bytecode ? 
 
+- [X] **removed**: VariableReferenceExpression and VariablePointerExpression!
+    While it was funny, it make no sence! ... maybe a comeback when i can do thinks like
+    `foo = &(vec->at 0)` which was not possible. It was not faster and i do not port this
+    to ByteCode!
     
 todos listed here: [TodoByteCode](./TodoByteCode.md)
 
@@ -500,6 +501,8 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - or https://deepwiki.com/ppy/SDL3-CS/2.1-c-binding-generation
 - UserFunction object to call them like a lambda from a list... 
 - switch / case
+- Objects: change the methodCall to Lambda !!!! so i can directly looked up
+
  
 ## aborted but still in code:
  

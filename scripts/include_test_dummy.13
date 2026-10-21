@@ -1,0 +1,5 @@
+print "\n  ***** HELLO INCLUDE - YOU SAID I SHOULD BE EXECUTED!!!! ******** \n"
+
+fn incfunc
+    print "\n  ***** HELLO I'AM A INCLUDED FUNCTION !! ***** \n"
+end

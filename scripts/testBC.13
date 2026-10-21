@@ -102,3 +102,17 @@ debug::bc loadSource "test_global.13"
 niceLine "Object fields and methods"
 debug::bc 'a = Object::new; a.x = 10.1; print "a.x (10) ==" a.x';
 debug::bc 'v = Vector::new; v->fill 10 (Vector3::new); v->dump';
+
+print "**ASSIGN** => 47.11 8.15 ? "
+debug::bc 'v = Vector::new; v->fill 2 (Vector3::new); (v->at 0) = 47.11 ;(v->at 1) = 8.15 ;v->dump';
+
+-- -----------------------------------------------------------------------------
+niceLine "forEach"
+debug::bc 'v = Vector::new 10 20 30 40;foreach num v; if num==20; continue;; if num > 30 break;; printraw num " ";;'
+print "<< 10 30 ?"
+-- -----------------------------------------------------------------------------
+niceLine "Array"
+debug::bc 'a = Array::new "x"=>0.1 "y"=>47.11;a["x"]=8.15;print "x = " a["x"] "first = " a[0]'
+-- -----------------------------------------------------------------------------
+niceLine "Include"
+-- debug::bc 'include "common/FileTools.13" true; ft = FileTool::new "foo"; ft->dump'

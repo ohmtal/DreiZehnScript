@@ -199,7 +199,7 @@ namespace DreiZehn {
         auto mainProgram = ParseScriptToAST(stream);
         if (!mainProgram) return false;
 
-        Value res = env.CompileExec(mainProgram.get());
+        Value res = env.compileExec(mainProgram.get());
         // #ifdef DEBUG_TRACE_EXECUTION
         // Tools::printf("RunScriptStreamByteCode VALUE IS: %s\n", res.toString().c_str());
         // #endif

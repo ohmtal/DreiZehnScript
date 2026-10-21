@@ -10,6 +10,14 @@
 #include "VMStructure.h"
 
 namespace DreiZehn {
+    // Garbage Collection
+    CallStack::~CallStack() {
+        for (auto& loc: mLocals) {
+            if (loc.isPointer()) loc.asPointerObject()->setAssigned(false);
+        }
+    }
+
+
 void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize) {
     uint32_t opcode = code[offset];
 

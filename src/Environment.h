@@ -79,11 +79,14 @@ public:
     // Compile and CompileExec
     // -------------------------------------------------------------------------
 
-    inline Value CompileExec(ASTNode* node) {
+    inline Value compileExec(ASTNode* node) {
         if (!node) return NumberNullValue;
         BytecodeChunk chunk;
         CompilerScope scope;
-        if (!Compile(node, *this, chunk, scope)) return NumberNullValue;
+        if (!Compile(node, *this, chunk, scope)) {
+            Tools::errorf("\nFailed to compile code!\n");
+            return NumberNullValue;
+        }
 
         Value res = runDirectThreadedVM(chunk, scope.getLocalCount());
         #ifdef DEBUG_TRACE_EXECUTION

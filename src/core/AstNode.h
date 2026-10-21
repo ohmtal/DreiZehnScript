@@ -37,8 +37,8 @@ enum class NodeType {
     LiteralExpression,
     ValueExpression,
     VariableExpression,
-    VariableReferenceExpression,
-    VariablePointerExpression,
+    VariableReferenceExpression,  //NOTE removed in Version 0.9, since it not good for anything!
+    VariablePointerExpression,    //NOTE removed in Version 0.9, since it not good for anything!
     ArrayVariableExpression,
     CallExpression,
     MethodExpression,
@@ -218,36 +218,37 @@ struct VariableExpression : public Expression {
 };
 
 
-// VariableReferenceExpression  (&foo)----------------------------------------------------------
-struct VariableReferenceExpression : public Expression {
-     std::unique_ptr<Expression> mVarExpr;
-
-    VariableReferenceExpression(std::unique_ptr<Expression> varExpr)
-    : mVarExpr(std::move(varExpr)) {
-        mNodeType  = NodeType::VariableReferenceExpression;
-    }
-    Value evaluate(Environment& env) override;
-    Value* evaluatePtr(Environment& env) override;
-
-    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
-
-};
-
-// VariablePointerExpression  (*fooptr)----------------------------------------------------------
-struct VariablePointerExpression : public Expression {
-    std::unique_ptr<Expression> mVarExpr;
-
-    Value* mCachedPtr = nullptr;
-
-    VariablePointerExpression(std::unique_ptr<Expression> varExpr)
-    : mVarExpr(std::move(varExpr)) {
-        mNodeType  = NodeType::VariablePointerExpression;
-    }
-    Value evaluate(Environment& env) override;
-    Value* evaluatePtr(Environment& env) override;
-    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
-
-};
+// 0.9 removed !! - it is basically useless !!!
+// // VariableReferenceExpression  (&foo)----------------------------------------------------------
+// struct VariableReferenceExpression : public Expression {
+//      std::unique_ptr<Expression> mVarExpr;
+//
+//     VariableReferenceExpression(std::unique_ptr<Expression> varExpr)
+//     : mVarExpr(std::move(varExpr)) {
+//         mNodeType  = NodeType::VariableReferenceExpression;
+//     }
+//     Value evaluate(Environment& env) override;
+//     Value* evaluatePtr(Environment& env) override;
+//
+//     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+//
+// };
+//
+// // VariablePointerExpression  (*fooptr)----------------------------------------------------------
+// struct VariablePointerExpression : public Expression {
+//     std::unique_ptr<Expression> mVarExpr;
+//
+//     Value* mCachedPtr = nullptr;
+//
+//     VariablePointerExpression(std::unique_ptr<Expression> varExpr)
+//     : mVarExpr(std::move(varExpr)) {
+//         mNodeType  = NodeType::VariablePointerExpression;
+//     }
+//     Value evaluate(Environment& env) override;
+//     Value* evaluatePtr(Environment& env) override;
+//     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+//
+// };
 
 // ArrayVariableExpression --------------------------------------------------------------
 struct ArrayVariableExpression : public Expression {
@@ -260,7 +261,9 @@ struct ArrayVariableExpression : public Expression {
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
+
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 
 };
 
@@ -322,6 +325,7 @@ struct MethodExpression : public Expression {
     Value* evaluatePtr(Environment& env) override;
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 
 };
 
@@ -473,6 +477,7 @@ struct TernaryExpression : public Expression {
     }
 
     inline Value evaluate(Environment& env) override {
+        if (!mCondition || !mTrueBranch || ! mFalseBranch) return Value(0);
         auto condVal = mCondition->evaluate(env);
         if (condVal.getBool() ) {
             return mTrueBranch->evaluate(env);
@@ -655,15 +660,7 @@ struct IncludeStatement : public FlowBaseStatement {
         mNodeType = NodeType::IncludeStatement;
     }
 
-    inline FlowStatus execute(Environment& env) override {
-        Value noExecValue = Value(false);
-        if (mNoExecCondition) {
-            noExecValue = mNoExecCondition->evaluate(env);
-            // Tools::warnf("noExecValue = %d %d\n", noExecValue.getInt(), noExecValue.getBool());
-        }
-        if (noExecValue.getBool()) return {FlowSignal::None};
-        return mBody->execute(env);
-    }
+    FlowStatus execute(Environment& env) override;
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 

@@ -1,148 +1,149 @@
---  -----------------------------------------------------------------------------
---  ported from raylib-elfScript to BaseElf / NativSDL to CrazyElf to DreiZehn
---  original: BSD-License, Copyright (c) 2025 JP Mortiboys (@themushroompirates)
---  -----------------------------------------------------------------------------
-import Core
-import Math
-import String
-import SDL3
-import Vector
-
-print " StarField v7g ptr @13 startup...."
-
-global W = 640
-global H = 320
-global maxW = W / 2
-global minW = maxW * -1
-global maxH = H / 2
-global minH = maxH * -1
-global STAR_COUNT  = 4200
-global START_DIV   = 0.03125
-global Speed       = 0.2
-global fontScale   = 1.2
--- Objects initialize with 0:
-global Window      = 0
-global Renderer    = 0
-global Event       = 0
-global Points      = 0
-
-
-fn Init
-    if ( SDL_Init SDL_INIT_VIDEO ) == false
-        print "Failed to init SDL3"
-        return false
-    end
-
-    Window = SDL_CreateWindow "StarField DreiZehn" W H 0
-    if Window == 0
-        print "Failed to create window"
-        return false
-    end
-
-    Renderer = SDL_CreateRenderer Window
-    Event = SDL_CreateEvent
-
-    Points = Vector::new
-    Points->fill STAR_COUNT (Vector3::new)
-    forEach p Points
-        p.x =  math::random minW maxW
-        p.y =  math::random minH maxH
-        p.z =  math::randomf
-        print p
-    end
-    return true
-end
-
-if Init
-    Running = true
-
-    Time_Last = SDL_GetTicks
-    counter = 0
-    fpsSum  = 0.0
-    FPS = 0.0
-
-    while Running
-        Time_Now = SDL_GetTicks
-        Dt = (Time_Now - Time_Last) / 1000.0
-        Time_Last = Time_Now
-
-        if (Dt > 0.0 )
-            counter++
-            fpsSum += 1.0 / Dt
-        end
-
-        if (counter == 200 )
-            FPS = int::cast (fpsSum / 200.0)
-            fpsSum = 0.0
-            counter = 0
-        end
-
-        while SDL_PollEvent Event
-            Type = SDL_GetEventType Event
-            if Type == SDL_EVENT_QUIT
-                Running = false
-            end
-            if Type == SDL_EVENT_KEY_DOWN
-                if (SDL_GetEventKey Event) == SDLK_ESCAPE
-                    Running = false
-                end
-            end
-        end
-
-        SDL_SetRenderDrawColor Renderer 20 20 40 255
-        SDL_RenderClear Renderer
-
-        SDL_SetRenderDrawColor Renderer 255 255 255 255
-        forEach p Points
-            ptrX = (&p.x)
-            ptrY = (&p.y)
-            ptrZ = (&p.z)
-
-            (*ptrZ) -= Dt * Speed
-
-            invZ = 1.0 / (*ptrZ)
-            screenX = (W * 0.5) + ((*ptrX) * invZ)
-            screenY = (H * 0.5) + ((*ptrY) * invZ)
-
-
-            if ((*ptrZ) < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
-                (*ptrX) = math::random minW maxW
-                (*ptrY) = math::random minH maxH
-                (*ptrZ) = 1.0
-
-                screenX = W + (*ptrX)
-                screenY = H + (*ptrY)
-            end
-
-
-            radius = math::lerp 2.0 0.3 (*ptrZ)
-            SDL_RenderFillRect Renderer screenX screenY radius radius
-
-        end
-
-
-        SDL_SetRenderDrawColor Renderer 200 200 255 255
-        SDL_SetRenderScale Renderer  fontScale fontScale
-        SDL_RenderDebugText Renderer 10 10 \
-            str::concat "StarField v7g ptr @13-Script Stars:" STAR_COUNT " FPS:" FPS
-        SDL_SetRenderScale Renderer  1 1
-
-
-        SDL_RenderPresent Renderer
---         SDL_Delay 16
-
-        if core::breath == false; break; end
-    end
-end
-
-SDL_DestroyWindow Window
-SDL_Quit
-
---  cleanup - unassign Global Objects:
-Window      = 0
-Renderer    = 0
-Event       = 0
-Points      = 0
-
-print "Starfield shutdown completed"
---
+error "Pointer and Reference is removed since DreiZehn Verion 0.9"
+-- -- --  -----------------------------------------------------------------------------
+-- -- --  ported from raylib-elfScript to BaseElf / NativSDL to CrazyElf to DreiZehn
+-- -- --  original: BSD-License, Copyright (c) 2025 JP Mortiboys (@themushroompirates)
+-- -- --  -----------------------------------------------------------------------------
+-- -- import Core
+-- -- import Math
+-- -- import String
+-- -- import SDL3
+-- -- import Vector
+-- --
+-- -- print " StarField v7g ptr @13 startup...."
+-- --
+-- -- global W = 640
+-- -- global H = 320
+-- -- global maxW = W / 2
+-- -- global minW = maxW * -1
+-- -- global maxH = H / 2
+-- -- global minH = maxH * -1
+-- -- global STAR_COUNT  = 4200
+-- -- global START_DIV   = 0.03125
+-- -- global Speed       = 0.2
+-- -- global fontScale   = 1.2
+-- -- -- Objects initialize with 0:
+-- -- global Window      = 0
+-- -- global Renderer    = 0
+-- -- global Event       = 0
+-- -- global Points      = 0
+-- --
+-- --
+-- -- fn Init
+-- --     if ( SDL_Init SDL_INIT_VIDEO ) == false
+-- --         print "Failed to init SDL3"
+-- --         return false
+-- --     end
+-- --
+-- --     Window = SDL_CreateWindow "StarField DreiZehn" W H 0
+-- --     if Window == 0
+-- --         print "Failed to create window"
+-- --         return false
+-- --     end
+-- --
+-- --     Renderer = SDL_CreateRenderer Window
+-- --     Event = SDL_CreateEvent
+-- --
+-- --     Points = Vector::new
+-- --     Points->fill STAR_COUNT (Vector3::new)
+-- --     forEach p Points
+-- --         p.x =  math::random minW maxW
+-- --         p.y =  math::random minH maxH
+-- --         p.z =  math::randomf
+-- --         print p
+-- --     end
+-- --     return true
+-- -- end
+-- --
+-- -- if Init
+-- --     Running = true
+-- --
+-- --     Time_Last = SDL_GetTicks
+-- --     counter = 0
+-- --     fpsSum  = 0.0
+-- --     FPS = 0.0
+-- --
+-- --     while Running
+-- --         Time_Now = SDL_GetTicks
+-- --         Dt = (Time_Now - Time_Last) / 1000.0
+-- --         Time_Last = Time_Now
+-- --
+-- --         if (Dt > 0.0 )
+-- --             counter++
+-- --             fpsSum += 1.0 / Dt
+-- --         end
+-- --
+-- --         if (counter == 200 )
+-- --             FPS = int::cast (fpsSum / 200.0)
+-- --             fpsSum = 0.0
+-- --             counter = 0
+-- --         end
+-- --
+-- --         while SDL_PollEvent Event
+-- --             Type = SDL_GetEventType Event
+-- --             if Type == SDL_EVENT_QUIT
+-- --                 Running = false
+-- --             end
+-- --             if Type == SDL_EVENT_KEY_DOWN
+-- --                 if (SDL_GetEventKey Event) == SDLK_ESCAPE
+-- --                     Running = false
+-- --                 end
+-- --             end
+-- --         end
+-- --
+-- --         SDL_SetRenderDrawColor Renderer 20 20 40 255
+-- --         SDL_RenderClear Renderer
+-- --
+-- --         SDL_SetRenderDrawColor Renderer 255 255 255 255
+-- --         forEach p Points
+-- --             ptrX = (&p.x)
+-- --             ptrY = (&p.y)
+-- --             ptrZ = (&p.z)
+-- --
+-- --             (*ptrZ) -= Dt * Speed
+-- --
+-- --             invZ = 1.0 / (*ptrZ)
+-- --             screenX = (W * 0.5) + ((*ptrX) * invZ)
+-- --             screenY = (H * 0.5) + ((*ptrY) * invZ)
+-- --
+-- --
+-- --             if ((*ptrZ) < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
+-- --                 (*ptrX) = math::random minW maxW
+-- --                 (*ptrY) = math::random minH maxH
+-- --                 (*ptrZ) = 1.0
+-- --
+-- --                 screenX = W + (*ptrX)
+-- --                 screenY = H + (*ptrY)
+-- --             end
+-- --
+-- --
+-- --             radius = math::lerp 2.0 0.3 (*ptrZ)
+-- --             SDL_RenderFillRect Renderer screenX screenY radius radius
+-- --
+-- --         end
+-- --
+-- --
+-- --         SDL_SetRenderDrawColor Renderer 200 200 255 255
+-- --         SDL_SetRenderScale Renderer  fontScale fontScale
+-- --         SDL_RenderDebugText Renderer 10 10 \
+-- --             str::concat "StarField v7g ptr @13-Script Stars:" STAR_COUNT " FPS:" FPS
+-- --         SDL_SetRenderScale Renderer  1 1
+-- --
+-- --
+-- --         SDL_RenderPresent Renderer
+-- -- --         SDL_Delay 16
+-- --
+-- --         if core::breath == false; break; end
+-- --     end
+-- -- end
+-- --
+-- -- SDL_DestroyWindow Window
+-- -- SDL_Quit
+-- --
+-- -- --  cleanup - unassign Global Objects:
+-- -- Window      = 0
+-- -- Renderer    = 0
+-- -- Event       = 0
+-- -- Points      = 0
+-- --
+-- -- print "Starfield shutdown completed"
+-- -- --

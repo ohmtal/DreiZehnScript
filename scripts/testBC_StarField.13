@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 include "common/FileTools.13" true
 # ------------------------------------------------------------------------------
-ft = FileTool::new "scripts/StarField.13";
+ft = FileTool::new "scripts/StarField5.13";
 ft->load
 debug::bc ft.content
 

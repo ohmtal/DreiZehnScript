@@ -4,7 +4,6 @@ I used my Benchmark Script from ElfScript:
 
 - Lua 5.5.1: 1.243u 0.002s 0:01.25 99.2%     0+0k 0+0io 0pf+0w
 - Elfscript 0.7c: 1.354u 0.002s 0:01.36 99.2%     0+0k 0+0io 0pf+0w
-- 👾 DreiZehn(0.9b ?!): 1.873u 0.004s 0:01.88 99.4%     0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.9a): 1.410u 0.005s 0:01.42 99.2%     0+0k 0+0io 0pf+0w 
 - 👾 DreiZehn(0.9b ?!): 1.873u 0.004s 0:01.88 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.9c): 3.266u 0.001s 0:03.27 99.6%     0+0k 0+0io 0pf+0w

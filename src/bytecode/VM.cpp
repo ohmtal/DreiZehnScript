@@ -13,6 +13,7 @@
 #include <iostream>
 #include <cstring>
 #include <cmath>
+#include "Environment.h"
 #include "core/AstNode.h"
 #include "core/VariableFrame.h"
 #include "VMStructure.h"
@@ -24,13 +25,9 @@ namespace DreiZehn {
     #define MAX_BC_STACK_SIZE 1024
     #endif
 
-    #ifndef MAX_BC_CALL_STACK
-    #define MAX_BC_CALL_STACK 1024
-    #endif
-
 
     // #define PUSH_STACK(val)      (vmStack[_STK++] = (val))
-    #ifdef _DEBUG
+    #ifdef DREIZEHN_DEBUG
     #define PUSH_STACK(val) \
     do { \
         if (_STK >= MAX_BC_STACK_SIZE) { \
@@ -43,14 +40,9 @@ namespace DreiZehn {
     #define PUSH_STACK(val) (vmStack[_STK++] = (val))
     #endif
 
-    #ifdef _DEBUG
-    inline Value POP_STACK() {
-        if (_STK < 1) {
-            Tools::PrintRuntimeError("VM Stack Underflow!");
-            exit(1);
-        }
-        return vmStack[--_STK];
-    }
+    #ifdef DREIZEHN_DEBUG
+    #define POP_STACK() \
+    ((_STK < 1) ? (Tools::PrintRuntimeError("VM Stack Underflow!"), exit(1), vmStack[0]) : vmStack[--_STK])
     #else
     #define POP_STACK() (vmStack[--_STK])
     #endif
@@ -76,7 +68,7 @@ namespace DreiZehn {
     #ifdef DEBUG_TRACE_EXECUTION
     #define DISPATCH() \
     do { \
-        disassembleInstruction(code, ip); \
+        disassembleInstruction(code, ip, _STK, callStack.size(), callStack.back().mLocals.size()); \
         goto *dispatch_table[ADVANCE_U32()]; \
     } while(0)
     #else
@@ -94,6 +86,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         &&handle_OP_PUSH_VALUE,
 
         &&handle_OP_JUMP,
+        &&handle_OP_JUMP_CLEAN_STACK,
 
         &&handle_OP_JUMP_IF_TRUE_NO_POP,
         &&handle_OP_JUMP_IF_FALSE_NO_POP,
@@ -114,12 +107,20 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         &&handle_OP_SHR,
         &&handle_OP_MODULO,
 
+        // Global variable
         &&handle_OP_LOAD_VAR,
         &&handle_OP_SAVE_VAR,
 
-        // for future use ...
+        // Local variable
         &&handle_OP_GET_LOCAL,   // fetch var
         &&handle_OP_SET_LOCAL,   // write var
+
+        // Object Field
+        &&handle_OP_LOAD_OBJECT_FIELD,
+        &&handle_OP_SAVE_OBJECT_FIELD,
+
+        &&handle_OP_CALL_OBJECT_METHOD,
+        &&handle_OP_SAVE_OBJECT_METHOD,
 
         // Functions
         &&handle_OP_CALL_C_FUNCTION,
@@ -152,12 +153,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
     // -----------------------
     // Local register
-    std::vector<Value> locals;
-    locals.resize(numLocals);
-    // -----------------------
-    U32 callStack[MAX_BC_CALL_STACK];
-    U32 _CS = 0; // Call-Stack Pointer
-    U32 framePointer = 0; // current local variables start point
+    // std::vector<Value> locals;
+    // locals.resize(numLocals);
     // -----------------------
     // stack register
     S32 _STK = 0;
@@ -168,6 +165,13 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     uint32_t* code = chunk.mByteCodes.data();
     size_t codeSize = chunk.mByteCodes.size();
 
+    // -----------------------
+    // CallStack callStack[MAX_BC_CALL_STACK];
+    // U32 _CS = 0; // Call-Stack Pointer
+    std::vector<CallStack> callStack;
+    callStack.push_back({ip});
+    callStack.back().mLocals.resize(numLocals);
+    // -----------------------
 
     DISPATCH();
 
@@ -185,6 +189,15 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     // -------------------------------
     handle_OP_JUMP: {
         ip = PEEK_U32();
+        DISPATCH();
+    }
+
+    handle_OP_JUMP_CLEAN_STACK:{
+        U32 count = ADVANCE_U32();
+        ip = PEEK_U32();
+        for (U32 i = 0; i < count; i++ ) {
+            POP_STACK();
+        }
         DISPATCH();
     }
     // -------------------------------
@@ -445,7 +458,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         DISPATCH();
     }
     // -------------------------------------------------------------------------
-    // -------------------------------
+    // Global variable
+    // -------------------------------------------------------------------------
     handle_OP_LOAD_VAR:{
         U32 symID = ADVANCE_U32();
         U32 ptrPOS = ip;
@@ -473,40 +487,160 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
         if (rawPtr) {
             valuePtr = static_cast<Value*>(rawPtr);
-            *valuePtr = POP_STACK();
+            *valuePtr = PEEK_STACK(0);
             DISPATCH();
         }
         VariableFrame* frame = Globals::MasterVariableFrame;
         valuePtr = frame->getVariablePtr(symID, true);
         PATCH_PTR(ptrPOS,valuePtr);
-        *valuePtr = POP_STACK();
+        *valuePtr = PEEK_STACK(0);
+
+
+        DISPATCH();
+    }
+    // -------------------------------------------------------------------------
+    // Object Field
+    // -------------------------------------------------------------------------
+    handle_OP_LOAD_OBJECT_FIELD: {
+
+        U32 fieldSymId = ADVANCE_U32();
+        U32 saveObjPtrPos = ip;
+        void* rawObjectPtr = ADVANCE_PTR();
+        U32 saveFieldPtrPos = ip;
+        void* rawFieldValuePtr = ADVANCE_PTR();
+
+        Value objectValue = POP_STACK();
+        if (!objectValue.isPointer()) [[unlikely]] {
+            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+        ValueObject* obj = objectValue.asPointerObject();
+        Value* fieldValuePtr = nullptr;
+        if (rawFieldValuePtr && rawObjectPtr &&
+            rawObjectPtr == (void*) obj
+        ) {
+            fieldValuePtr = static_cast<Value*>(rawFieldValuePtr);
+        } else {
+            fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
+            if (!fieldValuePtr) [[unlikely]] {
+                Tools::warnf("RunTime: Object %s have no field named: %s\n",
+                             objectValue.toString().c_str(),
+                             SymbolTable::getName(fieldSymId).c_str());
+                PUSH_STACK(NumberNullValue);
+                DISPATCH();
+            }
+            PATCH_PTR(saveObjPtrPos, obj);
+            PATCH_PTR(saveFieldPtrPos, fieldValuePtr);
+        }
+        PUSH_STACK(*fieldValuePtr);
 
         DISPATCH();
     }
     // -------------------------------
+    handle_OP_SAVE_OBJECT_FIELD: {
+
+        U32 fieldSymId = ADVANCE_U32();
+        U32 saveObjPtrPos = ip;
+        void* rawObjectPtr = ADVANCE_PTR();
+        U32 saveFieldPtrPos = ip;
+        void* rawFieldValuePtr = ADVANCE_PTR();
+
+        Value objectValue = POP_STACK();
+        if (!objectValue.isPointer()) [[unlikely]] {
+            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            DISPATCH();
+        }
+
+        ValueObject* obj = objectValue.asPointerObject();
+        Value* fieldValuePtr = nullptr;
+        if (rawFieldValuePtr && rawObjectPtr &&
+            rawObjectPtr == (void*) obj
+        ) {
+            fieldValuePtr = static_cast<Value*>(rawFieldValuePtr);
+        } else {
+            fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
+            if (!fieldValuePtr) [[unlikely]] {
+                Tools::warnf("RunTime: Object %s have no field named: %s\n",
+                             objectValue.toString().c_str(),
+                             SymbolTable::getName(fieldSymId).c_str());
+                DISPATCH();
+            }
+            PATCH_PTR(saveObjPtrPos, obj);
+            PATCH_PTR(saveFieldPtrPos, fieldValuePtr);
+        }
+        *fieldValuePtr = PEEK_STACK(0);
+
+        DISPATCH();
+    }
+    // -------------------------------------------------------------------------
+    // Object methods
+    // -------------------------------------------------------------------------
+    handle_OP_CALL_OBJECT_METHOD : {
+        // pull method name id
+        U32 symID = ADVANCE_U32();
+        U32 argCount = ADVANCE_U32();
+
+        Value objectValue = POP_STACK();
+        if (!objectValue.isPointer()) [[unlikely]] {
+            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+        ValueObject* obj = objectValue.asPointerObject();
+        if (!obj) {
+            Tools::errorf("RunTime Error: Invalid Object: %s.\n", objectValue.toString().c_str());
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+        {
+            std::vector<Value> evaluatedArgs(argCount);
+            for (int i = (int)argCount - 1; i >= 0; i--) {
+                evaluatedArgs[i] = POP_STACK();
+            }
+
+            Value returnValue = NumberNullValue;
+            bool success = obj->onMethodCall(symID, evaluatedArgs, returnValue);
+            if (!success) {
+                Tools::errorf("Runtime Error in native function call\n");
+            }
+            PUSH_STACK(returnValue);
+        }
+
+        DISPATCH();
+    }
+    handle_OP_SAVE_OBJECT_METHOD : {
+        DISPATCH_OPCODE(OP_INVALID);
+
+        DISPATCH();
+    }
+    // -------------------------------------------------------------------------
+    // Local variable
+    // -------------------------------------------------------------------------
+
     handle_OP_GET_LOCAL: {
         // frame pointer for call stack
-        U32 slot = framePointer + ADVANCE_U32();
-        PUSH_STACK(locals[slot]);
+        U32 slot = ADVANCE_U32();
+        PUSH_STACK(callStack.back().mLocals[slot]);
         DISPATCH();
     }
     // -------------------------------
     handle_OP_SET_LOCAL: {
         // frame pointer for call stack
-        U32 slot = framePointer + ADVANCE_U32();
-        if (slot >= locals.size()) {
-            locals.resize(slot + 1);
-        } else {
-            // Garbage Colletion
-            if (locals[slot].isPointer()) locals[slot].asPointerObject()->setAssigned(false);
+        U32 slot = ADVANCE_U32();
+        if (slot >= callStack.back().mLocals.size()) {
+            callStack.back().mLocals.resize(slot + 1);
         }
-        locals[slot] = POP_STACK();
-        if (locals[slot].isPointer()) locals[slot].asPointerObject()->setAssigned(true);
+        Value& val = callStack.back().mLocals[slot];
+        if (val.isPointer()) val.asPointerObject()->setAssigned(false);
+        val = PEEK_STACK(0);
+        if (val.isPointer()) val.asPointerObject()->setAssigned(true);
 
         DISPATCH();
     }
     // -------------------------------
     handle_OP_CALL_C_FUNCTION: {
+        // pull function name id
         U32 symID = ADVANCE_U32();
         U32 ptrPOS = ip;
         void* rawPtr = ADVANCE_PTR();
@@ -542,16 +676,18 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         U32 targetIP = ADVANCE_U32();
         U32 argCount = ADVANCE_U32();
 
-        callStack[_CS++] = ip;
+        callStack.back().mIP = ip;
+        callStack.push_back({targetIP});
+        callStack.back().mLocals.resize(argCount);
 
-        PUSH_STACK(Value(static_cast<double>(framePointer)));
-        PUSH_STACK(Value(static_cast<double>(argCount)));
-
-        framePointer = _STK - 2 - argCount;
-
-        for (S32 i = argCount - 1; i >= 0; --i) {
-            locals[framePointer + i] = PEEK_STACK(2 + (argCount - 1 - i));
+        for (int i = (int)argCount - 1; i >= 0; i--) {
+            Value param = POP_STACK();
+            U32 slot =  i;
+            callStack.back().mLocals[slot] = param;
+            // Tools::printf("** PARAM IS: %s _STK=%u  _CS=%zu framePointer is:%u argCount:%d locals:%zu\n",
+            //               param.toString().c_str(), callStack.size(), _STK,framePointer, argCount, locals.size());
         }
+
 
         ip = targetIP;
         DISPATCH();
@@ -560,11 +696,14 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     handle_OP_INC_LOCAL: {
         U32 slot = ADVANCE_U32();
         S32 inc = ADVANCE_S32();
-        if (locals[slot].isInt()) [[likely]] {
-            locals[slot] = Value(locals[slot].asFastInt() + inc);
+        Value& val = callStack.back().mLocals[slot];
+        if (val.isInt()) [[likely]] {
+            val = Value(val.asFastInt() + inc);
+            PUSH_STACK(val);
             DISPATCH();
         }
-        locals[slot] = Value(locals[slot].getInt() + inc);
+        val = Value(val.getInt() + inc);
+        PUSH_STACK(val);
         DISPATCH();
     }
     // -------------------------------
@@ -669,7 +808,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         PUSH_STACK(Value(0));     // current value
 
 
-        locals[iterSlot] = 0;
+        callStack.back().mLocals[iterSlot] = 0;
         DISPATCH();
     }
     // -------------------------------
@@ -692,7 +831,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         PUSH_STACK(Value(end));
         PUSH_STACK(Value(start));
 
-        locals[iterSlot] = start;
+        callStack.back().mLocals[iterSlot] = start;
 
         // patch increment
         code[incrementCodePos] = (U32)increment;
@@ -714,7 +853,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
         if (loopContinues) {
             PEEK_STACK(0) = Value(current); // set new value to stack
-            locals[iterSlot] = current;    // update iter var
+            callStack.back().mLocals[iterSlot] = current;    // update iter var
 
             ip = targetIP;
         } else {
@@ -731,31 +870,24 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     // -------------------------------
     handle_OP_RETURN: {
 
-        if (_CS == 0) {
+        if (callStack.size() <  2) {
             DISPATCH_OPCODE(OP_EXIT);
         }
 
         Value returnValue = POP_STACK();
 
-        U32 argCount        = static_cast<U32>(POP_STACK().getDouble());
-        U32 oldFramePointer = static_cast<U32>(POP_STACK().getDouble());
-
-        _STK = framePointer;
-
-        framePointer = oldFramePointer;
+        callStack.pop_back();
 
         PUSH_STACK(returnValue);
 
-        ip = callStack[--_CS];
+        ip = callStack.back().mIP;
         DISPATCH();
     }
     // -------------------------------
     handle_OP_EXIT: {
         #ifdef DEBUG_TRACE_EXECUTION
-        Tools::printf("STACK COUNT: %zu\n", STACK_SIZE());
-        // Tools::printf("STACK COUNT: %zu, RETURN VALUE IS: %s\n", STACK_SIZE(),(STACK_SIZE() == 0 ? NumberNullValue : PEEK_STACK(0)).toString().c_str());
+        Tools::printf("*** STACK COUNT: %zu\n", STACK_SIZE());
         #endif
-        //FIXME Garbage Colletion on locals!
 
         return _STK == 0 ? NumberNullValue : PEEK_STACK(0);
     }
@@ -766,6 +898,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
 
 
-    Tools::errorf("SHOULD NOT BE HERE !!! Did you forget OP_EXIT?");
+    // Tools::errorf("SHOULD NOT BE HERE !!! Did you forget OP_EXIT?");
     return NumberNullValue;
 }}

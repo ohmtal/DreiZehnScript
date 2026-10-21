@@ -18,11 +18,17 @@ typedef uint32_t U32;
 typedef int64_t  S64;
 typedef int32_t  S32;
 
+struct CallStack {
+    U32 mIP = 0;
+    std::vector<Value> mLocals;
+};
+
 enum  OpCodes : uint32_t {
     OP_CONST,       // push const to stack
     OP_PUSH_VALUE,
 
     OP_JUMP,
+    OP_JUMP_CLEAN_STACK,
     OP_JUMP_IF_TRUE_NO_POP,
     OP_JUMP_IF_FALSE_NO_POP,
     OP_JUMP_IF_FALSE,
@@ -52,9 +58,18 @@ enum  OpCodes : uint32_t {
     OP_GET_LOCAL,
     OP_SET_LOCAL,
 
+    // Object fields
+    OP_LOAD_OBJECT_FIELD,
+    OP_SAVE_OBJECT_FIELD,
+
+    // Object methods
+    OP_CALL_OBJECT_METHOD,
+    OP_SAVE_OBJECT_METHOD,
+
     //Function Call
     OP_CALL_C_FUNCTION,
     OP_CALL_SF_FUNCTION,
+
 
     // Math
     OP_INC_LOCAL, //++ -- += -= using emitted value
@@ -89,6 +104,7 @@ constexpr OpCodeInfo OpCodeInfos[] = {
     {"OP_PUSH_VALUE", 0},
 
     {"OP_JUMP", 1},
+    {"OP_JUMP_CLEAN_STACK", 2},
     {"OP_JUMP_IF_TRUE_NO_POP", 1},
     {"OP_JUMP_IF_FALSE_NO_POP", 1},
     {"OP_JUMP_IF_FALSE", 1},
@@ -115,8 +131,14 @@ constexpr OpCodeInfo OpCodeInfos[] = {
     {"OP_GET_LOCAL", 1},
     {"OP_SET_LOCAL", 1},
 
+    {"OP_LOAD_OBJECT_FIELD", 5},
+    {"OP_SAVE_OBJECT_FIELD", 5},
+
+    {"OP_CALL_OBJECT_METHOD", 2},
+    {"OP_SAVE_OBJECT_METHOD", 2},
+
     {"OP_CALL_C_FUNCTION", 0}, //SPECIAL emittedCount variable
-    {"OP_CALL_SF_FUNCTION", 0}, //SPECIAL emittedCount variable
+    {"OP_CALL_SF_FUNCTION", 2},
 
     {"OP_INC_LOCAL", 2},
 
@@ -139,7 +161,7 @@ constexpr OpCodeInfo OpCodeInfos[] = {
 
 
 
-void disassembleInstruction(const uint32_t* code, size_t offset);
+void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize);
 
 
 // -----------------------------------------------------------------------------

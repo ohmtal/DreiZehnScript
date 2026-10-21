@@ -119,7 +119,7 @@ struct ASTNode {
         return false;
     }
 
-    virtual bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+    virtual bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         return false;
     }
 };
@@ -213,7 +213,7 @@ struct VariableExpression : public Expression {
     Value* evaluatePtr(Environment& env) override;
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
-    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) override;
+    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 
 };
 
@@ -280,6 +280,7 @@ struct ObjectFieldExpression : public Expression {
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 
 };
 // function calls --------------------------------------------------------------
@@ -490,6 +491,7 @@ struct UnaryMinusExpression : public Expression {
     UnaryMinusExpression( std::unique_ptr<Expression> expr) : mExpr(std::move(expr)) { }
 
     inline Value evaluate(Environment& env) override {
+        if (!mExpr) return NumberNullValue;
         Value v = mExpr->evaluate(env);
         if (v.isInt()) return Value(v.asFastInt() * -1);
         if (v.isDouble()) return Value(v.asFastDouble() * -1);

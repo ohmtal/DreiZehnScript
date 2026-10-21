@@ -90,11 +90,15 @@ debug::bc 'for i 0 10; printraw i " ";;printraw "\\n"'
 print "BACKWARD step 2:"
 debug::bc 'for i 10 0 2; printraw i " ";;printraw "\\n"'
 
-
 -- -----------------------------------------------------------------------------
 niceLine "functions"
 debug::bc 'fn lala; print "EXECUTED????"; return "EXIT?";;print "AFTER FUNC"; lala; print "STILL HERE?"'
-
+debug::bc 'num = 10;fn lala p; print "EXECUTED????" p; return "EXIT?";;print "AFTER FUNC"; lala num; print "STILL HERE?"'
+debug::bc 'global i = 5; fn rec i;print i;i--;if i > 0; rec i; else return i;; end print "i=" rec i'
 -- -----------------------------------------------------------------------------
 niceLine "globals"
 debug::bc loadSource "test_global.13"
+-- -----------------------------------------------------------------------------
+niceLine "Object fields and methods"
+debug::bc 'a = Object::new; a.x = 10.1; print "a.x (10) ==" a.x';
+debug::bc 'v = Vector::new; v->fill 10 (Vector3::new); v->dump';

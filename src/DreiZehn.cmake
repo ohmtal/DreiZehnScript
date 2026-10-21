@@ -12,6 +12,8 @@ if(NOT MSVC AND BUILD_WITH_FORCEO2)
     set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 endif()
 
+
+
 set(DREIZEHN_SRC
 
     # core

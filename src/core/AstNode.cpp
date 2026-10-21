@@ -105,7 +105,7 @@ namespace DreiZehn {
         return true;
     }
 
-    bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope) {
+    bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         // save var
         if (mGlobalVariable) {
             chunk.emit(OP_SAVE_VAR);
@@ -115,6 +115,10 @@ namespace DreiZehn {
             U32 localSlot = scope.insert(mVariableNameSymbolId);
             chunk.emit(OP_SET_LOCAL);
             chunk.emit(static_cast<U32>(localSlot));
+        }
+
+        if (requestType == ValueType::NONE) {
+            chunk.emit(OP_POP_STACK);
         }
 
         return true;
@@ -266,6 +270,10 @@ namespace DreiZehn {
         return returnValue;
     }
     Value* ObjectFieldExpression::evaluatePtr(Environment& env) {
+        if (!mVarExpr ) {
+            Tools::errorf("RunTime Error: Field without an variable\n");
+            return nullptr;
+        }
         Value varValue = mVarExpr->evaluate(env);
         if (!varValue.isPointer()) {
             Tools::errorf("RunTime Error: Object %s not found.\n",varValue.toString().c_str());
@@ -295,9 +303,46 @@ namespace DreiZehn {
         }
         return valPtr;
     }
-
+    // -----------------------
     bool ObjectFieldExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
+        if (!mVarExpr ) {
+            Tools::errorf("RunTime Error: Field without an variable\n");
+            return false;
+        }
+        // PUSH VAR
+        mVarExpr->compile(env,chunk,scope,ValueType::Pointer);
+
+        chunk.emit(OP_LOAD_OBJECT_FIELD);
+        // Field symid
+        chunk.emit(mFieldSymbolId);
+        // SPACE FOR Cached object
+        chunk.emitPointer(nullptr);
+        // SPACE FOR cached fieldvalue
+        chunk.emitPointer(nullptr);
+
+        return false;
+    }
+    // -----------------------
+    bool ObjectFieldExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (!mVarExpr ) {
+            Tools::errorf("RunTime Error: Field without an variable\n");
+            return false;
+        }
+        // PUSH VAR
+        mVarExpr->compile(env,chunk,scope,ValueType::Pointer);
+
+        chunk.emit(OP_SAVE_OBJECT_FIELD);
+        // Field symid
+        chunk.emit(mFieldSymbolId);
+        // SPACE FOR Cached object
+        chunk.emitPointer(nullptr);
+        // SPACE FOR cached fieldvalue
+        chunk.emitPointer(nullptr);
+
+        if (requestType == ValueType::NONE) {
+            chunk.emit(OP_POP_STACK);
+        }
+
         return false;
     }
     // -------------------------------------------------------------------------
@@ -318,7 +363,7 @@ namespace DreiZehn {
         ValueObject* obj = objectPointer.asPointerObject();
         if (!obj) {
             Tools::errorf("RunTime Error: Invalid Object: %s.\n", objectPointer.toString().c_str());
-            return Value();
+            return NumberNullValue;
         }
         std::vector<Value> evaluatedArgs;
         for (auto& argExpr : mArguments) {
@@ -351,10 +396,29 @@ namespace DreiZehn {
 
         return obj->onMethodCallGetAssignPtr(mMethodNameSymbolId, evaluatedArgs);
     }
-
+    // ---------------------
     bool MethodExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+
+        if (!mVarExpr) {
+            Tools::errorf("Compile Error Method have no Variable\n");
+            return false;
+        }
+        U32 argCount = 0;
+        for (auto& argExpr : mArguments) {
+            if (argExpr) {
+                argExpr->compile(env, chunk, scope, ValueType::ANY);
+                argCount++;
+            }
+        }
+        mVarExpr->compile(env,chunk,scope,ValueType::Pointer);
+        chunk.emit(OP_CALL_OBJECT_METHOD);
+        chunk.emit(mMethodNameSymbolId);
+        chunk.emit(argCount);
+
+        if (requestType == ValueType::NONE) {
+            chunk.emit(OP_POP_STACK);
+        }
+        return true;
     }
     // -------------------------------------------------------------------------
     // CallExpression
@@ -482,7 +546,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
         chunk.emit(OP_CALL_C_FUNCTION);
         chunk.emit(mFuncSymbolId);
-        chunk.emitPointer(nullptr); //placeholder
+        chunk.emitPointer(nullptr); //placeholder for cache
         chunk.emit(argCount);
 
         if (requestType == ValueType::NONE) {
@@ -501,7 +565,12 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
 
         chunk.emit(OP_CALL_SF_FUNCTION);
-        chunk.emit(sf->bytecodeAddress);
+
+
+        scope.mFunctionPatches.push_back({sf, chunk.tell()});
+        chunk.emit(0); //placeHolder for sf->bytecodeAddress
+        // // chunk.emit(sf->bytecodeAddress);
+
         chunk.emit(argCount);
 
         if (requestType == ValueType::NONE) {
@@ -644,12 +713,37 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     // }
     // --------
     bool BinaryOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        // bool unary = false;
+        if (requestType == ValueType::NONE) {
+            // if (mOp != TokenType::Minus) {
+                Tools::PrintParseError("Invalid calculation: If you want to add a '-' Value encapsulate it like (-1).");
+                return false;
+            // }
+            // unary hack
+            // unary = true;
+        }
+
+
         if (!mLeft.get() || !mRight.get()) {
             Tools::PrintParseError("left or right is missing:");
             return false;
         }
+
+        // //HACK fest <<< not working!
+        // if (unary) {
+        //
+        //     this->mRight->compile(env,chunk, scope, ValueType::ANY);
+        //     chunk.emit(OP_PUSH_VALUE);
+        //     chunk.emitValue(Value(-1));
+        //     chunk.emit(OP_MUL);
+        //
+        //     this->mLeft->compile(env,chunk, scope, requestType);
+        //     return true;
+        // }
+
         this->mLeft->compile(env,chunk, scope, requestType);
         this->mRight->compile(env,chunk, scope, requestType);
+
 
         switch (this->mOp) {
             case TokenType::Plus    : chunk.emit(OP_ADD); break;
@@ -755,7 +849,9 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
                 chunk.emit(localSlot);
                 chunk.emitS32(inc);
 
-
+                if (requestType == ValueType::NONE) {
+                    chunk.emit(OP_POP_STACK);
+                }
                 return true;
             }
         }
@@ -768,7 +864,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         // ADD INC
         chunk.emit(OP_ADD);
         // SAVE VAR
-        mExpr->compileAssignment(env,chunk,scope);
+        mExpr->compileAssignment(env,chunk,scope, requestType);
 
         return true;
 
@@ -1025,7 +1121,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
          }
         // types must support compileAssignment!
         mRhs->compile(env,chunk,scope,ValueType::ANY);
-        return mVarExpr->compileAssignment(env, chunk, scope);
+        return mVarExpr->compileAssignment(env, chunk, scope, requestType);
 
     }
 
@@ -1171,7 +1267,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
 
 
-        mVarExpr->compileAssignment(env,chunk,scope);
+        mVarExpr->compileAssignment(env,chunk,scope, requestType);
         return true;
     }
 
@@ -1179,12 +1275,26 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     // -------------------------------------------------------------------------
     bool TernaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         //FIXME
+        // // inline Value evaluate(Environment& env) override {
+        // //     auto condVal = mCondition->evaluate(env);
+        // //     if (condVal.getBool() ) {
+        // //         return mTrueBranch->evaluate(env);
+        // //     } else {
+        // //         return mFalseBranch->evaluate(env);
+        // //     }
+        // // }
         return false;
     }
     // -------------------------------------------------------------------------
     bool UnaryMinusExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        //FIXME
-        return false;
+
+        if (!mExpr) return false;
+        mExpr->compile(env,chunk,scope,requestType);
+        chunk.emit(OP_PUSH_VALUE);
+        chunk.emitValue(Value(-1));
+        chunk.emit(OP_MUL);
+
+        return true;
     }
     // -------------------------------------------------------------------------
     // FLOW STATEMENTS execute
@@ -1316,11 +1426,6 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
         // add iter values to registers
         U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
-        // set the start iter to 0
-        chunk.emit(OP_PUSH_VALUE);
-        chunk.emitValue(Value(0));
-        chunk.emit(OP_SET_LOCAL);
-        chunk.emit(iteratorSlot);
 
         // set the limit (count)
         this->mCountExpr->compile(env,chunk,scope,ValueType::Int);
@@ -1351,7 +1456,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         LoopInfo finishedLoop = scope.mLoopStack.back();
         scope.mLoopStack.pop_back();
         for (U32 breakPlaceholder : finishedLoop.breakOffsets) {
-            chunk.patch(breakPlaceholder, loopEndIP);
+            chunk.patch(breakPlaceholder , 2); // we have 2 on the stack
+            chunk.patch(breakPlaceholder + 1, loopEndIP);
         }
         for (U32 contPlaceholder : finishedLoop.continueOffsets) {
             chunk.patch(contPlaceholder, continueIP);
@@ -1359,64 +1465,6 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         return true;
     }
-    //NOTE works but  too slow .. need something like in ElfScript!
-    // one billion test : 10.786u
-    // // bool ForRangeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-    // //     if (!this->mCountExpr ) {
-    // //         Tools::errorf("Runtime Error: range need a count border!\n");
-    // //         return false;
-    // //     }
-    // //
-    // //     // add iter values to registers
-    // //     U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
-    // //     U32 endValueTmpSlot = scope.allocateTemporarySlot();
-    // //
-    // //     // set the start iter to 0
-    // //     chunk.emit(OP_PUSH_VALUE);
-    // //     chunk.emitValue(Value(0));
-    // //     chunk.emit(OP_SET_LOCAL);
-    // //     chunk.emit(iteratorSlot);
-    // //
-    // //     // set the end iter:
-    // //     this->mCountExpr->compile(env,chunk,scope,ValueType::Int);
-    // //     chunk.emit(OP_SET_LOCAL);
-    // //     chunk.emit(endValueTmpSlot);
-    // //
-    // //
-    // //     U32 loopConditionAddr = chunk.tell();
-    // //
-    // //     // ITER
-    // //     chunk.emit(OP_GET_LOCAL);
-    // //     chunk.emit(iteratorSlot);
-    // //     chunk.emit(OP_GET_LOCAL);
-    // //     chunk.emit(endValueTmpSlot);
-    // //     chunk.emit(OP_LESS);
-    // //
-    // //     chunk.emit(OP_JUMP_IF_FALSE);
-    // //     U32 exitJumpPlaceholder = chunk.tell();
-    // //     chunk.emit(0); // space for patch
-    // //
-    // //     for (auto& statement : mBody) {
-    // //         //NOTE not sure about the ValueType
-    // //         statement->compile(env,chunk,scope,ValueType::ANY);
-    // //     }
-    // //
-    // //     chunk.emit(OP_INC_LOCAL);
-    // //     chunk.emit(iteratorSlot);
-    // //     chunk.emit(1);
-    // //
-    // //     chunk.emit(OP_JUMP);
-    // //     chunk.emit(loopConditionAddr);
-    // //
-    // //     // patch jmp
-    // //     U32 loopEndAddr = chunk.tell();
-    // //     chunk.patch(exitJumpPlaceholder, loopEndAddr);
-    // //
-    // //     scope.freeTemporarySlot();
-    // //
-    // //
-    // //     return true;
-    // // }
     // -------------------------------------------------------------------------
     FlowStatus ForStatement::execute(Environment& env){
         if (!this->mStartExpr || !this->mEndExpr ) {
@@ -1485,7 +1533,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return false;
         }
 
-        U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
+                U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
 
         // push start, end, increment
         mStartExpr->compile(env, chunk, scope, ValueType::ANY);
@@ -1531,7 +1579,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         scope.mLoopStack.pop_back();
 
         for (U32 breakPlaceholder : finishedLoop.breakOffsets) {
-            chunk.patch(breakPlaceholder, loopEndIP);
+            chunk.patch(breakPlaceholder , 2); // we have 2 on the stack
+            chunk.patch(breakPlaceholder + 1 , loopEndIP);
         }
         for (U32 contPlaceholder : finishedLoop.continueOffsets) {
             chunk.patch(contPlaceholder, continueIP);
@@ -1594,7 +1643,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         chunk.patch(exitIPPatch, loopEndIP);
 
         for (U32 breakPlaceholder : finishedLoop.breakOffsets) {
-            chunk.patch(breakPlaceholder, loopEndIP);
+            chunk.patch(breakPlaceholder, 0); // we have no extras on the stack
+            chunk.patch(breakPlaceholder + 1, loopEndIP);
         }
 
         for (U32 contPlaceholder : finishedLoop.continueOffsets) {
@@ -1711,9 +1761,10 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             Tools::PrintParseError("Error: 'break' outside of loop context!");
             return false;
         }
-        chunk.emit(OP_JUMP);
+        chunk.emit(OP_JUMP_CLEAN_STACK);
         U32 breakPlaceholder = chunk.tell();
-        chunk.emit(0); // placeholder for
+        chunk.emit(0); // placeholder clean stack count
+        chunk.emit(0); // placeholder for jump ip
         scope.mLoopStack.back().breakOffsets.push_back(breakPlaceholder);
         return true;
     }

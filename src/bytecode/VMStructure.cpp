@@ -10,7 +10,7 @@
 #include "VMStructure.h"
 
 namespace DreiZehn {
-void disassembleInstruction(const uint32_t* code, size_t offset) {
+void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize) {
     uint32_t opcode = code[offset];
 
     Tools::printf("%04zu: ", offset);
@@ -36,24 +36,12 @@ void disassembleInstruction(const uint32_t* code, size_t offset) {
                 offset += 2;
 
                 U32 argCount = code[offset++];
-                Tools::printf("  SymId:%u Pointer: %p, Args: %u", symId, cb, argCount);
-            }
-            break;
-            case OP_CALL_SF_FUNCTION: {
-                //TODO TEST not implemented yet
-                offset++;
-                void* cb = nullptr;
-                std::memcpy(&cb, &code[offset], sizeof(void*));
-                offset += 2;
-
-                U32 argCount = code[offset++];
-                U32 requestType = code[offset++];
-                Tools::printf("  Pointer: %p, Args: %u, requestType:%u", cb, argCount, requestType);
+                Tools::printf("  SymId:%u Pointer: %p, Arg: %u", symId, cb, argCount);
             }
             break;
             default:
                 if (OpCodeInfos[opcode].emittedCount > 0) {
-                    Tools::printf(" Args: ");
+                    Tools::printf(" Arg: ");
                     for (U32 i = 1; i <= OpCodeInfos[opcode].emittedCount; i++ ) {
                         Tools::printf("%u ", code[offset + i]);
                     }
@@ -66,5 +54,5 @@ void disassembleInstruction(const uint32_t* code, size_t offset) {
     } else {
         Tools::printf("UNKNOWN_OPCODE [%u]", opcode);
     }
-    Tools::printf("\n");
+    Tools::printf(", _STK[%d], _CS[%zu], FP:%zu\n", stk, callstk, localsSize);
 }}

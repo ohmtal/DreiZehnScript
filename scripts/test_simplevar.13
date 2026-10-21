@@ -6,8 +6,11 @@ define JLOOPS 25
 define ILOOPS 1000000
 define HLOOPS ILOOPS / 2
 
--- global varX = 0.0; type = "GLOBAL"
-varX = 0.0; type = "LOCAL"
+if (sys::args->count > 2 && (sys::args->value 2) == "global")
+    global varX = 0.0; type = "GLOBAL"
+else
+    varX = 0.0; type = "LOCAL"
+end
 
 forRange j JLOOPS
     forRange i ILOOPS
@@ -23,16 +26,16 @@ forRange j JLOOPS
     print  "set Sum to 66 == " (varX * 1)
 
     forRange i ILOOPS
-        varX *=  (i + 1.01)
-        varX /=  (i + 1.01)
+        varX = varX * (i + 1)
+        varX = varX / (i + 1)
     end
     print  "SUM (*/ %i+1) IS: " varX
 
     ran = 0.0
     forRange i HLOOPS
         ran = math::randomf * i
-        varX -=  ran
-        varX +=  ran
+        varX = varX - ran
+        varX = varX + ran
     end
     print  "last ran" ran
     print  "SUM (rand +-) IS: " varX
@@ -44,4 +47,4 @@ print "  *** " type " ***"
 print "---------------------"
 print  "Final sum should be 33.0 == " varX
 print "---------------------"
-print "---------------------"
+print " ... use parameter global for global test ...\n"

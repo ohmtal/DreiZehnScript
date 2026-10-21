@@ -77,7 +77,11 @@ local is not assigned at all so if a gc is running we are in trouble!
 - [X] IfStatement
 - [X] BinaryExpression
 - [X] CallExpression script functions with precopile 
-
+- [X] ForStatement
+- [X] WhileStatement
+- [X] ReturnStatement 
+- [X] ContinueStatement
+- [X] BreakStatement
 
 ### 0.9c: 
 
@@ -92,15 +96,45 @@ Segmentation fault (core dumped)
 ### 0.9d:
 
 - [X] AssignOPStatement (not with direct path!)
+- [X] Global variable lookup and cache the pointer (fast! :))
+- [X] CallExpression fixed to lookup and cache the pointer (bytecode save)
+- [X] ObjectFieldExpression with cache value
 
-- [ ] BinaryInlineExpression
+- [X] BinaryInlineExpression
     - [X] local 
-    - [ ] global var - calculate wrong! i guess my new optimized code ?! 
-    - [ ] others hackfest via expr pointer ^^ 
+    - [X] others to "slow" a = a + 1
+
+- [X] MethodExpression 
+- [X] Assignment does not set a value !!!!! print (a = 10) 
+- [X] UnaryMinusExpression
+- **2026-10-21**:
+    - Now the StarField.13 runs in BC mode :) => ~ 315FPS (Interpreter does this with ~200FPS)
+    - var test global (O2, null output): 1.729u 0.002s 0:01.74 98.8%     0+0k 0+0io 0pf+0w
+    - var test local (O2, null output): 1.765u 0.000s 0:01.77 99.4%     0+0k 0+0io 0pf+0w
+    - lol as fast as the local register .... but it's only one variable so no lookup time
+
+- [ ] BIG problem when precopile functions it does not know anything about the globals!
+    - no idea so far ^^ 
+    
+- [ ] ForEachStatement << this should enable StarField2 :)
+
+- [X] BUG recursive Function call: scripts/testBC_fibo.13 cause crash! - it crash at FIRST call?!
+    - `debug::bc 'global num = 5; fn rec i;print i;i--;if i > 0; rec i; else return i;; end; print "i=" (rec num)'`
+    - not only recursive! - is it the return ?! or the print call
+    - its the return - it does NOT push a value!? it does ... but where is it 
+    - THIS WORKS:`debug::bc 'global num = 5; fn rec i;print "inside" i;i--;return i end ;(rec num)'`
+    - THIS WORKS: `debug::bc 'global num = 5; fn rec i;print "inside" i;i--;return i end ;print (rec num)'`
+    - THIS CRASH: `debug::bc 'global num = 5; fn rec i;print i;i--;return i end; print "i=" (rec num)'`
+    - OK i think the stack gets corrupted the the "i=" is cutted?!
+
+    - ***REWROTE CALLSTACK!!* needs to be optimized
+    
+- [ ] speedup callStack - hold a pointer on current locals !!
+```
 
 - [ ] AssignStatement ( compileAssignment )
-    - [X] VariableExpression
-    - [ ] ObjectFieldExpression
+    - [X] VariableExpression local and global 
+    - [X] ObjectFieldExpression with cache
     - [ ] ArrayVariableExpression
     - [ ] MethodExpression
     - [ ] VariableReferenceExpression
@@ -109,21 +143,11 @@ Segmentation fault (core dumped)
     
 
 ---
- 
-- [ ] ReturnStatement - break_POPCount, break_Exit_OP
-- [ ] ContinueStatement
-- [ ] BreakStatement
 
-- [ ] CallExpression script functions 
 - [ ] VariableReferenceExpression
 - [ ] VariablePointerExpression
 - [ ] ArrayVariableExpression
-- [ ] MethodExpression
-- [ ] ForStatement
-- [ ] WhileStatement
-- [ ] ObjectFieldExpression
 - [ ] TernaryExpression
-- [ ] ForEachStatement
 - [ ] IncludeStatement << tricky ?! or the same as a BlockStatement
 - [ ] KeyValueExpression
 

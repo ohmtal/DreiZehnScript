@@ -5,9 +5,9 @@
 // Enviroment VM
 #pragma once
 //-----------------------------------------------------------------------------
-// #ifdef _DEBUG
-// #define DEBUG_TRACE_EXECUTION
-// #endif
+#ifdef DREIZEHN_DEBUG
+#define DEBUG_TRACE_EXECUTION
+#endif
 //-----------------------------------------------------------------------------
 #include <string>
 #include <vector>
@@ -87,7 +87,7 @@ public:
 
         Value res = runDirectThreadedVM(chunk, scope.getLocalCount());
         #ifdef DEBUG_TRACE_EXECUTION
-        Tools::printf("CompileExec VALUE IS: %s\n", res.toString().c_str());
+        Tools::printf("*** CompileExec VALUE IS: %s\n", res.toString().c_str());
         #endif
         return res;
     }
@@ -96,35 +96,31 @@ public:
     {
         if (!node) return false;
 
+// FIXME FIXME
+//  PRECOMPILE CANT SEE THE GLOBALS !!!!, when i put it on the back the others cant see the functions ?!
+//  I NEED TO PUT THEM INSIDE IN CORRECT ORDER
+// FIXME FIXME
 
-        chunk.emit(OP_JUMP);
-        U32 globalStartPatch = chunk.tell();
-        chunk.emit(0);
-        for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
-            func.bytecodeAddress = chunk.tell();
-
-            // CompilerScope functionScope;
-            // for (const auto& paramName : func.parameterNames) {
-            //     functionScope.insert(SymbolTable::insert(paramName));
-            // }
-            //
-            // for (auto& statement : func.body) {
-            //     statement->compile(env, chunk, functionScope, ValueType::NONE);
-            // }
-            for (const auto& paramName : func.parameterNames) {
-                scope.insert(SymbolTable::insert(paramName));
-            }
-
-            for (auto& statement : func.body) {
-                statement->compile(env, chunk, scope, ValueType::NONE);
-            }
-
-            chunk.emit(OP_PUSH_VALUE);
-            chunk.emitValue(NumberNullValue);
-            chunk.emit(OP_RETURN);
-        }
-        U32 mainScriptStartIP = chunk.tell();
-        chunk.patch(globalStartPatch, mainScriptStartIP); // Patch den globalen JUMP hierher
+        // chunk.emit(OP_JUMP);
+        // U32 globalStartPatch = chunk.tell();
+        // chunk.emit(0);
+        // for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
+        //     func.bytecodeAddress = chunk.tell();
+        //
+        //     for (const auto& paramName : func.parameterNames) {
+        //         scope.insert(SymbolTable::insert(paramName));
+        //     }
+        //
+        //     for (auto& statement : func.body) {
+        //         statement->compile(env, chunk, scope, ValueType::NONE);
+        //     }
+        //
+        //     chunk.emit(OP_PUSH_VALUE);
+        //     chunk.emitValue(NumberNullValue);
+        //     chunk.emit(OP_RETURN);
+        // }
+        // U32 mainScriptStartIP = chunk.tell();
+        // chunk.patch(globalStartPatch, mainScriptStartIP);
 
         CompilerScope globalScope;
         switch(node->mNodeType) {
@@ -139,7 +135,34 @@ public:
                 return false;
         }
 
+
         chunk.emit(OP_EXIT);
+
+        /// TEST added scripts on back of byte code after EXIT
+        // LOL ON THE BACK I DONT HAVE THE **bytecodeAddress** on a function call!
+        for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
+            func.bytecodeAddress = chunk.tell();
+
+            scope.ResetLocals();
+
+            for (const auto& paramName : func.parameterNames) {
+                scope.insert(SymbolTable::insert(paramName));
+            }
+
+            for (auto& statement : func.body) {
+                statement->compile(env, chunk, scope, ValueType::NONE);
+            }
+
+            chunk.emit(OP_PUSH_VALUE);
+            chunk.emitValue(NumberNullValue);
+            chunk.emit(OP_RETURN);
+        }
+
+        // Apply function patches - what a HACK fest
+        for (auto& patch: scope.mFunctionPatches) {
+            chunk.patch(patch.mPatchAddress, patch.mFuncPtr->bytecodeAddress);
+        }
+
         return true;
     }
 

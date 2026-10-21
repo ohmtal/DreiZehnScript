@@ -174,3 +174,8 @@ if(WIN32 AND MSVC)
     add_compile_options(/MP)
 endif()
 
+# Add debug flag
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Debug>:DREIZEHN_DEBUG>
+)
+

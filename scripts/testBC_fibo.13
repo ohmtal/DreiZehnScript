@@ -1,0 +1,9 @@
+-- Byte Code testing
+# ------------------------------------------------------------------------------
+include "common/FileTools.13" true
+# ------------------------------------------------------------------------------
+ft = FileTool::new "scripts/test_fibonacci.13"
+ft->load
+debug::bc ft.content
+
+

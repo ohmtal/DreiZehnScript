@@ -1,7 +1,7 @@
 -- Byte Code testing
 
 --- counter
-debug::bc 'printraw ">>>> "; forRange i 1000000000;;print "i is" i " <<<"'
+debug::bc 'printraw ">>>> "; forRange i 10;;print "i is" i " <<<"'
 -- debug::bc 'printraw ">>>> "; forRange i 10000;;print "i is" i " <<<"'
 
 

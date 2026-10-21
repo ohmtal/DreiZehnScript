@@ -203,6 +203,12 @@ struct BytecodeChunk {
         return true;
     }
 
+    bool patchPtr(U32 pos, void* ptr) {
+        if ((pos + sizeof(void*)) >= mByteCodes.size()) return false;
+        std::memcpy(&mByteCodes[pos], &ptr, sizeof(void*));
+        return true;
+    }
+
     U32 emitS32 (S32 op) {
         mByteCodes.push_back((U32)op);
         return (U32)mByteCodes.size() - 1;

@@ -546,6 +546,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
         chunk.emit(OP_CALL_C_FUNCTION);
         chunk.emit(mFuncSymbolId);
+        mFunctionPatches.push_back({cb,chunk.tell(),FuncPatchType::CFuncPrt});
         chunk.emitPointer(nullptr); //placeholder for cache
         chunk.emit(argCount);
 

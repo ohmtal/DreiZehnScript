@@ -97,11 +97,11 @@ public:
     // -------------------------------------------------------------------------
     // --- Typ-Check ---
     // -------------------------------------------------------------------------
-    FORCE_INLINE bool isDouble()  const { return (mBits & QNAN_MASK) != QNAN_MASK; }
-    FORCE_INLINE bool isInt()     const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_INT); }
-    FORCE_INLINE bool isPointer() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_PTR); }
-    FORCE_INLINE bool isValuePointer() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_VALUE_PTR); }
-    FORCE_INLINE bool isString() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_STRING_ID); }
+    inline bool isDouble()  const { return (mBits & QNAN_MASK) != QNAN_MASK; }
+    inline bool isInt()     const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_INT); }
+    inline bool isPointer() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_PTR); }
+    inline bool isValuePointer() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_VALUE_PTR); }
+    inline bool isString() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_STRING_ID); }
 
     inline ValueType getType() const {
         if ((mBits & QNAN_MASK) != QNAN_MASK) {
@@ -124,54 +124,54 @@ public:
     //     return (isPointer() && asPointerObject()->mType == ValueObjectType::String);
     // }
 
-    FORCE_INLINE bool isNumber() {ValueType t = getType(); return (t == ValueType::Int || t == ValueType::Double);}
+    inline bool isNumber() {ValueType t = getType(); return (t == ValueType::Int || t == ValueType::Double);}
 
     // -------------------------------------------------------------------------
     // --- Getter (Unboxing) ---
     // -------------------------------------------------------------------------
-    FORCE_INLINE double asFastDouble() const {
+    inline double asFastDouble() const {
         return std::bit_cast<double>(mBits);
     }
     // -------------------------------------------------------------------------
-    FORCE_INLINE double asDouble() const {
+    inline double asDouble() const {
         assert(isDouble());
         return std::bit_cast<double>(mBits);
     }
     // -------------------------------------------------------------------------
-    FORCE_INLINE int32_t asFastInt() const {
+    inline int32_t asFastInt() const {
         return static_cast<int32_t>(mBits & 0xFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
-    FORCE_INLINE int32_t asInt() const {
+    inline int32_t asInt() const {
         assert(isInt());
         return static_cast<int32_t>(mBits & 0xFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
-    FORCE_INLINE uint32_t asUInt() const {
+    inline uint32_t asUInt() const {
         assert(isInt());
         return static_cast<uint32_t>(mBits & 0xFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
-    FORCE_INLINE uint32_t asString() const {
+    inline uint32_t asString() const {
         assert(isString());
         return static_cast<uint32_t>(mBits & 0xFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
-    FORCE_INLINE void* asPointer() const {
+    inline void* asPointer() const {
         assert(isPointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<void*>(ptrBits);
     }
 
     // -------------------------------------------------------------------------
-    FORCE_INLINE ValueObject* asPointerObject() const {
+    inline ValueObject* asPointerObject() const {
         assert(isPointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<ValueObject*>(ptrBits);
     }
 
 
-    FORCE_INLINE Value* asValuePointer() const {
+    inline Value* asValuePointer() const {
         assert(isValuePointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<Value*>(ptrBits);

@@ -22,18 +22,22 @@ namespace DreiZehn {
         std::vector<U32> breakOffsets; // all break patches
     };
 
+    // --------------------
     enum class FuncPatchType {
         None,
         Adress,
-        VarCount
+        VarCount,
+        CFuncPrt
     };
     struct FunctionPatch {
-        FunctionMap::ScriptFunction* mFuncPtr = nullptr;
+        // FunctionMap::ScriptFunction* mFuncPtr = nullptr;
+        void* mFuncPtr = nullptr;
         U32 mPatchByteCodePos = 0;
         FuncPatchType mPatchType = FuncPatchType::None;
     };
 
     inline std::vector<FunctionPatch> mFunctionPatches;
+    // --------------------
 
     class CompilerScope {
     private:

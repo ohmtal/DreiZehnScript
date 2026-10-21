@@ -166,9 +166,11 @@ public:
         // Apply function patches - what a HACK fest
         for (auto& patch: mFunctionPatches) {
             if (patch.mPatchType == FuncPatchType::Adress)
-                chunk.patch(patch.mPatchByteCodePos, patch.mFuncPtr->bytecodeAddress);
+                chunk.patch(patch.mPatchByteCodePos, static_cast<FunctionMap::ScriptFunction*>(patch.mFuncPtr)->bytecodeAddress);
             else if (patch.mPatchType == FuncPatchType::VarCount)
-                chunk.patch(patch.mPatchByteCodePos, patch.mFuncPtr->localVarCount);
+                chunk.patch(patch.mPatchByteCodePos, static_cast<FunctionMap::ScriptFunction*>(patch.mFuncPtr)->localVarCount);
+            else if (patch.mPatchType == FuncPatchType::CFuncPrt)
+                chunk.patchPtr(patch.mPatchByteCodePos, patch.mFuncPtr);
             else
                 assert(true && "FunctionPatches unknown PathType!!!");
         }

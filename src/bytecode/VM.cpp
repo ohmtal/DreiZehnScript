@@ -710,6 +710,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     handle_OP_ADD: {
         Value b = POP_STACK();
         Value a = POP_STACK();
+
         if (a.isDouble() && b.isDouble())  [[likely]]
         {
             PUSH_STACK(Value(a.asFastDouble() + b.asFastDouble()));
@@ -774,6 +775,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
             PUSH_STACK(Value(a.asFastDouble() / r));
             DISPATCH();
         }
+
         if (is_both_int) {
             int32_t r = b.asFastInt();
             if (r == 0) [[unlikely]] DISPATCH_OPCODE(OP_INVALID);;

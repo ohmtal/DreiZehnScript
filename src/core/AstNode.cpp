@@ -567,11 +567,15 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         chunk.emit(OP_CALL_SF_FUNCTION);
 
 
-        scope.mFunctionPatches.push_back({sf, chunk.tell()});
+        mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::Adress});
         chunk.emit(0); //placeHolder for sf->bytecodeAddress
-        // // chunk.emit(sf->bytecodeAddress);
 
         chunk.emit(argCount);
+
+        mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::VarCount});
+        chunk.emit(0); //placeHolder for varCount
+
+
 
         if (requestType == ValueType::NONE) {
             chunk.emit(OP_POP_STACK);
@@ -1533,7 +1537,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return false;
         }
 
-                U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
+        U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
 
         // push start, end, increment
         mStartExpr->compile(env, chunk, scope, ValueType::ANY);

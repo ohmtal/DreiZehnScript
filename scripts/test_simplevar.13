@@ -26,16 +26,16 @@ forRange j JLOOPS
     print  "set Sum to 66 == " (varX * 1)
 
     forRange i ILOOPS
-        varX = varX * (i + 1)
-        varX = varX / (i + 1)
+        varX *=  (i + 1)
+        varX /=  (i + 1)
     end
     print  "SUM (*/ %i+1) IS: " varX
 
     ran = 0.0
     forRange i HLOOPS
         ran = math::randomf * i
-        varX = varX - ran
-        varX = varX + ran
+        varX -= ran
+        varX += ran
     end
     print  "last ran" ran
     print  "SUM (rand +-) IS: " varX
@@ -47,4 +47,4 @@ print "  *** " type " ***"
 print "---------------------"
 print  "Final sum should be 33.0 == " varX
 print "---------------------"
-print " ... use parameter global for global test ...\n"
+if type != "GLOBAL"; print " ... use parameter global for global test ...\n";;

@@ -152,10 +152,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         return Value(0.0);
     }
     // -----------------------
-    // Local register
-    // std::vector<Value> locals;
-    // locals.resize(numLocals);
-    // -----------------------
     // stack register
     S32 _STK = 0;
     Value vmStack[MAX_BC_STACK_SIZE] = {0};
@@ -166,11 +162,10 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     size_t codeSize = chunk.mByteCodes.size();
 
     // -----------------------
-    // CallStack callStack[MAX_BC_CALL_STACK];
-    // U32 _CS = 0; // Call-Stack Pointer
     std::vector<CallStack> callStack;
     callStack.push_back({ip});
     callStack.back().mLocals.resize(numLocals);
+    std::vector<Value>* localsPtr = &callStack.back().mLocals;
     // -----------------------
 
     DISPATCH();
@@ -621,20 +616,23 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     handle_OP_GET_LOCAL: {
         // frame pointer for call stack
         U32 slot = ADVANCE_U32();
-        PUSH_STACK(callStack.back().mLocals[slot]);
+        PUSH_STACK((*localsPtr)[slot]);
         DISPATCH();
     }
     // -------------------------------
     handle_OP_SET_LOCAL: {
         // frame pointer for call stack
         U32 slot = ADVANCE_U32();
-        if (slot >= callStack.back().mLocals.size()) {
-            callStack.back().mLocals.resize(slot + 1);
+        Value* val = nullptr;
+        if (slot >= localsPtr->size()) {
+            localsPtr->resize(slot + 1);
+            val = &(*localsPtr)[slot];
+        } else {
+            val = &(*localsPtr)[slot];
+            if (val->isPointer()) val->asPointerObject()->setAssigned(false);
         }
-        Value& val = callStack.back().mLocals[slot];
-        if (val.isPointer()) val.asPointerObject()->setAssigned(false);
-        val = PEEK_STACK(0);
-        if (val.isPointer()) val.asPointerObject()->setAssigned(true);
+        *val = PEEK_STACK(0);
+        if (val->isPointer()) val->asPointerObject()->setAssigned(true);
 
         DISPATCH();
     }
@@ -675,15 +673,17 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     handle_OP_CALL_SF_FUNCTION: {
         U32 targetIP = ADVANCE_U32();
         U32 argCount = ADVANCE_U32();
+        U32 varCount = ADVANCE_U32();
 
         callStack.back().mIP = ip;
         callStack.push_back({targetIP});
-        callStack.back().mLocals.resize(argCount);
+        localsPtr = &callStack.back().mLocals;
+        localsPtr->resize(argCount + varCount);
 
         for (int i = (int)argCount - 1; i >= 0; i--) {
             Value param = POP_STACK();
             U32 slot =  i;
-            callStack.back().mLocals[slot] = param;
+            (*localsPtr)[slot] = param;
             // Tools::printf("** PARAM IS: %s _STK=%u  _CS=%zu framePointer is:%u argCount:%d locals:%zu\n",
             //               param.toString().c_str(), callStack.size(), _STK,framePointer, argCount, locals.size());
         }
@@ -696,7 +696,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     handle_OP_INC_LOCAL: {
         U32 slot = ADVANCE_U32();
         S32 inc = ADVANCE_S32();
-        Value& val = callStack.back().mLocals[slot];
+        Value& val = (*localsPtr)[slot];
         if (val.isInt()) [[likely]] {
             val = Value(val.asFastInt() + inc);
             PUSH_STACK(val);
@@ -710,7 +710,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     handle_OP_ADD: {
         Value b = POP_STACK();
         Value a = POP_STACK();
-        if (a.isDouble() && b.isDouble())  [[likely]] {
+        if (a.isDouble() && b.isDouble())  [[likely]]
+        {
             PUSH_STACK(Value(a.asFastDouble() + b.asFastDouble()));
             DISPATCH();
         }
@@ -808,7 +809,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         PUSH_STACK(Value(0));     // current value
 
 
-        callStack.back().mLocals[iterSlot] = 0;
+        (*localsPtr)[iterSlot] = 0;
         DISPATCH();
     }
     // -------------------------------
@@ -831,7 +832,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         PUSH_STACK(Value(end));
         PUSH_STACK(Value(start));
 
-        callStack.back().mLocals[iterSlot] = start;
+        (*localsPtr)[iterSlot] = start;
 
         // patch increment
         code[incrementCodePos] = (U32)increment;
@@ -853,7 +854,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
         if (loopContinues) {
             PEEK_STACK(0) = Value(current); // set new value to stack
-            callStack.back().mLocals[iterSlot] = current;    // update iter var
+            (*localsPtr)[iterSlot] = current;    // update iter var
 
             ip = targetIP;
         } else {
@@ -877,6 +878,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         Value returnValue = POP_STACK();
 
         callStack.pop_back();
+        localsPtr = &callStack.back().mLocals;
 
         PUSH_STACK(returnValue);
 

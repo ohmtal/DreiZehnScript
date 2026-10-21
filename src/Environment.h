@@ -122,7 +122,10 @@ public:
         // U32 mainScriptStartIP = chunk.tell();
         // chunk.patch(globalStartPatch, mainScriptStartIP);
 
-        CompilerScope globalScope;
+        // CompilerScope globalScope;
+
+        mFunctionPatches.clear();
+
         switch(node->mNodeType) {
             case NodeType::BlockStatement:
             {
@@ -143,25 +146,33 @@ public:
         for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
             func.bytecodeAddress = chunk.tell();
 
-            scope.ResetLocals();
+            CompilerScope funcScope;
 
             for (const auto& paramName : func.parameterNames) {
-                scope.insert(SymbolTable::insert(paramName));
+                funcScope.insert(SymbolTable::insert(paramName));
             }
 
             for (auto& statement : func.body) {
-                statement->compile(env, chunk, scope, ValueType::NONE);
+                statement->compile(env, chunk, funcScope, ValueType::NONE);
             }
 
             chunk.emit(OP_PUSH_VALUE);
             chunk.emitValue(NumberNullValue);
             chunk.emit(OP_RETURN);
+
+            func.localVarCount = funcScope.getLocalCount();
         }
 
         // Apply function patches - what a HACK fest
-        for (auto& patch: scope.mFunctionPatches) {
-            chunk.patch(patch.mPatchAddress, patch.mFuncPtr->bytecodeAddress);
+        for (auto& patch: mFunctionPatches) {
+            if (patch.mPatchType == FuncPatchType::Adress)
+                chunk.patch(patch.mPatchByteCodePos, patch.mFuncPtr->bytecodeAddress);
+            else if (patch.mPatchType == FuncPatchType::VarCount)
+                chunk.patch(patch.mPatchByteCodePos, patch.mFuncPtr->localVarCount);
+            else
+                assert(true && "FunctionPatches unknown PathType!!!");
         }
+        mFunctionPatches.clear();
 
         return true;
     }

@@ -22,11 +22,18 @@ namespace DreiZehn {
         std::vector<U32> breakOffsets; // all break patches
     };
 
+    enum class FuncPatchType {
+        None,
+        Adress,
+        VarCount
+    };
     struct FunctionPatch {
         FunctionMap::ScriptFunction* mFuncPtr = nullptr;
-        U32 mPatchAddress = 0;
+        U32 mPatchByteCodePos = 0;
+        FuncPatchType mPatchType = FuncPatchType::None;
     };
 
+    inline std::vector<FunctionPatch> mFunctionPatches;
 
     class CompilerScope {
     private:
@@ -38,13 +45,8 @@ namespace DreiZehn {
     public:
         std::vector<LoopInfo> mLoopStack;
 
-        std::vector<FunctionPatch> mFunctionPatches;
 
-        void ResetLocals() {
-            mSymbolIdToSlot.clear();
-            mSlotToSymbolId.clear();
-            mNextSlotIndex = 0;
-        }
+
 
         uint32_t insert(uint32_t symbolId) {
             auto it = mSymbolIdToSlot.find(symbolId);

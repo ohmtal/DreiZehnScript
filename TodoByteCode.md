@@ -114,7 +114,8 @@ Segmentation fault (core dumped)
     - lol as fast as the local register .... but it's only one variable so no lookup time
 
 - [ ] BIG problem when precopile functions it does not know anything about the globals!
-    - no idea so far ^^ 
+    - 
+    
     
 - [ ] ForEachStatement << this should enable StarField2 :)
 

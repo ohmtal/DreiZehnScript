@@ -1308,8 +1308,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
 
         if (mVarExpr->mNodeType == NodeType::VariableExpression) {
-            VariableExpression* vExpr = dynamic_cast<VariableExpression*>(mVarExpr.get());
-            if (!vExpr) return false;
+            VariableExpression* vExpr = static_cast<VariableExpression*>(mVarExpr.get());
             if (!vExpr->mGlobalVariable) {
                 if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
                 S32 localSlot = scope.resolve(vExpr->mVariableNameSymbolId);

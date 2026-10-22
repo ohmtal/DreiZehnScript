@@ -59,7 +59,7 @@ namespace DreiZehn {
         switch(node->mNodeType) {
             case NodeType::BlockStatement:
             {
-                auto* flowStmt = dynamic_cast<BlockStatement*>(node);
+                auto* flowStmt = static_cast<BlockStatement*>(node);
                 if (!flowStmt->compile(env, chunk, scope, ValueType::NONE)) return false;
                 break;
             }

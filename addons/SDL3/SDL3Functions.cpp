@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // Basic SDL3 Bindings
+// FIXME replace dynamic_cast and check for type like Type_SDL_Window_Object
 //-----------------------------------------------------------------------------
 // #pragma once
 #include <SDL3/SDL.h>

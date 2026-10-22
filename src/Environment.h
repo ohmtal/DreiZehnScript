@@ -76,120 +76,6 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    // Compile and CompileExec
-    // -------------------------------------------------------------------------
-
-//     inline Value compileExec(ASTNode* node) {
-//         if (!node) return NumberNullValue;
-//         BytecodeChunk chunk;
-//         CompilerScope scope;
-//         if (!Compile(node, *this, chunk, scope)) {
-//             Tools::errorf("\nFailed to compile code!\n");
-//             return NumberNullValue;
-//         }
-//         // after Compile we patch :)
-//         Patch(chunk);
-//
-//         Value res = runDirectThreadedVM(chunk, scope.getLocalCount());
-//         #ifdef DEBUG_TRACE_EXECUTION
-//         Tools::printf("*** CompileExec VALUE IS: %s\n", res.toString().c_str());
-//         #endif
-//         return res;
-//     }
-//
-//     static void Patch(BytecodeChunk chunk) {
-//         // Apply function patches - what a HACK fest
-//         // Love this part :D
-//         for (auto& patch: mFunctionPatches) {
-//             if (patch.mPatchType == FuncPatchType::Adress)
-//                 chunk.patch(patch.mPatchByteCodePos, static_cast<FunctionMap::ScriptFunction*>(patch.mFuncPtr)->bytecodeAddress);
-//             else if (patch.mPatchType == FuncPatchType::VarCount)
-//                 chunk.patch(patch.mPatchByteCodePos, static_cast<FunctionMap::ScriptFunction*>(patch.mFuncPtr)->localVarCount);
-//             else if (patch.mPatchType == FuncPatchType::CFuncPrt)
-//                 chunk.patchPtr(patch.mPatchByteCodePos, patch.mFuncPtr);
-//             else
-//                 assert(true && "FunctionPatches unknown PathType!!!");
-//         }
-//         mFunctionPatches.clear();
-//     }
-//
-//     static bool Compile( ASTNode* node, Environment& env, BytecodeChunk& chunk, CompilerScope& scope)
-//     {
-//         if (!node) return false;
-//
-// // FIXME FIXME
-// //  PRECOMPILE CANT SEE THE GLOBALS !!!!, when i put it on the back the others cant see the functions ?!
-// //  I NEED TO PUT THEM INSIDE IN CORRECT ORDER
-// // FIXME FIXME
-//
-//         // chunk.emit(OP_JUMP);
-//         // U32 globalStartPatch = chunk.tell();
-//         // chunk.emit(0);
-//         // for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
-//         //     func.bytecodeAddress = chunk.tell();
-//         //
-//         //     for (const auto& paramName : func.parameterNames) {
-//         //         scope.insert(SymbolTable::insert(paramName));
-//         //     }
-//         //
-//         //     for (auto& statement : func.body) {
-//         //         statement->compile(env, chunk, scope, ValueType::NONE);
-//         //     }
-//         //
-//         //     chunk.emit(OP_PUSH_VALUE);
-//         //     chunk.emitValue(NumberNullValue);
-//         //     chunk.emit(OP_RETURN);
-//         // }
-//         // U32 mainScriptStartIP = chunk.tell();
-//         // chunk.patch(globalStartPatch, mainScriptStartIP);
-//
-//         // CompilerScope globalScope;
-//
-//         mFunctionPatches.clear();
-//
-//         switch(node->mNodeType) {
-//             case NodeType::BlockStatement:
-//             {
-//                 auto* flowStmt = dynamic_cast<BlockStatement*>(node);
-//                 if (!flowStmt->compile(env, chunk, scope, ValueType::NONE)) return false;
-//                 break;
-//             }
-//             default:
-//                 Tools::errorf("UNKNOWN Expression Compile: %s\n", NodeTypeToString(node->mNodeType));
-//                 return false;
-//         }
-//
-//
-//         chunk.emit(OP_EXIT);
-//
-//         /// TEST added scripts on back of byte code after EXIT
-//         // LOL ON THE BACK I DONT HAVE THE **bytecodeAddress** on a function call!
-//         for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
-//             func.bytecodeAddress = chunk.tell();
-//
-//             CompilerScope funcScope;
-//
-//             for (const auto& paramName : func.parameterNames) {
-//                 funcScope.insert(SymbolTable::insert(paramName));
-//             }
-//
-//             for (auto& statement : func.body) {
-//                 statement->compile(env, chunk, funcScope, ValueType::NONE);
-//             }
-//
-//             chunk.emit(OP_PUSH_VALUE);
-//             chunk.emitValue(NumberNullValue);
-//             chunk.emit(OP_RETURN);
-//
-//             func.localVarCount = funcScope.getLocalCount();
-//         }
-//
-//
-//
-//         return true;
-//     }
-//
-    // -------------------------------------------------------------------------
     // EXECUTE :D - currentEnv for function calls
     // -------------------------------------------------------------------------
     inline FlowStatus execute(ASTNode* node, Environment& currentEnv) {
@@ -201,135 +87,135 @@ public:
             // --- Break Statement ---
             case NodeType::BreakStatement:
             {
-                auto* flowStmt = dynamic_cast<BreakStatement*>(node);
+                auto* flowStmt = static_cast<BreakStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
             case NodeType::ContinueStatement:
             {
-                auto* flowStmt = dynamic_cast<ContinueStatement*>(node);
+                auto* flowStmt = static_cast<ContinueStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
             case NodeType::ReturnStatement:
             {
-                auto* flowStmt = dynamic_cast<ReturnStatement*>(node);
+                auto* flowStmt = static_cast<ReturnStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
             case NodeType::ElIfStatement:
             case NodeType::IfStatement:
             {
-                auto* flowStmt = dynamic_cast<IfStatement*>(node);
+                auto* flowStmt = static_cast<IfStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
             case NodeType::RangeStatement:
             {
-                auto* flowStmt = dynamic_cast<ForRangeStatement*>(node);
+                auto* flowStmt = static_cast<ForRangeStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
             case NodeType::ForEachStatement:
             {
-                auto* flowStmt = dynamic_cast<ForEachStatement*>(node);
+                auto* flowStmt = static_cast<ForEachStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
             case NodeType::ForStatement:
             {
-                auto* flowStmt = dynamic_cast<ForStatement*>(node);
+                auto* flowStmt = static_cast<ForStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
             case NodeType::WhileStatement:
             {
-                auto* flowStmt = dynamic_cast<WhileStatement*>(node);
+                auto* flowStmt = static_cast<WhileStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
             case NodeType::BlockStatement:
             {
-                auto* flowStmt = dynamic_cast<BlockStatement*>(node);
+                auto* flowStmt = static_cast<BlockStatement*>(node);
                 return flowStmt->execute(currentEnv);
             }
             // --- Assign ---
             case NodeType::AssignStatement: {
-                if (auto* assign = dynamic_cast<AssignStatement*>(node)) {
+                if (auto* assign = static_cast<AssignStatement*>(node)) {
                     assign->evaluate(currentEnv);
                 }
                 break;
             }
             case NodeType::AssignOPStatement:
             {
-                if (auto* assign = dynamic_cast<AssignOPStatement*>(node)) {
+                if (auto* assign = static_cast<AssignOPStatement*>(node)) {
                     assign->evaluate(currentEnv);
                 }
                 break;
             }
             // -------------- OTHERS -------------------
             case NodeType::LiteralExpression: {
-                if (auto* expr = dynamic_cast<LiteralExpression*>(node)) {
+                if (auto* expr = static_cast<LiteralExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
             }
             case NodeType::ValueExpression: {
-                if (auto* expr = dynamic_cast<ValueExpression*>(node)) {
+                if (auto* expr = static_cast<ValueExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
             }
             case NodeType::VariableExpression: {
-                if (auto* expr = dynamic_cast<VariableExpression*>(node)) {
+                if (auto* expr = static_cast<VariableExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
             }
             case NodeType::CallExpression: {
-                if (auto* expr = dynamic_cast<CallExpression*>(node)) {
+                if (auto* expr = static_cast<CallExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
             }
             case NodeType::MethodExpression: {
-                if (auto* expr = dynamic_cast<MethodExpression*>(node)) {
+                if (auto* expr = static_cast<MethodExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
             }
             case NodeType::BinaryExpression: {
-                if (auto* expr = dynamic_cast<BinaryExpression*>(node)) {
+                if (auto* expr = static_cast<BinaryExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
             }
             case NodeType::BinaryOpExpression: {
-                if (auto* expr = dynamic_cast<BinaryOpExpression*>(node)) {
+                if (auto* expr = static_cast<BinaryOpExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
             }
             case NodeType::BinaryInlineExpression: {
-                if (auto* expr = dynamic_cast<BinaryInlineExpression*>(node)) {
+                if (auto* expr = static_cast<BinaryInlineExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
             }
             case NodeType::ObjectFieldExpression: {
-                if (auto* expr = dynamic_cast<ObjectFieldExpression*>(node)) {
+                if (auto* expr = static_cast<ObjectFieldExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
             }
             case NodeType::ArrayVariableExpression: {
-                if (auto* expr = dynamic_cast<ArrayVariableExpression*>(node)) {
+                if (auto* expr = static_cast<ArrayVariableExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
             }
 
             case NodeType::IncludeStatement: {
-                if (auto* expr = dynamic_cast<IncludeStatement*>(node)) {
+                if (auto* expr = static_cast<IncludeStatement*>(node)) {
                     return expr->execute(currentEnv);
                 }
                 break;
             }
 
             case NodeType::KeyValueExpression: {
-                if (auto* expr = dynamic_cast<KeyValueExpression*>(node)) {
+                if (auto* expr = static_cast<KeyValueExpression*>(node)) {
                     expr->evaluate(currentEnv);
                 }
                 break;
@@ -338,7 +224,7 @@ public:
 
             // --- others ---
             default: {
-                // if (auto* expr = dynamic_cast<Expression*>(node)) {
+                // if (auto* expr = static_cast<Expression*>(node)) {
                 //     expr->evaluate(currentEnv);
                 // }
                 Tools::errorf("UNKNOWN Expression EXECUTE: %s\n", NodeTypeToString(node->mNodeType));

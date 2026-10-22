@@ -164,6 +164,7 @@ Segmentation fault (core dumped)
     - tested works fine
 
 ### 0.9e: testing and activate
+- [X] moved compiler from enviroment to own source file an splitted patch
 - [ ] condional activate to run it without debug::bc
     
 ---

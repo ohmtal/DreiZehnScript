@@ -449,7 +449,12 @@ it's the same problem.
     
 todos listed here: [TodoByteCode](./TodoByteCode.md)
 
-
+- 0.9e: Wooot! found the handbreak in Ast-Interpreter  
+    - test_var: 2.631u 0.000s 0:02.63 100.0%    0+0k 0+0io 0pf+0w
+    - test_field: 3.149u 0.008s 0:03.16 99.3%     0+0k 0+0io 0pf+0w
+    - test_fibonacci: 2.388u 0.004s 0:02.39 99.5%     0+0k 0+0io 0pf+0w
+    - StarField2: 330-350 FPS
+    - *NOTE:* -O2 is still faster than -O3
 
 
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 

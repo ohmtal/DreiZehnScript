@@ -6,6 +6,8 @@
 //-----------------------------------------------------------------------------
 #include <cmath>
 #include "Environment.h"
+#include "bytecode/CompilerScope.h"
+#include "bytecode/VMStructure.h"
 #include "core/FunctionMap.h"
 #include <string.h>
 #include "core/BaseObjects.h"

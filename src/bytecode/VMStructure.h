@@ -13,10 +13,6 @@
 
 namespace DreiZehn {
 
-// dont want to break my fingers every time
-typedef uint32_t U32;
-typedef int64_t  S64;
-typedef int32_t  S32;
 
 struct CallStack {
     U32 mIP = 0;

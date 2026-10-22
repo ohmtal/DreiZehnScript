@@ -30,7 +30,7 @@ end
 fn PixelFire::igniteBottomRow this
     bottomRowStart = (this.height - 1) * this.width
     forRange x this.width
-        this.heatBuffer[ bottomRowStart + x] = ((math::random 0 10) ? 0 : 255)
+        this.heatBuffer[ bottomRowStart + x] = ((math::random 0 this.igniteRand) ? 0 : 255)
     end
 end
 
@@ -64,7 +64,7 @@ end
 
 
 -- --- static constuctor
-fn PixelFire::new width height coolDown
+fn PixelFire::new width height coolDown igniteRand
 
     if width <= 0 || height <= 0; return 0;;
 
@@ -75,6 +75,12 @@ fn PixelFire::new width height coolDown
     this.heatBuffer = Vector::new
     this.heatBuffer->fill (width * height) 0
     this->initializePalette
+
+    if igniteRand > 0
+        this.igniteRand = igniteRand
+    else
+        this.igniteRand = 0
+    end
 
     if coolDown > 0
         this.coolDown = coolDown

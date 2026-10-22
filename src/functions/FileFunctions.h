@@ -318,7 +318,10 @@ void RegisterFileFunctions(Environment& env) {
 
             if (mode == "r") {
                 fs->fileInput = std::make_unique<std::ifstream>(filename, openMode);
-                if (!fs->fileInput->is_open()) { delete fs; ret = NumberNullValue; return true; }
+                if (!fs->fileInput->is_open()) {
+                    /*bad idea! break the garbage collection!: delete fs;*/
+                    ret = NumberNullValue; return true;
+                }
                 fs->input = fs->fileInput.get();
                 useStream = false; // Wir nutzen hier noch den alten ifstream
             }

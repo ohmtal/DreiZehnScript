@@ -1,0 +1,19 @@
+# ------------------------------------------------------------------------------
+-- Byte Code Loader
+# ------------------------------------------------------------------------------
+include "common/FileTools.13" true
+# ------------------------------------------------------------------------------
+if sys::args->count < 3
+    error "Missing script argument!"
+    return
+end
+file = str::format"scripts/%s.13" (sys::args->value 2)
+# ------------------------------------------------------------------------------
+ft = FileTool::new file
+if !ft->load
+    error "Failed to load script file: " file
+else
+    print "loading " file " ....."
+    debug::bc ft.content
+end
+print "bye bye"

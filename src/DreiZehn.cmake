@@ -69,6 +69,7 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/bytecode/VM.cpp
     ${CMAKE_CURRENT_LIST_DIR}/bytecode/VMStructure.h
     ${CMAKE_CURRENT_LIST_DIR}/bytecode/VMStructure.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/bytecode/Compiler.cpp
 
 
     ${CMAKE_CURRENT_LIST_DIR}/Globals.h

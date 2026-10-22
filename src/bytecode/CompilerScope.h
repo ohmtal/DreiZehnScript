@@ -17,6 +17,8 @@
 
 namespace DreiZehn {
 
+
+
     struct LoopInfo {
         std::vector<U32> continueOffsets; // continue jump point
         std::vector<U32> breakOffsets; // all break patches

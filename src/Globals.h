@@ -32,6 +32,13 @@ namespace DreiZehn {
     inline std::function<bool()> OnBreath = nullptr;
 
 
+    // dont want to break my fingers every time
+    typedef uint32_t U32;
+    typedef int64_t  S64;
+    typedef int32_t  S32;
+
+
+
 
 namespace Globals {
     inline int currentScriptLineNumber = 0;

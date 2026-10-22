@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Environment.h"
+#include "bytecode/VM.h"
 #include "toolbox/Tools.h"
 #include "core/Parser.h"
 
@@ -194,12 +195,13 @@ namespace DreiZehn {
         return true;
     }
 
+
     Value RunScriptStreamByteCode(std::istream& stream, Environment& env) {
 
         auto mainProgram = ParseScriptToAST(stream);
         if (!mainProgram) return false;
 
-        Value res = env.compileExec(mainProgram.get());
+        Value res = compileExec(env, mainProgram.get());
         // #ifdef DEBUG_TRACE_EXECUTION
         // Tools::printf("RunScriptStreamByteCode VALUE IS: %s\n", res.toString().c_str());
         // #endif

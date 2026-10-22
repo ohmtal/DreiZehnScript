@@ -8,7 +8,7 @@ import String
 import SDL3
 import Vector
 
-print " StarField v8d @13 startup...."
+print " StarField IV (like 2 but local vars) @13 startup...."
 
 -- define W 640
 -- define H 320
@@ -19,16 +19,16 @@ print " StarField v8d @13 startup...."
 -- define STAR_COUNT 4200
 -- define START_DIV  0.03125
 -- define fontScale  1.2
-global W = 640
-global H = 320
-global maxW = W / 2
-global minW = maxW * -1
-global maxH = H / 2
-global minH = maxH * -1
-global STAR_COUNT  = 4200
-global START_DIV   = 0.03125
-global Speed       = 0.2
-global fontScale   = 1.2
+W = 640
+H = 320
+maxW = W / 2
+minW = maxW * -1
+maxH = H / 2
+minH = maxH * -1
+STAR_COUNT  = 4200
+START_DIV   = 0.03125
+Speed       = 0.2
+fontScale   = 1.2
 -- Objects initialize with 0:
 Window      = 0
 Renderer    = 0
@@ -125,7 +125,7 @@ while Running
     SDL_SetRenderDrawColor Renderer 200 200 255 255
     SDL_SetRenderScale Renderer  fontScale fontScale
     SDL_RenderDebugText Renderer 10 10 \
-        str::concat "StarField 4 @13-Script Stars:" STAR_COUNT " FPS:" FPS
+        str::concat "StarField 4  Stars:" STAR_COUNT " FPS:" FPS
     SDL_SetRenderScale Renderer  1 1
 
 

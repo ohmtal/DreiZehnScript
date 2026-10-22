@@ -189,7 +189,7 @@ if(WIN32 AND MSVC)
 endif()
 
 # Add debug flag
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    $<$<CONFIG:Debug>:DREIZEHN_DEBUG>
-)
+# target_compile_definitions(${PROJECT_NAME} PRIVATE
+#     $<$<CONFIG:Debug>:DREIZEHN_DEBUG>
+# )
 

@@ -4,15 +4,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(FORCE_02 ONc)
-set(BUILD_WITH_FORCEO2 ${FORCE_02} CACHE BOOL "Build Application Release also with -02 on gcc")
+set(FORCE_02 ON)
+set(BUILD_WITH_FORCEO2 ${FORCE_02} CACHE BOOL "Build Application Release with -02 on gcc")
 # -02 is faster on gcc (StarField2 > 300fps instead of 250fps)!!!
 if(NOT MSVC AND BUILD_WITH_FORCEO2)
     set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
     set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 endif()
 
-
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(DREIZEHN_DEBUG)
+endif()
 
 set(DREIZEHN_SRC
 

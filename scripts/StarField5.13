@@ -8,7 +8,7 @@ import String
 import SDL3
 import Vector
 
-print " StarField v6 @13 startup...."
+print " StarField 3 Vectors @13 startup...."
 
 global W = 640
 global H = 320

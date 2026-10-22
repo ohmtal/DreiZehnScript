@@ -26,4 +26,4 @@ core::gc; core::printgc;
 
 -- print "vec:" vec ", field:" field ", newVec" newVec
 
-while core::breath; core::sleep 16 ;;
+-- while core::breath; core::sleep 16 ;;

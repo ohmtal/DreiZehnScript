@@ -4,9 +4,11 @@
 //-----------------------------------------------------------------------------
 // Core Commands
 //-----------------------------------------------------------------------------
-#pragma once
+#include <sstream>
 #include "core/FunctionMap.h"
 #include "Globals.h"
+#include <core/GarbageCollection.h>
+#include <ScriptLoader.h>
 
 namespace DreiZehn {
 

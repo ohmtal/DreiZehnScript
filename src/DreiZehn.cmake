@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(FORCE_02 OFF)
+set(FORCE_02 ONc)
 set(BUILD_WITH_FORCEO2 ${FORCE_02} CACHE BOOL "Build Application Release also with -02 on gcc")
 # -02 is faster on gcc (StarField2 > 300fps instead of 250fps)!!!
 if(NOT MSVC AND BUILD_WITH_FORCEO2)
@@ -20,6 +20,8 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/core/AstNode.h
     ${CMAKE_CURRENT_LIST_DIR}/core/AstNode.cpp
 
+    ${CMAKE_CURRENT_LIST_DIR}/core/BaseObjects.h
+    ${CMAKE_CURRENT_LIST_DIR}/core/BaseObjects.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/FunctionMap.h
     ${CMAKE_CURRENT_LIST_DIR}/core/FunctionMap.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/GarbageCollection.h
@@ -41,14 +43,12 @@ set(DREIZEHN_SRC
 
 
     # Functions and objects
-    ${CMAKE_CURRENT_LIST_DIR}/functions/CoreFunctions.h
-    ${CMAKE_CURRENT_LIST_DIR}/functions/StringFunctions.h
-    ${CMAKE_CURRENT_LIST_DIR}/functions/MathFunctions.h
-    ${CMAKE_CURRENT_LIST_DIR}/functions/DebugFunctions.h
+    ${CMAKE_CURRENT_LIST_DIR}/functions/CoreFunctions.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/functions/DebugFunctions.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/functions/MathFunctions.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/functions/StringFunctions.cpp
     ${CMAKE_CURRENT_LIST_DIR}/functions/VectorFunctions.h
     ${CMAKE_CURRENT_LIST_DIR}/functions/PointVectorObjectFunctions.h
-
-    ${CMAKE_CURRENT_LIST_DIR}/functions/SysFunctions.h
     ${CMAKE_CURRENT_LIST_DIR}/functions/SysFunctions.cpp
 
 
@@ -73,5 +73,6 @@ set(DREIZEHN_SRC
 
     ${CMAKE_CURRENT_LIST_DIR}/Globals.h
     ${CMAKE_CURRENT_LIST_DIR}/DreiZehn.h
+    ${CMAKE_CURRENT_LIST_DIR}/DreiZehn.cpp
 
 )

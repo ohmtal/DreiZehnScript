@@ -9,7 +9,6 @@
 //-----------------------------------------------------------------------------
 // String Functions and Object
 //-----------------------------------------------------------------------------
-#pragma once
 #include "core/FunctionMap.h"
 #include "ScriptLoader.h"
 #include <core/VariableFrame.h>

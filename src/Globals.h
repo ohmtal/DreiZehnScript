@@ -9,6 +9,8 @@
 #include "toolbox/Tools.h"
 #include <vector>
 #include <algorithm>
+#include <functional>
+#include <cstdint>
 
 #if defined(_MSC_VER)
 // Microsoft Visual Studio Compiler
@@ -26,6 +28,8 @@ namespace DreiZehn {
     class VariableFrame;
 
     const double EPSILON = 1e-9;
+
+    inline std::function<bool()> OnBreath = nullptr;
 
 
 

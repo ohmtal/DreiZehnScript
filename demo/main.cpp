@@ -22,6 +22,7 @@
 
 
 #include "DreiZehn.h"
+#include <ScriptLoader.h>
 
 #ifdef DREIZEHN_FENSTER
 #include "addons/Fenster/Fenster.h"

@@ -4,25 +4,19 @@
 //-----------------------------------------------------------------------------
 // Core + Help Commands + sys commands
 //-----------------------------------------------------------------------------
-#pragma once
 #include <string>
-#include <algorithm> // std::sort
+#include <algorithm>
+#include <sstream>
 
-
+#include "Globals.h"
 #include "toolbox/Tools.h"
 #include "core/FunctionMap.h"
 #include "ScriptLoader.h"
 #include "core/GarbageCollection.h"
-
-
-
+#include <core/VariableFrame.h>
 
 
 namespace DreiZehn {
-
-
-
-    inline std::function<bool()> OnBreath = nullptr;
 
     // =============================================================================
     // --- RegisterCoreFunctions ---

@@ -59,8 +59,6 @@ public:
             }
         }
 
-        // NOT! GarbageCollection::run();
-        // gCurrentFrame = mParentFrame;
     }
 
     inline uint32_t getFrameId() {return mFrameId;}

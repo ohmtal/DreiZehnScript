@@ -34,6 +34,20 @@ set(LOADALL_DEFAULT ON)
 set(BUILD_WITH_LOADALL ${LOADALL_DEFAULT} CACHE BOOL "Build Application with load all available modules at start")
 
 
+# GCC PGO - it generates gcda files in source folders: find . -name "*.gcda"
+# cleaning : find . -name "*.gcda" | xargs rm
+set(BUILD_WITH_PGO_MODE "OFF" CACHE STRING "PGO-Mode: OFF, GENERATE or USE")
+
+if(BUILD_WITH_PGO_MODE STREQUAL "GENERATE")
+    message(STATUS "PGO: Generate profiler data (-fprofile-generate)")
+    add_compile_options(-fprofile-generate)
+    add_link_options(-fprofile-generate)
+elseif(BUILD_WITH_PGO_MODE STREQUAL "USE")
+    message(STATUS "PGO: use generated profiler data (-fprofile-use)")
+    add_compile_options(-fprofile-use -Wno-missing-profile)
+    add_link_options(-fprofile-use)
+endif()
+
 # -----------------------------------------------------------------------------
 project(DreiZehn C CXX)
 

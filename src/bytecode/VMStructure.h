@@ -115,6 +115,7 @@ struct OpCodeInfo {
   U32 emittedCount;
 };
 
+#ifdef DREIZEHN_DEBUG
 constexpr OpCodeInfo OpCodeInfos[] = {
     {"OP_CONST", 1},
     {"OP_PUSH_VALUE", 0},
@@ -195,7 +196,7 @@ constexpr OpCodeInfo OpCodeInfos[] = {
 
 
 void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize);
-
+#endif
 
 // -----------------------------------------------------------------------------
 

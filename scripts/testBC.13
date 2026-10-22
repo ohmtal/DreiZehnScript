@@ -116,3 +116,7 @@ debug::bc 'a = Array::new "x"=>0.1 "y"=>47.11;a["x"]=8.15;print "x = " a["x"] "f
 -- -----------------------------------------------------------------------------
 niceLine "Include"
 -- debug::bc 'include "common/FileTools.13" true; ft = FileTool::new "foo"; ft->dump'
+
+debug::bc 'include "scripts/include_test_dummy.13" true;incfunc'
+print "with execute:"
+debug::bc 'include "scripts/include_test_dummy.13" false;incfunc'

@@ -17,7 +17,7 @@ namespace DreiZehn {
         }
     }
 
-
+#ifdef DREIZEHN_DEBUG
 void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize) {
     uint32_t opcode = code[offset];
 
@@ -63,4 +63,7 @@ void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, 
         Tools::printf("UNKNOWN_OPCODE [%u]", opcode);
     }
     Tools::printf(", _STK[%d], _CS[%zu], FP:%zu\n", stk, callstk, localsSize);
-}}
+}
+#endif
+
+} // namespace

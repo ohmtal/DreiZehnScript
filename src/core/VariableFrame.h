@@ -16,10 +16,6 @@
 #include "GarbageCollection.h"
 #include "toolbox/Tools.h"
 
-#ifndef DREIZEHN_INITIAL_GARBAGE_SIZE
-#define DREIZEHN_INITIAL_GARBAGE_SIZE 2048
-#endif
-
 namespace DreiZehn {
 
 // -----------------------------------------------------------------------------

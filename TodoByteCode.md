@@ -163,6 +163,8 @@ Segmentation fault (core dumped)
       only handle the execute?! 
     - tested works fine
 
+### 0.9e: testing and activate
+- [ ] condional activate to run it without debug::bc
     
 ---
 ## CRITICAL BUT LATER:

@@ -1092,13 +1092,11 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         Value valueVal = POP_STACK();
         Value keyVal = POP_STACK();
 
-
         if (!keyVal.isString())  {
             Tools::PrintRuntimeError("KeyValueExpression value must be a string,.");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
-
 
         auto obj = new KeyValueObject(keyVal.getStringRef(), valueVal);
 

@@ -165,11 +165,12 @@ Segmentation fault (core dumped)
 
 ### 0.9e: testing and activate
 - [X] moved compiler from enviroment to own source file an splitted patch
-- [ ] ./DreiZehn scripts/bcLoader.13 test_Garbage << core dumped!
+- [X] ./DreiZehn scripts/bcLoader.13 test_Garbage << core dumped!
+    add a function for that have enough redundant code! ==> _var_pointer_value(fieldValuePtr, PEEK_STACK(0));
     Garbage collection on: 
-    - [ ] ObjectFieldExpression with cache
-    - [ ] ArrayVariableExpression
-    - [ ] MethodExpression
+    - [X] ObjectFieldExpression with cache
+    - [X] ArrayVariableExpression
+    - [X] MethodExpression
    
 - [ ] condional activate to run it without debug::bc
     

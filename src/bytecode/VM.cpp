@@ -78,6 +78,14 @@ namespace DreiZehn {
     #endif
 
     #define DISPATCH_OPCODE(op) goto *dispatch_table[op]
+
+
+   inline void _set_var_pointer_value(Value* pre, Value& post) {
+        if (pre->isPointer())  pre->asPointerObject()->setAssigned(false);
+        if (post.isPointer()) post.asPointerObject()->setAssigned(true);
+        *pre = post;
+    }
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
@@ -596,7 +604,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
             PATCH_PTR(saveObjPtrPos, obj);
             PATCH_PTR(saveFieldPtrPos, fieldValuePtr);
         }
-        *fieldValuePtr = PEEK_STACK(0);
+
+        _set_var_pointer_value(fieldValuePtr, PEEK_STACK(0));
+        // // // *fieldValuePtr = PEEK_STACK(0);
 
         DISPATCH();
     }
@@ -670,7 +680,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
             DISPATCH();
         }
 
-        *destPrt = PEEK_STACK(0);
+         _set_var_pointer_value(destPrt, PEEK_STACK(0));
+        // *destPrt = PEEK_STACK(0);
         DISPATCH();
     }
     // -------------------------------------------------------------------------
@@ -712,7 +723,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
             resultPtr =varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
         }
         if (resultPtr) [[likely]]{
-            *resultPtr = assignValue;
+            // *resultPtr = assignValue;
+            _set_var_pointer_value(resultPtr, assignValue);
             DISPATCH();
         }
         PEEK_STACK(0) = NumberNullValue;

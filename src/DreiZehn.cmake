@@ -73,6 +73,7 @@ set(DREIZEHN_SRC
 
 
     ${CMAKE_CURRENT_LIST_DIR}/Globals.h
+    ${CMAKE_CURRENT_LIST_DIR}/Globals.cpp
     ${CMAKE_CURRENT_LIST_DIR}/DreiZehn.h
     ${CMAKE_CURRENT_LIST_DIR}/DreiZehn.cpp
 

@@ -15,6 +15,8 @@ fn RunCrazy
                 newVec.vecField = Struct::new "a" "b" "c"
             end
         end
+        -- for Trigger Garbage
+        core::breath
     end
 end
 
@@ -22,6 +24,6 @@ print "calling RunCrazy"
 RunCrazy
 core::gc; core::printgc;
 
-print "vec:" vec ", field:" field ", newVec" newVec
+-- print "vec:" vec ", field:" field ", newVec" newVec
 
 while core::breath; core::sleep 16 ;;

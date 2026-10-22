@@ -165,6 +165,12 @@ Segmentation fault (core dumped)
 
 ### 0.9e: testing and activate
 - [X] moved compiler from enviroment to own source file an splitted patch
+- [ ] ./DreiZehn scripts/bcLoader.13 test_Garbage << core dumped!
+    Garbage collection on: 
+    - [ ] ObjectFieldExpression with cache
+    - [ ] ArrayVariableExpression
+    - [ ] MethodExpression
+   
 - [ ] condional activate to run it without debug::bc
     
 ---

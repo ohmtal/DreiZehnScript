@@ -28,6 +28,7 @@ namespace DreiZehn {
 
 
     // #define PUSH_STACK(val)      (vmStack[_STK++] = (val))
+    // #ifdef DREIZEHN_DEBUG
     #ifdef DREIZEHN_DEBUG
     #define PUSH_STACK(val) \
     do { \

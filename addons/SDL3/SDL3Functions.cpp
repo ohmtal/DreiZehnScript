@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // Basic SDL3 Bindings
-// FIXME replace dynamic_cast and check for type like Type_SDL_Window_Object
+// FIXME  static_cast  check for type like Type_SDL_Window_Object
 //-----------------------------------------------------------------------------
 // #pragma once
 #include <SDL3/SDL.h>
@@ -215,7 +215,7 @@ namespace DreiZehn {
                 Tools::errorf("usage: SDL_DestroyWindow(SDL_Window *window)\n");
                 return false;
             }
-            SDL_Window_Object* obj = dynamic_cast<SDL_Window_Object*>(args[0].asPointerObject());
+            SDL_Window_Object* obj = static_cast<SDL_Window_Object*>(args[0].asPointerObject());
             if (!obj || !obj->value) {
                 Tools::errorf("SDL_DestroyWindow: Invalid SDL_Window Pointer!\n", SDL_GetError());
                 return false;
@@ -230,7 +230,7 @@ namespace DreiZehn {
                 Tools::errorf("usage: SDL_CreateRenderer(SDL_Window *window, const char *name)\n");
                 return false;
             }
-            SDL_Window_Object* winObj = dynamic_cast<SDL_Window_Object*>(args[0].asPointerObject());
+            SDL_Window_Object* winObj = static_cast<SDL_Window_Object*>(args[0].asPointerObject());
             if (!winObj || !winObj->value) {
                 Tools::errorf("SDL_CreateRenderer: Invalid SDL_Window!\n");
                 return false;
@@ -263,7 +263,7 @@ namespace DreiZehn {
                 Tools::errorf("usage: SDL_PollEvent(SDL_Event event)\n");
                 return false;
             }
-            SDL_Event_Object* evObj = dynamic_cast<SDL_Event_Object*>(args[0].asPointerObject());
+            SDL_Event_Object* evObj = static_cast<SDL_Event_Object*>(args[0].asPointerObject());
             if (!evObj) {
                 Tools::errorf("SDL_PollEvent: Invalid SDL_Event Object!\n");
                 return false;
@@ -275,7 +275,7 @@ namespace DreiZehn {
         // NOTE Toolfunction for Event Type
         RegisterFunction("SDL_GetEventType", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) return false;
-            SDL_Event_Object* evObj = dynamic_cast<SDL_Event_Object*>(args[0].asPointerObject());
+            SDL_Event_Object* evObj = static_cast<SDL_Event_Object*>(args[0].asPointerObject());
             if (!evObj) return false;
 
             ret = Value(static_cast<int>(evObj->value.type));
@@ -286,7 +286,7 @@ namespace DreiZehn {
         // Tool Function for IsKeyDownEvent
         RegisterFunction("SDL_IsKeyDownEvent", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) return false;
-            SDL_Event_Object* evObj = dynamic_cast<SDL_Event_Object*>(args[0].asPointerObject());
+            SDL_Event_Object* evObj = static_cast<SDL_Event_Object*>(args[0].asPointerObject());
             if (!evObj) return false;
 
             ret = Value(evObj->value.type == SDL_EVENT_KEY_DOWN);
@@ -296,7 +296,7 @@ namespace DreiZehn {
         // Tools Function for Key Event
         RegisterFunction("SDL_GetEventKey", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) return false;
-            SDL_Event_Object* evObj = dynamic_cast<SDL_Event_Object*>(args[0].asPointerObject());
+            SDL_Event_Object* evObj = static_cast<SDL_Event_Object*>(args[0].asPointerObject());
             if (!evObj) return false;
 
             if (evObj->value.type == SDL_EVENT_KEY_DOWN || evObj->value.type == SDL_EVENT_KEY_UP) {
@@ -317,7 +317,7 @@ namespace DreiZehn {
                 Tools::errorf("usage: SDL_SetRenderDrawColor(SDL_Renderer *renderer, r, g, b, a)\n");
                 return false;
             }
-            SDL_Renderer_Object* rendObj = dynamic_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
+            SDL_Renderer_Object* rendObj = static_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
             if (!rendObj || !rendObj->value) return false;
 
             bool success = SDL_SetRenderDrawColor(
@@ -335,7 +335,7 @@ namespace DreiZehn {
         // extern SDL_DECLSPEC bool SDLCALL SDL_RenderClear(SDL_Renderer *renderer);
         RegisterFunction("SDL_RenderClear", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) return false;
-            SDL_Renderer_Object* rendObj = dynamic_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
+            SDL_Renderer_Object* rendObj = static_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
             if (!rendObj || !rendObj->value) return false;
 
             ret = Value(SDL_RenderClear(rendObj->value));
@@ -346,7 +346,7 @@ namespace DreiZehn {
         // extern SDL_DECLSPEC bool SDLCALL SDL_RenderPresent(SDL_Renderer *renderer);
         RegisterFunction("SDL_RenderPresent", [](std::vector<Value>& args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) return false;
-            SDL_Renderer_Object* rendObj = dynamic_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
+            SDL_Renderer_Object* rendObj = static_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
             if (!rendObj || !rendObj->value) return false;
 
             ret = Value(SDL_RenderPresent(rendObj->value));
@@ -359,7 +359,7 @@ namespace DreiZehn {
                 Tools::errorf("usage: SDL_RenderDebugText(SDL_Renderer *renderer, float x, float y, const char *str)\n");
                 return false;
             }
-            SDL_Renderer_Object* rendObj = dynamic_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
+            SDL_Renderer_Object* rendObj = static_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
             if (!rendObj || !rendObj->value) return false;
 
             float x = static_cast<float>(args[1].getFloat());
@@ -376,7 +376,7 @@ namespace DreiZehn {
                 Tools::errorf("usage: SDL_SetRenderScale(SDL_Renderer *renderer, float scaleX, float scaleY)\n");
                 return false;
             }
-            SDL_Renderer_Object* rendObj = dynamic_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
+            SDL_Renderer_Object* rendObj = static_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
             if (!rendObj || !rendObj->value) return false;
 
             float scaleX = static_cast<float>(args[1].getFloat());
@@ -392,7 +392,7 @@ namespace DreiZehn {
                 Tools::errorf("usage: SDL_RenderFillRect(SDL_Renderer *renderer, float x, float y, float w, float h)\n");
                 return false;
             }
-            SDL_Renderer_Object* rendObj = dynamic_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
+            SDL_Renderer_Object* rendObj = static_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
             if (!rendObj || !rendObj->value) return false;
 
             SDL_FRect rect;
@@ -411,7 +411,7 @@ namespace DreiZehn {
                 Tools::errorf("usage: SDL_RenderRect(SDL_Renderer *renderer, float x, float y, float w, float h)\n");
                 return false;
             }
-            SDL_Renderer_Object* rendObj = dynamic_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
+            SDL_Renderer_Object* rendObj = static_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
             if (!rendObj || !rendObj->value) return false;
 
             SDL_FRect rect;
@@ -430,7 +430,7 @@ namespace DreiZehn {
                 Tools::errorf("usage: SDL_RenderLine(SDL_Renderer *renderer, float x1, float y1, float x2, float y2)\n");
                 return false;
             }
-            SDL_Renderer_Object* rendObj = dynamic_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
+            SDL_Renderer_Object* rendObj = static_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
             if (!rendObj || !rendObj->value) return false;
 
             float x1 = static_cast<float>(args[1].getFloat());

@@ -12,8 +12,10 @@
 namespace DreiZehn {
     // Garbage Collection
     CallStack::~CallStack() {
-        for (auto& loc: mLocals) {
-            if (loc.isPointer()) loc.asPointerObject()->setAssigned(false);
+        if (!Globals::shutDownRUNNING) {
+            for (auto& loc: mLocals) {
+                if (loc.isPointer()) loc.asPointerObject()->setAssigned(false);
+            }
         }
     }
 

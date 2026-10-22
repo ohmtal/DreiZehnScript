@@ -27,15 +27,17 @@ namespace DreiZehn {
     class Environment;
     class VariableFrame;
 
-    const double EPSILON = 1e-9;
-
-    inline std::function<bool()> OnBreath = nullptr;
-
-
     // dont want to break my fingers every time
     typedef uint32_t U32;
     typedef int64_t  S64;
     typedef int32_t  S32;
+
+    const double EPSILON = 1e-9;
+
+
+    inline std::function<bool()> OnBreath = nullptr;
+    bool BaseBreath();
+
 
 
 
@@ -44,7 +46,7 @@ namespace Globals {
     inline int currentScriptLineNumber = 0;
     inline std::string currentScriptLine =  "";
     // ------
-    inline  bool shutDownRUNNING = false;
+    inline bool shutDownRUNNING = false;
     // ------
     // i want to track the current Env!
     inline Environment* gCurEnv = nullptr;

@@ -53,9 +53,11 @@ public:
         mParentFrame = parentFrame;
     }
     ~VariableFrame() {
-        for(auto& [key,ptr]: mVariables) {
-            if (ptr && ptr->isPointer()) {
-                ptr->asPointerObject()->setAssigned(false);
+        if (!Globals::shutDownRUNNING) {
+            for(auto& [key,ptr]: mVariables) {
+                if (ptr && ptr->isPointer()) {
+                    ptr->asPointerObject()->setAssigned(false);
+                }
             }
         }
 

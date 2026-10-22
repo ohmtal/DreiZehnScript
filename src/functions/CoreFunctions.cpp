@@ -65,11 +65,8 @@ namespace DreiZehn {
         // a main loop in script
         // ---------------------------------------------------------------------
         RegisterFunction("core::breath", [](std::vector<Value>& args, Value& ret) -> bool {
-            if (OnBreath) {
-                ret = Value(OnBreath());
-                return true;
-            }
-            return false;
+            ret =  Value(BaseBreath());
+            return true;
         }, "let the programm breath - usally used for console.");
         // ---------------------------------------------------------------------
         // sleep ms

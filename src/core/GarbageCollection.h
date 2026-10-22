@@ -65,11 +65,11 @@ public:
 
 protected:
     // ------------------------------------------------------------------------
+    void doGarbageCollection(bool isShutDown);
     void addToGarbageCollection(ValueObject* obj);
     void removeFromGarbageCollection(ValueObject* obj);
     size_t getGarbageSize();
     void listGarbageObjects();
-    void doGarbageCollection(bool isShutDown);
 
 private:
 

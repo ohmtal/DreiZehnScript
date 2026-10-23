@@ -20,174 +20,270 @@ struct CallStack {
     ~CallStack();
 };
 
-enum  OpCodes : uint32_t {
-    OP_CONST,       // push const to stack
-    OP_PUSH_VALUE,
 
-    OP_JUMP,
-    OP_JUMP_CLEAN_STACK,
-    OP_JUMP_IF_TRUE_NO_POP,
-    OP_JUMP_IF_FALSE_NO_POP,
+#define OP_CODE_LIST \
+/* Basic types & stack */ \
+X(OP_CONST,                    1, "push const to stack") \
+X(OP_PUSH_VALUE,               0, "push value to stack") \
+\
+/* Jumps & branching */ \
+X(OP_JUMP,                     1, "unconditional jump") \
+X(OP_JUMP_CLEAN_STACK,         2, "jump and clean stack") \
+X(OP_JUMP_IF_TRUE_NO_POP,      1, "jump if true without popping") \
+X(OP_JUMP_IF_FALSE_NO_POP,     1, "jump if false without popping") \
+X(OP_JUMP_IF_FALSE,            1, "jump if false") \
+X(OP_JUMP_IF_TRUE,             1, "jump if true") \
+\
+/* Comparisons */ \
+X(OP_LESS_EQUAL,               0, "compare less equal") \
+X(OP_LESS,                     0, "compare less") \
+X(OP_GREATER,                  0, "compare greater") \
+X(OP_GREATER_EQUAL,            0, "compare greater equal") \
+X(OP_EQUAL,                    0, "compare equal") \
+X(OP_NOT_EQUAL,                0, "compare not equal") \
+\
+/* Bitwise & arithmetic operators */ \
+X(OP_BIT_AND,                  0, "bitwise AND") \
+X(OP_BIT_OR,                   0, "bitwise OR") \
+X(OP_BIT_XOR,                  0, "bitwise XOR") \
+X(OP_SHL,                      0, "shift left") \
+X(OP_SHR,                      0, "shift right") \
+X(OP_MODULO,                   0, "modulo operation") \
+\
+/* Variables (Global / Scope) */ \
+X(OP_LOAD_VAR,                 3, "load global variable") \
+X(OP_SAVE_VAR,                 3, "save global variable") \
+\
+/* Local variables */ \
+X(OP_GET_LOCAL,                1, "get local variable") \
+X(OP_SET_LOCAL,                1, "set local variable") \
+\
+/* Objects & fields (calculated at compile time) */ \
+X(OP_LOAD_OBJECT_FIELD,        1 + (2 * sizeof(void*)), "load object field") \
+X(OP_SAVE_OBJECT_FIELD,        1 + (2 * sizeof(void*)), "save object field") \
+X(OP_CALL_OBJECT_METHOD,       2, "call object method") \
+X(OP_SAVE_OBJECT_METHOD,       2, "save object method") \
+\
+/* Arrays */ \
+X(OP_LOAD_ARRAY,               0, "load array element") \
+X(OP_SAVE_ARRAY,               0, "save array element") \
+\
+/* Functions */ \
+X(OP_CALL_C_FUNCTION,          0, "SPECIAL emittedCount variable") \
+X(OP_CALL_SF_FUNCTION,         2, "call script function") \
+\
+/* Local optimizations (increment / arithmetic) */ \
+X(OP_INC_LOCAL,                2, "increment local variable") \
+X(OP_ADD_LOCAL,                1, "add to local variable") \
+X(OP_SUB_LOCAL,                1, "subtract from local variable") \
+X(OP_MUL_LOCAL,                1, "multiply local variable") \
+X(OP_DIV_LOCAL,                1, "divide local variable") \
+\
+/* Standard arithmetic & logic */ \
+X(OP_ADD,                      0, "addition") \
+X(OP_SUB,                      0, "subtraction") \
+X(OP_MUL,                      0, "multiplication") \
+X(OP_DIV,                      0, "division") \
+X(OP_NOT,                      0, "logical NOT") \
+\
+/* Loops & iterators */ \
+X(OP_FOR_RANGE,                2, "for range loop") \
+X(OP_FOR_STEP_INIT,            3, "initialize for step loop") \
+X(OP_LOOP_INCREMENT_JUMP,      3, "increment loop and jump") \
+X(OP_FOR_EACH_INIT,            2, "initialize foreach loop") \
+X(OP_FOR_EACH_INCREMENT_JUMP,  2, "increment foreach and jump") \
+\
+/* Miscellaneous & control flow */ \
+X(OP_CREATE_KEYVALUE,          0, "create key-value pair") \
+X(OP_POP_STACK,                0, "pop stack top") \
+X(OP_RETURN,                   0, "return from function") \
+X(OP_EXIT,                     0, "exit interpreter") \
+X(OP_INVALID,                  0, "invalid opcode fallback")
 
-    OP_JUMP_IF_FALSE,
-    OP_JUMP_IF_TRUE,
-
-    OP_LESS_EQUAL,
-    OP_LESS,
-
-    OP_GREATER,
-    OP_GREATER_EQUAL,
-    OP_EQUAL,
-    OP_NOT_EQUAL,
-
-    OP_BIT_AND,
-    OP_BIT_OR,
-    OP_BIT_XOR,
-    OP_SHL,
-    OP_SHR,
-    OP_MODULO,
 
 
-
-    // Global Variables
-    OP_LOAD_VAR,
-    OP_SAVE_VAR,
-
-    // Local Variables:
-    OP_GET_LOCAL,
-    OP_SET_LOCAL,
-
-    // Object fields
-    OP_LOAD_OBJECT_FIELD,
-    OP_SAVE_OBJECT_FIELD,
-
-    // Object methods
-    OP_CALL_OBJECT_METHOD,
-    OP_SAVE_OBJECT_METHOD,
-
-    // Array
-    OP_LOAD_ARRAY,
-    OP_SAVE_ARRAY,
-
-    //Function Call
-    OP_CALL_C_FUNCTION,
-    OP_CALL_SF_FUNCTION,
-
-
-    // Math
-    OP_INC_LOCAL, // ++ -- using emitted value
-
-    OP_ADD_LOCAL, // += using emitted value
-    OP_SUB_LOCAL, // -= using emitted value
-    OP_MUL_LOCAL, // *= using emitted value
-    OP_DIV_LOCAL, // /= using emitted value
-
-    OP_ADD,
-    OP_SUB,
-    OP_MUL,
-    OP_DIV,
-
-    OP_NOT,
-
-    // Loop
-    OP_FOR_RANGE,
-    OP_FOR_STEP_INIT,
-    OP_LOOP_INCREMENT_JUMP,
-
-    OP_FOR_EACH_INIT,
-    OP_FOR_EACH_INCREMENT_JUMP,
-
-    OP_CREATE_KEYVALUE,
-
-    OP_POP_STACK,
-
-    OP_RETURN,
-    OP_EXIT,        // bye bye
-    OP_INVALID
+#define X(name, args, comment) name,
+enum OpCodes : uint32_t {
+    OP_CODE_LIST
 };
+#undef X
 
 struct OpCodeInfo {
-  const char* name;
-  U32 emittedCount;
+    const char* name;
+    U32 emittedCount;
 };
 
 
+#define X(name, args, comment) {#name, args},
 constexpr OpCodeInfo OpCodeInfos[] = {
-    {"OP_CONST", 1},
-    {"OP_PUSH_VALUE", 0},
-
-    {"OP_JUMP", 1},
-    {"OP_JUMP_CLEAN_STACK", 2},
-    {"OP_JUMP_IF_TRUE_NO_POP", 1},
-    {"OP_JUMP_IF_FALSE_NO_POP", 1},
-
-    {"OP_JUMP_IF_FALSE", 1},
-    {"OP_JUMP_IF_TRUE", 1},
-
-    {"OP_LESS_EQUAL", 0},
-    {"OP_LESS", 0},
-
-    {"OP_GREATER", 0 },
-    {"OP_GREATER_EQUAL", 0 },
-    {"OP_EQUAL", 0 },
-    {"OP_NOT_EQUAL", 0 },
-
-    {"OP_BIT_AND", 0 },
-    {"OP_BIT_OR", 0 },
-    {"OP_BIT_XOR", 0 },
-    {"OP_SHL", 0 },
-    {"OP_SHR", 0 },
-    {"OP_MODULO", 0 },
-
-
-    {"OP_LOAD_VAR", 3},
-    {"OP_SAVE_VAR", 3},
-
-    {"OP_GET_LOCAL", 1},
-    {"OP_SET_LOCAL", 1},
-
-    {"OP_LOAD_OBJECT_FIELD", 1 + ( 2  * sizeof(void*) )},
-    {"OP_SAVE_OBJECT_FIELD", 1 + ( 2  * sizeof(void*) )},
-
-    {"OP_CALL_OBJECT_METHOD", 2},
-    {"OP_SAVE_OBJECT_METHOD", 2},
-
-    // Array
-    {"OP_LOAD_ARRAY", 0},
-    {"OP_SAVE_ARRAY", 0},
-
-    {"OP_CALL_C_FUNCTION", 0}, //SPECIAL emittedCount variable
-    {"OP_CALL_SF_FUNCTION", 2},
-
-    {"OP_INC_LOCAL", 2},
-    {"OP_ADD_LOCAL", 1},
-    {"OP_SUB_LOCAL", 1},
-    {"OP_MUL_LOCAL", 1},
-    {"OP_DIV_LOCAL", 1},
-
-    {"OP_ADD", 0},
-    {"OP_SUB", 0},
-    {"OP_MUL", 0},
-    {"OP_DIV", 0},
-
-    {"OP_NOT", 0},
-
-
-    {"OP_FOR_RANGE", 2},
-    {"OP_FOR_STEP_INIT", 3 },
-    {"OP_LOOP_INCREMENT_JUMP", 3},
-
-    {"OP_FOR_EACH_INIT", 2},
-    {"OP_FOR_EACH_INCREMENT_JUMP",2},
-
-    {"OP_CREATE_KEYVALUE", 0},
-
-    {"OP_POP_STACK", 0},
-
-    {"OP_RETURN", 0},
-    {"OP_EXIT", 0},
-    {"OP_INVALID", 0}
+    OP_CODE_LIST
 };
+#undef X
+
+// enum  OpCodes : uint32_t {
+//     OP_CONST,       // push const to stack
+//     OP_PUSH_VALUE,
+//
+//     OP_JUMP,
+//     OP_JUMP_CLEAN_STACK,
+//     OP_JUMP_IF_TRUE_NO_POP,
+//     OP_JUMP_IF_FALSE_NO_POP,
+//
+//     OP_JUMP_IF_FALSE,
+//     OP_JUMP_IF_TRUE,
+//
+//     OP_LESS_EQUAL,
+//     OP_LESS,
+//
+//     OP_GREATER,
+//     OP_GREATER_EQUAL,
+//     OP_EQUAL,
+//     OP_NOT_EQUAL,
+//
+//     OP_BIT_AND,
+//     OP_BIT_OR,
+//     OP_BIT_XOR,
+//     OP_SHL,
+//     OP_SHR,
+//     OP_MODULO,
+//
+//
+//
+//     // Global Variables
+//     OP_LOAD_VAR,
+//     OP_SAVE_VAR,
+//
+//     // Local Variables:
+//     OP_GET_LOCAL,
+//     OP_SET_LOCAL,
+//
+//     // Object fields
+//     OP_LOAD_OBJECT_FIELD,
+//     OP_SAVE_OBJECT_FIELD,
+//
+//     // Object methods
+//     OP_CALL_OBJECT_METHOD,
+//     OP_SAVE_OBJECT_METHOD,
+//
+//     // Array
+//     OP_LOAD_ARRAY,
+//     OP_SAVE_ARRAY,
+//
+//     //Function Call
+//     OP_CALL_C_FUNCTION,
+//     OP_CALL_SF_FUNCTION,
+//
+//
+//     // Math
+//     OP_INC_LOCAL, // ++ -- using emitted value
+//
+//     OP_ADD_LOCAL, // += using emitted value
+//     OP_SUB_LOCAL, // -= using emitted value
+//     OP_MUL_LOCAL, // *= using emitted value
+//     OP_DIV_LOCAL, // /= using emitted value
+//
+//     OP_ADD,
+//     OP_SUB,
+//     OP_MUL,
+//     OP_DIV,
+//
+//     OP_NOT,
+//
+//     // Loop
+//     OP_FOR_RANGE,
+//     OP_FOR_STEP_INIT,
+//     OP_LOOP_INCREMENT_JUMP,
+//
+//     OP_FOR_EACH_INIT,
+//     OP_FOR_EACH_INCREMENT_JUMP,
+//
+//     OP_CREATE_KEYVALUE,
+//
+//     OP_POP_STACK,
+//
+//     OP_RETURN,
+//     OP_EXIT,        // bye bye
+//     OP_INVALID
+// };
+
+
+
+// constexpr OpCodeInfo OpCodeInfos[] = {
+//     {"OP_CONST", 1},
+//     {"OP_PUSH_VALUE", 0},
+//
+//     {"OP_JUMP", 1},
+//     {"OP_JUMP_CLEAN_STACK", 2},
+//     {"OP_JUMP_IF_TRUE_NO_POP", 1},
+//     {"OP_JUMP_IF_FALSE_NO_POP", 1},
+//
+//     {"OP_JUMP_IF_FALSE", 1},
+//     {"OP_JUMP_IF_TRUE", 1},
+//
+//     {"OP_LESS_EQUAL", 0},
+//     {"OP_LESS", 0},
+//
+//     {"OP_GREATER", 0 },
+//     {"OP_GREATER_EQUAL", 0 },
+//     {"OP_EQUAL", 0 },
+//     {"OP_NOT_EQUAL", 0 },
+//
+//     {"OP_BIT_AND", 0 },
+//     {"OP_BIT_OR", 0 },
+//     {"OP_BIT_XOR", 0 },
+//     {"OP_SHL", 0 },
+//     {"OP_SHR", 0 },
+//     {"OP_MODULO", 0 },
+//
+//
+//     {"OP_LOAD_VAR", 3},
+//     {"OP_SAVE_VAR", 3},
+//
+//     {"OP_GET_LOCAL", 1},
+//     {"OP_SET_LOCAL", 1},
+//
+//     {"OP_LOAD_OBJECT_FIELD", 1 + ( 2  * sizeof(void*) )},
+//     {"OP_SAVE_OBJECT_FIELD", 1 + ( 2  * sizeof(void*) )},
+//
+//     {"OP_CALL_OBJECT_METHOD", 2},
+//     {"OP_SAVE_OBJECT_METHOD", 2},
+//
+//     // Array
+//     {"OP_LOAD_ARRAY", 0},
+//     {"OP_SAVE_ARRAY", 0},
+//
+//     {"OP_CALL_C_FUNCTION", 0}, //SPECIAL emittedCount variable
+//     {"OP_CALL_SF_FUNCTION", 2},
+//
+//     {"OP_INC_LOCAL", 2},
+//     {"OP_ADD_LOCAL", 1},
+//     {"OP_SUB_LOCAL", 1},
+//     {"OP_MUL_LOCAL", 1},
+//     {"OP_DIV_LOCAL", 1},
+//
+//     {"OP_ADD", 0},
+//     {"OP_SUB", 0},
+//     {"OP_MUL", 0},
+//     {"OP_DIV", 0},
+//
+//     {"OP_NOT", 0},
+//
+//
+//     {"OP_FOR_RANGE", 2},
+//     {"OP_FOR_STEP_INIT", 3 },
+//     {"OP_LOOP_INCREMENT_JUMP", 3},
+//
+//     {"OP_FOR_EACH_INIT", 2},
+//     {"OP_FOR_EACH_INCREMENT_JUMP",2},
+//
+//     {"OP_CREATE_KEYVALUE", 0},
+//
+//     {"OP_POP_STACK", 0},
+//
+//     {"OP_RETURN", 0},
+//     {"OP_EXIT", 0},
+//     {"OP_INVALID", 0}
+// };
 
 
 #ifdef DREIZEHN_DEBUG

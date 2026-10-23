@@ -117,91 +117,95 @@ namespace DreiZehn {
 // -----------------------------------------------------------------------------
 Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
-    // constexpr void* dispatch_table[] = {
-    alignas(64) constexpr  void* dispatch_table[] = {
-        &&handle_OP_CONST,       // push const to stack
-        &&handle_OP_PUSH_VALUE,
-
-        &&handle_OP_JUMP,
-        &&handle_OP_JUMP_CLEAN_STACK,
-
-        &&handle_OP_JUMP_IF_TRUE_NO_POP,
-        &&handle_OP_JUMP_IF_FALSE_NO_POP,
-
-        &&handle_OP_JUMP_IF_FALSE,
-        &&handle_OP_JUMP_IF_TRUE,
-
-        &&handle_OP_LESS_EQUAL,
-        &&handle_OP_LESS,
-
-        &&handle_OP_GREATER,
-        &&handle_OP_GREATER_EQUAL,
-        &&handle_OP_EQUAL,
-        &&handle_OP_NOT_EQUAL,
-
-        &&handle_OP_BIT_AND,
-        &&handle_OP_BIT_OR,
-        &&handle_OP_BIT_XOR,
-        &&handle_OP_SHL,
-        &&handle_OP_SHR,
-        &&handle_OP_MODULO,
-
-        // Global variable
-        &&handle_OP_LOAD_VAR,
-        &&handle_OP_SAVE_VAR,
-
-        // Local variable
-        &&handle_OP_GET_LOCAL,   // fetch var
-        &&handle_OP_SET_LOCAL,   // write var
-
-        // Object Field
-        &&handle_OP_LOAD_OBJECT_FIELD,
-        &&handle_OP_SAVE_OBJECT_FIELD,
-
-        // Object Methods
-        &&handle_OP_CALL_OBJECT_METHOD,
-        &&handle_OP_SAVE_OBJECT_METHOD,
-
-        // Array Var
-        &&handle_OP_LOAD_ARRAY,
-        &&handle_OP_SAVE_ARRAY,
-
-        // Functions
-        &&handle_OP_CALL_C_FUNCTION,
-        &&handle_OP_CALL_SF_FUNCTION,
-
-        // Math
-        &&handle_OP_INC_LOCAL,
-
-        &&handle_OP_ADD_LOCAL, // += using emitted value
-        &&handle_OP_SUB_LOCAL, // -= using emitted value
-        &&handle_OP_MUL_LOCAL, // *= using emitted value
-        &&handle_OP_DIV_LOCAL, // /= using emitted value
-
-        &&handle_OP_ADD,
-        &&handle_OP_SUB,
-        &&handle_OP_MUL,
-        &&handle_OP_DIV,
-
-        &&handle_OP_NOT,
-
-        //Loops
-        &&handle_OP_FOR_RANGE,
-        &&handle_OP_FOR_STEP_INIT,
-        &&handle_OP_LOOP_INCREMENT_JUMP,
-
-        &&handle_OP_FOR_EACH_INIT,
-        &&handle_OP_FOR_EACH_INCREMENT_JUMP,
-
-        &&handle_OP_CREATE_KEYVALUE,
-
-        &&handle_OP_POP_STACK,
-
-        &&handle_OP_RETURN,
-
-        &&handle_OP_EXIT,        // bye bye
-        &&handle_OP_INVALID
+    #define X(name, args, comment) &&handle_##name,
+    alignas(64) constexpr void* dispatch_table[] = {
+        OP_CODE_LIST
     };
+    #undef X
+    // alignas(64) constexpr  void* dispatch_table[] = {
+    //     &&handle_OP_CONST,       // push const to stack
+    //     &&handle_OP_PUSH_VALUE,
+    //
+    //     &&handle_OP_JUMP,
+    //     &&handle_OP_JUMP_CLEAN_STACK,
+    //
+    //     &&handle_OP_JUMP_IF_TRUE_NO_POP,
+    //     &&handle_OP_JUMP_IF_FALSE_NO_POP,
+    //
+    //     &&handle_OP_JUMP_IF_FALSE,
+    //     &&handle_OP_JUMP_IF_TRUE,
+    //
+    //     &&handle_OP_LESS_EQUAL,
+    //     &&handle_OP_LESS,
+    //
+    //     &&handle_OP_GREATER,
+    //     &&handle_OP_GREATER_EQUAL,
+    //     &&handle_OP_EQUAL,
+    //     &&handle_OP_NOT_EQUAL,
+    //
+    //     &&handle_OP_BIT_AND,
+    //     &&handle_OP_BIT_OR,
+    //     &&handle_OP_BIT_XOR,
+    //     &&handle_OP_SHL,
+    //     &&handle_OP_SHR,
+    //     &&handle_OP_MODULO,
+    //
+    //     // Global variable
+    //     &&handle_OP_LOAD_VAR,
+    //     &&handle_OP_SAVE_VAR,
+    //
+    //     // Local variable
+    //     &&handle_OP_GET_LOCAL,   // fetch var
+    //     &&handle_OP_SET_LOCAL,   // write var
+    //
+    //     // Object Field
+    //     &&handle_OP_LOAD_OBJECT_FIELD,
+    //     &&handle_OP_SAVE_OBJECT_FIELD,
+    //
+    //     // Object Methods
+    //     &&handle_OP_CALL_OBJECT_METHOD,
+    //     &&handle_OP_SAVE_OBJECT_METHOD,
+    //
+    //     // Array Var
+    //     &&handle_OP_LOAD_ARRAY,
+    //     &&handle_OP_SAVE_ARRAY,
+    //
+    //     // Functions
+    //     &&handle_OP_CALL_C_FUNCTION,
+    //     &&handle_OP_CALL_SF_FUNCTION,
+    //
+    //     // Math
+    //     &&handle_OP_INC_LOCAL,
+    //
+    //     &&handle_OP_ADD_LOCAL, // += using emitted value
+    //     &&handle_OP_SUB_LOCAL, // -= using emitted value
+    //     &&handle_OP_MUL_LOCAL, // *= using emitted value
+    //     &&handle_OP_DIV_LOCAL, // /= using emitted value
+    //
+    //     &&handle_OP_ADD,
+    //     &&handle_OP_SUB,
+    //     &&handle_OP_MUL,
+    //     &&handle_OP_DIV,
+    //
+    //     &&handle_OP_NOT,
+    //
+    //     //Loops
+    //     &&handle_OP_FOR_RANGE,
+    //     &&handle_OP_FOR_STEP_INIT,
+    //     &&handle_OP_LOOP_INCREMENT_JUMP,
+    //
+    //     &&handle_OP_FOR_EACH_INIT,
+    //     &&handle_OP_FOR_EACH_INCREMENT_JUMP,
+    //
+    //     &&handle_OP_CREATE_KEYVALUE,
+    //
+    //     &&handle_OP_POP_STACK,
+    //
+    //     &&handle_OP_RETURN,
+    //
+    //     &&handle_OP_EXIT,        // bye bye
+    //     &&handle_OP_INVALID
+    // };
 
     if (chunk.mByteCodes.empty()) {
         return Value(0.0);

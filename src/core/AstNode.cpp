@@ -89,6 +89,7 @@ namespace DreiZehn {
         if (mCacheValue && mCacheFrameID == frameID) {
             return mCacheValue;
         }
+
         mCacheFrameID = frameID;
         mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
         return mCacheValue;

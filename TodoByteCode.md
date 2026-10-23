@@ -172,6 +172,37 @@ Segmentation fault (core dumped)
     - [X] ArrayVariableExpression
     - [X] MethodExpression
    
+- [X] flat locals with big init size 
+
+- [ ] globals have prio at the moment but locals should: 
+    `debug::bc 'global i = 10; fn foo i; print i;; foo'`
+    should be fixed in parser .. on AST interpreter it works correct .. 
+    yes it works correct because it does a recursive lookup but mGlobal is here 
+    set too.
+    `} else if (Globals::isGlobalVar(id)) { ` this does a lookup find it and so 
+    it set it to global. usually ok but i must check if i'am in another scope and
+    it's an assign. It's called from ` else if (FunctionMap::IsFunction(nameTokenSymbolId)) {`
+    Added here: I should also check peek is DreiZehn::TokenType::Assign
+    ```
+               } else {
+                // we got a variable
+                bool isGlobal = peekOffset(-2).mType == TokenType::Global;
+                currentExpression = std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
+            }
+    ```
+    
+    Warning there is a other creation:
+    
+    ```
+              bool isGlobal = peekOffset(-2).mType == TokenType::Global;
+            return std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
+    ````
+    
+    it's still tricky so i must build a frame system to check the scope for 
+    variables to make it work also with bytecode. so it lookup the local variable 
+    first if global is not explizit set. 
+    
+    
 - [ ] condional activate to run it without debug::bc
     
 ---

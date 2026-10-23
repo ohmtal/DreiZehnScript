@@ -24,6 +24,7 @@ struct CallFrame {
 
 #define OP_CODE_LIST \
 /* Basic types & stack */ \
+X(OP_POP_STACK,                0, "pop stack top") \
 X(OP_CONST,                    1, "push const to stack") \
 X(OP_PUSH_VALUE,               0, "push value to stack") \
 \
@@ -33,6 +34,7 @@ X(OP_JUMP_CLEAN_STACK,         2, "jump and clean stack") \
 X(OP_JUMP_IF_TRUE_NO_POP,      1, "jump if true without popping") \
 X(OP_JUMP_IF_FALSE_NO_POP,     1, "jump if false without popping") \
 X(OP_JUMP_IF_FALSE,            1, "jump if false") \
+/* ..... */ \
 X(OP_JUMP_IF_TRUE,             1, "jump if true") \
 \
 /* Comparisons */ \
@@ -45,6 +47,7 @@ X(OP_NOT_EQUAL,                0, "compare not equal") \
 \
 /* Bitwise & arithmetic operators */ \
 X(OP_BIT_AND,                  0, "bitwise AND") \
+/* ..... */ \
 X(OP_BIT_OR,                   0, "bitwise OR") \
 X(OP_BIT_XOR,                  0, "bitwise XOR") \
 X(OP_SHL,                      0, "shift left") \
@@ -57,6 +60,7 @@ X(OP_SAVE_VAR,                 3, "save global variable") \
 \
 /* Local variables */ \
 X(OP_GET_LOCAL,                1, "get local variable") \
+/* ..... */ \
 X(OP_SET_LOCAL,                1, "set local variable") \
 \
 /* Objects & fields (calculated at compile time) */ \
@@ -71,6 +75,7 @@ X(OP_SAVE_ARRAY,               0, "save array element") \
 \
 /* Functions */ \
 X(OP_CALL_C_FUNCTION,          0, "SPECIAL emittedCount variable") \
+/* ..... */ \
 X(OP_CALL_SF_FUNCTION,         2, "call script function") \
 \
 /* Local optimizations (increment / arithmetic) */ \
@@ -83,6 +88,7 @@ X(OP_DIV_LOCAL,                1, "divide local variable") \
 /* Standard arithmetic & logic */ \
 X(OP_ADD,                      0, "addition") \
 X(OP_SUB,                      0, "subtraction") \
+/* ..... */ \
 X(OP_MUL,                      0, "multiplication") \
 X(OP_DIV,                      0, "division") \
 X(OP_NOT,                      0, "logical NOT") \
@@ -93,10 +99,10 @@ X(OP_FOR_STEP_INIT,            3, "initialize for step loop") \
 X(OP_LOOP_INCREMENT_JUMP,      3, "increment loop and jump") \
 X(OP_FOR_EACH_INIT,            2, "initialize foreach loop") \
 X(OP_FOR_EACH_INCREMENT_JUMP,  2, "increment foreach and jump") \
+/* ..... */ \
 \
 /* Miscellaneous & control flow */ \
 X(OP_CREATE_KEYVALUE,          0, "create key-value pair") \
-X(OP_POP_STACK,                0, "pop stack top") \
 X(OP_RETURN,                   0, "return from function") \
 X(OP_EXIT,                     0, "exit interpreter") \
 X(OP_INVALID,                  0, "invalid opcode fallback")

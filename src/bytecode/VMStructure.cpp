@@ -11,13 +11,13 @@
 
 namespace DreiZehn {
     // Garbage Collection
-    CallStack::~CallStack() {
-        if (!Globals::shutDownRUNNING) {
-            for (auto& loc: mLocals) {
-                if (loc.isPointer()) loc.asPointerObject()->setAssigned(false);
-            }
-        }
-    }
+    // CallStack::~CallStack() {
+    //     if (!Globals::shutDownRUNNING) {
+    //         for (auto& loc: mLocals) {
+    //             if (loc.isPointer()) loc.asPointerObject()->setAssigned(false);
+    //         }
+    //     }
+    // }
 
 #ifdef DREIZEHN_DEBUG
 void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize) {
@@ -64,7 +64,7 @@ void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, 
     } else {
         Tools::printf("UNKNOWN_OPCODE [%u]", opcode);
     }
-    Tools::printf(", _STK[%d], _CS[%zu], FP:%zu\n", stk, callstk, localsSize);
+    Tools::printf(", _STK[%d], CF:%zu (%zu)\n", stk, callstk, localsSize);
 }
 #endif
 

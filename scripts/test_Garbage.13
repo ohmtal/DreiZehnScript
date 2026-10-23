@@ -15,8 +15,6 @@ fn RunCrazy
                 newVec.vecField = Struct::new "a" "b" "c"
             end
         end
-        -- for Trigger Garbage
-        core::breath
     end
 end
 

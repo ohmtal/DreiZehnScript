@@ -22,17 +22,21 @@
 
 namespace DreiZehn {
     //-----------------------------------------------------------------------------
+    // NOTE better dynamic ?! .....
+
     #ifndef MAX_BC_STACK_SIZE
-    #define MAX_BC_STACK_SIZE  1024
+    #define MAX_BC_STACK_SIZE  4096
     #endif
 
+    #ifndef MAX_BC_LOCALS_SIZE
+    #define MAX_BC_LOCALS_SIZE  65536
+    #endif
 
     // NOTE: tesing most used OP Codes
+    // >>>>
     // #define DREIZEHN_VM_STATS
+    // <<<<
 
-
-    // #define PUSH_STACK(val)      (vmStack[_STK++] = (val))
-    // #ifdef DREIZEHN_DEBUG
     #ifdef DREIZEHN_DEBUG
     #define PUSH_STACK(val) \
     do { \
@@ -90,13 +94,13 @@ namespace DreiZehn {
     #ifdef DEBUG_TRACE_EXECUTION
     #define DISPATCH() \
     do { \
-        disassembleInstruction(code, ip, _STK, callStack.size(), callStack.back().mLocals.size()); \
+        disassembleInstruction(code, ip, _STK, callFrame.size(), callFrame.back().mLocalsCount); \
         goto *dispatch_table[ADVANCE_U32()]; \
     } while(0)
 
     #define DISPATCH_OPCODE(op) \
     do { \
-        disassembleInstruction(code, ip, _STK, callStack.size(), callStack.back().mLocals.size()); \
+        disassembleInstruction(code, ip, _STK, callFrame.size(), callFrame.back().mLocalsCount); \
         goto *dispatch_table[op]; \
     } while(0)
 
@@ -115,97 +119,15 @@ namespace DreiZehn {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
+Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
+    // NOTE new X macro see also VMStructure
     #define X(name, args, comment) &&handle_##name,
     alignas(64) constexpr void* dispatch_table[] = {
         OP_CODE_LIST
     };
     #undef X
-    // alignas(64) constexpr  void* dispatch_table[] = {
-    //     &&handle_OP_CONST,       // push const to stack
-    //     &&handle_OP_PUSH_VALUE,
-    //
-    //     &&handle_OP_JUMP,
-    //     &&handle_OP_JUMP_CLEAN_STACK,
-    //
-    //     &&handle_OP_JUMP_IF_TRUE_NO_POP,
-    //     &&handle_OP_JUMP_IF_FALSE_NO_POP,
-    //
-    //     &&handle_OP_JUMP_IF_FALSE,
-    //     &&handle_OP_JUMP_IF_TRUE,
-    //
-    //     &&handle_OP_LESS_EQUAL,
-    //     &&handle_OP_LESS,
-    //
-    //     &&handle_OP_GREATER,
-    //     &&handle_OP_GREATER_EQUAL,
-    //     &&handle_OP_EQUAL,
-    //     &&handle_OP_NOT_EQUAL,
-    //
-    //     &&handle_OP_BIT_AND,
-    //     &&handle_OP_BIT_OR,
-    //     &&handle_OP_BIT_XOR,
-    //     &&handle_OP_SHL,
-    //     &&handle_OP_SHR,
-    //     &&handle_OP_MODULO,
-    //
-    //     // Global variable
-    //     &&handle_OP_LOAD_VAR,
-    //     &&handle_OP_SAVE_VAR,
-    //
-    //     // Local variable
-    //     &&handle_OP_GET_LOCAL,   // fetch var
-    //     &&handle_OP_SET_LOCAL,   // write var
-    //
-    //     // Object Field
-    //     &&handle_OP_LOAD_OBJECT_FIELD,
-    //     &&handle_OP_SAVE_OBJECT_FIELD,
-    //
-    //     // Object Methods
-    //     &&handle_OP_CALL_OBJECT_METHOD,
-    //     &&handle_OP_SAVE_OBJECT_METHOD,
-    //
-    //     // Array Var
-    //     &&handle_OP_LOAD_ARRAY,
-    //     &&handle_OP_SAVE_ARRAY,
-    //
-    //     // Functions
-    //     &&handle_OP_CALL_C_FUNCTION,
-    //     &&handle_OP_CALL_SF_FUNCTION,
-    //
-    //     // Math
-    //     &&handle_OP_INC_LOCAL,
-    //
-    //     &&handle_OP_ADD_LOCAL, // += using emitted value
-    //     &&handle_OP_SUB_LOCAL, // -= using emitted value
-    //     &&handle_OP_MUL_LOCAL, // *= using emitted value
-    //     &&handle_OP_DIV_LOCAL, // /= using emitted value
-    //
-    //     &&handle_OP_ADD,
-    //     &&handle_OP_SUB,
-    //     &&handle_OP_MUL,
-    //     &&handle_OP_DIV,
-    //
-    //     &&handle_OP_NOT,
-    //
-    //     //Loops
-    //     &&handle_OP_FOR_RANGE,
-    //     &&handle_OP_FOR_STEP_INIT,
-    //     &&handle_OP_LOOP_INCREMENT_JUMP,
-    //
-    //     &&handle_OP_FOR_EACH_INIT,
-    //     &&handle_OP_FOR_EACH_INCREMENT_JUMP,
-    //
-    //     &&handle_OP_CREATE_KEYVALUE,
-    //
-    //     &&handle_OP_POP_STACK,
-    //
-    //     &&handle_OP_RETURN,
-    //
-    //     &&handle_OP_EXIT,        // bye bye
-    //     &&handle_OP_INVALID
-    // };
+
 
     if (chunk.mByteCodes.empty()) {
         return Value(0.0);
@@ -229,10 +151,13 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     size_t codeSize = chunk.mByteCodes.size();
 
     // -----------------------
-    std::vector<CallStack> callStack;
-    callStack.push_back({ip});
-    callStack.back().mLocals.resize(numLocals);
-    std::vector<Value>* localsPtr = &callStack.back().mLocals;
+    std::vector<CallFrame> callFrame;
+    callFrame.push_back({ip, 0, numLocals});
+    CallFrame* curFrame = &callFrame.back();
+
+    std::vector<Value>locals;
+    locals.resize(MAX_BC_LOCALS_SIZE);
+
     // -----------------------
 
     DISPATCH();
@@ -771,21 +696,22 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
     handle_OP_GET_LOCAL: {
         // frame pointer for call stack
-        U32 slot = ADVANCE_U32();
-        PUSH_STACK((*localsPtr)[slot]);
+        U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex ;
+        PUSH_STACK(locals[slot]);
         DISPATCH();
     }
     // -------------------------------
     handle_OP_SET_LOCAL: {
-        // frame pointer for call stack
-        U32 slot = ADVANCE_U32();
+        U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value* val = nullptr;
-        if (slot >= localsPtr->size()) {
-            localsPtr->resize(slot + 1);
-            val = &(*localsPtr)[slot];
+
+        if (slot >= curFrame->mLocalsCount) {
+            curFrame->mLocalsCount++;
+            val = &locals[slot];
         } else {
-            val = &(*localsPtr)[slot];
+            val = &locals[slot];
             if (val->isPointer()) val->asPointerObject()->setAssigned(false);
+
         }
         *val = PEEK_STACK(0);
         if (val->isPointer()) val->asPointerObject()->setAssigned(true);
@@ -831,28 +757,29 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         U32 argCount = ADVANCE_U32();
         U32 varCount = ADVANCE_U32();
 
-        callStack.back().mIP = ip;
-        callStack.push_back({targetIP});
-        localsPtr = &callStack.back().mLocals;
-        localsPtr->resize(argCount + varCount);
+        // save current ip in curFrame
+        curFrame->mIP = ip;
+        // push new frame with offsets:
+        U32 startIndex = curFrame->mLocalsStartIndex + curFrame->mLocalsCount;
+        U32 localCount = argCount + varCount;
+        callFrame.push_back({targetIP, startIndex, localCount});
+        // update curFrame
+        curFrame = &callFrame.back();
+
 
         for (int i = (int)argCount - 1; i >= 0; i--) {
             Value param = POP_STACK();
-            U32 slot =  i;
-            (*localsPtr)[slot] = param;
-            // Tools::printf("** PARAM IS: %s _STK=%u  _CS=%zu framePointer is:%u argCount:%d locals:%zu\n",
-            //               param.toString().c_str(), callStack.size(), _STK,framePointer, argCount, locals.size());
+            U32 slot =  i + curFrame->mLocalsStartIndex;
+            locals[slot] = param;
         }
-
-
         ip = targetIP;
         DISPATCH();
     }
     // -------------------------------
     handle_OP_INC_LOCAL: {
-        U32 slot = ADVANCE_U32();
+        U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         S32 inc = ADVANCE_S32();
-        Value& val = (*localsPtr)[slot];
+        Value& val = locals[slot];
         if (val.isInt()) [[likely]] {
             val = Value(val.asFastInt() + inc);
             PUSH_STACK(val);
@@ -866,9 +793,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
     // -------------------------------
     handle_OP_ADD_LOCAL: {
-        U32 slot = ADVANCE_U32();
+        U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
-        Value& val = (*localsPtr)[slot];
+        Value& val = locals[slot];
         if (val.isDouble() && b.isDouble()) [[likely]] {
             val = Value(val.asFastDouble() + b.asFastDouble());
             PUSH_STACK(val);
@@ -880,9 +807,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
     // -------------------------------
     handle_OP_SUB_LOCAL: {
-        U32 slot = ADVANCE_U32();
+        U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
-        Value& val = (*localsPtr)[slot];
+        Value& val = locals[slot];
         if (val.isDouble() && b.isDouble()) [[likely]] {
             val = Value(val.asFastDouble() - b.asFastDouble());
             PUSH_STACK(val);
@@ -894,9 +821,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
     // -------------------------------
     handle_OP_MUL_LOCAL: {
-        U32 slot = ADVANCE_U32();
+        U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
-        Value& val = (*localsPtr)[slot];
+        Value& val = locals[slot];
         if (val.isDouble() && b.isDouble()) [[likely]] {
             val = Value(val.asFastDouble() * b.asFastDouble());
             PUSH_STACK(val);
@@ -908,9 +835,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     }
     // -------------------------------
     handle_OP_DIV_LOCAL: {
-        U32 slot = ADVANCE_U32();
+        U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
-        Value& val = (*localsPtr)[slot];
+        Value& val = locals[slot];
         if (val.isDouble() && b.isDouble()) [[likely]] {
             val = Value(val.asFastDouble() / b.asFastDouble());
             PUSH_STACK(val);
@@ -1024,7 +951,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     // -------------------------------
     handle_OP_FOR_RANGE: {
         U32 exitIP = ADVANCE_U32();
-        U32 iterSlot = ADVANCE_U32();
+        U32 iterSlot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         // // get count
         Value countValue = POP_STACK();
         S32 count = countValue.getInt();
@@ -1037,14 +964,14 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         PUSH_STACK(Value(0));     // current value
 
 
-        (*localsPtr)[iterSlot] = 0;
+        locals[iterSlot] = 0;
         DISPATCH();
     }
     // -------------------------------
     handle_OP_FOR_STEP_INIT: {
         U32 exitIP = ADVANCE_U32();
         U32 incrementCodePos = ADVANCE_U32();
-        U32 iterSlot = ADVANCE_U32();
+        U32 iterSlot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
 
         S32 step  = std::abs(POP_STACK().getInt());
         S32 end   = POP_STACK().getInt();
@@ -1060,7 +987,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         PUSH_STACK(Value(end));
         PUSH_STACK(Value(start));
 
-        (*localsPtr)[iterSlot] = start;
+        locals[iterSlot] = start;
 
         // patch increment
         code[incrementCodePos] = (U32)increment;
@@ -1070,7 +997,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
     // -------------------------------
     handle_OP_LOOP_INCREMENT_JUMP: {
-        U32 iterSlot = ADVANCE_U32(); // variable
+        U32 iterSlot = ADVANCE_U32() + curFrame->mLocalsStartIndex; // variable
         U32 targetIP = ADVANCE_U32(); // body start
         S32 increment = ADVANCE_S32(); // increment
 
@@ -1082,7 +1009,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
 
         if (loopContinues) {
             PEEK_STACK(0) = Value(current); // set new value to stack
-            (*localsPtr)[iterSlot] = current;    // update iter var
+            locals[iterSlot] = current;    // update iter var
 
             ip = targetIP;
         } else {
@@ -1094,7 +1021,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     // -------------------------------
     handle_OP_FOR_EACH_INIT:{
         U32 exitIP = ADVANCE_U32();
-        U32 iterSlot = ADVANCE_U32();
+        U32 iterSlot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) {
             Tools::PrintRuntimeError("forEach without a object");
@@ -1111,12 +1038,12 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         PUSH_STACK(Value((S32) count)); // count
         PUSH_STACK(Value(0));    // current iter value
 
-        (*localsPtr)[iterSlot] =  *objectValue.asPointerObject()->onGetArrayIndexPtr(0);
+        locals[iterSlot] =  *objectValue.asPointerObject()->onGetArrayIndexPtr(0);
         DISPATCH(); //jump to body
     }
     // -------------------------------
     handle_OP_FOR_EACH_INCREMENT_JUMP:{
-        U32 iterSlot = ADVANCE_U32(); // variable
+        U32 iterSlot = ADVANCE_U32() + curFrame->mLocalsStartIndex; // variable
         U32 targetIP = ADVANCE_U32(); // body start
 
         S32 currentIter = PEEK_STACK(0).asInt();
@@ -1125,7 +1052,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         currentIter++;
         if (currentIter < count) {
              PEEK_STACK(0) = Value(currentIter);
-            (*localsPtr)[iterSlot] =  *obj->onGetArrayIndexPtr(currentIter);
+             locals[iterSlot] =  *obj->onGetArrayIndexPtr(currentIter);
              ip = targetIP;
         } else {
             (void) POP_STACK(); // pop object
@@ -1160,18 +1087,29 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     // -------------------------------
     handle_OP_RETURN: {
 
-        if (callStack.size() <  2) {
+        if (callFrame.size() <  2) {
             DISPATCH_OPCODE(OP_EXIT);
         }
 
         Value returnValue = POP_STACK();
 
-        callStack.pop_back();
-        localsPtr = &callStack.back().mLocals;
+
+
+        if (!Globals::shutDownRUNNING) {
+            U32 endIdx = curFrame->mLocalsStartIndex + curFrame->mLocalsCount;
+            for (U32 i = curFrame->mLocalsStartIndex; i < endIdx; ++i) {
+                auto& loc = locals[i];
+                if (loc.isPointer()) {
+                    loc.asPointerObject()->setAssigned(false);
+                }
+            }
+        }
+        callFrame.pop_back();
+        curFrame = &callFrame.back();
 
         PUSH_STACK(returnValue);
 
-        ip = callStack.back().mIP;
+        ip = curFrame->mIP;
         DISPATCH();
     }
     // -------------------------------

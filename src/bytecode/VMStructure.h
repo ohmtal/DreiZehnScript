@@ -13,12 +13,13 @@
 
 namespace DreiZehn {
 
-
-struct CallStack {
+struct CallFrame {
     U32 mIP = 0;
-    std::vector<Value> mLocals;
-    ~CallStack();
+    U32 mLocalsStartIndex = 0; // start of current locals
+    U32 mLocalsCount = 0;      // locals count
 };
+
+
 
 
 #define OP_CODE_LIST \
@@ -101,189 +102,24 @@ X(OP_EXIT,                     0, "exit interpreter") \
 X(OP_INVALID,                  0, "invalid opcode fallback")
 
 
-
+// ----- OpCodes from X Macro -----
 #define X(name, args, comment) name,
 enum OpCodes : uint32_t {
     OP_CODE_LIST
 };
 #undef X
 
+// ----- OpCode Infos from X Macro -----
 struct OpCodeInfo {
     const char* name;
     U32 emittedCount;
 };
-
 
 #define X(name, args, comment) {#name, args},
 constexpr OpCodeInfo OpCodeInfos[] = {
     OP_CODE_LIST
 };
 #undef X
-
-// enum  OpCodes : uint32_t {
-//     OP_CONST,       // push const to stack
-//     OP_PUSH_VALUE,
-//
-//     OP_JUMP,
-//     OP_JUMP_CLEAN_STACK,
-//     OP_JUMP_IF_TRUE_NO_POP,
-//     OP_JUMP_IF_FALSE_NO_POP,
-//
-//     OP_JUMP_IF_FALSE,
-//     OP_JUMP_IF_TRUE,
-//
-//     OP_LESS_EQUAL,
-//     OP_LESS,
-//
-//     OP_GREATER,
-//     OP_GREATER_EQUAL,
-//     OP_EQUAL,
-//     OP_NOT_EQUAL,
-//
-//     OP_BIT_AND,
-//     OP_BIT_OR,
-//     OP_BIT_XOR,
-//     OP_SHL,
-//     OP_SHR,
-//     OP_MODULO,
-//
-//
-//
-//     // Global Variables
-//     OP_LOAD_VAR,
-//     OP_SAVE_VAR,
-//
-//     // Local Variables:
-//     OP_GET_LOCAL,
-//     OP_SET_LOCAL,
-//
-//     // Object fields
-//     OP_LOAD_OBJECT_FIELD,
-//     OP_SAVE_OBJECT_FIELD,
-//
-//     // Object methods
-//     OP_CALL_OBJECT_METHOD,
-//     OP_SAVE_OBJECT_METHOD,
-//
-//     // Array
-//     OP_LOAD_ARRAY,
-//     OP_SAVE_ARRAY,
-//
-//     //Function Call
-//     OP_CALL_C_FUNCTION,
-//     OP_CALL_SF_FUNCTION,
-//
-//
-//     // Math
-//     OP_INC_LOCAL, // ++ -- using emitted value
-//
-//     OP_ADD_LOCAL, // += using emitted value
-//     OP_SUB_LOCAL, // -= using emitted value
-//     OP_MUL_LOCAL, // *= using emitted value
-//     OP_DIV_LOCAL, // /= using emitted value
-//
-//     OP_ADD,
-//     OP_SUB,
-//     OP_MUL,
-//     OP_DIV,
-//
-//     OP_NOT,
-//
-//     // Loop
-//     OP_FOR_RANGE,
-//     OP_FOR_STEP_INIT,
-//     OP_LOOP_INCREMENT_JUMP,
-//
-//     OP_FOR_EACH_INIT,
-//     OP_FOR_EACH_INCREMENT_JUMP,
-//
-//     OP_CREATE_KEYVALUE,
-//
-//     OP_POP_STACK,
-//
-//     OP_RETURN,
-//     OP_EXIT,        // bye bye
-//     OP_INVALID
-// };
-
-
-
-// constexpr OpCodeInfo OpCodeInfos[] = {
-//     {"OP_CONST", 1},
-//     {"OP_PUSH_VALUE", 0},
-//
-//     {"OP_JUMP", 1},
-//     {"OP_JUMP_CLEAN_STACK", 2},
-//     {"OP_JUMP_IF_TRUE_NO_POP", 1},
-//     {"OP_JUMP_IF_FALSE_NO_POP", 1},
-//
-//     {"OP_JUMP_IF_FALSE", 1},
-//     {"OP_JUMP_IF_TRUE", 1},
-//
-//     {"OP_LESS_EQUAL", 0},
-//     {"OP_LESS", 0},
-//
-//     {"OP_GREATER", 0 },
-//     {"OP_GREATER_EQUAL", 0 },
-//     {"OP_EQUAL", 0 },
-//     {"OP_NOT_EQUAL", 0 },
-//
-//     {"OP_BIT_AND", 0 },
-//     {"OP_BIT_OR", 0 },
-//     {"OP_BIT_XOR", 0 },
-//     {"OP_SHL", 0 },
-//     {"OP_SHR", 0 },
-//     {"OP_MODULO", 0 },
-//
-//
-//     {"OP_LOAD_VAR", 3},
-//     {"OP_SAVE_VAR", 3},
-//
-//     {"OP_GET_LOCAL", 1},
-//     {"OP_SET_LOCAL", 1},
-//
-//     {"OP_LOAD_OBJECT_FIELD", 1 + ( 2  * sizeof(void*) )},
-//     {"OP_SAVE_OBJECT_FIELD", 1 + ( 2  * sizeof(void*) )},
-//
-//     {"OP_CALL_OBJECT_METHOD", 2},
-//     {"OP_SAVE_OBJECT_METHOD", 2},
-//
-//     // Array
-//     {"OP_LOAD_ARRAY", 0},
-//     {"OP_SAVE_ARRAY", 0},
-//
-//     {"OP_CALL_C_FUNCTION", 0}, //SPECIAL emittedCount variable
-//     {"OP_CALL_SF_FUNCTION", 2},
-//
-//     {"OP_INC_LOCAL", 2},
-//     {"OP_ADD_LOCAL", 1},
-//     {"OP_SUB_LOCAL", 1},
-//     {"OP_MUL_LOCAL", 1},
-//     {"OP_DIV_LOCAL", 1},
-//
-//     {"OP_ADD", 0},
-//     {"OP_SUB", 0},
-//     {"OP_MUL", 0},
-//     {"OP_DIV", 0},
-//
-//     {"OP_NOT", 0},
-//
-//
-//     {"OP_FOR_RANGE", 2},
-//     {"OP_FOR_STEP_INIT", 3 },
-//     {"OP_LOOP_INCREMENT_JUMP", 3},
-//
-//     {"OP_FOR_EACH_INIT", 2},
-//     {"OP_FOR_EACH_INCREMENT_JUMP",2},
-//
-//     {"OP_CREATE_KEYVALUE", 0},
-//
-//     {"OP_POP_STACK", 0},
-//
-//     {"OP_RETURN", 0},
-//     {"OP_EXIT", 0},
-//     {"OP_INVALID", 0}
-// };
 
 
 #ifdef DREIZEHN_DEBUG

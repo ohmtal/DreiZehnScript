@@ -8,7 +8,7 @@ import String
 import SDL3
 import Vector
 
-print " StarField IV (like 4 but Struct) @13 startup...."
+print " StarField VI (like 4 but Struct) @13 startup...."
 
 -- define W 640
 -- define H 320
@@ -123,7 +123,7 @@ while Running
     SDL_SetRenderDrawColor Renderer 200 200 255 255
     SDL_SetRenderScale Renderer  fontScale fontScale
     SDL_RenderDebugText Renderer 10 10 \
-        str::concat "StarField 4  Stars:" STAR_COUNT " FPS:" FPS
+        str::concat "StarField 6 Stars:" STAR_COUNT " FPS:" FPS
     SDL_SetRenderScale Renderer  1 1
 
 

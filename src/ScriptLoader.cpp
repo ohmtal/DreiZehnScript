@@ -77,6 +77,7 @@ namespace DreiZehn {
 
                 // --- fn ---
                 if (auto* startNode = dynamic_cast<FunctionDefineStartNode*>(ast.get())) {
+                    // parser.startFunc(startNode->mFnNameSymbolId);
                     blockStack.push_back({BlockType::Function, startNode->mFnNameSymbolId, nullptr});
                     continue;
                 }

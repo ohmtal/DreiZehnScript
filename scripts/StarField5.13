@@ -8,7 +8,7 @@ import String
 import SDL3
 import Vector
 
-print " StarField 3 Vectors @13 startup...."
+print " StarField 5 Vectors @13 startup...."
 
 global W = 640
 global H = 320
@@ -129,7 +129,7 @@ if Init
         SDL_SetRenderDrawColor Renderer 200 200 255 255
         SDL_SetRenderScale Renderer  fontScale fontScale
         SDL_RenderDebugText Renderer 10 10 \
-            str::concat "StarField v8f array[i] @13-Script Stars:" STAR_COUNT " FPS:" FPS
+            str::concat "StarField 5 array[i] @13-Script Stars:" STAR_COUNT " FPS:" FPS
         SDL_SetRenderScale Renderer  1 1
 
 

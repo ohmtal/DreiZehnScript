@@ -6,7 +6,7 @@
 #pragma once
 //-----------------------------------------------------------------------------
 #ifdef DREIZEHN_DEBUG
-#define DEBUG_TRACE_EXECUTION
+// #define DEBUG_TRACE_EXECUTION
 #endif
 //-----------------------------------------------------------------------------
 #include <string>

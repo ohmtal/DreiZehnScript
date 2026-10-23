@@ -58,9 +58,6 @@ namespace Globals {
     inline std::vector<uint32_t> GlobalVarList;
     inline bool isGlobalVar(uint32_t id) {
           return std::binary_search(GlobalVarList.begin(), GlobalVarList.end(), id);
-          // auto it = std::find(GlobalVarList.begin(), GlobalVarList.end(), id);
-          // if (it == GlobalVarList.end()) return false;
-          // return true;
     }
     inline bool insertGlobalVar(uint32_t id) {
         if (isGlobalVar(id)) return false;
@@ -79,16 +76,8 @@ namespace Globals {
 }
 
 namespace Tools {
-    inline void PrintParseError(std::string message) {
-        errorf("DreiZehn Parse Error in Line [%d]:%s\n\t%s\n",
-            Globals::currentScriptLineNumber,
-            Globals::currentScriptLine.c_str(),
-            message.c_str());
-    }
-
-    inline void PrintRuntimeError(std::string message) {
-        errorf("RunTime Error: %s", message.c_str());
-    }
+    void PrintParseError(std::string message);
+    void PrintRuntimeError(std::string message);
 }
 
 

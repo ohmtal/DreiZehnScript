@@ -16,10 +16,22 @@
 
 namespace DreiZehn{
 
+namespace ParserFrame {
+    bool guessGlobalVarAndInsertLocalIfNot(uint32_t symId);
+    void startFunc(uint32_t funcSymId);
+    void endFunc(uint32_t funcSymId);
+} //namespace
+
+
 class Parser {
 private:
     std::vector<Token> mTokens;
     size_t mPos = 0;
+
+
+
+
+    // ------------------------------
 
     Token peek() { return mTokens[mPos]; }
     Token peekNext() { if (mPos + 1 < mTokens.size()) return mTokens[mPos+1]; else return Token(TokenType::EOFToken); }
@@ -66,9 +78,9 @@ private:
     std::unique_ptr<Expression> parseComparison();
     // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parseExpression();
-    // -------------------------------------------------------------------------
+
 public:
-    Parser(std::vector<Token> t) : mTokens(std::move(t)) {}
+    Parser(std::vector<Token> t) : mTokens(std::move(t)) { }
 
     std::vector<std::unique_ptr<ASTNode>> parseStatements();
     std::unique_ptr<ASTNode> parseLine();

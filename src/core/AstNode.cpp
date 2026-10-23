@@ -106,7 +106,7 @@ namespace DreiZehn {
             S32 localSlot = scope.resolve(mVariableNameSymbolId);
             if (localSlot < 0 ) {
                 std::string varName = SymbolTable::getName(mVariableNameSymbolId);
-                Tools::warnf("Variable not found: %s\n", varName.c_str());
+                Tools::warnf("Variable not found in local scope (VariableExpression): %s\n", varName.c_str());
                 return false; // do  stop!
             }
             chunk.emit(OP_GET_LOCAL);
@@ -881,7 +881,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
                 S32 localSlot = scope.resolve(vExpr->mVariableNameSymbolId);
                 if (localSlot < 0 ) {
                     std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
-                    Tools::warnf("Variable not found: %s\n", varName.c_str());
+                    Tools::warnf("Variable not found in local scope (BinaryInlineExpression): %s\n", varName.c_str());
                     return true; // do not stop!
                 }
 
@@ -1315,7 +1315,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
                 S32 localSlot = scope.resolve(vExpr->mVariableNameSymbolId);
                 if (localSlot < 0 ) {
                     std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
-                    Tools::warnf("Variable not found: %s\n", varName.c_str());
+                    Tools::warnf("Variable not found (AssignOPStatement): %s\n", varName.c_str());
                     return true; // do not stop!
                 }
 

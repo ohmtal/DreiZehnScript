@@ -1,0 +1,26 @@
+
+global i = 47.11;
+
+global bla = Vector::new 10 20
+
+fn foo i
+    print "inside i=" i
+    forRange j 20;
+        if (j == 1)
+            print "j=1"
+        elif (j==2)
+            print "j=2!"
+        else
+            print "j+i=" j+i
+        end
+    end
+    while i > 0; i--;;
+    for x 1 2;;
+    forEach num bla;;
+end
+
+foo
+print "outside i=" i
+
+
+

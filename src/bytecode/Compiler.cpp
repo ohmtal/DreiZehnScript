@@ -71,7 +71,7 @@ namespace DreiZehn {
 
         chunk.emit(OP_EXIT);
 
-        /// TEST added scripts on back of byte code after EXIT
+        ///  added scripts on back of byte code after EXIT
         // LOL ON THE BACK I DONT HAVE THE **bytecodeAddress** on a function call!
         for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
             func.bytecodeAddress = chunk.tell();

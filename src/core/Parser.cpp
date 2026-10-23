@@ -10,8 +10,53 @@
 
 namespace DreiZehn {
 
+    namespace ParserFrame {
+        // -- Function Vars ---------------
+        std::vector<uint32_t> mFunctionVariables;
+        bool mBlockInFunction = false;
+        std::vector<TokenType> mBlockOpenTypes;
+        // -------------------------------------------------------------------------
+        bool isFunctionVar(uint32_t symId) {
+            return std::find(mFunctionVariables.begin(), mFunctionVariables.end(), symId) != mFunctionVariables.end();
+        }
+        void insertFunctionVar(uint32_t symId) {
+            // Tools::printf(" ** VAR %s insertFunctionVar {block:%d}\n",
+            //               SymbolTable::getName(symId).c_str(),
+            //               mBlockInFunction);
+
+            if (!mBlockInFunction) return;
+            if (!isFunctionVar(symId))
+                mFunctionVariables.push_back(symId);
+        }
+
+        bool guessGlobalVarAndInsertLocalIfNot(uint32_t symId) {
+            bool foundAGlobal = Globals::isGlobalVar(symId);
+            bool foundFunctionVar = isFunctionVar(symId);
+            // Tools::printf(" ** VAR %s check foundAGlobal:%d foundFunc:%d {block:%d}\n",
+            //               SymbolTable::getName(symId).c_str(), foundAGlobal,foundFunctionVar,
+            //               mBlockInFunction);
+            if (!mBlockInFunction) return foundAGlobal;
+            if (!foundFunctionVar && foundAGlobal) return true;
+            insertFunctionVar(symId);
+            return false;
+        }
+
+        void startFunc(uint32_t funcSymId) {
+            // Tools::printf("StartFunc %s ......\n", SymbolTable::getName(funcSymId).c_str());
+            mFunctionVariables.clear();
+            mBlockInFunction = true;
+        }
+        void endFunc(uint32_t funcSymId) {
+            // Tools::printf("..... EndFunc %s {block:%d} \n"
+            //     , SymbolTable::getName(funcSymId).c_str(), mBlockInFunction);
+            mFunctionVariables.clear();
+            mBlockInFunction = false;
+        }
+
+    } //namespace
 
 
+    // ----------------------------------------------------------------------------
     // ----------------------------------------------------------------------------
     int Parser::getPrecedence(TokenType type) {
         if (isInlineMathType(type)) return 100;
@@ -150,6 +195,11 @@ namespace DreiZehn {
             } else {
                 // we got a variable
                 bool isGlobal = peekOffset(-2).mType == TokenType::Global;
+                if (isGlobal) Globals::insertGlobalVar(nameTokenSymbolId);
+                else {
+                    isGlobal = ParserFrame::guessGlobalVarAndInsertLocalIfNot(nameTokenSymbolId);
+                        // , peek().mType == TokenType::Assign  || isMathAssignOperatorType(peek().mType));
+                }
                 currentExpression = std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
             }
 
@@ -396,6 +446,11 @@ namespace DreiZehn {
             }
 
             bool isGlobal = peekOffset(-2).mType == TokenType::Global;
+            if (isGlobal) Globals::insertGlobalVar(nameTokenSymbolId);
+            else {
+                isGlobal = ParserFrame::guessGlobalVarAndInsertLocalIfNot(nameTokenSymbolId);
+                // , peek().mType == TokenType::Assign  || isMathAssignOperatorType(peek().mType));
+            }
             return std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
         }
 
@@ -453,14 +508,20 @@ namespace DreiZehn {
                     return nullptr;
                 }
 
+
                 std::string funcName = advance().mValue;
                 uint32_t funcNameSymbolId = SymbolTable::insert(funcName);
+                ParserFrame::startFunc(funcNameSymbolId);
                 std::vector<std::string> params;
 
                 while (peek().mType == TokenType::Identifier) {
-                    params.push_back(advance().mValue);
+                    std::string varName = advance().mValue;
+                    ParserFrame::insertFunctionVar(SymbolTable::insert(varName));
+
+                    params.push_back(varName);
                 }
                 FunctionMap::RegisteredScriptFunctions[funcNameSymbolId] = { params, {} };
+                ParserFrame::mBlockOpenTypes.push_back(tokenType);
                 return std::make_unique<FunctionDefineStartNode>(funcNameSymbolId);
             }
             break;
@@ -475,6 +536,8 @@ namespace DreiZehn {
                 std::string varName = advance().mValue;
 
                 auto countExpr = parseMath();
+
+                ParserFrame::mBlockOpenTypes.push_back(tokenType);
 
                 return std::make_unique<ForRangeStatement>(SymbolTable::insert(varName)
                 , std::move(countExpr));
@@ -491,6 +554,7 @@ namespace DreiZehn {
                 std::string varName = advance().mValue;
                 auto varExpr = parseMath();
 
+                ParserFrame::mBlockOpenTypes.push_back(tokenType);
                 return std::make_unique<ForEachStatement>(SymbolTable::insert(varName)
                 , std::move(varExpr));
             }
@@ -509,6 +573,8 @@ namespace DreiZehn {
                 auto end = parseMath();
                 auto step= parseMath();
 
+                ParserFrame::mBlockOpenTypes.push_back(tokenType);
+
                 return std::make_unique<ForStatement>(SymbolTable::insert(varName),
                             std::move(start),
                             std::move(end),
@@ -520,12 +586,21 @@ namespace DreiZehn {
             case TokenType::While:  {
                 advance();
                 auto condition = parseComparison();
+                ParserFrame::mBlockOpenTypes.push_back(tokenType);
                 return std::make_unique<WhileStatement>(std::move(condition));
             }
             break;
 
             case TokenType::End:  {
                 advance();
+
+                // FIXME
+                TokenType startToken = ParserFrame::mBlockOpenTypes.back();
+                ParserFrame::mBlockOpenTypes.pop_back();
+                if (startToken == TokenType::Fn) {
+                    ParserFrame::endFunc(0);
+                }
+
                 return std::make_unique<FunctionDefineEndNode>();
             }
             break;
@@ -533,6 +608,7 @@ namespace DreiZehn {
             case TokenType::If:  {
                 advance(); // skip "if"
                 auto condition = parseComparison();
+                ParserFrame::mBlockOpenTypes.push_back(tokenType);
                 return std::make_unique<IfStatement>(std::move(condition));
             }
             break;

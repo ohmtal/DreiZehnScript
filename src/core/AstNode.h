@@ -113,6 +113,12 @@ struct Expression;
 
 struct ASTNode {
     NodeType mNodeType = NodeType::BaseNode;
+    uint32_t mLineNumber = 0;
+
+    ASTNode () {
+        mLineNumber =  Globals::currentScriptLineNumber;
+    }
+
     virtual ~ASTNode() = default;
 
     virtual bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
@@ -197,17 +203,8 @@ struct VariableExpression : public Expression {
     uint32_t mCacheFrameID = 0;
     Value* mCacheValue = nullptr;
 
-    VariableExpression(uint32_t id, bool isGlobal) : mVariableNameSymbolId(id)  {
+    VariableExpression(uint32_t id, bool isGlobal) : mVariableNameSymbolId(id),mGlobalVariable(isGlobal)  {
         mNodeType  = NodeType::VariableExpression;
-
-        if (isGlobal) {
-            mGlobalVariable = true;
-            Globals::insertGlobalVar(id);
-            // Tools::printf("DEBUG: ADD a expression to global: %s\n", SymbolTable::getName(id).c_str());
-        } else if (Globals::isGlobalVar(id)) {
-            mGlobalVariable = true;
-            // Tools::printf("DEBUG: set a expression to global: %s\n", SymbolTable::getName(id).c_str());
-        }
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;

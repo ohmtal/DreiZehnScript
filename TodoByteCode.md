@@ -174,7 +174,7 @@ Segmentation fault (core dumped)
    
 - [X] flat locals with big init size 
 
-- [ ] globals have prio at the moment but locals should: 
+- [X] globals have prio at the moment but locals should: 
     `debug::bc 'global i = 10; fn foo i; print i;; foo'`
     should be fixed in parser .. on AST interpreter it works correct .. 
     yes it works correct because it does a recursive lookup but mGlobal is here 
@@ -202,6 +202,7 @@ Segmentation fault (core dumped)
     variables to make it work also with bytecode. so it lookup the local variable 
     first if global is not explizit set. 
     
+    ==> Added ParserFrame ... was not in good mood hope my tests was fine....
     
 - [ ] condional activate to run it without debug::bc
     

@@ -27,6 +27,10 @@ namespace DreiZehn {
     #endif
 
 
+    // NOTE: tesing most used OP Codes
+    // #define DREIZEHN_VM_STATS
+
+
     // #define PUSH_STACK(val)      (vmStack[_STK++] = (val))
     // #ifdef DREIZEHN_DEBUG
     #ifdef DREIZEHN_DEBUG
@@ -67,18 +71,41 @@ namespace DreiZehn {
     } while(0)
 
     // magic macro:
+    #ifdef DREIZEHN_VM_STATS
+    #define DISPATCH() \
+    do { \
+        U32 op = ADVANCE_U32(); \
+        op_counter[op]++;  \
+        goto *dispatch_table[op]; \
+    } while(0)
+
+    #define DISPATCH_OPCODE(op) \
+    do { \
+        op_counter[op]++;  \
+        goto *dispatch_table[op]; \
+    } while(0)
+    #else
+
+    // magic macro:
     #ifdef DEBUG_TRACE_EXECUTION
     #define DISPATCH() \
     do { \
         disassembleInstruction(code, ip, _STK, callStack.size(), callStack.back().mLocals.size()); \
         goto *dispatch_table[ADVANCE_U32()]; \
     } while(0)
+
+    #define DISPATCH_OPCODE(op) \
+    do { \
+        disassembleInstruction(code, ip, _STK, callStack.size(), callStack.back().mLocals.size()); \
+        goto *dispatch_table[op]; \
+    } while(0)
+
     #else
     #define DISPATCH() goto *dispatch_table[ADVANCE_U32()]
+    #define DISPATCH_OPCODE(op) goto *dispatch_table[op]
     #endif
 
-    #define DISPATCH_OPCODE(op) goto *dispatch_table[op]
-
+    #endif
 
    inline void _set_var_pointer_value(Value* pre, Value& post) {
         if (pre->isPointer())  pre->asPointerObject()->setAssigned(false);
@@ -188,6 +215,10 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
     std::vector<Value>vmStack;
     vmStack.resize(MAX_BC_STACK_SIZE);
 
+    // Benchmark optimize
+    #ifdef DREIZEHN_VM_STATS
+    int64_t op_counter[OP_INVALID] = {0};
+    #endif
 
     uint32_t  ip = 0;
     uint32_t* code = chunk.mByteCodes.data();
@@ -1145,6 +1176,31 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, size_t numLocals) {
         Tools::printf("*** STACK COUNT: %zu\n", STACK_SIZE());
         #endif
 
+        #ifdef DREIZEHN_VM_STATS
+        {
+            std::vector<std::pair<U32, U32>> sorted_counts;
+            sorted_counts.reserve(OP_INVALID);
+
+            for (U32 i = 0; i < OP_INVALID; i++) {
+                // Tools::printf("%20s %4u\n", OpCodeInfos[i].name, op_counter[i]);
+                sorted_counts.push_back({i, op_counter[i]});
+            }
+            Tools::printSeparator(100);
+            Tools::printf(" --- SORTED ----\n");
+            Tools::printSeparator(100);
+            std::sort(sorted_counts.begin(), sorted_counts.end(), [](const auto& a, const auto& b) {
+                return a.second > b.second;
+            });
+
+            Tools::printf( "|OP-Code | count |\n");
+            Tools::printf( "| --- | --- |\n");
+            for (const auto& item : sorted_counts) {
+                U32 idx = item.first;
+                U32 count = item.second;
+                if (count > 0) Tools::printf("|%s | %u|\n", OpCodeInfos[idx].name, count);
+            }
+        }
+        #endif
 
 
         return _STK == 0 ? NumberNullValue : PEEK_STACK(0);

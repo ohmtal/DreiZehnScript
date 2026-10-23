@@ -130,7 +130,7 @@ while Running
     SDL_RenderPresent Renderer
 --         SDL_Delay 16
 
-    if core::breath == false; break; end
+--     if core::breath == false; break; end
 end
 
 SDL_DestroyWindow Window

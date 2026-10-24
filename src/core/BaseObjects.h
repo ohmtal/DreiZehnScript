@@ -26,12 +26,15 @@ namespace DreiZehn {
 
     // -------------------------------------------------------------------------
     struct KeyValueObject : public ValueObject {
-        // std::string mKey = "";
+        // inline static ValueObjectProperty mKeyProp, mValueProp;
         uint32_t mKeyId = 0;
         Value mValue = NumberNullValue;
         KeyValueObject() ;
         KeyValueObject(const std::string& key, const Value& value);
         std::string  toString() override;
+        // -------------------------------------------------------------------------
+        static void RegisterSymbols();
+        // bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override;
         // -------------------------------------------------------------------------
         void Dump() override;
     };

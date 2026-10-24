@@ -33,6 +33,8 @@ set(BUILD_WITH_SANITIZE ${SANITIZE_DEFAULT} CACHE BOOL "Build Application with -
 set(LOADALL_DEFAULT ON)
 set(BUILD_WITH_LOADALL ${LOADALL_DEFAULT} CACHE BOOL "Build Application with load all available modules at start")
 
+set(PERF_DEFAULT OFF)
+set(BUILD_WITH_PERF ${PERF_DEFAULT} CACHE BOOL "Build Application with -O3 -g -fno-omit-frame-pointer")
 
 # GCC PGO - it generates gcda files in source folders: find . -name "*.gcda"
 # cleaning : find . -name "*.gcda" | xargs rm
@@ -162,6 +164,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 if (BUILD_WITH_SANITIZE)
     target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address -g)
     target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
+endif()
+
+if (BUILD_WITH_PERF)
+    target_compile_options(${PROJECT_NAME} PRIVATE -O3 -g -fno-omit-frame-pointer)
+    target_link_options(${PROJECT_NAME} PRIVATE -fno-omit-frame-pointer)
 endif()
 
 if(WIN32 AND MSVC)

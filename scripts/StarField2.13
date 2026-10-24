@@ -27,9 +27,11 @@ global Renderer    = 0
 global Event       = 0
 global Points      = 0
 
-
-
-
+doBenchMark = false;
+forEach arg sys::args
+    if arg == "bench"; print "found!";doBenchMark = true; break;;
+end
+if doBenchMark print "*** running benchmark 3000 loops ***";;
 
 fn Init
     if !( SDL_Init SDL_INIT_VIDEO )
@@ -68,7 +70,6 @@ fn check
     return true
 end
 
-
 if Init
     Running = true
 
@@ -76,8 +77,10 @@ if Init
     counter = 0
     fpsSum  = 0.0
     FPS = 0.0
+    loops = 0.0
 
     while Running
+        loops += 1.0
         Time_Now = SDL_GetTicks
         Dt = (Time_Now - Time_Last) / 1000.0
         Time_Last = Time_Now
@@ -144,6 +147,7 @@ if Init
 --         SDL_Delay 16
 
 --         if core::breath == false; break; end
+        if doBenchMark && loops >= 3000; break;;
     end
 end
 
@@ -156,5 +160,5 @@ Renderer    = 0
 Event       = 0
 Points      = 0
 
-print "Starfield shutdown completed"
+print "Starfield shutdown completed loops:" loops "bench on:" doBenchMark
 --

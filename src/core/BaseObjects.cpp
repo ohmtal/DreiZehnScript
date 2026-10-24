@@ -38,6 +38,26 @@ namespace DreiZehn {
         Tools::printf("%s => %s\n", SymbolTable::getName( mKeyId).c_str(), mValue.toString().c_str());
     }
 
+     void KeyValueObject::RegisterSymbols(){
+         static bool mSymbolsLoaded = false;
+         if (mSymbolsLoaded) return;
+         // // mKeyProp    = ValueObjectProperty("key", 0,0,  "get the first (key)", TypeStructObject);
+         // // mValueProp  = ValueObjectProperty("second", 0,0,  "get the second (value)", TypeStructObject);
+         mSymbolsLoaded = true;
+
+    }
+    // // bool KeyValueObject::onMethodCall(uint32_t methodId, std::vector< DreiZehn::Value >& args, Value& ret) {
+    // //     if (mFirstProp.matchMethod(methodId, args) == 1) {
+    // //         ret = Value(SymbolTable::getName(mKeyId));
+    // //         return true;
+    // //     }
+    // //     else
+    // //     if (mFirstProp.matchMethod(methodId, args) == 1) {
+    // //         ret = Value(SymbolTable::getName(mKeyId));
+    // //         return true;
+    // //     }
+    // //     return ValueObject::onMethodCall(methodId, args, ret);
+    // // }
      // ============================ StructObject ==================================
     StructObject::StructObject(std::vector< DreiZehn::Value >& args) : ValueObject(TypeStructObject){
         mSupportClone = true;
@@ -191,6 +211,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // Base Objects
         // ---------------------------------------------------------------------
+        KeyValueObject::RegisterSymbols();
         RegisterFunction("KeyValue::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
             if(args.size() != 2 || !args[0].isString()) {
                 Tools::errorf("Usage KeyValue::new [string key] Value\n");

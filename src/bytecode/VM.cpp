@@ -22,6 +22,8 @@
 
 namespace DreiZehn {
     //-----------------------------------------------------------------------------
+
+
     // NOTE better dynamic ?! .....
 
     #ifndef MAX_BC_STACK_SIZE
@@ -121,6 +123,11 @@ namespace DreiZehn {
 // -----------------------------------------------------------------------------
 Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
+    // TEST!
+    register const uint8_t* pc __asm__("r14");
+
+
+    // alignas(64) constexpr void* dispatch_table[] = {
     // NOTE new X macro see also VMStructure
     #define X(name, args, comment) &&handle_##name,
     alignas(64) constexpr void* dispatch_table[] = {

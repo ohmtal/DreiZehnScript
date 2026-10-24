@@ -65,17 +65,17 @@ debug::bc 'globA++;print "glob 6==" globA; globA--; print "glob 5==" globA'
 niceLine "if or and elif else end continue break while"
 
 code  = 'a= 20\n'
-code += 'forRange i a\n'
-code += '   if i == 5; printraw "FIVE!"\n'
-code += '   elif i == 6; printraw "SIX!"\n'
-code += '   elif (i > 8) && (i < 10); printraw "NINE!"\n'
-code += '   elif (i == 10 ); printraw "TEN continue >> "; continue\n'
-code += '   elif (i == 13 ); printraw "DreiZehn break!"; break\n'
-code += '   else printraw i\n'
-code += '   end\n'
-code += '   printraw " :: "\n'
-code += 'end\n'
-code += 'print "<<<"\n'
+code .= 'forRange i a\n'
+code .= '   if i == 5; printraw "FIVE!"\n'
+code .= '   elif i == 6; printraw "SIX!"\n'
+code .= '   elif (i > 8) && (i < 10); printraw "NINE!"\n'
+code .= '   elif (i == 10 ); printraw "TEN continue >> "; continue\n'
+code .= '   elif (i == 13 ); printraw "DreiZehn break!"; break\n'
+code .= '   else printraw i\n'
+code .= '   end\n'
+code .= '   printraw " :: "\n'
+code .= 'end\n'
+code .= 'print "<<<"\n'
 print code
 debug::bc code
 

@@ -100,6 +100,30 @@ Value Value::handleGenericAdd(const DreiZehn::Value& a, const DreiZehn::Value& b
         return Value(Unsafe{}, result_bits);
     }
 
+
+Value Value::handleStringAdd(const DreiZehn::Value& a, const DreiZehn::Value& b) {
+    const bool a_is_double = a.isDouble();
+    const bool b_is_double = b.isDouble();
+    const bool a_is_int    = a.isInt();
+    const bool b_is_int    = b.isInt();
+    const bool a_is_string = a.isString();
+    const bool b_is_string = b.isString();
+
+        std::string result_str;
+
+        if (a_is_string)      result_str = a.getStringRef();
+        else if (a_is_int)    result_str = std::to_string(a.asFastInt());
+        else if (a_is_double) result_str = std::to_string(a.getDouble());
+        else                  result_str = "Value";
+
+        if (b_is_string)      result_str += b.getStringRef();
+        else if (b_is_int)    result_str += std::to_string(b.asFastInt());
+        else if (b_is_double) result_str += std::to_string(b.getDouble());
+        else                  result_str += "Value";
+
+        return Value(result_str);
+}
+
 const std::string Value::getTypeName(){
        if (isInt()) return "int";
        else if (isDouble()) return "double";

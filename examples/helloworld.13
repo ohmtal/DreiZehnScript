@@ -11,7 +11,7 @@ print "1. Hello World!"
 -- with string variable example:
 str1 = "2. Hello"
 str2 = "World"
-str  = str1 + " " + str2 + "!"
+str  = str1 .. " " .. str2 .. "!"
 print str
 
 -- with str::concat

@@ -64,6 +64,8 @@ enum class NodeType {
     ,ForEachStatement
     ,IncludeStatement
     ,KeyValueExpression
+    ,StringConcatExpression
+    ,StringConcatAssignExpression
 };
 
 
@@ -103,6 +105,8 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::ForEachStatement:       return "ForEachStatement";
         case NodeType::IncludeStatement:       return "IncludeStatement";
         case NodeType::KeyValueExpression:       return "KeyValueExpression";
+        case NodeType::StringConcatExpression:       return "StringConcatExpression";
+        case NodeType::StringConcatAssignExpression:       return "StringConcatAssignExpression";
     }
     return "UnknownNodeType";
 }
@@ -677,4 +681,31 @@ struct KeyValueExpression : public Expression {
 
 
 };
+// StringConcatExpression ----------------------------------------------------------------------
+struct StringConcatExpression : public Expression {
+    std::unique_ptr<Expression> mLeft;
+    std::unique_ptr<Expression> mRight;
+
+    StringConcatExpression(std::unique_ptr<Expression> left, std::unique_ptr<Expression> right)
+    :  mLeft(std::move(left)), mRight(std::move(right)) {
+        mNodeType  = NodeType::StringConcatExpression;
+    }
+    Value evaluate(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+};
+
+struct StringConcatAssignExpression : public Expression {
+    std::unique_ptr<Expression> mLeft;
+    std::unique_ptr<Expression> mRight;
+
+    StringConcatAssignExpression(std::unique_ptr<Expression> left, std::unique_ptr<Expression> right)
+    :  mLeft(std::move(left)), mRight(std::move(right)) {
+        mNodeType  = NodeType::StringConcatAssignExpression;
+    }
+    Value evaluate(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+};
+
+
+
 } //namespace

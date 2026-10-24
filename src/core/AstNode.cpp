@@ -1176,6 +1176,10 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
     // -------------------------------------------------------------------------
     Value AssignOPStatement::evaluate(Environment& env) {
+        if (!mVarExpr) [[unlikely]] {
+            Tools::PrintParseError("AssignOP: variable is missing or invalid");
+            return NumberNullValue;
+        }
         Value* valuePtr = mVarExpr->evaluatePtr(env);
 
         if (!valuePtr || !mRhs) [[unlikely]] {
@@ -1942,7 +1946,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     // -------------------------------------------------------------------------
     bool BreakStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (scope.mLoopStack.empty()) {
-            Tools::PrintParseError("Error: 'break' outside of loop context!");
+            Tools::PrintParseError("Error: 'break' outside of loop context!\n");
             return false;
         }
         chunk.emit(OP_JUMP_CLEAN_STACK);
@@ -1957,7 +1961,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     // -------------------------------------------------------------------------
     bool ContinueStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (scope.mLoopStack.empty()) {
-            Tools::PrintParseError("Error: 'continue' outside of loop context!");
+            Tools::PrintParseError("Error: 'continue' outside of loop context!\n");
             return false;
         }
 
@@ -1970,4 +1974,45 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return true;
     }
     // -------------------------------------------------------------------------
+    // StringConcatExpression
+    // -------------------------------------------------------------------------
+    Value StringConcatExpression::evaluate(Environment& env) {
+        if (!mLeft || !mRight) [[unlikely]] {
+            Tools::PrintRuntimeError("String Concat (Dot Dot ) but left or right is missing\n");
+            return NumberNullValue;
+        }
+        Value left = mLeft->evaluate(env);
+        Value right = mRight->evaluate(env);
+
+        return Value::handleStringAdd(left,right);
+
+    }
+    bool StringConcatExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        assert(true && "FIXME StringConcatExpression");
+        return false;
+    }
+    // -------------------------------------------------------------------------
+    // StringConcatAssignExpression
+    // -------------------------------------------------------------------------
+    Value StringConcatAssignExpression::evaluate(Environment& env) {
+        if (!mLeft) [[unlikely]] {
+            Tools::PrintRuntimeError("String Concat  but variableis missing\n");
+            return NumberNullValue;
+        }
+        Value* valuePtr = mLeft->evaluatePtr(env);
+
+        if (!valuePtr || !mRight) [[unlikely]] {
+            Tools::PrintRuntimeError("String Concat (Dot Dot ) but left or right is missing\n");
+            return NumberNullValue;
+        }
+        Value right = mRight->evaluate(env);
+
+        *valuePtr =Value::handleStringAdd(*valuePtr,right);
+        return *valuePtr;
+
+    }
+    bool StringConcatAssignExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        assert(true && "FIXME StringConcatAssignExpression");
+        return false;
+    }
 }

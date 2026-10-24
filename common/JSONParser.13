@@ -55,7 +55,7 @@ fn Parser::parseString this
         end
 
         prevPeek = this->peek
-        str += this->advance
+        str .= this->advance
 
         if prevPeek != "\\" and this->peek == strSep break;;
     end
@@ -71,7 +71,7 @@ fn Parser::parsePrimitive this
     this->skipSpaces
 
     while (this->peek != "}") and (this->peek != "") and  (this->peek != " ")
-        prim += this->advance
+        prim .= this->advance
     end
     this->debug "Leave parsePrimitive"
     return prim
@@ -161,7 +161,7 @@ end
 fn getBlanks depth
     result = ""
     forRange i depth
-        result += "  "
+        result .= "  "
     end
     return result
 end

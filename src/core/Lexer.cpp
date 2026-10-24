@@ -83,6 +83,8 @@ const char* tokenTypeToString(TokenType type) {
         case TokenType::Global:         return "Global";
         case TokenType::Comma:          return "Comma";
         case TokenType::KeyValue:       return "KeyValue";
+        case TokenType::DotDot:         return "DotDot"; //String concat
+        case TokenType::DotAssign:      return "DotAssign"; //String concat
 
         case TokenType::EOFToken:       return "EOFToken";
 
@@ -138,6 +140,8 @@ bool isMathType(const Token& op) {
     || op.mType == TokenType::Dot
     || op.mType == TokenType::Arrow
     || op.mType == TokenType::KeyValue
+    || op.mType == TokenType::DotDot
+    || op.mType == TokenType::DotAssign
 
     || op.mType == TokenType::Assign
     || isInlineMathType(op.mType)
@@ -165,6 +169,8 @@ std::vector<Token> Lexer::tokenize() {
         // // ----------------------------------------------------------------
         if (std::isspace(peek())) { advance(); continue; }
         // ----------------------------------------------------------------
+        if (peek() == '.' && peekNext() == '.') { advance();advance(); tokens.push_back({TokenType::DotDot, ".."}); continue; }
+        if (peek() == '.' && peekNext() == '=') { advance();advance(); tokens.push_back({TokenType::DotAssign, ".="}); continue; }
         if (peek() == '=' && peekNext() == '>') { advance();advance(); tokens.push_back({TokenType::KeyValue, "=>"}); continue; }
         if (peek() == '>' && peekNext() == '=') { advance();advance(); tokens.push_back({TokenType::GreaterEqual, ">="}); continue; }
         if (peek() == '<' && peekNext() == '=') { advance();advance(); tokens.push_back({TokenType::LowerEqual, "<="}); continue; }

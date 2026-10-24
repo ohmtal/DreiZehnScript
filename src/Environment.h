@@ -221,7 +221,18 @@ public:
                 }
                 break;
             }
-
+            case NodeType::StringConcatExpression: {
+                if (auto* expr = static_cast<StringConcatExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
+            case NodeType::StringConcatAssignExpression: {
+                if (auto* expr = static_cast<StringConcatAssignExpression*>(node)) {
+                    expr->evaluate(currentEnv);
+                }
+                break;
+            }
 
             // --- others ---
             default: {

@@ -16,7 +16,7 @@ fn FileTool::load this
         buff =  fs->read 1024
         if (buff == 0) break;;
         -- print buff
-        this.content += buff
+        this.content .= buff
     end
     fs->close
     return true

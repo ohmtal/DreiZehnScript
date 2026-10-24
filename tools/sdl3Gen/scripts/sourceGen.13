@@ -15,22 +15,22 @@ global REGISTER_CONST = ""
 global REGISTER_STR = "\n\n"
 global getFieldSetFieldStr = ""
 getFieldSetFieldStr = "   inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override { \n"
-getFieldSetFieldStr +="      Value* ptr = onGetFieldPtr(fieldSymbolId);\n"
-getFieldSetFieldStr +="      if (ptr) { ret = *ptr; return true; }\n"
-getFieldSetFieldStr +="      return false;\n"
-getFieldSetFieldStr +="   }\n"
-getFieldSetFieldStr +="\n"
-getFieldSetFieldStr +="   inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) override {\n"
-getFieldSetFieldStr +="       Value* ptr = onGetFieldPtr(fieldSymbolId);\n"
-getFieldSetFieldStr +="       if (ptr) { *ptr = value; return true; }\n"
-getFieldSetFieldStr +="       return false;\n"
-getFieldSetFieldStr +="   }\n"
-getFieldSetFieldStr +="\n"
+getFieldSetFieldStr .="      Value* ptr = onGetFieldPtr(fieldSymbolId);\n"
+getFieldSetFieldStr .="      if (ptr) { ret = *ptr; return true; }\n"
+getFieldSetFieldStr .="      return false;\n"
+getFieldSetFieldStr .="   }\n"
+getFieldSetFieldStr .="\n"
+getFieldSetFieldStr .="   inline virtual bool onSetField(uint32_t fieldSymbolId, const Value& value) override {\n"
+getFieldSetFieldStr .="       Value* ptr = onGetFieldPtr(fieldSymbolId);\n"
+getFieldSetFieldStr .="       if (ptr) { *ptr = value; return true; }\n"
+getFieldSetFieldStr .="       return false;\n"
+getFieldSetFieldStr .="   }\n"
+getFieldSetFieldStr .="\n"
 -- -----------------------------------------------------------------------------
 fn createConst tokenObject
     result = ""
-    result += str::format "REGISTER_CONST(%s);\n" tokenObject.name
-    REGISTER_CONST += result
+    result .= str::format "REGISTER_CONST(%s);\n" tokenObject.name
+    REGISTER_CONST .= result
     return result
 end
 -- -----------------------------------------------------------------------------
@@ -40,99 +40,99 @@ fn createStruct tokenObject
     typename = str::format "Type%s" objname
 
     -- register type
-    result += str::format "inline const int %s =  RegisterUserObjectType(\"%s\");\n" typename tokenObject.name
-    result += "\n"
+    result .= str::format "inline const int %s =  RegisterUserObjectType(\"%s\");\n" typename tokenObject.name
+    result .= "\n"
     -- create struct
-    result += str::format "struct %s : public ValueObject {\n" objname
+    result .= str::format "struct %s : public ValueObject {\n" objname
     -- values and data
     forEach param tokenObject.params
-        result += str::format "   Value m%s;" param.field
-        result += str::format " inline static ValueObjectProperty m%sProp;\n" param.field
+        result .= str::format "   Value m%s;" param.field
+        result .= str::format " inline static ValueObjectProperty m%sProp;\n" param.field
     end
-    result += str::format "   %s mData = {0}; \n" tokenObject.name
-    result += "\n"
+    result .= str::format "   %s mData = {0}; \n" tokenObject.name
+    result .= "\n"
 
     -- constructor
-    result += str::format "   %s(): ValueObject(%s) {\n" objname typename
-    result += "      mSupportClone = true;\n"
-    result += "   }\n"
+    result .= str::format "   %s(): ValueObject(%s) {\n" objname typename
+    result .= "      mSupportClone = true;\n"
+    result .= "   }\n"
 
     -- clone
-    result += "   virtual ValueObject* clone() override {\n"
-    result += str::format "      %s* clone = new %s();\n" objname objname
-    result += "      ValueObject::cloneBase(clone);"
+    result .= "   virtual ValueObject* clone() override {\n"
+    result .= str::format "      %s* clone = new %s();\n" objname objname
+    result .= "      ValueObject::cloneBase(clone);"
     forEach param tokenObject.params
-        result += str::format "         clone->m%s = this->m%s;\n" param.field param.field
+        result .= str::format "         clone->m%s = this->m%s;\n" param.field param.field
     end
-    result += "      return clone;\n"
-    result += "   }\n"
+    result .= "      return clone;\n"
+    result .= "   }\n"
 
     -- dataPrt
-    result += str::format "   inline virtual %s* dataPtr()  {\n" tokenObject.name
+    result .= str::format "   inline virtual %s* dataPtr()  {\n" tokenObject.name
     forEach param tokenObject.params
-        result += str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
+        result .= str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
     end
-    result += "      return &mData;\n"
-    result += "   }\n"
+    result .= "      return &mData;\n"
+    result .= "   }\n"
 
     -- dataPrt
-    result += "   inline virtual void syncFromData() {\n"
+    result .= "   inline virtual void syncFromData() {\n"
     forEach param tokenObject.params
-        result += str::format "      m%s = Value((%s) mData.%s);\n" param.field param.type param.field
+        result .= str::format "      m%s = Value((%s) mData.%s);\n" param.field param.type param.field
     end
-    result += "   }\n"
+    result .= "   }\n"
     -- data
---     result += str::format "   inline virtual const %s& data()  {\n" tokenObject.name
+--     result .= str::format "   inline virtual const %s& data()  {\n" tokenObject.name
 --     forEach param tokenObject.params
 --     -- FIXME not allways getDouble!!
---         result += str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
+--         result .= str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
 --     end
---     result += "      return mData;\n"
---     result += "   }\n"
+--     result .= "      return mData;\n"
+--     result .= "   }\n"
 
 
     -- onGetFieldPtr
-    result += "   inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {\n"
+    result .= "   inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {\n"
         forEach param tokenObject.params
-            result += str::format \
+            result .= str::format \
                 "        if (fieldSymbolId == m%sProp.mSymbolId) return &m%s;\n" \
                 param.field param.field
         end
-        result += "      return ValueObject::onGetFieldPtr(fieldSymbolId);\n"
-        result += "   }\n"
+        result .= "      return ValueObject::onGetFieldPtr(fieldSymbolId);\n"
+        result .= "   }\n"
     }
 
     -- other getter/setter
-    result += getFieldSetFieldStr
+    result .= getFieldSetFieldStr
 
     -- symbols
-    result += "\n"
-    result += "   inline static void RegisterSymbols() {\n"
-    result += "   static bool mSymbolsLoaded = false;\n"
-    result += "   if (mSymbolsLoaded) return ;\n"
+    result .= "\n"
+    result .= "   inline static void RegisterSymbols() {\n"
+    result .= "   static bool mSymbolsLoaded = false;\n"
+    result .= "   if (mSymbolsLoaded) return ;\n"
     forEach param tokenObject.params
-        result += str::format "      m%sProp = ValueObjectProperty(\"%s\",\"\",%s) ;\n" \
+        result .= str::format "      m%sProp = ValueObjectProperty(\"%s\",\"\",%s) ;\n" \
                 param.field param.field typename
     end
-    result += "      mSymbolsLoaded = true;\n   }\n"
+    result .= "      mSymbolsLoaded = true;\n   }\n"
 
-    result += "\n};\n"
+    result .= "\n};\n"
 
     -- --------------------------
-    REGISTER_STR += str::format "%s::RegisterSymbols();\n" objname
-    REGISTER_STR += str::format "RegisterFunction(\"%s\", [](std::vector<Value>& args, Value& ret) -> bool {\n" \
+    REGISTER_STR .= str::format "%s::RegisterSymbols();\n" objname
+    REGISTER_STR .= str::format "RegisterFunction(\"%s\", [](std::vector<Value>& args, Value& ret) -> bool {\n" \
             tokenObject.name
-    REGISTER_STR += str::format "   %s* obj= new %s();\n" objname objname
+    REGISTER_STR .= str::format "   %s* obj= new %s();\n" objname objname
     iter = 0
     forEach param tokenObject.params
         -- FIXME not always getDouble!!
-        REGISTER_STR += str::format "   if (args.size() > %d) obj->m%s = args[%d].getDouble();\n" \
+        REGISTER_STR .= str::format "   if (args.size() > %d) obj->m%s = args[%d].getDouble();\n" \
                 iter  param.field iter
         iter++
     end
-    REGISTER_STR += "   ret = Value(obj);\n"
-    REGISTER_STR += "   return true;\n"
-    REGISTER_STR += "});\n"
+    REGISTER_STR .= "   ret = Value(obj);\n"
+    REGISTER_STR .= "   return true;\n"
+    REGISTER_STR .= "});\n"
 
 
 

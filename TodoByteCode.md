@@ -214,6 +214,19 @@ Segmentation fault (core dumped)
 - [X?] bad && funny!  ValueObject::onMethodCall use this =>  Value CallScriptFunction(Environment& env, const ScriptFunction* sf,std::vector<Value>& args ); used and byte code call this at OP_CALL_OBJECT_METHOD fallback to AST-Interpreter bad idea 
 funny is, that it works!
     ==> Heavy Metal ByteCode Patching! 
+    
+- [ ] to get math faster remove string + string !!! and add an extra token for this
+to bad i have use it in many scripts ^^  i may use SPC torque like do not want the 
+'.' like php. python use also the '+' and lua '..'
+    ==> `..` and `.=`
+    - [X] AST-Interpreter
+    - [ ] ByteCode
+    - [ ] remove +=
+        - [ ] AST-Interpreter
+        - [ ] ByteCode
+    - [ ] remove +
+        - [ ] AST-Interpreter
+        - [ ] ByteCode        
 
 - [ ] run and eval should be checked then 
 

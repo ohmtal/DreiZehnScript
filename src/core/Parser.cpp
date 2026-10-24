@@ -81,6 +81,8 @@ namespace DreiZehn {
         if (type == TokenType::Dot) return 0;
         if (type == TokenType::Arrow) return 0;
         if (type == TokenType::KeyValue) return 0;
+        if (type == TokenType::DotDot) return 0;
+        if (type == TokenType::DotAssign) return 0;
         if (isMathAssignOperatorType(type)) return 0;
 
         return -1;
@@ -198,7 +200,6 @@ namespace DreiZehn {
                 if (isGlobal) Globals::insertGlobalVar(nameTokenSymbolId);
                 else {
                     isGlobal = ParserFrame::guessGlobalVarAndInsertLocalIfNot(nameTokenSymbolId);
-                        // , peek().mType == TokenType::Assign  || isMathAssignOperatorType(peek().mType));
                 }
                 currentExpression = std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
             }
@@ -299,7 +300,7 @@ namespace DreiZehn {
                 }
                 auto rhs = parseMath(0);
                 if (!rhs) {
-                    Tools::PrintParseError("Assignment but no Assign Expression!");
+                    Tools::PrintParseError("OP Assignment but no Assign Expression!");
                     return nullptr;
                 }
                 left = std::make_unique<AssignOPStatement>(
@@ -371,6 +372,41 @@ namespace DreiZehn {
                 );
                 continue;
             }
+            else
+            if (op.mType == TokenType::DotDot) {
+                if (!left) {
+                    Tools::PrintParseError("String Concat Dot Dot but no left!");
+                    return nullptr;
+                }
+                auto rhs = parseMath(0);
+                if (!rhs) {
+                    Tools::PrintParseError("String Concat Dot Dot but no right!");
+                    return nullptr;
+                }
+
+                left = std::make_unique<StringConcatExpression>(
+                    std::move(left), std::move(rhs)
+                );
+                continue;
+            }
+            else
+                if (op.mType == TokenType::DotAssign) {
+                    if (!left) {
+                        Tools::PrintParseError("String Concat Dot Assign but no left!");
+                        return nullptr;
+                    }
+                    auto rhs = parseMath(0);
+                    if (!rhs) {
+                        Tools::PrintParseError("String Concat Dot Assign bu no right!");
+                        return nullptr;
+                    }
+
+                    left = std::make_unique<StringConcatAssignExpression>(
+                        std::move(left), std::move(rhs)
+                    );
+                    continue;
+                }
+
 
 
             auto right = parseMath(precedence + 1);
@@ -449,7 +485,6 @@ namespace DreiZehn {
             if (isGlobal) Globals::insertGlobalVar(nameTokenSymbolId);
             else {
                 isGlobal = ParserFrame::guessGlobalVarAndInsertLocalIfNot(nameTokenSymbolId);
-                // , peek().mType == TokenType::Assign  || isMathAssignOperatorType(peek().mType));
             }
             return std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
         }

@@ -365,6 +365,7 @@ public:
     // Debug getType
     std::string const getTypeName();
     static Value handleGenericAdd(const Value& a, const Value& b);
+    static Value handleStringAdd(const Value& a, const Value& b);
 };
 
 

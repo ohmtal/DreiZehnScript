@@ -43,7 +43,7 @@ print "1. Hello World!"
 -- with string variable example:
 str1 = "2. Hello"
 str2 = "World"
-str  = str1 + " " + str2 + "!"
+str  = str1 .. " " .. str2 .. "!"
 print str
 
 -- with str::concat
@@ -136,14 +136,14 @@ fn doFor
 end
 
 -- FizzBuzz for - short written using ';' and 'end' alias ';;'
--- writing all to a string with '+' concat
+-- writing all to a string with '..' concat
 fn doForShort
     result = ""
     for i 1 100
-        if i % 15 == 0;  result = result + "FizzBuzz "
-        elif i % 3 == 0; result = result + "Fizz "
-        elif i % 5 == 0; result = result + "Buzz "
-        else result = result + i + " ";;
+        if i % 15 == 0;  result = result .. "FizzBuzz "
+        elif i % 3 == 0; result = result .. "Fizz "
+        elif i % 5 == 0; result = result .. "Buzz "
+        else result = result .. i .. " ";;
     ;;
     print result
 ;;

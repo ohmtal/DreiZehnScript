@@ -44,10 +44,10 @@ end
 fn doForShort
     result = ""
     for i 1 100
-        if i % 15 == 0;  result = result + "FizzBuzz "
-        elif i % 3 == 0; result = result + "Fizz "
-        elif i % 5 == 0; result = result + "Buzz "
-        else result = result + i + " ";;
+        if i % 15 == 0;  result = result .. "FizzBuzz "
+        elif i % 3 == 0; result = result .. "Fizz "
+        elif i % 5 == 0; result = result .. "Buzz "
+        else result = result .. i .. " ";;
     ;;
     print result
 ;;

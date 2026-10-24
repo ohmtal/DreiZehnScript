@@ -60,6 +60,20 @@ namespace DreiZehn {
             return true;
         }, "run a script embedded in a string on BYTECODE VM");
 
+        // Interpreter
+        RegisterFunction("debug::ip", [&env](std::vector<Value>& args, Value& ret) -> bool {
+            if (args.size() != 1 || !args[0].isString()) {
+                Tools::errorf("Usage: debug::bc codeled\n");
+                ret = NumberNullValue;
+                return true;
+            }
+            std::stringstream stream(args[0].getStringRef());
+            ret =  Value(RunScriptStream(stream, env));
+
+            return true;
+        }, "run a script embedded in a string on BYTECODE VM");
+
+
     } //RegisterDebugFunctions
 
 } //namespace

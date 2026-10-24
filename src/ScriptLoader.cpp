@@ -186,6 +186,7 @@ namespace DreiZehn {
         return mainProgram;
     }
 
+    // --------------------------------------------------------------------------------
     bool RunScriptStream(std::istream& stream, Environment& env) {
 
         auto mainProgram = ParseScriptToAST(stream);
@@ -197,6 +198,7 @@ namespace DreiZehn {
     }
 
 
+    // --------------------------------------------------------------------------------
     Value RunScriptStreamByteCode(std::istream& stream, Environment& env) {
 
         auto mainProgram = ParseScriptToAST(stream);
@@ -220,11 +222,15 @@ namespace DreiZehn {
         return ParseScriptToAST(file);
     }
     // --------------------------------------------------------------------------------
-    bool RunScriptFile(const std::string& filename, Environment& env) {
+    bool RunScriptFile(const std::string& filename, Environment& env, bool useByteCode) {
         std::ifstream file(filename);
         if (!file.is_open()) {
             Tools::errorf("Script file cant be opened: %s\n", filename.c_str());
             return false;
+        }
+        if (useByteCode) {
+            RunScriptStreamByteCode(file,env);
+            return true ; //??
         }
         return RunScriptStream(file, env);
     }

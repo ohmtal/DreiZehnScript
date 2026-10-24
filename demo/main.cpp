@@ -128,7 +128,12 @@ bool ConsoleCall(DreiZehn::Environment& env) {
         }
 
         std::stringstream stream(line);
-        DreiZehn::RunScriptStream(stream, env);
+        if (DreiZehn::Globals::ByteCodeMode) {
+            DreiZehn::RunScriptStreamByteCode(stream, env);
+
+        } else {
+            DreiZehn::RunScriptStream(stream, env);
+        }
     }
 #endif
     return true;
@@ -176,12 +181,26 @@ int main(int argc, char* argv[]) {
         return ConsoleCall(env);
     };
 
+    int minargs = 1;
+    for (int i = 1; i < argc; i++) {
+        std::string strArg = argv[i];
+        if (strArg == "-ip") {
+            Globals::ByteCodeMode = false;
+            minargs++;
+            break;
+        } else if (strArg == "-bc") {
+            Globals::ByteCodeMode = true;
+            minargs++;
+            break;
+        }
+    }
 
-    if (argc > 1) {
 
-        std::string scriptPath = argv[1];
+    if (argc > minargs) {
 
-        bool success = RunScriptFile(scriptPath, env);
+        std::string scriptPath = argv[minargs];
+
+        bool success = RunScriptFile(scriptPath, env, Globals::ByteCodeMode);
 
         env.shutDown();
 
@@ -197,7 +216,7 @@ int main(int argc, char* argv[]) {
     linenoise::SetCompletionCallback(completion_callback);
     linenoise::SetHintsCallback(hints_callback);
 
-    Tools::printf(">> Console ready .. type quit or exit to escape <<\n");
+    Tools::printf(">> DreiZehn [%s]. Console ready .. type quit or exit to escape <<\n", Globals::ByteCodeMode ? "Bytecode" : "Interpreter");
     while (true) {
 
         if (!ConsoleCall(env)) break;

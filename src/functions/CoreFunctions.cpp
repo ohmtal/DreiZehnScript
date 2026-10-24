@@ -36,7 +36,14 @@ namespace DreiZehn {
                 return true;
             }
             std::stringstream stream(args[0].getStringRef());
-            ret = RunScriptStream(stream, env);
+
+            if (DreiZehn::Globals::ByteCodeMode) {
+                ret = DreiZehn::RunScriptStreamByteCode(stream, env);
+
+            } else {
+                ret = Value(DreiZehn::RunScriptStream(stream, env));
+            }
+
             return true;
         }, "run a script embedded in a string");
         // ---------------------------------------------------------------------

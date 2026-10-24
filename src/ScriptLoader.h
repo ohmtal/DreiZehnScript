@@ -10,10 +10,9 @@ namespace DreiZehn {
     class Environment;
     std::shared_ptr<BlockStatement> ParseScriptToAST(std::istream& stream);
     bool RunScriptStream(std::istream& stream, Environment& env);
-    bool RunScriptFile(const std::string& filename, Environment& env);
-
-
     Value RunScriptStreamByteCode(std::istream& stream, Environment& env);
+
+    bool RunScriptFile(const std::string& filename, Environment& env, bool useByteCode);
 
     std::shared_ptr<BlockStatement> IncludeScriptFile(const std::string& filename);
 }

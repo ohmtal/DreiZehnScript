@@ -231,10 +231,10 @@ to bad i have use it in many scripts ^^  i may use SPC torque like do not want t
 
     - first tests .. i missed something or it's not faster ?! :(
         
-- [ ] run and eval should be checked then 
+- [X] run and eval should be checked then 
 
-- [ ] condional activate to run it without debug::bc
-    
+- [X] condional activate to run it without debug::bc
+    default is IP(Interpreter) use -ip for interpreter and -bc for bytecode
 ---
 ## CRITICAL BUT LATER:
 

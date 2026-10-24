@@ -110,7 +110,7 @@ void Init(Environment& env, int argc, char* argv[]) {
         if (args[0].isString() ) {
             Tools::printf("Loading Script: %s\n", args[0].getStringRef().c_str());
             bool success = false;
-            success = RunScriptFile(args[0].getStringRef(), env);
+            success = RunScriptFile(args[0].getStringRef(), env, Globals::ByteCodeMode);
 
             ret = Value(success ? 1 : 0);
             return success;

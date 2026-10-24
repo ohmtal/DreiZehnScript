@@ -43,6 +43,7 @@ namespace DreiZehn {
 
 
 namespace Globals {
+    inline bool ByteCodeMode = false;
     inline bool ByteCodeRunning = false;
 
     inline int currentScriptLineNumber = 0;

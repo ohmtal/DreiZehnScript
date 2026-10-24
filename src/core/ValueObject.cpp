@@ -225,6 +225,7 @@ namespace DreiZehn {
     bool ValueObject::onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret) {
 
         // ----- User defined methods first ----
+        //FIXME bytecode THIS IS A AST-INTERPRETER CALL!!!!!!
         FunctionMap::ScriptFunction* sf;
         if (Globals::gCurEnv) {
             sf = getScriptMethod(methodNameSymbolId);

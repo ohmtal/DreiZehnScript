@@ -657,12 +657,13 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
             DISPATCH();
         }
         ValueObject* obj = objectValue.asPointerObject();
-        if (!obj) {
+        if (!obj) [[unlikely]] {
             Tools::errorf("RunTime Error: Invalid Object: %s.\n", objectValue.toString().c_str());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
         {
+            //FIXME lookup script function! and rewrite opcode to SF_Call ?!?!
             std::vector<Value> evaluatedArgs(argCount);
             for (int i = (int)argCount - 1; i >= 0; i--) {
                 evaluatedArgs[i] = POP_STACK();
@@ -797,11 +798,11 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         U32 ptrPOS = ip;
         void* rawPtr = ADVANCE_PTR();
         FunctionMap::CallBack* callPtr = nullptr;
-        if (!rawPtr) {
+        if (rawPtr) [[likely]] {
+            callPtr = static_cast<FunctionMap::CallBack*>(rawPtr);
+        } else {
             callPtr = FunctionMap::GetCFunction(symID);
             PATCH_PTR(ptrPOS, callPtr);
-        } else {
-            callPtr = static_cast<FunctionMap::CallBack*>(rawPtr);
         }
         U32 argCount = ADVANCE_U32();
 

@@ -163,7 +163,7 @@ Segmentation fault (core dumped)
       only handle the execute?! 
     - tested works fine
 
-### 0.9e: testing and activate
+### 0.9e: 
 - [X] moved compiler from enviroment to own source file an splitted patch
 - [X] ./DreiZehn scripts/bcLoader.13 test_Garbage << core dumped!
     add a function for that have enough redundant code! ==> _var_pointer_value(fieldValuePtr, PEEK_STACK(0));
@@ -204,6 +204,16 @@ Segmentation fault (core dumped)
     
     ==> Added ParserFrame ... was not in good mood hope my tests was fine....
     
+- [X] gerneric field cache path when caching is not possible. 
+    
+    
+### 0.9f: testing and activate
+
+- [ ] bad && funny!  ValueObject::onMethodCall use this =>  Value CallScriptFunction(Environment& env, const ScriptFunction* sf,std::vector<Value>& args ); used and byte code call this at OP_CALL_OBJECT_METHOD fallback to AST-Interpreter bad idea 
+funny is, that it works!
+
+- [ ] run and eval should be checked then 
+
 - [ ] condional activate to run it without debug::bc
     
 ---

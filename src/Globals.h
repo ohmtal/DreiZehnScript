@@ -43,6 +43,8 @@ namespace DreiZehn {
 
 
 namespace Globals {
+    inline bool ByteCodeRunning = false;
+
     inline int currentScriptLineNumber = 0;
     inline std::string currentScriptLine =  "";
     // ------
@@ -70,9 +72,10 @@ namespace Globals {
     }
     // ------
     // ------
+#ifdef DREIZEHN_DEBUG
     inline  bool gDumpStateNodes = false; //Debug
     inline  bool gShowVariableDebug = false; //Debug
-
+#endif
 }
 
 namespace Tools {

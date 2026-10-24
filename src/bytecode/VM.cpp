@@ -132,6 +132,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
     // TEST! register const uint8_t* pc __asm__("r14");
 
+    Globals::ByteCodeRunning = true;
 
     // alignas(64) constexpr void* dispatch_table[] = {
     // NOTE new X macro see also VMStructure
@@ -649,6 +650,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         // pull method name id
         U32 symID = ADVANCE_U32();
         U32 argCount = ADVANCE_U32();
+        U32* sfLoopUpPtr = &code[ip];
+        U32 skipSF = ADVANCE_U32();
 
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) [[unlikely]] {
@@ -663,7 +666,23 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
             DISPATCH();
         }
         {
-            //FIXME lookup script function! and rewrite opcode to SF_Call ?!?!
+
+            // holy cow crossing fingers!
+            if (!skipSF) {
+                FunctionMap::ScriptFunction* sf = obj->getScriptMethod(symID);
+                if (sf) {
+                    ip -= 4;
+                    code[ ip ] = OP_CALL_SF_FUNCTION;
+                    code[ ip + 1 ] = sf->bytecodeAddress;
+                    code[ ip + 2 ] = argCount + 1;
+                    code[ ip + 3 ] = sf->localVarCount;
+                    PUSH_STACK(obj); //push this
+                    DISPATCH();
+                }
+                // did not find a script method next time we skip this
+                *sfLoopUpPtr = 1;
+            }
+
             std::vector<Value> evaluatedArgs(argCount);
             for (int i = (int)argCount - 1; i >= 0; i--) {
                 evaluatedArgs[i] = POP_STACK();
@@ -1217,7 +1236,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         }
         #endif
 
-
+        Globals::ByteCodeRunning = false;
         return _STK == 0 ? NumberNullValue : PEEK_STACK(0);
     }
     // -------------------------------

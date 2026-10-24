@@ -226,14 +226,16 @@ namespace DreiZehn {
 
         // ----- User defined methods first ----
         //FIXME bytecode THIS IS A AST-INTERPRETER CALL!!!!!!
-        FunctionMap::ScriptFunction* sf;
-        if (Globals::gCurEnv) {
-            sf = getScriptMethod(methodNameSymbolId);
+        if (! Globals::ByteCodeRunning ) {
+            FunctionMap::ScriptFunction* sf;
+            if (Globals::gCurEnv) {
+                sf = getScriptMethod(methodNameSymbolId);
 
-            if (sf) {
-                args.insert(args.begin(), Value(this));
-                ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, args);
-                return true;
+                if (sf) {
+                    args.insert(args.begin(), Value(this));
+                    ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, args);
+                    return true;
+                }
             }
         }
 

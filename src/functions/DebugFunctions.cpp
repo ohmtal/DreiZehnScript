@@ -17,10 +17,12 @@ namespace DreiZehn {
          static bool registered = false; if (registered) return; registered = true;
          using namespace FunctionMap;
         // ---------------------------------------------------------------------
+         #ifdef DREIZEHN_DEBUG
         RegisterFunction("debug::toggle", [](std::vector<Value>& args, Value& ret) -> bool {
             Globals::gDumpStateNodes = ! Globals::gDumpStateNodes;
             return true;
         });
+        #endif
         // ---------------------------------------------------------------------
         RegisterFunction("debug::printenv", [](std::vector<Value>& args, Value& ret) -> bool {
             Tools::printf("Current env: %p\n", (void*)Globals::gCurEnv);

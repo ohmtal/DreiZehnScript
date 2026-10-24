@@ -209,8 +209,11 @@ Segmentation fault (core dumped)
     
 ### 0.9f: testing and activate
 
-- [ ] bad && funny!  ValueObject::onMethodCall use this =>  Value CallScriptFunction(Environment& env, const ScriptFunction* sf,std::vector<Value>& args ); used and byte code call this at OP_CALL_OBJECT_METHOD fallback to AST-Interpreter bad idea 
+ Globals::ByteCodeRunning
+
+- [X?] bad && funny!  ValueObject::onMethodCall use this =>  Value CallScriptFunction(Environment& env, const ScriptFunction* sf,std::vector<Value>& args ); used and byte code call this at OP_CALL_OBJECT_METHOD fallback to AST-Interpreter bad idea 
 funny is, that it works!
+    ==> Heavy Metal ByteCode Patching! 
 
 - [ ] run and eval should be checked then 
 

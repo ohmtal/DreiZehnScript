@@ -93,7 +93,9 @@ public:
     //      maybe renamed to add Variable!!!
     inline void setVariable(uint32_t id, Value val, bool forceScope = false) {
 
-        // if (Globals::gShowVariableDebug) Tools::printf("DEBUG: setVariable :: name: %s id: %d, floatval: %f\n", SymbolTable::getName(id).c_str(), id, val.getFloat());
+        #ifdef DREIZEHN_DEBUG
+        if (Globals::gShowVariableDebug) Tools::printf("DEBUG: setVariable :: name: %s id: %d, floatval: %f\n", SymbolTable::getName(id).c_str(), id, val.getFloat());
+        #endif
 
         auto it = mVariables.find(id);
         if (it != mVariables.end()) {

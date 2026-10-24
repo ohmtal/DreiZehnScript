@@ -438,6 +438,7 @@ namespace DreiZehn {
         chunk.emit(OP_CALL_OBJECT_METHOD);
         chunk.emit(mMethodNameSymbolId);
         chunk.emit(argCount);
+        chunk.emit(0); //placeholder when it's a Script method
 
         if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
         return true;

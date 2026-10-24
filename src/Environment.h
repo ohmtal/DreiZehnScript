@@ -81,8 +81,9 @@ public:
     inline FlowStatus execute(ASTNode* node, Environment& currentEnv) {
         if (!node) return FlowStatus(FlowSignal::None);
 
+#ifdef DREIZEHN_DEBUG
         if (Globals::gDumpStateNodes) Tools::printf("EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
-
+#endif
         switch(node->mNodeType) {
             // --- Break Statement ---
             case NodeType::BreakStatement:

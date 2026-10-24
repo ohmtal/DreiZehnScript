@@ -465,18 +465,21 @@ namespace DreiZehn {
                 continue;
             }
 
-
+            #ifdef DREIZEHN_DEBUG
             if (Globals::gDumpStateNodes) {
                 Tools::printf("---------- new statement ------ Pos:%d \n", (int)mPos);
                 for(size_t i = mPos; i < mTokens.size() ; i++) {
                     Tools::printf("Token %d: %d :: %s\n", i, (int)mTokens[i].mType, tokenTypeToString(mTokens[i].mType));
                 }
             }
+            #endif
             size_t startIndex = mPos;
             auto stmt = parseLine();
+            #ifdef DREIZEHN_DEBUG
             if (Globals::gDumpStateNodes) {
                 Tools::printf("---------- LINE parsed ------ Pos:%d next:%d :: %s\n", (int)mPos, (int)mTokens[mPos].mType, tokenTypeToString(mTokens[mPos].mType));
             }
+            #endif
             if (stmt) {
                 statements.push_back(std::move(stmt));
             }

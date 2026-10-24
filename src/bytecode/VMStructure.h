@@ -54,7 +54,7 @@ X(OP_SAVE_VAR,                 3, "save global variable") \
 X(OP_SET_LOCAL,                1, "set local variable") \
 X(OP_LOAD_OBJECT_FIELD,        1 + (2 * sizeof(void*)), "load object field") \
 X(OP_SAVE_OBJECT_FIELD,        1 + (2 * sizeof(void*)), "save object field") \
-X(OP_CALL_OBJECT_METHOD,       2, "call object method") \
+X(OP_CALL_OBJECT_METHOD,       3, "call object method") \
 X(OP_SAVE_OBJECT_METHOD,       2, "save object method") \
 X(OP_LOAD_ARRAY,               0, "load array element") \
 X(OP_SAVE_ARRAY,               0, "save array element") \

@@ -68,12 +68,19 @@ namespace DreiZehn {
     #define ADVANCE_S32() (S32)code[ip++]
     #define PEEK_U32() code[ip]
     #define PEEK_S32() (S32)code[ip]
+    //TODO use sizeof(void*)! not hardcoded 2
     #define ADVANCE_VALUE()  (*(Value*)&code[(ip += 2) - 2])
     #define ADVANCE_PTR() (*(void**)&code[(ip += 2) - 2])
 
     #define PATCH_PTR( pos, ptr) \
     do { \
         std::memcpy(&code[pos], &ptr, sizeof(void*)); \
+    } while(0)
+
+    //TODO use sizeof(void*)! not hardcoded 2
+    #define SKIP_PTR( ) \
+    do { \
+        ip += 2; \
     } while(0)
 
     // magic macro:
@@ -123,8 +130,7 @@ namespace DreiZehn {
 // -----------------------------------------------------------------------------
 Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
-    // TEST!
-    register const uint8_t* pc __asm__("r14");
+    // TEST! register const uint8_t* pc __asm__("r14");
 
 
     // alignas(64) constexpr void* dispatch_table[] = {
@@ -519,12 +525,14 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         }
         ValueObject* obj = objectValue.asPointerObject();
         Value* fieldValuePtr = nullptr;
-        if (rawFieldValuePtr && rawObjectPtr &&
-            rawObjectPtr == (void*) obj
-        ) {
+        if ( rawObjectPtr == (void*) obj ) [[likely]] {
             fieldValuePtr = static_cast<Value*>(rawFieldValuePtr);
         } else {
             fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
+            if (rawObjectPtr) {
+                //we had cached once before so cache is not usable here ...
+                code[saveObjPtrPos - 2] = OP_LOAD_OBJECT_FIELD_GENERIC;
+            }
             if (!fieldValuePtr) [[unlikely]] {
                 Tools::warnf("RunTime: Object %s have no field named: %s\n",
                              objectValue.toString().c_str(),
@@ -534,6 +542,34 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
             }
             PATCH_PTR(saveObjPtrPos, obj);
             PATCH_PTR(saveFieldPtrPos, fieldValuePtr);
+        }
+        PUSH_STACK(*fieldValuePtr);
+
+        DISPATCH();
+    }
+
+    handle_OP_LOAD_OBJECT_FIELD_GENERIC: {
+
+        U32 fieldSymId = ADVANCE_U32();
+        SKIP_PTR();
+        SKIP_PTR();
+
+        Value objectValue = POP_STACK();
+        if (!objectValue.isPointer()) [[unlikely]] {
+            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+        ValueObject* obj = objectValue.asPointerObject();
+
+        Value* fieldValuePtr = nullptr;
+        fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
+        if (!fieldValuePtr) [[unlikely]] {
+            Tools::warnf("RunTime: Object %s have no field named: %s\n",
+                            objectValue.toString().c_str(),
+                            SymbolTable::getName(fieldSymId).c_str());
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
         }
         PUSH_STACK(*fieldValuePtr);
 
@@ -556,12 +592,14 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         ValueObject* obj = objectValue.asPointerObject();
         Value* fieldValuePtr = nullptr;
-        if (rawFieldValuePtr && rawObjectPtr &&
-            rawObjectPtr == (void*) obj
-        ) {
+        if ( rawObjectPtr == (void*) obj ) [[likely]]{
             fieldValuePtr = static_cast<Value*>(rawFieldValuePtr);
         } else {
             fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
+            if (rawObjectPtr) {
+                //we had cached once before so cache is not usable here ...
+                code[saveObjPtrPos - 2] = OP_SAVE_OBJECT_FIELD_GENERIC;
+            }
             if (!fieldValuePtr) [[unlikely]] {
                 Tools::warnf("RunTime: Object %s have no field named: %s\n",
                              objectValue.toString().c_str(),
@@ -570,6 +608,33 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
             }
             PATCH_PTR(saveObjPtrPos, obj);
             PATCH_PTR(saveFieldPtrPos, fieldValuePtr);
+        }
+
+        _set_var_pointer_value(fieldValuePtr, PEEK_STACK(0));
+        // // // *fieldValuePtr = PEEK_STACK(0);
+
+        DISPATCH();
+    }
+    handle_OP_SAVE_OBJECT_FIELD_GENERIC: {
+
+        U32 fieldSymId = ADVANCE_U32();
+        SKIP_PTR();
+        SKIP_PTR();
+
+        Value objectValue = POP_STACK();
+        if (!objectValue.isPointer()) [[unlikely]] {
+            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            DISPATCH();
+        }
+
+        ValueObject* obj = objectValue.asPointerObject();
+        Value* fieldValuePtr = nullptr;
+        fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
+        if (!fieldValuePtr) [[unlikely]] {
+            Tools::warnf("RunTime: Object %s have no field named: %s\n",
+                            objectValue.toString().c_str(),
+                            SymbolTable::getName(fieldSymId).c_str());
+            DISPATCH();
         }
 
         _set_var_pointer_value(fieldValuePtr, PEEK_STACK(0));

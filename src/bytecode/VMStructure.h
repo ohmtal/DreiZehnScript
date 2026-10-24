@@ -69,15 +69,17 @@ X(OP_DIV_LOCAL,                1, "divide local variable") \
 X(OP_ADD,                      0, "addition") \
 X(OP_SUB,                      0, "subtraction") \
 /* ..... */ \
+X(OP_LOOP_INCREMENT_JUMP,      3, "increment loop and jump") \
 X(OP_MUL,                      0, "multiplication") \
 X(OP_DIV,                      0, "division") \
 X(OP_NOT,                      0, "logical NOT") \
 X(OP_FOR_RANGE,                2, "for range loop") \
 X(OP_FOR_STEP_INIT,            3, "initialize for step loop") \
-X(OP_LOOP_INCREMENT_JUMP,      3, "increment loop and jump") \
 X(OP_FOR_EACH_INIT,            2, "initialize foreach loop") \
 X(OP_FOR_EACH_INCREMENT_JUMP,  2, "increment foreach and jump") \
 /* ..... */ \
+X(OP_LOAD_OBJECT_FIELD_GENERIC, 1 + (2 * sizeof(void*)), "load object field with skip cache!") \
+X(OP_SAVE_OBJECT_FIELD_GENERIC, 1 + (2 * sizeof(void*)), "save object field with skip cache!") \
 X(OP_CREATE_KEYVALUE,          0, "create key-value pair") \
 X(OP_RETURN,                   0, "return from function") \
 X(OP_EXIT,                     0, "exit interpreter") \

@@ -940,7 +940,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         DISPATCH();
     }
     // -------------------------------
-    // -------------------------------
     handle_OP_ADD: {
         Value b = POP_STACK();
         Value a = POP_STACK();
@@ -1184,6 +1183,14 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         PUSH_STACK(Value(obj));
 
+        DISPATCH();
+    }
+    // -------------------------------
+    handle_OP_STR_CONCAT: {
+        Value b = POP_STACK();
+        Value a = POP_STACK();
+
+        PUSH_STACK(Value::handleStringAdd(a, b));
         DISPATCH();
     }
     // -------------------------------

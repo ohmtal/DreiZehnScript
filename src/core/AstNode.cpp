@@ -1189,10 +1189,10 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         Value rightHand = mRhs->evaluate(env);
 
-        if (mOp == TokenType::AssignPlus && valuePtr->isString()) {
-            *valuePtr = Value::handleGenericAdd(*valuePtr, rightHand);
-            return *valuePtr;
-        }
+        // if (mOp == TokenType::AssignPlus && valuePtr->isString()) {
+        //     *valuePtr = Value::handleGenericAdd(*valuePtr, rightHand);
+        //     return *valuePtr;
+        // }
 
         Value result;
         const bool l_is_double = valuePtr->isDouble();
@@ -1987,9 +1987,23 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return Value::handleStringAdd(left,right);
 
     }
-    bool StringConcatExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        assert(true && "FIXME StringConcatExpression");
-        return false;
+    // ------------------------
+    bool StringConcatExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+        if (requestType == ValueType::NONE) {
+            Tools::PrintParseError("Invalid calculation: If you want to add a '-' Value encapsulate it like (-1).");
+            return false;
+        }
+
+        if (!mLeft.get() || !mRight.get()) {
+            Tools::PrintParseError("left or right is missing:");
+            return false;
+        }
+
+        if (!this->mLeft->compile(env,chunk, scope, requestType)) return false;
+        if (!this->mRight->compile(env,chunk, scope, requestType)) return false;
+
+        chunk.emit(OP_STR_CONCAT);
+        return true;
     }
     // -------------------------------------------------------------------------
     // StringConcatAssignExpression
@@ -2011,8 +2025,21 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         return *valuePtr;
 
     }
+    // ------------------------------
     bool StringConcatAssignExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        assert(true && "FIXME StringConcatAssignExpression");
-        return false;
+        if (!mLeft) [[unlikely]] {
+            Tools::PrintParseError("String Concat  but variableis missing\n");
+            return false;
+        }
+
+
+        if (!mLeft->compile(env,chunk,scope,ValueType::ANY)) return false;
+        if (!mRight->compile(env,chunk,scope,ValueType::ANY)) return false;
+        chunk.emit(OP_STR_CONCAT);
+
+
+        if (!mLeft->compileAssignment(env,chunk,scope, requestType)) return false;
+        return true;
+
     }
 }

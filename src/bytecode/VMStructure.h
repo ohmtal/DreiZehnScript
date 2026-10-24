@@ -82,6 +82,7 @@ X(OP_LOAD_OBJECT_FIELD_GENERIC, 1 + (2 * sizeof(void*)), "load object field with
 X(OP_SAVE_OBJECT_FIELD_GENERIC, 1 + (2 * sizeof(void*)), "save object field with skip cache!") \
 X(OP_CREATE_KEYVALUE,          0, "create key-value pair") \
 X(OP_RETURN,                   0, "return from function") \
+X(OP_STR_CONCAT,               0, "string add (concat)") \
 X(OP_EXIT,                     0, "exit interpreter") \
 X(OP_INVALID,                  0, "invalid opcode fallback")
 

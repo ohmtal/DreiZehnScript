@@ -215,19 +215,22 @@ Segmentation fault (core dumped)
 funny is, that it works!
     ==> Heavy Metal ByteCode Patching! 
     
-- [ ] to get math faster remove string + string !!! and add an extra token for this
+- [X] to get math faster remove string + string !!! and add an extra token for this
 to bad i have use it in many scripts ^^  i may use SPC torque like do not want the 
 '.' like php. python use also the '+' and lua '..'
     ==> `..` and `.=`
     - [X] AST-Interpreter
     - [ ] ByteCode
-    - [ ] remove +=
-        - [ ] AST-Interpreter
-        - [ ] ByteCode
-    - [ ] remove +
-        - [ ] AST-Interpreter
-        - [ ] ByteCode        
+    - [X] update ALL script .. may missed some statements
+    - [X] remove +=
+        - [X] AST-Interpreter
+        - [X] ByteCode
+    - [X] remove +
+        - [X] AST-Interpreter
+        - [X] ByteCode        
 
+    - first tests .. i missed something or it's not faster ?! :(
+        
 - [ ] run and eval should be checked then 
 
 - [ ] condional activate to run it without debug::bc

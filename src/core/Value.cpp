@@ -76,22 +76,22 @@ Value Value::handleGenericAdd(const DreiZehn::Value& a, const DreiZehn::Value& b
         // // }
 
 
-
-        if (a_is_string || b_is_string) [[unlikely]] {
-            std::string result_str;
-
-            if (a_is_string)      result_str = a.getStringRef();
-            else if (a_is_int)    result_str = std::to_string(a.asFastInt());
-            else if (a_is_double) result_str = std::to_string(a.getDouble());
-            else                  result_str = "Value";
-
-            if (b_is_string)      result_str += b.getStringRef();
-            else if (b_is_int)    result_str += std::to_string(b.asFastInt());
-            else if (b_is_double) result_str += std::to_string(b.getDouble());
-            else                  result_str += "Value";
-
-            return Value(result_str);
-        }
+        // replaced with ..
+        // // if (a_is_string || b_is_string) [[unlikely]] {
+        // //     std::string result_str;
+        // //
+        // //     if (a_is_string)      result_str = a.getStringRef();
+        // //     else if (a_is_int)    result_str = std::to_string(a.asFastInt());
+        // //     else if (a_is_double) result_str = std::to_string(a.getDouble());
+        // //     else                  result_str = "Value";
+        // //
+        // //     if (b_is_string)      result_str += b.getStringRef();
+        // //     else if (b_is_int)    result_str += std::to_string(b.asFastInt());
+        // //     else if (b_is_double) result_str += std::to_string(b.getDouble());
+        // //     else                  result_str += "Value";
+        // //
+        // //     return Value(result_str);
+        // // }
 
         double target_a = a_is_int ? static_cast<double>(a.asFastInt()) : a.asFastDouble();
         double target_b = a_is_int ? b.asFastDouble() : static_cast<double>(b.asFastInt());

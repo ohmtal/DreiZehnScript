@@ -6,9 +6,9 @@ It was designed for embedding a Script language into your Application.
 
 [Handbook](handbook/Main.md)
 
-[Todo / Done List](Todo.md)
+[Todo / Done List](docu/Todo.md)
 
-[Benchmark Results](Benchmark.md)
+[Benchmark Results](docu/Benchmark.md)
 
 
 

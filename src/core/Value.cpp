@@ -57,11 +57,27 @@ Value Value::handleGenericAdd(const DreiZehn::Value& a, const DreiZehn::Value& b
         const bool a_is_string = a.isString();
         const bool b_is_string = b.isString();
 
-        if ((a_is_int && b_is_double) || (a_is_double && b_is_int)) {
-            return Value(a.getDouble() + b.getDouble());
-        }
+        // // if ((a_is_int && b_is_double) || (a_is_double && b_is_int)) {
+        // //     return Value(a.getDouble() + b.getDouble());
+        // // }
+        // if (a_is_int && b_is_double) {
+        //     return Value(static_cast<double>(a.asFastInt()) + b.asFastDouble());
+        // }
+        // if (a_is_double && b_is_int) {
+        //     return Value(a.asFastDouble() + static_cast<double>(b.asFastInt()));
+        // }
+        // // if (a_is_int && b_is_double) {
+        // //     double result = static_cast<double>(a.asFastInt()) + b.asFastDouble();
+        // //     return Value(Unsafe{}, std::bit_cast<uint64_t>(result));
+        // // }
+        // // if (a_is_double && b_is_int) {
+        // //     double result = a.asFastDouble() + static_cast<double>(b.asFastInt());
+        // //     return Value(Unsafe{}, std::bit_cast<uint64_t>(result));
+        // // }
 
-        if (a_is_string || b_is_string) {
+
+
+        if (a_is_string || b_is_string) [[unlikely]] {
             std::string result_str;
 
             if (a_is_string)      result_str = a.getStringRef();
@@ -77,7 +93,11 @@ Value Value::handleGenericAdd(const DreiZehn::Value& a, const DreiZehn::Value& b
             return Value(result_str);
         }
 
-        return Value(0);
+        double target_a = a_is_int ? static_cast<double>(a.asFastInt()) : a.asFastDouble();
+        double target_b = a_is_int ? b.asFastDouble() : static_cast<double>(b.asFastInt());
+
+        uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
+        return Value(Unsafe{}, result_bits);
     }
 
 const std::string Value::getTypeName(){

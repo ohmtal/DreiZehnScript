@@ -945,15 +945,30 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        if (a.isDouble() && b.isDouble())  [[likely]]
+
+        if (a.isDouble() && b.isDouble()) [[likely]]
         {
-            PUSH_STACK(Value(a.asFastDouble() + b.asFastDouble()));
+            double res = a.asFastDouble() + b.asFastDouble();
+            PUSH_STACK(Value(Unsafe{}, std::bit_cast<uint64_t>(res)));
             DISPATCH();
         }
-        if (a.isInt() && b.isInt()) {
-            PUSH_STACK(Value(a.asFastInt() + b.asFastInt()));
+        if (a.isInt() && b.isInt())
+        {
+            uint64_t res_32 = static_cast<uint32_t>(a.asFastInt() + b.asFastInt());
+            constexpr uint64_t INT_BOX_PREFIX = QNAN_MASK | TAG_INT;
+            uint64_t raw_bits = INT_BOX_PREFIX | res_32;
+            PUSH_STACK(Value(Unsafe{}, raw_bits));
             DISPATCH();
         }
+        // if (a.isDouble() && b.isDouble())  [[likely]]
+        // {
+        //     PUSH_STACK(Value(a.asFastDouble() + b.asFastDouble()));
+        //     DISPATCH();
+        // }
+        // if (a.isInt() && b.isInt()) {
+        //     PUSH_STACK(Value(a.asFastInt() + b.asFastInt()));
+        //     DISPATCH();
+        // }
 
         PUSH_STACK(Value::handleGenericAdd(a, b));
         DISPATCH();

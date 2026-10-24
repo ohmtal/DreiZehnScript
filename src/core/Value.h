@@ -17,6 +17,7 @@
 namespace DreiZehn{
 
 
+
 enum class ValueType : uint8_t {
     Double,
     Int,
@@ -44,6 +45,9 @@ constexpr uint64_t TAG_MASK         = 0x0007000000000000ULL; // for type safty -
 
 constexpr uint64_t QNAN_AND_TAG_MASK = 0x7FFF000000000000ULL; // ==> QNAN_MASK | TAG_MASK
 
+
+struct Unsafe { };
+
 class Value {
 private:
     uint64_t mBits; // 8 byte value
@@ -57,6 +61,8 @@ public:
     Value() : mBits(0) {}
     // // // // // Value() : mBits(QNAN_MASK | TAG_INT) {}
 
+    // -------------------------------------------------------------------------
+    inline Value(Unsafe, uint64_t rawBits) noexcept : mBits(rawBits) {}
     // -------------------------------------------------------------------------
     Value(double d) {
         mBits = std::bit_cast<uint64_t>(d);

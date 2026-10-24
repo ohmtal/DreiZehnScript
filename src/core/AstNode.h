@@ -115,9 +115,16 @@ constexpr const char* NodeTypeToString(NodeType type) {
 // base node -------------------------------------------------------------------
 struct Expression;
 
+enum NodeFlags {
+    NodeFlag_Flow        = 0x01,
+    NodeFlag_Expression  = 0x02,
+    NodeFlag_Block       = 0x04
+};
+
 struct ASTNode {
     NodeType mNodeType = NodeType::BaseNode;
     uint32_t mLineNumber = 0;
+    uint32_t mFlags = 0; //node flags
 
     ASTNode () {
         mLineNumber =  Globals::currentScriptLineNumber;
@@ -138,6 +145,7 @@ struct ASTNode {
 struct Expression : public ASTNode {
     Expression() {
         mNodeType  = NodeType::Expression;
+        mFlags |= NodeFlag_Expression;
     }
     virtual Value evaluate(Environment& env) = 0;
     // fetch a Ptr to a value instead of a value
@@ -150,6 +158,9 @@ struct Expression : public ASTNode {
 
 // FlowBaseStatement --------------------------------------------------------
 struct FlowBaseStatement: public ASTNode {
+    FlowBaseStatement() {
+        mFlags |= NodeFlags::NodeFlag_Flow;
+    }
     virtual FlowStatus execute(Environment& env) = 0;
 };
 
@@ -160,6 +171,7 @@ public:
     std::vector<std::shared_ptr<ASTNode>> mBody;
     BlockStatement() {
         mNodeType = NodeType::BlockStatement;
+        mFlags |= NodeFlag_Block;
     }
     FlowStatus execute(Environment& env) override;
 
@@ -707,5 +719,20 @@ struct StringConcatAssignExpression : public Expression {
 };
 
 
+// -----------------------------------------------------------------------------------------------------
+// FastPath
+// -----------------------------------------------------------------------------------------------------
+inline Value evaluateFastPathPath(Expression* node, Environment& env) {
+    if (!node) [[unlikely]] return NumberNullValue;
+    switch (node->mNodeType) {
+        case NodeType::LiteralExpression: return static_cast<LiteralExpression*>(node)->evaluate(env);
+        case NodeType::VariableExpression: return static_cast<VariableExpression*>(node)->evaluate(env);
+        case NodeType::ObjectFieldExpression: return static_cast<ObjectFieldExpression*>(node)->evaluate(env);
+        case NodeType::ArrayVariableExpression: return static_cast<ArrayVariableExpression*>(node)->evaluate(env);
+        case NodeType::CallExpression: return static_cast<CallExpression*>(node)->evaluate(env);
+        default: return node->evaluate(env);
+    }
+    return NumberNullValue;
+}
 
 } //namespace

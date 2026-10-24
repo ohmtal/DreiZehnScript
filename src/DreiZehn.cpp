@@ -101,6 +101,11 @@ void Init(Environment& env, int argc, char* argv[]) {
     // run
     // ---------------------------------------------------------------------
     RegisterFunction("run", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        if (Globals::ByteCodeMode) {
+            Tools::errorf("Sorry cant run injected bytecode at the moment!");
+            return false;
+        }
+
         if (args.size() != 1) {
             Tools::errorf("file name requires for run, Usage: run filename\n");
             ret = NumberNullValue;
@@ -110,7 +115,7 @@ void Init(Environment& env, int argc, char* argv[]) {
         if (args[0].isString() ) {
             Tools::printf("Loading Script: %s\n", args[0].getStringRef().c_str());
             bool success = false;
-            success = RunScriptFile(args[0].getStringRef(), env, Globals::ByteCodeMode);
+            success = RunScriptFile(args[0].getStringRef(), env, false);
 
             ret = Value(success ? 1 : 0);
             return success;
@@ -121,6 +126,33 @@ void Init(Environment& env, int argc, char* argv[]) {
         ret = NumberNullValue;
         return true;
     }, "Run a script file. @param filename");
+
+    RegisterFunction("runbc", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        if (Globals::ByteCodeRunning) {
+            Tools::errorf("Sorry cant run recursive injected bytecode at the moment!");
+            return false;
+        }
+
+        if (args.size() != 1) {
+            Tools::errorf("file name requires for run, Usage: run filename\n");
+            ret = NumberNullValue;
+            return true;
+        }
+
+        if (args[0].isString() ) {
+            Tools::printf("Loading Script: %s\n", args[0].getStringRef().c_str());
+            bool success = false;
+            success = RunScriptFile(args[0].getStringRef(), env, true);
+
+            ret = Value(success ? 1 : 0);
+            return success;
+        }
+
+
+        Tools::errorf("file name requires for run\n");
+        ret = NumberNullValue;
+        return true;
+    }, "Compile Script to ByteCode and run. @param filename");
 
     // ---------------------------------------------------------------------
     // list modules

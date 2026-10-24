@@ -78,6 +78,32 @@ public:
     // -------------------------------------------------------------------------
     // EXECUTE :D - currentEnv for function calls
     // -------------------------------------------------------------------------
+// #define AST_IP_SMALL_EXECUTE
+#ifdef AST_IP_SMALL_EXECUTE
+    inline FlowStatus execute(ASTNode* node, Environment& currentEnv) {
+        if (!node) return FlowStatus(FlowSignal::None);
+
+        #ifdef DREIZEHN_DEBUG
+        if (Globals::gDumpStateNodes) Tools::printf("EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
+        #endif
+
+        if (node->mFlags & NodeFlag_Expression) [[likely]] {
+            auto* expr = static_cast<Expression*>(node);
+            expr->evaluate(currentEnv);
+        } else if (node->mFlags & NodeFlag_Flow) {
+            auto* flowStmt = static_cast<FlowBaseStatement*>(node);
+            return flowStmt->execute(currentEnv);
+
+        } else [[unlikely]] {
+
+            Tools::errorf("UNKNOWN Expression EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
+        }
+
+        return FlowStatus(FlowSignal::None);
+
+    }
+
+#else // AST_IP_SMALL_EXECUTE
     inline FlowStatus execute(ASTNode* node, Environment& currentEnv) {
         if (!node) return FlowStatus(FlowSignal::None);
 
@@ -247,7 +273,7 @@ public:
 
         return FlowStatus(FlowSignal::None);
     }
-
+#endif
 
     // -------------------------------------------------------------------------
     // main execute

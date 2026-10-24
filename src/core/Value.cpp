@@ -50,12 +50,12 @@ std::string Value::toStringSlowPath() const {
 }
 // -----------------------------------------------------------------------------
 Value Value::handleGenericAdd(const DreiZehn::Value& a, const DreiZehn::Value& b) {
-        const bool a_is_double = a.isDouble();
-        const bool b_is_double = b.isDouble();
-        const bool a_is_int    = a.isInt();
-        const bool b_is_int    = b.isInt();
-        const bool a_is_string = a.isString();
-        const bool b_is_string = b.isString();
+        // const bool a_is_double = a.isDouble();
+        // const bool b_is_double = b.isDouble();
+        // const bool a_is_int    = a.isInt();
+        // const bool b_is_int    = b.isInt();
+        // const bool a_is_string = a.isString();
+        // const bool b_is_string = b.isString();
 
         // // if ((a_is_int && b_is_double) || (a_is_double && b_is_int)) {
         // //     return Value(a.getDouble() + b.getDouble());
@@ -76,7 +76,7 @@ Value Value::handleGenericAdd(const DreiZehn::Value& a, const DreiZehn::Value& b
         // // }
 
 
-        // replaced with ..
+        // replaced with '..'
         // // if (a_is_string || b_is_string) [[unlikely]] {
         // //     std::string result_str;
         // //
@@ -93,8 +93,8 @@ Value Value::handleGenericAdd(const DreiZehn::Value& a, const DreiZehn::Value& b
         // //     return Value(result_str);
         // // }
 
-        double target_a = a_is_int ? static_cast<double>(a.asFastInt()) : a.asFastDouble();
-        double target_b = a_is_int ? b.asFastDouble() : static_cast<double>(b.asFastInt());
+        double target_a = a.isInt() ? static_cast<double>(a.asFastInt()) : a.asFastDouble();
+        double target_b = a.isInt() ? b.asFastDouble() : static_cast<double>(b.asFastInt());
 
         uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
         return Value(Unsafe{}, result_bits);

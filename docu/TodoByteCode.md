@@ -235,6 +235,41 @@ to bad i have use it in many scripts ^^  i may use SPC torque like do not want t
 
 - [X] condional activate to run it without debug::bc
     default is IP(Interpreter) use -ip for interpreter and -bc for bytecode
+    
+- [ ] inject code while running 
+    - debug::bc and run call complete new VM this is bad while the VM is running 
+    function calls must be patched in and such.
+    - cant use inlude as a replament for run since i does only accept a LiteralExpression
+    as filename. 
+    - CompileExec encapulate BytecodeChunk chunk; and CompilerScope scope; so it
+    cant be accessed from outside. it does:
+        - compile
+        - patch
+    - IncludeStatement does:
+        - in parser: IncludeScriptFile
+        - in compiler: only compile the body it it should be executed and 
+        patch in a jmpOverMarker via OP_JUMP_IF_TRUE
+        - so it register the functions at parse time which are patched by compile
+        exec. my patch system is so crazy ;P
+    - to get a run working:
+        - 1. ParseScriptToAst => register functions
+        - 2. Patch All bytecode again i guess mFunctionPatches should not by 
+            cleared after intial patch - adresses may change after an include 
+            like in scripts/main.13
+        - 3. problem! every new injected include add new byte codes at the end.
+            functions are always called by adress - which is patched. I think
+            about a chunk stack but merge while running is not a good idea when the
+            byte code change which is currently running . 
+        - 4. so hot reload is not possible with DreiZehn bytecode ?! ... no solution
+            so far. Did i break this in ElfScript too with my inline function 
+            runner ?! ==> 
+        - 5. Solutions:
+            - a) every "run" must be added to the current bytecode no matter
+                if it was added before and then the the complete byte code must
+                be patched.  ==>  **but what is if the main script is hot reloded ?!**
+            - b) run everything in the ast interpreter and load critical stuff as
+                bytecode as i did with debug::bc. 
+    
 ---
 ## CRITICAL BUT LATER:
 

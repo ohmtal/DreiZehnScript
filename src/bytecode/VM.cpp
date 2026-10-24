@@ -54,7 +54,7 @@ namespace DreiZehn {
 
     #ifdef DREIZEHN_DEBUG
     #define POP_STACK() \
-    ((_STK < 1) ? (Tools::PrintRuntimeError("VM Stack Underflow!"), exit(1), vmStack[0]) : vmStack[--_STK])
+    ((_STK < 1) ? (Tools::PrintRuntimeError("VM Stack Underflow!\n"), exit(1), vmStack[0]) : vmStack[--_STK])
     #else
     #define POP_STACK() (vmStack[--_STK])
     #endif
@@ -127,11 +127,13 @@ namespace DreiZehn {
     }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
     // TEST! register const uint8_t* pc __asm__("r14");
-
+    if (Globals::ByteCodeRunning) {
+        Tools::errorf("Sorry. use include to add code to the current byte code ... machine is running!");
+        return NumberNullValue;
+    }
     Globals::ByteCodeRunning = true;
 
     // alignas(64) constexpr void* dispatch_table[] = {
@@ -149,9 +151,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
     // -----------------------
     // stack register
     S32 _STK = 0;
-    // Value vmStack[MAX_BC_STACK_SIZE] = {0};
-
-    // TEST
+    // // // Value vmStack[MAX_BC_STACK_SIZE] = {0};
     std::vector<Value>vmStack;
     vmStack.resize(MAX_BC_STACK_SIZE);
 

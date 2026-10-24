@@ -23,6 +23,8 @@ namespace DreiZehn {
     // to not show up when it's an assign
     bool AssignActive = false;
     // -------------------------------------------------------------------------
+
+
     // -------------------------------------------------------------------------
     // LiteralExpression :: optimized
     Value LiteralExpression::evaluate(Environment& env) {
@@ -106,7 +108,7 @@ namespace DreiZehn {
             S32 localSlot = scope.resolve(mVariableNameSymbolId);
             if (localSlot < 0 ) {
                 std::string varName = SymbolTable::getName(mVariableNameSymbolId);
-                Tools::warnf("Variable not found in local scope (VariableExpression): %s\n", varName.c_str());
+                Tools::warnf("Variable not found in local scope (VariableExpression): %s, Line: [%d]\n", varName.c_str(), mLineNumber);
                 return false; // do  stop!
             }
             chunk.emit(OP_GET_LOCAL);
@@ -469,8 +471,8 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // CallExpression
     // -------------------------------------------------------------------------
-#define FUNC_CACHE // about 200ms faster
-#ifdef FUNC_CACHE
+// #define FUNC_CACHE // about 200ms faster
+// #ifdef FUNC_CACHE
     Value CallFunc(Environment& env, const FunctionMap::CallBack* cb
         , std::vector<std::unique_ptr<Expression>>& arguments, uint32_t symid) {
         std::vector<Value> evaluatedArgs;
@@ -530,57 +532,57 @@ namespace DreiZehn {
         return Value();
 
     }
-#else
-    Value CallExpression::evaluate(Environment& env) {
-
-         FunctionMap::CallBack* cb = FunctionMap::GetCFunction(mFuncSymbolId);
-        if (cb) {
-            std::vector<Value> evaluatedArgs;
-            for (auto& argExpr : arguments) {
-                if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
-            }
-
-            Value returnValue = NumberNullValue;
-            bool success = (*cb)(evaluatedArgs, returnValue);
-
-            if (!success) {
-                Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(mFuncSymbolId).c_str());
-            }
-            return returnValue;
-        }
-
-        FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFuncSymbolId);
-        if (sf) {
-            auto& func = *(sf);
-            Environment localEnv(&env);
-
-            for (size_t i = 0; i < func.parameterNames.size(); ++i) {
-                if (i < arguments.size()) {
-                    Value evaluatedArg = arguments[i]->evaluate(env);
-                    localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), evaluatedArg, true);
-                } else {
-                    // 0.8d fill up arguments with 0
-                    localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), NumberNullValue, true);
-                }
-            }
-            Value functionResult = NumberNullValue;
-            for (auto& statement : func.body) {
-                FlowStatus status = env.execute(statement.get(), localEnv);
-
-                if (status.signal == FlowSignal::Return) {
-                    return status.returnValue;
-                }
-
-            }
-
-            return functionResult;
-        }
-
-        Tools::errorf("Unknown command: %s\n", SymbolTable::getName(mFuncSymbolId).c_str());
-        return Value();
-
-    }
-#endif
+// #else
+//     Value CallExpression::evaluate(Environment& env) {
+//
+//          FunctionMap::CallBack* cb = FunctionMap::GetCFunction(mFuncSymbolId);
+//         if (cb) {
+//             std::vector<Value> evaluatedArgs;
+//             for (auto& argExpr : arguments) {
+//                 if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
+//             }
+//
+//             Value returnValue = NumberNullValue;
+//             bool success = (*cb)(evaluatedArgs, returnValue);
+//
+//             if (!success) {
+//                 Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(mFuncSymbolId).c_str());
+//             }
+//             return returnValue;
+//         }
+//
+//         FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFuncSymbolId);
+//         if (sf) {
+//             auto& func = *(sf);
+//             Environment localEnv(&env);
+//
+//             for (size_t i = 0; i < func.parameterNames.size(); ++i) {
+//                 if (i < arguments.size()) {
+//                     Value evaluatedArg = arguments[i]->evaluate(env);
+//                     localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), evaluatedArg, true);
+//                 } else {
+//                     // 0.8d fill up arguments with 0
+//                     localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), NumberNullValue, true);
+//                 }
+//             }
+//             Value functionResult = NumberNullValue;
+//             for (auto& statement : func.body) {
+//                 FlowStatus status = env.execute(statement.get(), localEnv);
+//
+//                 if (status.signal == FlowSignal::Return) {
+//                     return status.returnValue;
+//                 }
+//
+//             }
+//
+//             return functionResult;
+//         }
+//
+//         Tools::errorf("Unknown command: %s\n", SymbolTable::getName(mFuncSymbolId).c_str());
+//         return Value();
+//
+//     }
+// #endif
 bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
 
     FunctionMap::CallBack* cb = FunctionMap::GetCFunction(mFuncSymbolId);
@@ -647,123 +649,111 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return Value();
         }
 
-        Value lVal = mLeft->evaluate(env);
-        Value rVal = mRight->evaluate(env);
+        Value a = evaluateFastPathPath(mLeft.get(),env);
+        Value b = evaluateFastPathPath(mRight.get(),env);
 
-        const bool l_is_double = lVal.isDouble();
-        const bool r_is_double = rVal.isDouble();
-        const bool is_both_int = lVal.isInt() && rVal.isInt();
+        // Value a = mLeft->evaluate(env);
+        // Value b = mRight->evaluate(env);
+
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? a.asFastInt() : 0.0);
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? b.asFastInt() : 0.0);
+
 
         switch (mOp) {
             case TokenType::Plus: {
-                if (l_is_double && r_is_double) [[likely]] {
-                    return Value(lVal.asFastDouble() + rVal.asFastDouble());
-                }
-                if (is_both_int) {
-                    return Value(lVal.asFastInt() + rVal.asFastInt());
-                }
-                return Value::handleGenericAdd(lVal, rVal);
+                uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
+                return Value(Unsafe{}, result_bits);
             }
-
             case TokenType::Minus: {
-                if (l_is_double && r_is_double) [[likely]] {
-                    return Value(lVal.asFastDouble() - rVal.asFastDouble());
-                }
-                if (is_both_int) {
-                    return Value(lVal.asFastInt() - rVal.asFastInt());
-                }
-                // Fallback für gemischte Numerik (Int - Double)
-                return Value(lVal.getDouble() - rVal.getDouble());
+                uint64_t result_bits = std::bit_cast<uint64_t>(target_a - target_b);
+                return Value(Unsafe{}, result_bits);
             }
 
             case TokenType::Mul: {
-                if (l_is_double && r_is_double) [[likely]] {
-                    return Value(lVal.asFastDouble() * rVal.asFastDouble());
-                }
-                if (is_both_int) {
-                    return Value(lVal.asFastInt() * rVal.asFastInt());
-                }
-                return Value(lVal.getDouble() * rVal.getDouble());
+                uint64_t result_bits = std::bit_cast<uint64_t>(target_a * target_b);
+                return Value(Unsafe{}, result_bits);
             }
 
             case TokenType::Div: {
-                if (l_is_double && r_is_double) [[likely]] {
-                    double r = rVal.asFastDouble();
-                    if (r == 0.0) [[unlikely]] return NumberNullValue;
-                    return Value(lVal.asFastDouble() / r);
-                }
-                if (is_both_int) {
-                    int32_t r = rVal.asFastInt();
-                    if (r == 0) [[unlikely]] return NumberNullValue;
-
-                    int32_t l = lVal.asFastInt();
-                    if (l % r == 0) return Value(l / r);
-                    return Value(static_cast<double>(l) / static_cast<double>(r));
-                }
-
-                double r = rVal.getDouble();
-                if (r == 0.0) [[unlikely]] return NumberNullValue;
-                return Value(lVal.getDouble() / r);
+                 if (target_b == 0.0) [[unlikely]] return NumberNullValue;
+                uint64_t result_bits = std::bit_cast<uint64_t>(target_a / target_b);
+                return Value(Unsafe{}, result_bits);
             }
 
             default:
                 return Value();
         }
     }
-
-    // Value BinaryOpExpression::evaluate(Environment& env)  {
-    //     if (!mLeft.get() || !mRight.get()) {
+    // Value BinaryOpExpression::evaluate(Environment& env) {
+    //     if (!mLeft || !mRight) [[unlikely]] {
     //         Tools::PrintParseError("left or right is missing:");
     //         return Value();
     //     }
+    //
     //     Value lVal = mLeft->evaluate(env);
     //     Value rVal = mRight->evaluate(env);
     //
-    //     int mode = 0; //double
-    //     if (lVal.isInt() && rVal.isInt()) mode = 1; //int
-    //     else if (lVal.isString() || rVal.isString()) mode = 2; //string
+    //     const bool l_is_double = lVal.isDouble();
+    //     const bool r_is_double = rVal.isDouble();
+    //     const bool is_both_int = lVal.isInt() && rVal.isInt();
     //
     //     switch (mOp) {
     //         case TokenType::Plus: {
-    //             if (mode == 0) return Value(lVal.getDouble() + rVal.getDouble());
-    //             else if (mode == 1) return Value(lVal.getInt() + rVal.getInt());
-    //             else  if (mode == 2) return Value(std::string(lVal.toString() + rVal.toString()));
-    //             else  return NumberNullValue;
-    //             break;
+    //             if (l_is_double && r_is_double) [[likely]] {
+    //                 return Value(lVal.asFastDouble() + rVal.asFastDouble());
+    //             }
+    //             if (is_both_int) {
+    //                 return Value(lVal.asFastInt() + rVal.asFastInt());
+    //             }
+    //             return Value::handleGenericAdd(lVal, rVal);
     //         }
-    //         case TokenType::Minus:{
-    //             if (mode == 0) return Value(lVal.getDouble() - rVal.getDouble());
-    //             else if (mode == 1) return Value(lVal.getInt() - rVal.getInt());
-    //             else  return NumberNullValue;
-    //             break;
     //
+    //         case TokenType::Minus: {
+    //             if (l_is_double && r_is_double) [[likely]] {
+    //                 return Value(lVal.asFastDouble() - rVal.asFastDouble());
+    //             }
+    //             if (is_both_int) {
+    //                 return Value(lVal.asFastInt() - rVal.asFastInt());
+    //             }
+    //             // Fallback für gemischte Numerik (Int - Double)
+    //             return Value(lVal.getDouble() - rVal.getDouble());
     //         }
-    //         case TokenType::Mul:{
-    //             double d = lVal.getDouble() * rVal.getDouble();
-    //             if (mode == 0) return (Value(d));
-    //             else if (mode == 1) return (Value(static_cast<int32_t>(d)));
-    //             else  return NumberNullValue;
-    //             break;
     //
+    //         case TokenType::Mul: {
+    //             if (l_is_double && r_is_double) [[likely]] {
+    //                 return Value(lVal.asFastDouble() * rVal.asFastDouble());
+    //             }
+    //             if (is_both_int) {
+    //                 return Value(lVal.asFastInt() * rVal.asFastInt());
+    //             }
+    //             return Value(lVal.getDouble() * rVal.getDouble());
     //         }
     //
     //         case TokenType::Div: {
+    //             if (l_is_double && r_is_double) [[likely]] {
+    //                 double r = rVal.asFastDouble();
+    //                 if (r == 0.0) [[unlikely]] return NumberNullValue;
+    //                 return Value(lVal.asFastDouble() / r);
+    //             }
+    //             if (is_both_int) {
+    //                 int32_t r = rVal.asFastInt();
+    //                 if (r == 0) [[unlikely]] return NumberNullValue;
+    //
+    //                 int32_t l = lVal.asFastInt();
+    //                 if (l % r == 0) return Value(l / r);
+    //                 return Value(static_cast<double>(l) / static_cast<double>(r));
+    //             }
+    //
     //             double r = rVal.getDouble();
-    //             if (r == 0.0) return NumberNullValue;
-    //             double d = lVal.getDouble() / r;
-    //             if (mode == 0) return (Value(d));
-    //             else if (mode == 1) return (Value(static_cast<int32_t>(d)));
-    //             else  return NumberNullValue;
-    //             break;
-    //
+    //             if (r == 0.0) [[unlikely]] return NumberNullValue;
+    //             return Value(lVal.getDouble() / r);
     //         }
-    //         default: return Value(); // should not reached!
+    //
+    //         default:
+    //             return Value();
     //     }
-    //
-    //
-    //     return Value();
-    //
     // }
+
     // --------
     bool BinaryOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         // bool unary = false;
@@ -1016,8 +1006,12 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
 
 
-        Value lVal = mLeft->evaluate(env);
-        Value rVal = mRight->evaluate(env);
+        Value lVal = evaluateFastPathPath( mLeft.get(),env);
+        Value rVal = evaluateFastPathPath( mRight.get(),env);
+
+
+        // Value lVal = mLeft->evaluate(env);
+        // Value rVal = mRight->evaluate(env);
 
         switch (mOp) {
             case TokenType::Greater: {

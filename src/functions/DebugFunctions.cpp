@@ -49,6 +49,12 @@ namespace DreiZehn {
         // DEBUG BYTECODE
         // ---------------------------------------------------------------------
         RegisterFunction("debug::bc", [&env](std::vector<Value>& args, Value& ret) -> bool {
+
+            if (Globals::ByteCodeMode || Globals::ByteCodeRunning) {
+                Tools::errorf("Sorry, can't call ByteCode inside bytecode - use include!\n");
+                return false;
+            }
+
             if (args.size() != 1 || !args[0].isString()) {
                 Tools::errorf("Usage: debug::bc codeled\n");
                 ret = NumberNullValue;

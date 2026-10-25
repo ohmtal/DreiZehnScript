@@ -78,7 +78,7 @@ public:
     // -------------------------------------------------------------------------
     // EXECUTE :D - currentEnv for function calls
     // -------------------------------------------------------------------------
-// #define AST_IP_SMALL_EXECUTE
+#define AST_IP_SMALL_EXECUTE
 #ifdef AST_IP_SMALL_EXECUTE
     inline FlowStatus execute(ASTNode* node, Environment& currentEnv) {
         if (!node) return FlowStatus(FlowSignal::None);

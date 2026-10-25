@@ -230,22 +230,27 @@ namespace DreiZehn {
             FunctionMap::ScriptFunction* sf;
             if (Globals::gCurEnv) {
                 sf = getScriptMethod(methodNameSymbolId);
-                const size_t totalArgs = args.size() + 1;
-                if (totalArgs <= 12) {
-                    Value newArgsStack[12];
-                    newArgsStack[0] = Value(this);
-                    for (size_t i = 0; i < args.size(); ++i) {
-                        newArgsStack[i + 1] = args[i];
-                    }
-                    ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, std::span<Value>(newArgsStack, totalArgs));
-                }
-                else {
-                    std::vector<Value> fallbackArgs;
-                    fallbackArgs.reserve(totalArgs);
-                    fallbackArgs.push_back(Value(this));
-                    fallbackArgs.insert(fallbackArgs.end(), args.begin(), args.end());
+                if (sf) {
 
-                    ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, fallbackArgs);
+                    const size_t totalArgs = args.size() + 1;
+                    if (totalArgs <= 12) {
+                        Value newArgsStack[12];
+                        newArgsStack[0] = Value(this);
+                        for (size_t i = 0; i < args.size(); ++i) {
+                            newArgsStack[i + 1] = args[i];
+                        }
+                        ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, std::span<Value>(newArgsStack, totalArgs));
+                    }
+                    else {
+                        std::vector<Value> fallbackArgs;
+                        fallbackArgs.reserve(totalArgs);
+                        fallbackArgs.push_back(Value(this));
+                        fallbackArgs.insert(fallbackArgs.end(), args.begin(), args.end());
+
+                        ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, fallbackArgs);
+                    }
+
+                    return true;
                 }
 
                 // if (sf) {

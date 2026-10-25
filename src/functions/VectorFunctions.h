@@ -279,7 +279,4 @@ namespace DreiZehn {
         }, "Return a new Vector Object. Optional fill with the given values.");
     }
 
-
-
-
 }

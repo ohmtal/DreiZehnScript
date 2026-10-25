@@ -10,14 +10,6 @@
 #include "VMStructure.h"
 
 namespace DreiZehn {
-    // Garbage Collection
-    // CallStack::~CallStack() {
-    //     if (!Globals::shutDownRUNNING) {
-    //         for (auto& loc: mLocals) {
-    //             if (loc.isPointer()) loc.asPointerObject()->setAssigned(false);
-    //         }
-    //     }
-    // }
 
 #ifdef DREIZEHN_DEBUG
 void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize) {

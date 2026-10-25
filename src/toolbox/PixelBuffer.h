@@ -72,20 +72,7 @@ void rect(pixel_buffer *f, int x, int y, int w, int h,
                         uint32_t c);
 
 void circle(pixel_buffer *f, int x, int y, int r, uint32_t c);
-// -------------------------------------------------------------------------
-// // static  void fill(pixel_buffer *f, int x, int y, uint32_t old,
-// //                         uint32_t c) {
-// //     if (x < 0 || y < 0 || x >= f->width || y >= f->height) {
-// //         return;
-// //     }
-// //     if (f->get( x, y) == old) {
-// //         f->set(x, y, c);
-// //         fill(f, x - 1, y, old, c);
-// //         fill(f, x + 1, y, old, c);
-// //         fill(f, x, y - 1, old, c);
-// //         fill(f, x, y + 1, old, c);
-// //     }
-// // }
+
 // -------------------------------------------------------------------------
 // fast save fill replacement using scanlines
 // -------------------------------------------------------------------------

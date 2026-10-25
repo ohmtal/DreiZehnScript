@@ -20,8 +20,6 @@ struct CallFrame {
 };
 
 
-
-
 #define OP_CODE_LIST \
 /* Basic types & stack */ \
 X(OP_GET_LOCAL,                1, "get local variable") \

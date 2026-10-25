@@ -23,8 +23,6 @@
 
 namespace DreiZehn::SysTools{
 
-
-
     struct PipeDeleter {
         void operator()(FILE* p) const {
             if (p) pclose(p);

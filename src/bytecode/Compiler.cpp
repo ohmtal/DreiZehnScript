@@ -26,34 +26,6 @@ namespace DreiZehn {
     {
         if (!node) return false;
 
-        // FIXME FIXME
-        //  PRECOMPILE CANT SEE THE GLOBALS !!!!, when i put it on the back the others cant see the functions ?!
-        //  I NEED TO PUT THEM INSIDE IN CORRECT ORDER
-        // FIXME FIXME
-
-        // chunk.emit(OP_JUMP);
-        // U32 globalStartPatch = chunk.tell();
-        // chunk.emit(0);
-        // for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
-        //     func.bytecodeAddress = chunk.tell();
-        //
-        //     for (const auto& paramName : func.parameterNames) {
-        //         scope.insert(SymbolTable::insert(paramName));
-        //     }
-        //
-        //     for (auto& statement : func.body) {
-        //         statement->compile(env, chunk, scope, ValueType::NONE);
-        //     }
-        //
-        //     chunk.emit(OP_PUSH_VALUE);
-        //     chunk.emitValue(NumberNullValue);
-        //     chunk.emit(OP_RETURN);
-        // }
-        // U32 mainScriptStartIP = chunk.tell();
-        // chunk.patch(globalStartPatch, mainScriptStartIP);
-
-        // CompilerScope globalScope;
-
         mFunctionPatches.clear();
 
         switch(node->mNodeType) {

@@ -164,7 +164,7 @@ namespace DreiZehn {
             Tools::printf(
                 "Basics\n"
                 "- parameters for functions can be simple written word by word.\n"
-                "    Exception: when you call a parameter you have to add parantheses\n"
+                "    Exception: when you call a method you have to add parantheses\n"
                 "    Example: example `print (myobj->getX) (myobj->getX)`\n"
                 "- Static functions like Array::new are separated by '::'\n"
                 "- Tool functions first character should by lowercase: core::gc\n"
@@ -177,17 +177,19 @@ namespace DreiZehn {
                 "Operators: '>' '<' '==' '!='\n"
                 "Inline Operators: '++' '--'\n"
                 "Assigment: '=' '+=' '-=' '*=' '/'\n"
+                "String concat: '..' '.=' \n"
                 " ------------- \n"
                 "Iterators:\n"
                 "for i 1 10; print i; end ==> print i from 1 to inclusive 10 \n"
                 "forRange i 10; print i; end => print i from 0 to 9\n"
+                "forEach obj myObjVec; print o; end => print each obj inside myObjVec\n"
                 "i = 0;while i < 10; print i; i++; end => print i from 0 to 9\n"
                 "Note: `break` break the current loop.\n"
                 " ------------- \n"
                 "Condition:\n"
                 "i = 4; if i == 4; print \"It's four\"; else  print \"It's not four\";end\n"
                 " ------------- \n"
-                "Funtion Declaration\n"
+                "Function Declaration\n"
                 "fn myFunction param1 param2; print param1 param2; end; myFunction 21 22\n"
                 "\n"
 
@@ -211,11 +213,9 @@ namespace DreiZehn {
             };
             std::vector<NamedFunction> filteredFunctions;
 
-            // std::vector<std::string> nativeNames;
             for (const auto& [key, value] : RegisteredFunctions) {
                 std::string name = SymbolTable::getName(key);
                 if (!doFilter || name.find(filter) != std::string::npos) {
-                    // nativeNames.push_back(name);
                     filteredFunctions.push_back({key,name});
                 }
             }
@@ -228,7 +228,6 @@ namespace DreiZehn {
                 }
             }
 
-            // std::sort(nativeNames.begin(), nativeNames.end());
             std::sort(filteredFunctions.begin(), filteredFunctions.end(),
                       [](const NamedFunction& a, const NamedFunction& b) {
                           return a.name < b.name;

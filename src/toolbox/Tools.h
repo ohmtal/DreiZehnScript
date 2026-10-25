@@ -25,9 +25,6 @@ namespace DreiZehn::Tools{
     void DefaultLogger(LogLevel level, const char *message);
 
     inline  LogCallback LogHandler = DefaultLogger;
-
-    // void _printf(LogLevel level, const char* fmt, va_list argptr);
-
     // ------------------------------------------------------------------
      void printf(const char *format, ...);
      void warnf(const char *format, ...);

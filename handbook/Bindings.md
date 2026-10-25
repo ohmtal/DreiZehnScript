@@ -12,20 +12,21 @@ The RegisterFunction takes 2 Arguments:
 
 The lamba takes 2 Arguments:
 - std::vector<Value>& args - a list of the Values which are added when `foo::run` is called. 
-Example: `foo::run 1 2 3` gibts three args all integer and are in arg[0]..arg[2].
+Example: `foo::run 1 2 3` => three args all integer and are in arg[0]..arg[2].
 - Value& ret - the return Value `print foo::run` will print the double value: 4711.0815
 
 ```
+#include <span>
 #include "core/FunctionMap.h"
 
 void RegisterFooFunctions(Environment& env) {
     using namespace DreiZehn;
    
-   FunctionMap::RegisterFunction("foo::run", [](std::vector<Value>& args, Value& ret) -> bool {
+   FunctionMap::RegisterFunction("foo::run", [](std::span<Value> args, Value& ret) -> bool {
         printf("The Foo was here ...\n");
         ret = Value(4711.0815);
         return true;
-    });
+    }, "Foo::run - return a magic number...");
 }
 ```
 
@@ -64,11 +65,11 @@ This is a very basic FooObject. In script you can use it like the `Object`.
 But you also need a Constructor for it. In you `void RegisterFooFunctions(Environment& env) {` add:
 
 ```
-RegisterFunction("Foo::new", [&env](std::vector<Value>& args, Value& ret) -> bool {
+RegisterFunction("Foo::new", [&env](std::span<Value> args, Value& ret) -> bool {
     FooObject* obj = new FooObject();
     ret = Value(obj);
     return true;
-});
+}, "Create a new foo");
 ```
 
 For an basic object that's it. From the ValueObject it got the dynamic FieldSystem and some methods.  
@@ -86,5 +87,5 @@ myFoo->dump
 
 
 For more informations and examples I suggest to look at 
-**src/functions/CoreFunctions.h**, **src/functions/VectorFunctions.h**
+**src/core/BaseObjects.cpp/h**, **src/functions/VectorFunctions.h**
 or any other in the functions folder ;) 

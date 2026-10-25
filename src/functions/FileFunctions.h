@@ -16,9 +16,6 @@
 #include "core/VariableFrame.h"
 #include "Globals.h"
 
-
-
-
 namespace DreiZehn {
 
 inline const int TypeFileStreamObject = RegisterUserObjectType("FileStream");
@@ -145,34 +142,6 @@ struct FileStreamObject : public ValueObject {
             return true;
         }
 
-
-
-        // else if (readlnProp.matchMethod(methodId, args) == 1) {
-        //     uint32_t buffer_size = args[0].getUInt();
-        //
-        //     if (input && buffer_size > 0) {
-        //         std::string line;
-        //
-        //         if (std::getline(*input, line)) {
-        //
-        //             if (line.length() > buffer_size) {
-        //                 line.resize(buffer_size);
-        //             }
-        //
-        //             if (!line.empty() && line.back() == '\r') {
-        //                 line.pop_back();
-        //             }
-        //
-        //             ret = Value(line);
-        //         } else {
-        //             ret = NumberNullValue;
-        //         }
-        //     } else {
-        //         ret = NumberNullValue;
-        //     }
-        //     return true;
-        // }
-
         // ------- read
         else if (readProp.matchMethod(methodId, args) == 1) {
             uint32_t bytes = args[0].getUInt();
@@ -201,25 +170,6 @@ struct FileStreamObject : public ValueObject {
             return true;
         }
 
-        // else if (readProp.matchMethod(methodId, args) == 1) {
-        //     uint32_t bytes = args[0].getUInt();
-        //     if (input && bytes > 0) {
-        //         std::string buffer(bytes, '\0');
-        //         input->read(&buffer[0], bytes);
-        //         std::streamsize bytesRead = input->gcount();
-        //         if (bytesRead > 0) {
-        //             if (static_cast<uint32_t>(bytesRead) < bytes) {
-        //                 buffer.resize(bytesRead);
-        //             }
-        //             ret = Value(buffer);
-        //         } else {
-        //             ret = NumberNullValue;
-        //         }
-        //     } else {
-        //         ret = NumberNullValue;
-        //     }
-        //     return true;
-        // }
         // ------- seek
         else if (seekProp.matchMethod(methodId, args) == 1) {
             // bool file_seek(std::streamoff offset, std::ios_base::seekdir whence)

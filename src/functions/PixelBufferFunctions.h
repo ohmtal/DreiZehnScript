@@ -118,10 +118,6 @@ namespace DreiZehn {
             cloneRotateFreeProp=ValueObjectProperty("cloneRotateFree", 1,1
             , "clone the current buffer and return it rotated  degree ", TypePixelBuffer);
 
-
-
-
-
             widthProp     = ValueObjectProperty("width","readonly", TypePixelBuffer);
             heightProp    = ValueObjectProperty("height","readonly", TypePixelBuffer);
 

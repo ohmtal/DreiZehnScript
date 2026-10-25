@@ -753,7 +753,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         }
         const Value* resultPtr = nullptr;
         if (indexValue.isNumber()) [[likely]] {
-             resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
+             resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.getUInt());
         } else if (indexValue.isString()) {
             resultPtr =varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
         }
@@ -773,7 +773,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         }
         Value* resultPtr = nullptr;
         if (indexValue.isNumber()) [[likely]] {
-            resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
+            resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.getUInt());
         } else if (indexValue.isString()) {
             resultPtr =varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
         }
@@ -870,7 +870,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         U32 argCount = ADVANCE_U32();
 
         void* rawPtr = ADVANCE_PTR();
-
         // should not happen but i prevent a crash here ..
         if (!rawPtr) [[unlikely]] {
             _STK -= argCount - 1; // keep one for the function result

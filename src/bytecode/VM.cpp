@@ -22,14 +22,26 @@
 
 namespace DreiZehn {
     //-----------------------------------------------------------------------------
+    void PrintVMError(const U32 opcode,  const std::string& p1,
+                       const std::string& p2 = "", const std::string& p3 = ""){
+
+        Tools::errorf("VM Runtime Error in %s \n\tMessage: %s %s %s\n"
+        , OpCodeInfos[opcode].name
+        , p1.c_str()
+        , p2.c_str()
+        , p3.c_str()
+        );
+
+    }
+    //-----------------------------------------------------------------------------
 
 
-    // NOTE better dynamic ?! .....
 
     #ifndef MAX_BC_STACK_SIZE
     #define MAX_BC_STACK_SIZE  4096
     #endif
 
+    // dynamic
     #ifndef INITIAL_BC_LOCALS_SIZE
     #define INITIAL_BC_LOCALS_SIZE  1024
     #endif
@@ -450,7 +462,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         if (lVal.isDouble() && rVal.isDouble()) {
             double r = rVal.asFastDouble();
             if (r == 0.0) {
-                Tools::PrintRuntimeError("Modulo Division by 0.0!");
+                PrintVMError(OP_MODULO,"Modulo Division by 0.0!");
                 PUSH_STACK(NumberNullValue);
             } else {
                 PUSH_STACK(Value(std::fmod(lVal.asFastDouble(), r)));
@@ -459,7 +471,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
             int64_t l = lVal.getInt64();
             int64_t r = rVal.getInt64();
             if (r == 0) {
-                Tools::PrintRuntimeError("Modulo Division by 0!");
+                PrintVMError(OP_MODULO,"Modulo Division by 0!");
                 PUSH_STACK(NumberNullValue);
             } else {
                 int64_t res = l % r;
@@ -522,7 +534,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) [[unlikely]] {
-            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            PrintVMError(OP_LOAD_OBJECT_FIELD,"Object not found:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -537,9 +549,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
                 code[saveObjPtrPos - 2] = OP_LOAD_OBJECT_FIELD_GENERIC;
             }
             if (!fieldValuePtr) [[unlikely]] {
-                Tools::warnf("RunTime: Object %s have no field named: %s\n",
-                             objectValue.toString().c_str(),
-                             SymbolTable::getName(fieldSymId).c_str());
+                PrintVMError(OP_LOAD_OBJECT_FIELD, "Object have no field named:",
+                             objectValue.toString(),
+                             SymbolTable::getName(fieldSymId));
                 PUSH_STACK(NumberNullValue);
                 DISPATCH();
             }
@@ -559,7 +571,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) [[unlikely]] {
-            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            PrintVMError(OP_LOAD_OBJECT_FIELD_GENERIC,"RunTime Error: Object not found:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -568,9 +580,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value* fieldValuePtr = nullptr;
         fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
         if (!fieldValuePtr) [[unlikely]] {
-            Tools::warnf("RunTime: Object %s have no field named: %s\n",
-                            objectValue.toString().c_str(),
-                            SymbolTable::getName(fieldSymId).c_str());
+            PrintVMError(OP_LOAD_OBJECT_FIELD_GENERIC, "Object have no field named:",
+                         objectValue.toString(),
+                         SymbolTable::getName(fieldSymId));
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -589,7 +601,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) [[unlikely]] {
-            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            PrintVMError(OP_SAVE_OBJECT_FIELD, "Object not found:",objectValue.toString());
             DISPATCH();
         }
 
@@ -604,9 +616,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
                 code[saveObjPtrPos - 2] = OP_SAVE_OBJECT_FIELD_GENERIC;
             }
             if (!fieldValuePtr) [[unlikely]] {
-                Tools::warnf("RunTime: Object %s have no field named: %s\n",
-                             objectValue.toString().c_str(),
-                             SymbolTable::getName(fieldSymId).c_str());
+                PrintVMError(OP_SAVE_OBJECT_FIELD, "Object have no field named:",
+                             objectValue.toString(),
+                             SymbolTable::getName(fieldSymId));
                 DISPATCH();
             }
             PATCH_PTR(saveObjPtrPos, obj);
@@ -626,7 +638,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) [[unlikely]] {
-            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            PrintVMError(OP_SAVE_OBJECT_FIELD_GENERIC, "Object not found:",objectValue.toString());
             DISPATCH();
         }
 
@@ -634,9 +646,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value* fieldValuePtr = nullptr;
         fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
         if (!fieldValuePtr) [[unlikely]] {
-            Tools::warnf("RunTime: Object %s have no field named: %s\n",
-                            objectValue.toString().c_str(),
-                            SymbolTable::getName(fieldSymId).c_str());
+            PrintVMError(OP_SAVE_OBJECT_FIELD_GENERIC, "Object have no field named:",
+                         objectValue.toString(),
+                         SymbolTable::getName(fieldSymId));
             DISPATCH();
         }
 
@@ -657,13 +669,13 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) [[unlikely]] {
-            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            PrintVMError(OP_CALL_OBJECT_METHOD, "Object not found:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
         ValueObject* obj = objectValue.asPointerObject();
         if (!obj) [[unlikely]] {
-            Tools::errorf("RunTime Error: Invalid Object: %s.\n", objectValue.toString().c_str());
+            PrintVMError(OP_CALL_OBJECT_METHOD, "Object INVALID:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -694,7 +706,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
             Value returnValue = NumberNullValue;
             bool success = obj->onMethodCall(symID, evaluatedArgs, returnValue);
             if (!success) {
-                Tools::errorf("Runtime Error in native function call\n");
+                PrintVMError(OP_CALL_OBJECT_METHOD,"Runtime Error in native function call\n");
             }
             PUSH_STACK(returnValue);
         }
@@ -709,13 +721,13 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) [[unlikely]] {
-            Tools::errorf("RunTime Error: Object %s not found.\n",objectValue.toString().c_str());
+            PrintVMError(OP_SAVE_OBJECT_METHOD, "Object not found:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
         ValueObject* obj = objectValue.asPointerObject();
         if (!obj) {
-            Tools::errorf("RunTime Error: Invalid Object: %s.\n", objectValue.toString().c_str());
+            PrintVMError(OP_SAVE_OBJECT_METHOD, "Object not INVALID:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -730,7 +742,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
             destPrt =  obj->onMethodCallGetAssignPtr(symID, evaluatedArgs);
         }
         if (!destPrt) [[unlikely]] {
-            Tools::errorf("Runtime Error in method call. cant find method\n");
+            PrintVMError(OP_SAVE_OBJECT_METHOD, "Cant fins method on object:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -747,7 +759,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value varValue = POP_STACK();
 
         if (!varValue.isPointer()) {
-            Tools::PrintRuntimeError("Array is not an Object!");
+           PrintVMError(OP_LOAD_ARRAY,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -767,7 +779,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value assignValue = PEEK_STACK(0);
 
         if (!varValue.isPointer()) {
-            Tools::PrintRuntimeError("Array is not an Object!");
+            PrintVMError(OP_SAVE_ARRAY,"Array is not an Object!");
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -848,17 +860,11 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
                 }
                 success = (*callPtr)(evaluatedArgs, returnValue); // Konvertiert implizit in span
             }
-            // std::vector<Value> evaluatedArgs(argCount);
-            // for (int i = (int)argCount - 1; i >= 0; i--) {
-            //     evaluatedArgs[i] = POP_STACK();
-            // }
-            //
-            // Value returnValue = NumberNullValue;
-            // bool success = (*callPtr)(evaluatedArgs, returnValue);
 
-            if (!success) [[unlikely]]{
-                Tools::errorf("Runtime Error in native function call\n");
-            }
+            // SILENT !
+            // if (!success) [[unlikely]]{
+                // PrintVMError(OP_CALL_C_FUNCTION, "Runtime Error in native function call\n");
+            // }
 
             PUSH_STACK(returnValue);
         }
@@ -1183,7 +1189,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         U32 iterSlot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) {
-            Tools::PrintRuntimeError("forEach without a object");
+            PrintVMError(OP_FOR_EACH_INIT,"forEach without a object");
             ip = exitIP;
             DISPATCH();
         }
@@ -1227,7 +1233,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value keyVal = POP_STACK();
 
         if (!keyVal.isString())  {
-            Tools::PrintRuntimeError("KeyValueExpression value must be a string,.");
+            PrintVMError(OP_CREATE_KEYVALUE,"KeyValueExpression value must be a string,.");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }

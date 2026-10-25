@@ -107,7 +107,6 @@ if Init
             screenX = (W * 0.5) + (Points_X[i] * invZ)
             screenY = (H * 0.5) + (Points_Y[i] * invZ)
 
-
             if (Points_Z[i] < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
                 Points_X[i] = math::random minW maxW
                 Points_Y[i] = math::random minH maxH
@@ -121,9 +120,9 @@ if Init
             radius = math::lerp 2.0 0.3 Points_Z[i]
             SDL_RenderFillRect Renderer screenX screenY radius radius
 
-
             i = i + 1
         end
+
 
 
         SDL_SetRenderDrawColor Renderer 200 200 255 255

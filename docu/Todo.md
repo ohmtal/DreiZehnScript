@@ -464,6 +464,8 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - StarField2 (bench): 6.878u 0.199s 0:07.30 96.7% 
     - i had test_var down to 2.1 and field down to 2.7 no idea what it make it slower again 
     
+    
+- [ ] ugly code: ArrayVariableExpression::evaluate
 
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 
 

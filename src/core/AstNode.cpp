@@ -195,7 +195,7 @@ namespace DreiZehn {
         if (indexValue.isNumber()) {
             size_t index = (size_t)indexValue.getUInt();
 
-            if (varValue.isString()) {
+            if (varValue.isString()) [[unlikely]] {
                 std::string str = varValue.getStringRef();
                 if (index >= str.length()) {
                     return EmptyStringValue;
@@ -230,7 +230,7 @@ namespace DreiZehn {
 
         Value indexValue = mIndexExpr->evaluate(env);
         if (indexValue.isNumber()) {
-            return varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
+            return varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.getUInt());
         } else if (indexValue.isString()) {
 
             return varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
@@ -703,21 +703,25 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         switch (mOp) {
             case TokenType::Plus: {
+                 // return Value(target_a + target_b);
                 uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
                 return Value(Unsafe{}, result_bits);
             }
             case TokenType::Minus: {
+                 // return Value(target_a - target_b);
                 uint64_t result_bits = std::bit_cast<uint64_t>(target_a - target_b);
                 return Value(Unsafe{}, result_bits);
             }
 
             case TokenType::Mul: {
+                 // return Value(target_a * target_b);
                 uint64_t result_bits = std::bit_cast<uint64_t>(target_a * target_b);
                 return Value(Unsafe{}, result_bits);
             }
 
             case TokenType::Div: {
                  if (target_b == 0.0) [[unlikely]] return NumberNullValue;
+                 // return Value(target_a / target_b);
                 uint64_t result_bits = std::bit_cast<uint64_t>(target_a / target_b);
                 return Value(Unsafe{}, result_bits);
             }

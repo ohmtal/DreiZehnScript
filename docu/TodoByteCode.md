@@ -220,7 +220,7 @@ to bad i have use it in many scripts ^^  i may use SPC torque like do not want t
 '.' like php. python use also the '+' and lua '..'
     ==> `..` and `.=`
     - [X] AST-Interpreter
-    - [ ] ByteCode
+    - [X] ByteCode
     - [X] update ALL script .. may missed some statements
     - [X] remove +=
         - [X] AST-Interpreter
@@ -236,6 +236,8 @@ to bad i have use it in many scripts ^^  i may use SPC torque like do not want t
 - [X] condional activate to run it without debug::bc
     default is IP(Interpreter) use -ip for interpreter and -bc for bytecode
     
+### 0.9g: host reload
+
 - [ ] inject code while running 
     - debug::bc and run call complete new VM this is bad while the VM is running 
     function calls must be patched in and such.

@@ -20,7 +20,7 @@
     - Bitwise Or: |
     - Bitwise XOr: ^
     - Bitwise And: &
-    - Strings can be concat with `+` and compared with `==`/`!=`
+    - Strings can be concat with `..`, `.=` and compared with `==`/`!=`
     - `"key" => 32` create a KeyValue Object  
     
 - Keywords

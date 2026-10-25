@@ -722,30 +722,31 @@ struct StringConcatAssignExpression : public Expression {
 // -----------------------------------------------------------------------------------------------------
 // FastPath
 // -----------------------------------------------------------------------------------------------------
-inline Value evaluateFastPathPath(Expression* node, Environment& env) {
+// less is more!
+inline Value evaluateFastPath(Expression* node, Environment& env) {
     if (!node) [[unlikely]] return NumberNullValue;
     switch (node->mNodeType) {
-        case NodeType::LiteralExpression: return static_cast<LiteralExpression*>(node)->evaluate(env);
         case NodeType::VariableExpression: return static_cast<VariableExpression*>(node)->evaluate(env);
-        case NodeType::ObjectFieldExpression: return static_cast<ObjectFieldExpression*>(node)->evaluate(env);
-        case NodeType::ArrayVariableExpression: return static_cast<ArrayVariableExpression*>(node)->evaluate(env);
-        case NodeType::CallExpression: return static_cast<CallExpression*>(node)->evaluate(env);
-        case NodeType::MethodExpression: return static_cast<MethodExpression*>(node)->evaluate(env);
+        case NodeType::LiteralExpression: return static_cast<LiteralExpression*>(node)->evaluate(env);
+        // case NodeType::ObjectFieldExpression: return static_cast<ObjectFieldExpression*>(node)->evaluate(env);
+        // case NodeType::ArrayVariableExpression: return static_cast<ArrayVariableExpression*>(node)->evaluate(env);
+        // case NodeType::CallExpression: return static_cast<CallExpression*>(node)->evaluate(env);
+        // case NodeType::MethodExpression: return static_cast<MethodExpression*>(node)->evaluate(env);
         default: return node->evaluate(env);
     }
     return NumberNullValue;
 }
 
-inline Value* evaluatePtrFastPathPath(Expression* node, Environment& env) {
-    if (!node) [[unlikely]] return nullptr;
-    switch (node->mNodeType) {
-        case NodeType::VariableExpression: return static_cast<VariableExpression*>(node)->evaluatePtr(env);
-        case NodeType::ObjectFieldExpression: return static_cast<ObjectFieldExpression*>(node)->evaluatePtr(env);
-        case NodeType::ArrayVariableExpression: return static_cast<ArrayVariableExpression*>(node)->evaluatePtr(env);
-        case NodeType::MethodExpression: return static_cast<MethodExpression*>(node)->evaluatePtr(env);
-        default: return node->evaluatePtr(env);
-    }
-    return nullptr;
-}
+// inline Value* evaluatePtrFastPath(Expression* node, Environment& env) {
+//     if (!node) [[unlikely]] return nullptr;
+//     switch (node->mNodeType) {
+//         case NodeType::VariableExpression: return static_cast<VariableExpression*>(node)->evaluatePtr(env);
+//         case NodeType::ObjectFieldExpression: return static_cast<ObjectFieldExpression*>(node)->evaluatePtr(env);
+//         case NodeType::ArrayVariableExpression: return static_cast<ArrayVariableExpression*>(node)->evaluatePtr(env);
+//         case NodeType::MethodExpression: return static_cast<MethodExpression*>(node)->evaluatePtr(env);
+//         default: return node->evaluatePtr(env);
+//     }
+//     return nullptr;
+// }
 
 } //namespace

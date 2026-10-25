@@ -77,9 +77,11 @@ public:
 
     // -------------------------------------------------------------------------
     // EXECUTE :D - currentEnv for function calls
+    // second should be faster for cpu but issnt so maybe a mix of both ?
     // -------------------------------------------------------------------------
 #define AST_IP_SMALL_EXECUTE
 #ifdef AST_IP_SMALL_EXECUTE
+
     inline FlowStatus execute(ASTNode* node, Environment& currentEnv) {
         if (!node) return FlowStatus(FlowSignal::None);
 
@@ -87,17 +89,31 @@ public:
         if (Globals::gDumpStateNodes) Tools::printf("EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
         #endif
 
-        if (node->mFlags & NodeFlag_Expression) [[likely]] {
-            auto* expr = static_cast<Expression*>(node);
-            expr->evaluate(currentEnv);
-        } else if (node->mFlags & NodeFlag_Flow) {
-            auto* flowStmt = static_cast<FlowBaseStatement*>(node);
-            return flowStmt->execute(currentEnv);
+        // switch(node->mNodeType) {
+        //     case NodeType::VariableExpression: static_cast<VariableExpression*>(node)->evaluate(currentEnv); break;
+        //     // case NodeType::IfStatement: return static_cast<IfStatement*>(node)->execute(currentEnv); break;
+        //     // case NodeType::ArrayVariableExpression:
+        //     case NodeType::ObjectFieldExpression:  static_cast<ObjectFieldExpression*>(node)->evaluate(currentEnv); break;
+        //     // case NodeType::BinaryInlineExpression
+        //     // case NodeType::BinaryOpExpression
+        //     // case NodeType::BinaryExpression
+        //     // case NodeType::MethodExpression
+        //     // case NodeType::CallExpression
+        //     // case NodeType::LiteralExpression
+        //
+        //     default:
+                if (node->mFlags & NodeFlag_Expression) [[likely]] {
+                    auto* expr = static_cast<Expression*>(node);
+                    expr->evaluate(currentEnv);
+                } else if (node->mFlags & NodeFlag_Flow) {
+                    auto* flowStmt = static_cast<FlowBaseStatement*>(node);
+                    return flowStmt->execute(currentEnv);
 
-        } else [[unlikely]] {
+                } else [[unlikely]] {
 
-            Tools::errorf("UNKNOWN Expression EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
-        }
+                    Tools::errorf("UNKNOWN Expression EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
+                }
+        // }
 
         return FlowStatus(FlowSignal::None);
 

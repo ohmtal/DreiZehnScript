@@ -456,6 +456,14 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - StarField2: 330-350 FPS
     - *NOTE:* -O2 is still faster than -O3
 
+- 0.9f: more Optimize (replace CFunction call vector with span (c++20))
+    - tests with **-O2 and > /dev/null** and best of three
+    - test_var: 2.341u 0.005s 0:02.35 99.5% 
+    - test_field: 2.936u 0.004s 0:02.94 99.6%
+    - test_fibonacci: 2.382u 0.003s 0:02.39 99.5%
+    - StarField2 (bench): 6.878u 0.199s 0:07.30 96.7% 
+    - i had test_var down to 2.1 and field down to 2.7 no idea what it make it slower again 
+    
 
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 
 

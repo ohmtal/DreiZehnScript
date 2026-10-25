@@ -2,7 +2,9 @@
 
 A lightweight, modular scripting language built from scratch in C++. 
 
-It was designed for embedding a Script language into your Application. 
+- High optimized AST-Interpreter
+- High optimized Byte-Code Compiler (WiP)
+- It's designed for easy embedding a Script language into your Application. 
 
 [Handbook](handbook/Main.md)
 

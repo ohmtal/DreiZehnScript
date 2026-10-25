@@ -57,7 +57,6 @@ namespace DreiZehn {
             Tools::PrintRuntimeError("LiteralExpression without a request!");
             return false;
         }
-        // NOTE using evaluate ?!?!??!?!... but why not ;)
         uint32_t constIdx = chunk.addConstant(this->evaluate(env));
         chunk.emit(OP_CONST);
         chunk.emit(constIdx);
@@ -191,10 +190,8 @@ namespace DreiZehn {
             Tools::warnf("RunTime Error: Array Field invalid Variable or index\n");
             return NumberNullValue;
         }
-        // Value varValue = mVarExpr->evaluate(env);
-        Value varValue = evaluateFastPathPath(mVarExpr.get(),env);
-        // Value indexValue = mIndexExpr->evaluate(env);
-        Value indexValue = evaluateFastPathPath(mIndexExpr.get(),env);
+        Value varValue = mVarExpr->evaluate(env);
+        Value indexValue = mIndexExpr->evaluate(env);
         if (indexValue.isNumber()) {
             size_t index = (size_t)indexValue.getUInt();
 
@@ -226,14 +223,12 @@ namespace DreiZehn {
             Tools::warnf("RunTime Error: Array Field invalid Variable or index\n");
             return nullptr;
         }
-        // Value varValue = mVarExpr->evaluate(env);
-        Value varValue = evaluateFastPathPath(mVarExpr.get(),env);
+        Value varValue = mVarExpr->evaluate(env);
         if (!varValue.isPointer() ) {
             return nullptr;
         }
 
-        // Value indexValue = mIndexExpr->evaluate(env);
-        Value indexValue = evaluateFastPathPath(mIndexExpr.get(),env);
+        Value indexValue = mIndexExpr->evaluate(env);
         if (indexValue.isNumber()) {
             return varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.asUInt());
         } else if (indexValue.isString()) {
@@ -284,8 +279,7 @@ namespace DreiZehn {
 
         }
 
-        // Value varValue = mVarExpr->evaluate(env);
-        Value varValue = evaluateFastPathPath(mVarExpr.get(),env);
+        Value varValue = mVarExpr->evaluate(env);
         if (!varValue.isPointer()) {
             Tools::errorf("RunTime Error: Object %s not found.\n",varValue.toString().c_str());
             return returnValue;
@@ -308,8 +302,7 @@ namespace DreiZehn {
             Tools::errorf("RunTime Error: Field without an variable\n");
             return nullptr;
         }
-        // Value varValue = mVarExpr->evaluate(env);
-        Value varValue = evaluateFastPathPath(mVarExpr.get(),env);
+        Value varValue = mVarExpr->evaluate(env);
         if (!varValue.isPointer()) {
             Tools::errorf("RunTime Error: Object %s not found.\n",varValue.toString().c_str());
             return nullptr;
@@ -390,8 +383,7 @@ namespace DreiZehn {
             return NumberNullValue;
 
         }
-        // Value objectPointer = mVarExpr->evaluate(env);
-        Value objectPointer = evaluateFastPathPath(mVarExpr.get(),env);
+        Value objectPointer = mVarExpr->evaluate(env);
         if (!objectPointer.isPointer()) {
             Tools::errorf("RunTime Error: Object %s not found.\n", objectPointer.toString().c_str());
             return NumberNullValue;
@@ -403,8 +395,7 @@ namespace DreiZehn {
         }
         std::vector<Value> evaluatedArgs;
         for (auto& argExpr : mArguments) {
-            // if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
-            if (argExpr) evaluatedArgs.push_back(evaluateFastPathPath(argExpr.get(),env));
+            if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
         }
 
         Value returnValue = NumberNullValue;
@@ -415,9 +406,7 @@ namespace DreiZehn {
     }
     // ---------------------
     Value* MethodExpression::evaluatePtr(Environment& env) {
-        if (!mVarExpr) return nullptr;
-        // Value objectPointer = mVarExpr->evaluate(env);
-        Value objectPointer = evaluateFastPathPath(mVarExpr.get(),env);
+        Value objectPointer = mVarExpr->evaluate(env);
         if (!objectPointer.isPointer()) {
            Tools::errorf("RunTime Error: Object %s not found.\n", objectPointer.toString().c_str());
             return nullptr;
@@ -429,8 +418,7 @@ namespace DreiZehn {
         }
         std::vector<Value> evaluatedArgs;
         for (auto& argExpr : mArguments) {
-            // if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
-            if (argExpr) evaluatedArgs.push_back(evaluateFastPathPath(argExpr.get(),env));
+            if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
         }
 
         return obj->onMethodCallGetAssignPtr(mMethodNameSymbolId, evaluatedArgs);
@@ -514,8 +502,7 @@ namespace DreiZehn {
 
             for (size_t i = 0; i < numArgs; ++i) {
                 if (arguments[i]) {
-                    // evaluatedArgsStack[i] = arguments[i]->evaluate(env);
-                    evaluatedArgsStack[i] = evaluateFastPathPath(arguments[i].get(),env);
+                    evaluatedArgsStack[i] = arguments[i]->evaluate(env);
                 }
             }
             Value returnValue = NumberNullValue;
@@ -530,8 +517,7 @@ namespace DreiZehn {
             std::vector<Value> evaluatedArgs;
             evaluatedArgs.reserve(numArgs);
             for (auto& argExpr : arguments) {
-                // if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
-                if (argExpr) evaluatedArgs.push_back(evaluateFastPathPath(argExpr.get(),env));
+                if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
             }
 
             Value returnValue = NumberNullValue;
@@ -552,8 +538,7 @@ namespace DreiZehn {
 
         for (size_t i = 0; i < func.parameterNames.size(); ++i) {
             if (i < arguments.size()) {
-                // Value evaluatedArg = arguments[i]->evaluate(env);
-                Value evaluatedArg = evaluateFastPathPath(arguments[i].get(),env);
+                Value evaluatedArg = arguments[i]->evaluate(env);
                 localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), evaluatedArg, true);
             } else {
                 // 0.8d fill up arguments with 0
@@ -706,14 +691,14 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return Value();
         }
 
-        Value a = evaluateFastPathPath(mLeft.get(),env);
-        Value b = evaluateFastPathPath(mRight.get(),env);
+        Value a = evaluateFastPath(mLeft.get(),env);
+        Value b = evaluateFastPath(mRight.get(),env);
 
         // Value a = mLeft->evaluate(env);
         // Value b = mRight->evaluate(env);
 
-        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? a.asFastInt() : 0.0);
-        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? b.asFastInt() : 0.0);
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
 
 
         switch (mOp) {
@@ -965,23 +950,23 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
 
         if (mOp == TokenType::And) {
-            // Value lVal = mLeft->evaluate(env);
-            Value lVal = evaluateFastPathPath(mLeft.get(),env);
-            int l = lVal.getUInt();
+            // Value a = evaluateFastPath(mLeft.get(),env);
+            Value a = mLeft->evaluate(env);
+            U32 l = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : a.getUInt());
             if (l == 0) return Value(0);
-            // Value rVal = mRight->evaluate(env);
-            Value rVal = evaluateFastPathPath(mRight.get(),env);
-            int r = rVal.getUInt();
+            // Value b = evaluateFastPath(mRight.get(),env);
+            Value b = mRight->evaluate(env);
+            U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
             return Value( l && r);
         } else
         if (mOp == TokenType::Or) {
-            // Value lVal = mLeft->evaluate(env);
-            Value lVal = evaluateFastPathPath(mLeft.get(),env);
-            int l = lVal.getUInt();
+            // Value a = evaluateFastPath(mLeft.get(),env);
+            Value a = mLeft->evaluate(env);
+            U32 l = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : a.getUInt());
             if (l == 1) return Value(1);
-            // Value rVal = mRight->evaluate(env);
-            Value rVal = evaluateFastPathPath(mRight.get(),env);
-            int r = rVal.getUInt();
+            // Value b = evaluateFastPath(mRight.get(),env);
+            Value b = mRight->evaluate(env);
+            U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
             return Value( l || r);
         }
 
@@ -1059,125 +1044,247 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         return true;
     }
-    // -------------------
+    // -------------------------------------------------------------------------
+    // BinaryExpression::evaluate
+    // -------------------------------------------------------------------------
     Value BinaryExpression::evaluate(Environment& env)  {
         if (!mLeft.get() || !mRight.get()) {
             Tools::PrintParseError("left or right is missing:");
             return Value();
         }
 
+        Value a = evaluateFastPath( mLeft.get(),env);
+        Value b = evaluateFastPath( mRight.get(),env);
 
-        Value lVal = evaluateFastPathPath( mLeft.get(),env);
-        Value rVal = evaluateFastPathPath( mRight.get(),env);
-
-
-        // Value lVal = mLeft->evaluate(env);
-        // Value rVal = mRight->evaluate(env);
 
         switch (mOp) {
             case TokenType::Greater: {
-                double l = lVal.getDouble();
-                double r = rVal.getDouble();
-                return Value((l - r) > EPSILON ? 1 : 0);
+                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a > target_b);
+                return Value(Unsafe{}, result_bits);
             }
             case TokenType::GreaterEqual: {
-                double l = lVal.getDouble();
-                double r = rVal.getDouble();
-                return Value(l > (r - EPSILON) ? 1 : 0);
+                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a >= target_b);
+                return Value(Unsafe{}, result_bits);
             }
             case TokenType::Less:  {
-                double l = lVal.getDouble();
-                double r = rVal.getDouble();
-                return Value((r - l) > EPSILON ? 1 : 0);
+                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a < target_b);
+                return Value(Unsafe{}, result_bits);
             }
             case TokenType::LowerEqual: {
-                double l = lVal.getDouble();
-                double r = rVal.getDouble();
-                return Value(l < (r + EPSILON) ? 1 : 0);
+                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a <= target_b);
+                return Value(Unsafe{}, result_bits);
+
             }
             case TokenType::Equal: {
-                if (lVal.isPointer() && rVal.isPointer()) {
-                    return Value(lVal.asPointer() == rVal.asPointer() ? 1 : 0);
-                } else if (lVal.isString() && rVal.isString()) {
-                    return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) == 0;
-                } else if (lVal.isString() || rVal.isString()) {
-                    return NumberNullValue;
+
+                if (a.isNumber() && b.isNumber()) [[likely]]{
+                    double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+                    double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                    uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a == target_b);
+                    return Value(Unsafe{}, result_bits);
                 }
-                double l = lVal.getDouble();
-                double r = rVal.getDouble();
-                return Value(std::abs(l - r) < EPSILON ? 1 : 0);
+                else [[unlikely]] {
+
+                    if (a.isPointer() && b.isPointer())  {
+                        return Value(a.asPointer() == b.asPointer() ? 1 : 0);
+                    } else if (a.isString() && b.isString()) {
+                        return Value(a.getStringRef() == b.getStringRef());
+                    } else if (a.isString() || b.isString()) {
+                        return NumberNullValue;
+                    }
+                }
             }
             case TokenType::NotEqual: {
-                if (lVal.isPointer() && rVal.isPointer()) {
-                    return Value(lVal.asPointer() != rVal.asPointer() ? 1 : 0);
-                } else if (lVal.isString() && rVal.isString()) {
-                    return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) != 0;
-                }  else if (lVal.isString() || rVal.isString()) {
-                    return Value(1);
+                if (a.isNumber() && b.isNumber()) [[likely]]{
+                    double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+                    double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                    uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a != target_b);
+                    return Value(Unsafe{}, result_bits);
                 }
-                double l = lVal.getDouble();
-                double r = rVal.getDouble();
-                return Value(std::abs(l - r) < EPSILON ? 0 : 1);
+                else [[unlikely]] {
+
+                    if (a.isPointer() && b.isPointer())  {
+                        return Value(a.asPointer() == b.asPointer() ? 0 : 1);
+                    } else if (a.isString() && b.isString()) {
+                        return Value(a.getStringRef() != b.getStringRef());
+                    } else if (a.isString() || b.isString()) {
+                        return Value(1);
+                    }
+                }
             }
 
             case TokenType::BitAnd: {
-                int l = lVal.getUInt();
-                int r = rVal.getUInt();
-                return Value( l & r);
+                U32 target_a = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : 0);
+                U32 target_b = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : 0);
+
+                uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a & target_b);
+                return Value(Unsafe{}, result_bits);
             }
             case TokenType::BitOr: {
-                int l = lVal.getUInt();
-                int r = rVal.getUInt();
-                return Value( l | r);
+                U32 target_a = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : 0);
+                U32 target_b = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : 0);
+
+                uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a | target_b);
+                return Value(Unsafe{}, result_bits);
             }
             case TokenType::BitXOr: {
-                int l = lVal.getUInt();
-                int r = rVal.getUInt();
-                return Value( l ^ r);
+                U32 target_a = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : 0);
+                U32 target_b = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : 0);
+
+                uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a ^ target_b);
+                return Value(Unsafe{}, result_bits);
             }
             case TokenType::SHL: {
-                int l = lVal.getUInt();
-                int r = rVal.getUInt();
-                return Value( l << r);
+                U32 target_a = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : 0);
+                U32 target_b = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : 0);
+
+                uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a << target_b);
+                return Value(Unsafe{}, result_bits);
             }
             case TokenType::SHR: {
-                int l = lVal.getUInt();
-                int r = rVal.getUInt();
-                return Value( l >> r);
+                U32 target_a = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : 0);
+                U32 target_b = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : 0);
+
+                uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a >> target_b);
+                return Value(Unsafe{}, result_bits);
             }
             case TokenType::Modulo: {
+                U32 target_a = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : 0);
+                U32 target_b = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : 0);
 
-                if (lVal.isDouble() && rVal.isDouble() ) {
-                    double r = rVal.asFastDouble();
-                    if (r == 0.0) {
-                        Tools::PrintRuntimeError("Modulo Division by 0.0!");
-                        return NumberNullValue;
-                    }
-                    return Value(std::fmod(lVal.asFastDouble(),rVal.asFastDouble()));
-                } else {
-                    int64_t l = lVal.getInt64();
-                    int64_t r = rVal.getInt64();
-                    if (r == 0) {
-                        Tools::PrintRuntimeError("Modulo Division by 0!");
-                        return NumberNullValue;
-                    }
-                    int64_t res = l % r;
+                uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a % target_b);
+                return Value(Unsafe{}, result_bits);
 
-                    return Value(static_cast<uint32_t>(res));
-
-                }
             }
             default: break;
         }
         return NumberNullValue;
     }
+    // Value BinaryExpression::evaluate(Environment& env)  {
+    //     if (!mLeft.get() || !mRight.get()) {
+    //         Tools::PrintParseError("left or right is missing:");
+    //         return Value();
+    //     }
+    //
+    //
+    //     Value lVal = evaluateFastPath( mLeft.get(),env);
+    //     Value rVal = evaluateFastPath( mRight.get(),env);
+    //
+    //
+    //     // Value lVal = mLeft->evaluate(env);
+    //     // Value rVal = mRight->evaluate(env);
+    //
+    //     switch (mOp) {
+    //         case TokenType::Greater: {
+    //             double l = lVal.getDouble();
+    //             double r = rVal.getDouble();
+    //             return Value((l - r) > EPSILON ? 1 : 0);
+    //         }
+    //         case TokenType::GreaterEqual: {
+    //             double l = lVal.getDouble();
+    //             double r = rVal.getDouble();
+    //             return Value(l > (r - EPSILON) ? 1 : 0);
+    //         }
+    //         case TokenType::Less:  {
+    //             double l = lVal.getDouble();
+    //             double r = rVal.getDouble();
+    //             return Value((r - l) > EPSILON ? 1 : 0);
+    //         }
+    //         case TokenType::LowerEqual: {
+    //             double l = lVal.getDouble();
+    //             double r = rVal.getDouble();
+    //             return Value(l < (r + EPSILON) ? 1 : 0);
+    //         }
+    //         case TokenType::Equal: {
+    //             if (lVal.isPointer() && rVal.isPointer()) {
+    //                 return Value(lVal.asPointer() == rVal.asPointer() ? 1 : 0);
+    //             } else if (lVal.isString() && rVal.isString()) {
+    //                 return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) == 0;
+    //             } else if (lVal.isString() || rVal.isString()) {
+    //                 return NumberNullValue;
+    //             }
+    //             double l = lVal.getDouble();
+    //             double r = rVal.getDouble();
+    //             return Value(std::abs(l - r) < EPSILON ? 1 : 0);
+    //         }
+    //         case TokenType::NotEqual: {
+    //             if (lVal.isPointer() && rVal.isPointer()) {
+    //                 return Value(lVal.asPointer() != rVal.asPointer() ? 1 : 0);
+    //             } else if (lVal.isString() && rVal.isString()) {
+    //                 return strcmp(lVal.getStringRef().c_str(), rVal.getStringRef().c_str()) != 0;
+    //             }  else if (lVal.isString() || rVal.isString()) {
+    //                 return Value(1);
+    //             }
+    //             double l = lVal.getDouble();
+    //             double r = rVal.getDouble();
+    //             return Value(std::abs(l - r) < EPSILON ? 0 : 1);
+    //         }
+    //
+    //         case TokenType::BitAnd: {
+    //             int l = lVal.getUInt();
+    //             int r = rVal.getUInt();
+    //             return Value( l & r);
+    //         }
+    //         case TokenType::BitOr: {
+    //             int l = lVal.getUInt();
+    //             int r = rVal.getUInt();
+    //             return Value( l | r);
+    //         }
+    //         case TokenType::BitXOr: {
+    //             int l = lVal.getUInt();
+    //             int r = rVal.getUInt();
+    //             return Value( l ^ r);
+    //         }
+    //         case TokenType::SHL: {
+    //             int l = lVal.getUInt();
+    //             int r = rVal.getUInt();
+    //             return Value( l << r);
+    //         }
+    //         case TokenType::SHR: {
+    //             int l = lVal.getUInt();
+    //             int r = rVal.getUInt();
+    //             return Value( l >> r);
+    //         }
+    //         case TokenType::Modulo: {
+    //
+    //             if (lVal.isDouble() && rVal.isDouble() ) {
+    //                 double r = rVal.asFastDouble();
+    //                 if (r == 0.0) {
+    //                     Tools::PrintRuntimeError("Modulo Division by 0.0!");
+    //                     return NumberNullValue;
+    //                 }
+    //                 return Value(std::fmod(lVal.asFastDouble(),rVal.asFastDouble()));
+    //             } else {
+    //                 int64_t l = lVal.getInt64();
+    //                 int64_t r = rVal.getInt64();
+    //                 if (r == 0) {
+    //                     Tools::PrintRuntimeError("Modulo Division by 0!");
+    //                     return NumberNullValue;
+    //                 }
+    //                 int64_t res = l % r;
+    //
+    //                 return Value(static_cast<uint32_t>(res));
+    //
+    //             }
+    //         }
+    //         default: break;
+    //     }
+    //     return NumberNullValue;
+    // }
 
 
     // -------------------------------------------------------------------------
 
     Value BinarySingleRightOpExpression::evaluate(Environment& env)  {
-        // Value rVal = mRight->evaluate(env);
-        Value rVal = evaluateFastPathPath(mRight.get(),env);
+        Value rVal = mRight->evaluate(env);
         return Value(!rVal.getInt());
     }
     bool BinarySingleRightOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
@@ -1209,8 +1316,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         // since i set it with pointer i need to check assignment here !!!!!!
         Value& pre = *valPtr;
-        // Value post = this->mRhs->evaluate(env);
-        Value post = evaluateFastPathPath(this->mRhs.get(),env);
+        Value post = this->mRhs->evaluate(env);
         if (pre.isPointer())  pre.asPointerObject()->setAssigned(false);
         if (post.isPointer()) post.asPointerObject()->setAssigned(true);
 
@@ -1244,7 +1350,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return NumberNullValue;
         }
 
-        Value rightHand = evaluateFastPathPath(mRhs.get(),env);
+        Value rightHand = mRhs->evaluate(env);
 
         // if (mOp == TokenType::AssignPlus && valuePtr->isString()) {
         //     *valuePtr = Value::handleGenericAdd(*valuePtr, rightHand);
@@ -1467,8 +1573,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
 
         FlowStatus flowResult = {FlowSignal::Return};
         if (this->mExpression) {
-            // flowResult.returnValue = this->mExpression->evaluate(env);
-            flowResult.returnValue = evaluateFastPathPath(this->mExpression.get(),env);
+            flowResult.returnValue = this->mExpression->evaluate(env);
         }
         return flowResult;
     };
@@ -1489,9 +1594,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
     }
     // -------------------------------------------------------------------------
     FlowStatus IfStatement::execute(Environment& env){
-        if (!mCondition)  return  FlowStatus (FlowSignal::None);
-        // Value condVal = this->mCondition->evaluate(env);
-        Value condVal = evaluateFastPathPath(this->mCondition.get(),env);
+        Value condVal = this->mCondition->evaluate(env);
 
         double condNum = condVal.getDouble();
         const double EPSILON = 1e-9;
@@ -1553,8 +1656,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             Tools::errorf("Runtime Error: range need a count border!\n");
             return FlowStatus (FlowSignal::None);
         }
-        // Value countVal = this->mCountExpr->evaluate(env);
-        Value countVal = evaluateFastPathPath(this->mCountExpr.get(),env);
+        Value countVal = this->mCountExpr->evaluate(env);
         // Environment loopEnv(&env);
 
         int32_t count = countVal.getInt();
@@ -1634,10 +1736,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             Tools::errorf("Runtime Error: invalid for borders!\n");
             return FlowStatus (FlowSignal::None)  ;
         }
-        // Value startVal = this->mStartExpr->evaluate(env);
-        Value startVal = evaluateFastPathPath(this->mStartExpr.get(),env);
-        // Value endVal = this->mEndExpr->evaluate(env);
-        Value endVal = evaluateFastPathPath(this->mEndExpr.get(),env);
+        Value startVal = this->mStartExpr->evaluate(env);
+        Value endVal = this->mEndExpr->evaluate(env);
 
         int start = startVal.getInt();
         int end = endVal.getInt();
@@ -1645,8 +1745,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         int step = 1;
         if (this->mStepExpr) {
             // step is always positive !!
-            // Value stepVal = this->mStepExpr->evaluate(env);
-            Value stepVal = evaluateFastPathPath(this->mStepExpr.get(),env);
+            Value stepVal = this->mStepExpr->evaluate(env);
             step = std::abs(stepVal.getInt());
         }
 
@@ -1760,8 +1859,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         // Environment loopEnv(&env);
 
         auto checkCondition = [&]() -> bool {
-            // Value condVal = this->mCondition->evaluate(env);
-            Value condVal = evaluateFastPathPath(this->mCondition.get(),env);
+            Value condVal = this->mCondition->evaluate(env);
             return (condVal.getInt() != 0);
         };
 
@@ -1830,8 +1928,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             return FlowStatus (FlowSignal::None)  ;
         }
 
-        // Value varValue = this->mVarExpr->evaluate(env);
-        Value varValue = evaluateFastPathPath(this->mVarExpr.get(),env);
+        Value varValue = this->mVarExpr->evaluate(env);
 
         if (!varValue.isPointer()) {
             Tools::errorf("Runtime Error: foreach need a object!\n");
@@ -1949,14 +2046,12 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             Tools::PrintRuntimeError("KeyValueExpression error key or value missing");
             return NumberNullValue;
         }
-        // Value keyVal = mKeyExpr->evaluate(env);
-        Value keyVal = evaluateFastPathPath(mKeyExpr.get(),env);
+        Value keyVal = mKeyExpr->evaluate(env);
         if (!keyVal.isString())  {
             Tools::PrintRuntimeError("KeyValueExpression value must be a string,.");
             return NumberNullValue;
         }
-        // auto obj = new KeyValueObject(keyVal.getStringRef(), mValueExpr->evaluate(env));
-        auto obj = new KeyValueObject(keyVal.getStringRef(), evaluateFastPathPath(mValueExpr.get(),env));
+        auto obj = new KeyValueObject(keyVal.getStringRef(), mValueExpr->evaluate(env));
         return Value(obj);
     }
     // --------------------
@@ -1985,8 +2080,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         }
 
         Value noExecValue = Value(false);
-        // noExecValue = mNoExecCondition->evaluate(env);
-        noExecValue = evaluateFastPathPath(mNoExecCondition.get(),env);
+        noExecValue = mNoExecCondition->evaluate(env);
         if (noExecValue.getBool()) return {FlowSignal::None};
         return mBody->execute(env);
     }
@@ -2050,10 +2144,8 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             Tools::PrintRuntimeError("String Concat (Dot Dot ) but left or right is missing\n");
             return NumberNullValue;
         }
-        // Value left = mLeft->evaluate(env);
-        Value left = evaluateFastPathPath(mLeft.get(),env);
-        // Value right = mRight->evaluate(env);
-        Value right = evaluateFastPathPath(mRight.get(),env);
+        Value left = mLeft->evaluate(env);
+        Value right = mRight->evaluate(env);
 
         return Value::handleStringAdd(left,right);
 
@@ -2090,8 +2182,7 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
             Tools::PrintRuntimeError("String Concat (Dot Dot ) but left or right is missing\n");
             return NumberNullValue;
         }
-        // Value right = mRight->evaluate(env);
-        Value right = evaluateFastPathPath(mRight.get(),env);
+        Value right = mRight->evaluate(env);
 
         *valuePtr =Value::handleStringAdd(*valuePtr,right);
         return *valuePtr;

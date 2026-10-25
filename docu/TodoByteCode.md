@@ -235,8 +235,9 @@ to bad i have use it in many scripts ^^  i may use SPC torque like do not want t
 
 - [X] condional activate to run it without debug::bc
     default is IP(Interpreter) use -ip for interpreter and -bc for bytecode
-    
-### 0.9g: host reload
+
+## CRITICAL BUT LATER:
+### ??: host reload
 
 - [ ] inject code while running 
     - debug::bc and run call complete new VM this is bad while the VM is running 
@@ -278,5 +279,5 @@ to bad i have use it in many scripts ^^  i may use SPC torque like do not want t
             back... with functions it would work  but what aber the "normal" code
             
 ---
-## CRITICAL BUT LATER:
+
 

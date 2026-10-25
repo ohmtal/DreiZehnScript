@@ -871,6 +871,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         void* rawPtr = ADVANCE_PTR();
         // should not happen but i prevent a crash here ..
+
         if (!rawPtr) [[unlikely]] {
             _STK -= argCount - 1; // keep one for the function result
             DISPATCH();

@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // Variable Frame
+//
+// it may be rewritten to register based Vector but since i prefer the bytecode
+// a slower recursive call is not a big problem.
 //-----------------------------------------------------------------------------
 #pragma once
 
@@ -22,8 +25,6 @@ namespace DreiZehn {
 // Global Access:
 class VariableFrame;
 
-// inline VariableFrame* gCurrentFrame = nullptr;
-// inline VariableFrame* gMasterFrame = nullptr;
 // -----------------------------------------------------------------------------
 #ifndef DREIZEHN_INITIAL_VARIABLE_MASTERFRAME_SIZE
 #define DREIZEHN_INITIAL_VARIABLE_MASTERFRAME_SIZE 256
@@ -43,7 +44,6 @@ public:
 
     VariableFrame( VariableFrame* parentFrame ) {
         mFrameId = (gFrameCounter++);
-        // gCurrentFrame = this;
         if (parentFrame == nullptr) {
             Globals::MasterVariableFrame = this;
             mVariables.reserve(DREIZEHN_INITIAL_VARIABLE_MASTERFRAME_SIZE);

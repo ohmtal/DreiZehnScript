@@ -33,6 +33,7 @@ namespace DreiZehn::Tools{
 
      void printSeparator(int length);
 
+     void raw_printf(LogLevel level, const char* fmt, va_list argptr);
 
     // -------------------------------------------------------------------------
      void sleep(unsigned int ms);

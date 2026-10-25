@@ -498,6 +498,10 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 ---
 
 ## still missing:
+- [ ] ByteCode: hot relad and run!
+- [ ] Better Error messages: Parser i added linenumber to base AST Node but it's not used anywhere !
+    - most terrible error is missing end !! << need to backward check the start points 
+
 - [ ] remove fenster audio and implement MiniAudio instead 
 - [ ] FileStream ->getError and test modi 
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works but depends on compiler! 

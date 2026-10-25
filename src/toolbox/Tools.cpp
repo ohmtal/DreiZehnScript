@@ -35,7 +35,7 @@ namespace DreiZehn::Tools{
         }
     }
 
-    void _printf(LogLevel level, const char* fmt, va_list argptr)
+    void raw_printf(LogLevel level, const char* fmt, va_list argptr)
     {
         if (!LogHandler) return;
         char buffer[8192] = {};
@@ -50,7 +50,7 @@ namespace DreiZehn::Tools{
     {
         va_list args;
         va_start(args, format);
-        _printf(LogLevel::normal, format, args);
+        raw_printf(LogLevel::normal, format, args);
         va_end(args);
     }
 
@@ -58,7 +58,7 @@ namespace DreiZehn::Tools{
     {
         va_list args;
         va_start(args, format);
-        _printf(LogLevel::warning,format, args);
+        raw_printf(LogLevel::warning,format, args);
         va_end(args);
     }
 
@@ -66,7 +66,7 @@ namespace DreiZehn::Tools{
     {
         va_list args;
         va_start(args, format);
-        _printf(LogLevel::info,format, args);
+        raw_printf(LogLevel::info,format, args);
         va_end(args);
     }
 
@@ -74,7 +74,7 @@ namespace DreiZehn::Tools{
     {
         va_list args;
         va_start(args, format);
-        _printf(LogLevel::error,format, args);
+        raw_printf(LogLevel::error,format, args);
         va_end(args);
     }
 

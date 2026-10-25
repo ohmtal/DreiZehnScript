@@ -116,7 +116,7 @@ namespace DreiZehn {
                 if (!mPushProp.ValidateArgs(args)) return false;
                 if (args[0].isPointer()) {
                     if (args[0].asPointerObject() == this) {
-                        Tools::PrintRuntimeError("Can NOT at myself to me!");
+                        Tools::PrintRuntimeError("Can NOT add myself to me!");
                         ret = NumberNullValue;
                         return false;
                     }

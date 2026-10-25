@@ -79,7 +79,7 @@ namespace DreiZehn {
         BytecodeChunk chunk;
         CompilerScope scope;
         if (!Compile(node, env, chunk, scope)) {
-            Tools::errorf("\nFailed to compile code!\n");
+            Tools::errorf("Failed to compile code!\n");
             return NumberNullValue;
         }
         // after Compile we patch :)

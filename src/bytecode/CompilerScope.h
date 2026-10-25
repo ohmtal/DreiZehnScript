@@ -29,7 +29,8 @@ namespace DreiZehn {
         None,
         Adress,
         VarCount,
-        CFuncPrt
+        CFuncPrt,
+        ScriptFuncPtr
     };
     struct FunctionPatch {
         // FunctionMap::ScriptFunction* mFuncPtr = nullptr;

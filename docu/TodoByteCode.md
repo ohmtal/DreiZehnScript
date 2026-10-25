@@ -273,6 +273,10 @@ to bad i have use it in many scripts ^^  i may use SPC torque like do not want t
                 bytecode as i did with debug::bc. 
         - @a ==> save the function pointer NOT the jump adress and var_count!!!
                  and yes i must add it at the back. 
+    - [X] changed adress and varcount patches to pointer patch 
+    - [ ] attach new code at back ?! what about a jump to this code ? how to come 
+            back... with functions it would work  but what aber the "normal" code
+            
 ---
 ## CRITICAL BUT LATER:
 

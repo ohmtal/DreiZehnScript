@@ -50,15 +50,15 @@ X(OP_LOAD_VAR,                 3, "load global variable") \
 X(OP_SAVE_VAR,                 3, "save global variable") \
 /* ..... */ \
 X(OP_SET_LOCAL,                1, "set local variable") \
-X(OP_LOAD_OBJECT_FIELD,        1 + (2 * sizeof(void*)), "load object field") \
-X(OP_SAVE_OBJECT_FIELD,        1 + (2 * sizeof(void*)), "save object field") \
+X(OP_LOAD_OBJECT_FIELD,        1 + (2 * 2 /*sizeof(void*)*/), "load object field") \
+X(OP_SAVE_OBJECT_FIELD,        1 + (2 * 2 /*sizeof(void*)*/), "save object field") \
 X(OP_CALL_OBJECT_METHOD,       3, "call object method") \
 X(OP_SAVE_OBJECT_METHOD,       2, "save object method") \
 X(OP_LOAD_ARRAY,               0, "load array element") \
 X(OP_SAVE_ARRAY,               0, "save array element") \
 X(OP_CALL_C_FUNCTION,          0, "SPECIAL emittedCount variable") \
 /* ..... */ \
-X(OP_CALL_SF_FUNCTION,         2, "call script function") \
+X(OP_CALL_SF_FUNCTION,         1 + ( 2 /*sizeof(void*)*/),  "call script function") \
 X(OP_INC_LOCAL,                2, "increment local variable") \
 X(OP_ADD_LOCAL,                1, "add to local variable") \
 X(OP_SUB_LOCAL,                1, "subtract from local variable") \
@@ -76,8 +76,8 @@ X(OP_FOR_STEP_INIT,            3, "initialize for step loop") \
 X(OP_FOR_EACH_INIT,            2, "initialize foreach loop") \
 X(OP_FOR_EACH_INCREMENT_JUMP,  2, "increment foreach and jump") \
 /* ..... */ \
-X(OP_LOAD_OBJECT_FIELD_GENERIC, 1 + (2 * sizeof(void*)), "load object field with skip cache!") \
-X(OP_SAVE_OBJECT_FIELD_GENERIC, 1 + (2 * sizeof(void*)), "save object field with skip cache!") \
+X(OP_LOAD_OBJECT_FIELD_GENERIC, 1 + (2 * 2 /*sizeof(void*)*/), "load object field with skip cache!") \
+X(OP_SAVE_OBJECT_FIELD_GENERIC, 1 + (2 * 2 /*sizeof(void*)*/), "save object field with skip cache!") \
 X(OP_CREATE_KEYVALUE,          0, "create key-value pair") \
 X(OP_RETURN,                   0, "return from function") \
 X(OP_STR_CONCAT,               0, "string add (concat)") \
@@ -149,15 +149,21 @@ struct BytecodeChunk {
     }
 
     bool patchPtr(U32 pos, void* ptr) {
-        if ((pos + sizeof(void*)) >= mByteCodes.size()) return false;
+        if ((pos + 2) >= mByteCodes.size()) return false;
         std::memcpy(&mByteCodes[pos], &ptr, sizeof(void*));
         return true;
     }
 
     U32 emitS32 (S32 op) {
-        mByteCodes.push_back((U32)op);
+        mByteCodes.push_back(static_cast<U32>(op));
         return (U32)mByteCodes.size() - 1;
     }
+
+    U32 emitF32 (F32 op) {
+        mByteCodes.push_back(static_cast<U32>(op));
+        return (U32)mByteCodes.size() - 1;
+    }
+
 
     U32 emit(U32 op) {
         mByteCodes.push_back(op);

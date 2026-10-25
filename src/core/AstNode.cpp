@@ -660,13 +660,16 @@ bool CallExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerSco
         chunk.emit(OP_CALL_SF_FUNCTION);
 
 
-        mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::Adress});
-        chunk.emit(0); //placeHolder for sf->bytecodeAddress
-
         chunk.emit(argCount);
 
-        mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::VarCount});
-        chunk.emit(0); //placeHolder for varCount
+        // mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::Adress});
+        // chunk.emit(0);
+        // mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::VarCount});
+        // chunk.emit(0);
+
+        //  0.9f changed to script pointer
+        mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::ScriptFuncPtr});
+        chunk.emitPointer(nullptr);
 
 
 

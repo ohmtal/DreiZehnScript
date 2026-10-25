@@ -10,139 +10,133 @@ import Vector
 
 print " StarField 5 Vectors @13 startup...."
 
-global W = 640
-global H = 320
-global maxW = W / 2
-global minW = maxW * -1
-global maxH = H / 2
-global minH = maxH * -1
-global STAR_COUNT  = 4200
-global START_DIV   = 0.03125
-global Speed       = 0.2
-global fontScale   = 1.2
+W = 640
+H = 320
+maxW = W / 2
+minW = maxW * -1
+maxH = H / 2
+minH = maxH * -1
+STAR_COUNT  = 32000
+START_DIV   = 0.03125
+Speed       = 0.2
+fontScale   = 1.2
 -- Objects initialize with 0:
-global Window      = 0
-global Renderer    = 0
-global Event       = 0
+Window      = 0
+Renderer    = 0
+Event       = 0
 
-global Points_X    = 0
-global Points_Y    = 0
-global Points_Z    = 0
+Points_X    = 0
+Points_Y    = 0
+Points_Z    = 0
 
 
-fn Init
-    if ( SDL_Init SDL_INIT_VIDEO ) == false
-        print "Failed to init SDL3"
-        return false
-    end
-
-    Window = SDL_CreateWindow "StarField DreiZehn" W H 0
-    if Window == 0
-        print "Failed to create window"
-        return false
-    end
-
-    Renderer = SDL_CreateRenderer Window
-    Event = SDL_CreateEvent
-
-    Points_X = Vector::new
-    Points_Y = Vector::new
-    Points_Z = Vector::new
-
-    for i 1 STAR_COUNT
-        Points_X->push  math::random minW maxW
-        Points_Y->push  math::random minH maxH
-        Points_Z->push  math::randomf
-    end
-
-    return true
+if ( SDL_Init SDL_INIT_VIDEO ) == false
+    print "Failed to init SDL3"
+    return false
 end
 
-if Init
-    Running = true
+Window = SDL_CreateWindow "StarField DreiZehn" W H 0
+if Window == 0
+    print "Failed to create window"
+    return false
+end
 
-    Time_Last = SDL_GetTicks
-    counter = 0
-    fpsSum  = 0.0
-    FPS = 0.0
+Renderer = SDL_CreateRenderer Window
+Event = SDL_CreateEvent
 
-    while Running
-        Time_Now = SDL_GetTicks
-        Dt = (Time_Now - Time_Last) / 1000.0
-        Time_Last = Time_Now
+Points_X = Vector::new
+Points_Y = Vector::new
+Points_Z = Vector::new
 
-        if (Dt > 0.0 )
-            counter++
-            fpsSum += 1.0 / Dt
+for i 1 STAR_COUNT
+    Points_X->push  math::random minW maxW
+    Points_Y->push  math::random minH maxH
+    Points_Z->push  math::randomf
+end
 
+-- ----------- MAIN -----------
+Running = true
+
+Time_Last = SDL_GetTicks
+counter = 0
+fpsSum  = 0.0
+FPS = 0.0
+
+while Running
+    Time_Now = SDL_GetTicks
+    Dt = (Time_Now - Time_Last) / 1000.0
+    Time_Last = Time_Now
+
+    if (Dt > 0.0 )
+        counter++
+        fpsSum += 1.0 / Dt
+
+    end
+
+    if (counter == 200 )
+        FPS = int::cast (fpsSum / 200.0)
+        fpsSum = 0.0
+        counter = 0
+    end
+
+    while SDL_PollEvent Event
+        Type = SDL_GetEventType Event
+        if Type == SDL_EVENT_QUIT
+            Running = false
         end
-
-        if (counter == 200 )
-            FPS = int::cast (fpsSum / 200.0)
-            fpsSum = 0.0
-            counter = 0
-        end
-
-        while SDL_PollEvent Event
-            Type = SDL_GetEventType Event
-            if Type == SDL_EVENT_QUIT
+        if Type == SDL_EVENT_KEY_DOWN
+            if (SDL_GetEventKey Event) == SDLK_ESCAPE
                 Running = false
             end
-            if Type == SDL_EVENT_KEY_DOWN
-                if (SDL_GetEventKey Event) == SDLK_ESCAPE
-                    Running = false
-                end
-            end
         end
+    end
 
-        SDL_SetRenderDrawColor Renderer 20 20 40 255
-        SDL_RenderClear Renderer
+    SDL_SetRenderDrawColor Renderer 20 20 40 255
+    SDL_RenderClear Renderer
 
-        SDL_SetRenderDrawColor Renderer 255 255 255 255
-        i = 0
-        while i < STAR_COUNT
-            Points_Z[i] -= Dt * Speed
+    SDL_SetRenderDrawColor Renderer 255 255 255 255
+    forRange i STAR_COUNT
+        Points_Z[i] -= Dt * Speed
 
-            invZ = 1.0 / Points_Z[i]
-            screenX = (W * 0.5) + (Points_X[i] * invZ)
-            screenY = (H * 0.5) + (Points_Y[i] * invZ)
+        invZ = 1.0 / Points_Z[i]
+        screenX = (W * 0.5) + (Points_X[i] * invZ)
+        screenY = (H * 0.5) + (Points_Y[i] * invZ)
 
-            if (Points_Z[i] < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
-                Points_X[i] = math::random minW maxW
-                Points_Y[i] = math::random minH maxH
-                Points_Z[i] = 1.0
+        if (Points_Z[i] < 0.0) || (screenX < 0.0) || (screenX > W) || (screenY < 0.0)  || (screenY > H)
+            Points_X[i] = math::random minW maxW
+            Points_Y[i] = math::random minH maxH
+            Points_Z[i] = 1.0
 
-                screenX = W + Points_X[i]
-                screenY = H + Points_Y[i]
-            end
-
-
-            radius = math::lerp 2.0 0.3 Points_Z[i]
-            SDL_RenderFillRect Renderer screenX screenY radius radius
-
-            i = i + 1
+            screenX = W + Points_X[i]
+            screenY = H + Points_Y[i]
         end
 
 
+        radius = math::lerp 2.0 0.3 Points_Z[i]
+        SDL_RenderFillRect Renderer screenX screenY radius radius
 
-        SDL_SetRenderDrawColor Renderer 200 200 255 255
-        SDL_SetRenderScale Renderer  fontScale fontScale
-        SDL_RenderDebugText Renderer 10 10 \
-            str::concat "StarField 5 array[i] @13-Script Stars:" STAR_COUNT " FPS:" FPS
-        SDL_SetRenderScale Renderer  1 1
+    end
 
 
-        SDL_RenderPresent Renderer
+
+    SDL_SetRenderDrawColor Renderer 200 200 255 255
+    SDL_SetRenderScale Renderer  fontScale fontScale
+    SDL_RenderDebugText Renderer 10 10 \
+        str::concat "StarField 5 Vector[i] @13-Script Stars:" STAR_COUNT " FPS:" FPS
+    SDL_SetRenderScale Renderer  1 1
+
+
+    SDL_RenderPresent Renderer
 --         SDL_Delay 16
 
 --         if core::breath == false; break; end
-    end
 end
 
 SDL_DestroyWindow Window
 SDL_Quit
 
---  cleanup - unassign Global Objects:
+--  cleanup - unassign Global Objects - only usefull if you load a other script
+--  DreiZehn does the GarbageCollection automaticly
 Window      = 0
 Renderer    = 0
 Event       = 0
@@ -150,11 +144,4 @@ Points_X    = 0
 Points_Y    = 0
 Points_Z    = 0
 
-print "Starfield shutdown completed, running Garbage Collection manually..."
--- Manually Call Garbage Collection:
-core::gc
-
--- you can use:
---  core::listgc
--- to check it worked - if you did use ´run "scripts/StarField.13"´ this on console
 

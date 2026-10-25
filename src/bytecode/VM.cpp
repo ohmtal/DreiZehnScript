@@ -30,8 +30,8 @@ namespace DreiZehn {
     #define MAX_BC_STACK_SIZE  4096
     #endif
 
-    #ifndef MAX_BC_LOCALS_SIZE
-    #define MAX_BC_LOCALS_SIZE  65536
+    #ifndef INITIAL_BC_LOCALS_SIZE
+    #define INITIAL_BC_LOCALS_SIZE  1024
     #endif
 
     // NOTE: tesing most used OP Codes
@@ -63,18 +63,20 @@ namespace DreiZehn {
     #define PEEK_STACK(distance) (vmStack[_STK - 1 - (distance)])
     #define STACK_SIZE()         (_STK)
 
-
     #define ADVANCE_U32() code[ip++]
-    #define ADVANCE_S32() (S32)code[ip++]
+    #define ADVANCE_S32() static_cast<S32>(code[ip++])
+    #define ADVANCE_F32() static_cast<F32>(code[ip++])
     #define PEEK_U32() code[ip]
-    #define PEEK_S32() (S32)code[ip]
-    //TODO use sizeof(void*)! not hardcoded 2
+    #define PEEK_S32() static_cast<S32>(code[ip])
+    #define PEEK_F32() static_cast<F32>(code[ip])
+
     #define ADVANCE_VALUE()  (*(Value*)&code[(ip += 2) - 2])
     #define ADVANCE_PTR() (*(void**)&code[(ip += 2) - 2])
 
     #define PATCH_PTR( pos, ptr) \
     do { \
         std::memcpy(&code[pos], &ptr, sizeof(void*)); \
+        if (sizeof(void*) == 1) code[pos+1]=0; \
     } while(0)
 
     //TODO use sizeof(void*)! not hardcoded 2
@@ -170,7 +172,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
     CallFrame* curFrame = &callFrame.back();
 
     std::vector<Value>locals;
-    locals.resize(MAX_BC_LOCALS_SIZE);
+    locals.resize(INITIAL_BC_LOCALS_SIZE);
 
     // -----------------------
 
@@ -673,9 +675,10 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
                 if (sf) {
                     ip -= 4;
                     code[ ip ] = OP_CALL_SF_FUNCTION;
-                    code[ ip + 1 ] = sf->bytecodeAddress;
-                    code[ ip + 2 ] = argCount + 1;
-                    code[ ip + 3 ] = sf->localVarCount;
+                    code[ ip + 1 ] = argCount + 1;
+                    PATCH_PTR( ip + 2, sf);
+                    // code[ ip + 2 ] = sf->bytecodeAddress;
+                    // code[ ip + 3 ] = sf->localVarCount;
                     PUSH_STACK(obj); //push this
                     DISPATCH();
                 }
@@ -799,6 +802,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         if (slot >= curFrame->mLocalsCount) {
             curFrame->mLocalsCount++;
+            if (slot  >= locals.size()) locals.resize(locals.size() * 2);
             val = &locals[slot];
         } else {
             val = &locals[slot];
@@ -826,7 +830,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         U32 argCount = ADVANCE_U32();
 
         {
-
             const size_t numArgs = argCount;
             bool success = false;
             Value returnValue = NumberNullValue;
@@ -864,9 +867,21 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
     }
     // -------------------------------
     handle_OP_CALL_SF_FUNCTION: {
-        U32 targetIP = ADVANCE_U32();
         U32 argCount = ADVANCE_U32();
-        U32 varCount = ADVANCE_U32();
+
+        void* rawPtr = ADVANCE_PTR();
+
+        // should not happen but i prevent a crash here ..
+        if (!rawPtr) [[unlikely]] {
+            _STK -= argCount - 1; // keep one for the function result
+            DISPATCH();
+        }
+        FunctionMap::ScriptFunction* sf = static_cast<FunctionMap::ScriptFunction*>(rawPtr);
+        U32 targetIP = sf->bytecodeAddress;
+        U32 varCount = sf->localVarCount;
+
+        // U32 targetIP = ADVANCE_U32();
+        // U32 varCount = ADVANCE_U32();
 
         // save current ip in curFrame
         curFrame->mIP = ip;
@@ -876,6 +891,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         callFrame.push_back({targetIP, startIndex, localCount});
         // update curFrame
         curFrame = &callFrame.back();
+
+        if (argCount + curFrame->mLocalsStartIndex  >= locals.size()) locals.resize(locals.size() * 2);
 
 
         for (int i = (int)argCount - 1; i >= 0; i--) {
@@ -890,7 +907,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
     handle_OP_INC_LOCAL: {
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         S32 inc = ADVANCE_S32();
+
         Value& val = locals[slot];
+
         if (val.isInt()) [[likely]] {
             val = Value(val.asFastInt() + inc);
             PUSH_STACK(val);
@@ -963,108 +982,123 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-
-        if (a.isDouble() && b.isDouble()) [[likely]]
-        {
-            double res = a.asFastDouble() + b.asFastDouble();
-            PUSH_STACK(Value(Unsafe{}, std::bit_cast<uint64_t>(res)));
-            DISPATCH();
-        }
-        if (a.isInt() && b.isInt())
-        {
-            uint64_t res_32 = static_cast<uint32_t>(a.asFastInt() + b.asFastInt());
-            constexpr uint64_t INT_BOX_PREFIX = QNAN_MASK | TAG_INT;
-            uint64_t raw_bits = INT_BOX_PREFIX | res_32;
-            PUSH_STACK(Value(Unsafe{}, raw_bits));
-            DISPATCH();
-        }
-        // if (a.isDouble() && b.isDouble())  [[likely]]
-        // {
-        //     PUSH_STACK(Value(a.asFastDouble() + b.asFastDouble()));
-        //     DISPATCH();
-        // }
-        // if (a.isInt() && b.isInt()) {
-        //     PUSH_STACK(Value(a.asFastInt() + b.asFastInt()));
-        //     DISPATCH();
-        // }
-
-        PUSH_STACK(Value::handleGenericAdd(a, b));
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
+        PUSH_STACK(Value(Unsafe{}, result_bits));
         DISPATCH();
+
+//         if (a.isDouble() && b.isDouble()) [[likely]]
+//         {
+//             double res = a.asFastDouble() + b.asFastDouble();
+//             PUSH_STACK(Value(Unsafe{}, std::bit_cast<uint64_t>(res)));
+//             DISPATCH();
+//         }
+//         if (a.isInt() && b.isInt())
+//         {
+//             uint64_t res_32 = static_cast<uint32_t>(a.asFastInt() + b.asFastInt());
+//             constexpr uint64_t INT_BOX_PREFIX = QNAN_MASK | TAG_INT;
+//             uint64_t raw_bits = INT_BOX_PREFIX | res_32;
+//             PUSH_STACK(Value(Unsafe{}, raw_bits));
+//             DISPATCH();
+//         }
+//
+//
+//         PUSH_STACK(Value::handleGenericAdd(a, b));
+//         DISPATCH();
     }
     // -------------------------------
     handle_OP_SUB: {
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        if (a.isDouble() && b.isDouble())  [[likely]] {
-            PUSH_STACK(Value(a.asFastDouble() - b.asFastDouble()));
-            DISPATCH();
-        }
-        if (a.isInt() && b.isInt()) {
-            PUSH_STACK(Value(a.asFastInt() - b.asFastInt()));
-            DISPATCH();
-        }
-        PUSH_STACK(Value(a.getDouble() - b.getDouble()));
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        uint64_t result_bits = std::bit_cast<uint64_t>(target_a - target_b);
+        PUSH_STACK(Value(Unsafe{}, result_bits));
         DISPATCH();
+
+        // if (a.isDouble() && b.isDouble())  [[likely]] {
+        //     PUSH_STACK(Value(a.asFastDouble() - b.asFastDouble()));
+        //     DISPATCH();
+        // }
+        // if (a.isInt() && b.isInt()) {
+        //     PUSH_STACK(Value(a.asFastInt() - b.asFastInt()));
+        //     DISPATCH();
+        // }
+        // PUSH_STACK(Value(a.getDouble() - b.getDouble()));
+        // DISPATCH();
     }
     // -------------------------------
     handle_OP_MUL: {
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        // if (((a.mBits & QNAN_MASK) != QNAN_MASK) && ((a.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-        //     PUSH_STACK(Value(std::bit_cast<double>(a.mBits) * std::bit_cast<double>(b.mBits) ));
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        uint64_t result_bits = std::bit_cast<uint64_t>(target_a * target_b);
+        PUSH_STACK(Value(Unsafe{}, result_bits));
+        DISPATCH();
+
+        // if (a.isDouble() && b.isDouble())  [[likely]] {
+        //     PUSH_STACK(Value(a.asFastDouble() * b.asFastDouble()));
         //     DISPATCH();
         // }
-
-        if (a.isDouble() && b.isDouble())  [[likely]] {
-            PUSH_STACK(Value(a.asFastDouble() * b.asFastDouble()));
-            DISPATCH();
-        }
-        if (a.isInt() && b.isInt()) {
-            int32_t result;
-            if (!__builtin_mul_overflow(a.asFastInt(), b.asFastInt(), &result)) [[likely]] {
-                PUSH_STACK(Value(result));
-            } else {
-                PUSH_STACK(Value(static_cast<double>(a.asFastInt()) * static_cast<double>(b.asFastInt())));
-            }
-            DISPATCH();
-        }
-        PUSH_STACK(Value(a.getDouble() * b.getDouble()));
-        DISPATCH();
+        // if (a.isInt() && b.isInt()) {
+        //     int32_t result;
+        //     if (!__builtin_mul_overflow(a.asFastInt(), b.asFastInt(), &result)) [[likely]] {
+        //         PUSH_STACK(Value(result));
+        //     } else {
+        //         PUSH_STACK(Value(static_cast<double>(a.asFastInt()) * static_cast<double>(b.asFastInt())));
+        //     }
+        //     DISPATCH();
+        // }
+        // PUSH_STACK(Value(a.getDouble() * b.getDouble()));
+        // DISPATCH();
     }
     // -------------------------------
     handle_OP_DIV: {
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        const bool l_is_double = a.isDouble();
-        const bool r_is_double = b.isDouble();
-        if (l_is_double && r_is_double) [[likely]] {
-            double r = b.asFastDouble();
-            if (r == 0.0) [[unlikely]] DISPATCH_OPCODE(OP_INVALID);;
-            PUSH_STACK(Value(a.asFastDouble() / r));
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        if (target_b == 0.0) [[unlikely]]  {
+            PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
 
-        const bool is_both_int = a.isInt() && b.isInt();
-        if (is_both_int) {
-            int32_t r = b.asFastInt();
-            if (r == 0) [[unlikely]] DISPATCH_OPCODE(OP_INVALID);;
-
-            int32_t l = a.asFastInt();
-            if (l % r == 0) {
-                PUSH_STACK(Value(l / r));
-                DISPATCH();
-            }
-            PUSH_STACK(Value(static_cast<double>(l) / static_cast<double>(r)));
-            DISPATCH();
-        }
-
-        double r = b.getDouble();
-        if (r == 0.0) [[unlikely]]  DISPATCH_OPCODE(OP_INVALID);
-        PUSH_STACK(Value(a.getDouble() / r));
+        uint64_t result_bits = std::bit_cast<uint64_t>(target_a / target_b);
+        PUSH_STACK(Value(Unsafe{}, result_bits));
         DISPATCH();
+
+        // const bool l_is_double = a.isDouble();
+        // const bool r_is_double = b.isDouble();
+        // if (l_is_double && r_is_double) [[likely]] {
+        //     double r = b.asFastDouble();
+        //     if (r == 0.0) [[unlikely]] DISPATCH_OPCODE(OP_INVALID);;
+        //     PUSH_STACK(Value(a.asFastDouble() / r));
+        //     DISPATCH();
+        // }
+        //
+        // const bool is_both_int = a.isInt() && b.isInt();
+        // if (is_both_int) {
+        //     int32_t r = b.asFastInt();
+        //     if (r == 0) [[unlikely]] DISPATCH_OPCODE(OP_INVALID);;
+        //
+        //     int32_t l = a.asFastInt();
+        //     if (l % r == 0) {
+        //         PUSH_STACK(Value(l / r));
+        //         DISPATCH();
+        //     }
+        //     PUSH_STACK(Value(static_cast<double>(l) / static_cast<double>(r)));
+        //     DISPATCH();
+        // }
+        //
+        // double r = b.getDouble();
+        // if (r == 0.0) [[unlikely]]  DISPATCH_OPCODE(OP_INVALID);
+        // PUSH_STACK(Value(a.getDouble() / r));
+        // DISPATCH();
     }
 
     // -------------------------------

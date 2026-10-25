@@ -14,6 +14,10 @@ namespace DreiZehn {
                 chunk.patch(patch.mPatchByteCodePos, static_cast<FunctionMap::ScriptFunction*>(patch.mFuncPtr)->bytecodeAddress);
             else if (patch.mPatchType == FuncPatchType::VarCount)
                 chunk.patch(patch.mPatchByteCodePos, static_cast<FunctionMap::ScriptFunction*>(patch.mFuncPtr)->localVarCount);
+            else
+            // new 0.9f
+            if (patch.mPatchType == FuncPatchType::ScriptFuncPtr)
+                chunk.patchPtr(patch.mPatchByteCodePos, patch.mFuncPtr);
             else if (patch.mPatchType == FuncPatchType::CFuncPrt)
                 chunk.patchPtr(patch.mPatchByteCodePos, patch.mFuncPtr);
             else

@@ -31,6 +31,8 @@ namespace DreiZehn {
     typedef uint32_t U32;
     typedef int64_t  S64;
     typedef int32_t  S32;
+    typedef float    F32;
+    typedef double   F64;
 
     const double EPSILON = 1e-9;
 

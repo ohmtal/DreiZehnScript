@@ -36,13 +36,6 @@
 
 namespace DreiZehn {
 
-    enum class BlockType { Function, ForLoop, WhileLoop, IfBlock };
-
-    struct OpenBlock {
-        BlockType mType;
-        uint32_t mFuncNameSymbolId;
-        BlockStatement* mBlockNodePointer;
-    };
 
 
 class Environment {

@@ -16,6 +16,22 @@
 
 namespace DreiZehn {
 
+    enum class BlockType { Function, ForLoop, WhileLoop, IfBlock };
+    std::string blockTypeName[] = {
+        "Function: fn ",
+        "Loop (For/forRange/forEach)",
+        "While loop",
+        "If Statement"
+
+    };
+
+    struct OpenBlock {
+        BlockType mType;
+        uint32_t mFuncNameSymbolId;
+        BlockStatement* mBlockNodePointer;
+        int mLineNumber;
+        std::string mLine;
+    };
 
     std::shared_ptr<BlockStatement> ParseScriptToAST(std::istream& stream) {
         std::string line;
@@ -24,7 +40,7 @@ namespace DreiZehn {
         auto mainProgram = std::make_shared<BlockStatement>();
 
         std::vector<OpenBlock> blockStack;
-        blockStack.push_back({BlockType::IfBlock, 0, mainProgram.get()});
+        blockStack.push_back({BlockType::IfBlock, 0, mainProgram.get(), 0,""});
 
         // concat Backslash lines !!!
         std::string fullLine = "";
@@ -78,7 +94,7 @@ namespace DreiZehn {
                 // --- fn ---
                 if (auto* startNode = dynamic_cast<FunctionDefineStartNode*>(ast.get())) {
                     // parser.startFunc(startNode->mFnNameSymbolId);
-                    blockStack.push_back({BlockType::Function, startNode->mFnNameSymbolId, nullptr});
+                    blockStack.push_back({BlockType::Function, startNode->mFnNameSymbolId, nullptr, logicalLineStart, line});
                     continue;
                 }
 
@@ -118,7 +134,7 @@ namespace DreiZehn {
                         outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
                     }
 
-                    blockStack.push_back({bType, 0, blockPtr});
+                    blockStack.push_back({bType, 0, blockPtr, logicalLineStart, line});
                     continue;
                 }
                 // ---- end -----
@@ -179,7 +195,14 @@ namespace DreiZehn {
         } // while lines ...
 
         if (blockStack.size() > 1) {
-            Tools::PrintParseError("Syntax-Error: missing end");
+            Tools::errorf("Syntax-Error: missing end. Open nodes:\n");
+            for (size_t i = 1; i < blockStack.size() ; i++) {
+                auto& block = blockStack[i];
+                Tools::printf(" LINE:%d [%d]%s\n", block.mLineNumber
+                    , (int)block.mType
+                    , blockTypeName[(int)block.mType].c_str());
+                Tools::printf("  =>`%s`\n", block.mLine.c_str());
+            }
             return nullptr;
         }
 

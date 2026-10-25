@@ -90,7 +90,7 @@ namespace DreiZehn {
             mSymbolsLoaded = true;
         }
         // -------------------------------------------------------------------------
-         bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
+         bool onMethodCall(uint32_t methodId, std::span<Value> args, Value& ret) override {
 
             if (mClosed) {
                 ret = NumberNullValue;
@@ -173,7 +173,7 @@ namespace DreiZehn {
         // --------------------
 
 
-        RegisterFunction("FensterAudio::new", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("FensterAudio::new", [](std::span<Value> args, Value& ret) -> bool {
 
 
             FensterAudioObject* fa = new FensterAudioObject();

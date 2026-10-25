@@ -89,7 +89,7 @@ namespace DreiZehn {
 
         }
         // -------------------------------------------------------------------------
-        inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
+        inline bool onMethodCall(uint32_t methodId,  std::span<Value> args, Value& ret) override {
 
             if (mToStringProp.matchMethod( methodId , args) == 1) {
                 ret = Value(toString());
@@ -115,7 +115,7 @@ namespace DreiZehn {
 
         Vector3Object::RegisterSymbols();
 
-        RegisterFunction("Vector3::new", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("Vector3::new", [](std::span<Value> args, Value& ret) -> bool {
             Vector3Object* v = new Vector3Object();
             if (args.size() > 0 ) v->mVec.x = args[0].getDouble();
             if (args.size() > 1 ) v->mVec.y = args[1].getDouble();

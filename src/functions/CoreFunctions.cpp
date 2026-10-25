@@ -29,7 +29,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // CORE
         // ---------------------------------------------------------------------
-        RegisterFunction("core::eval", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::eval", [&env](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isString()) {
                 Tools::errorf("Usage: core::eval codeled\n");
                 ret = NumberNullValue;
@@ -47,7 +47,7 @@ namespace DreiZehn {
             return true;
         }, "run a script embedded in a string");
         // ---------------------------------------------------------------------
-        RegisterFunction("core::isFunction", [&env](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::isFunction", [&env](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isString()) {
                 Tools::errorf("Usage: core::isFunction functionname\n");
                 ret = NumberNullValue;
@@ -59,7 +59,7 @@ namespace DreiZehn {
             return true;
         }, "return if a function exists or not. useful to check a include failed");
         // ---------------------------------------------------------------------
-        RegisterFunction("core::getTypeName", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::getTypeName", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1) {
                 Tools::errorf("Usage: core::getTypeName value");
                 return false;
@@ -71,14 +71,14 @@ namespace DreiZehn {
         // Let the console Breath ... return a boolean can also be used to cancel
         // a main loop in script
         // ---------------------------------------------------------------------
-        RegisterFunction("core::breath", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::breath", [](std::span<Value> args, Value& ret) -> bool {
             ret =  Value(BaseBreath());
             return true;
         }, "let the programm breath - usally used for console.");
         // ---------------------------------------------------------------------
         // sleep ms
         // ---------------------------------------------------------------------
-        RegisterFunction("core::sleep", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::sleep", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1) {
                  Tools::errorf("Usage: core::sleep ms\n");
                  return false;
@@ -90,12 +90,12 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // time
         // ---------------------------------------------------------------------
-        RegisterFunction("core::time", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::time", [](std::span<Value> args, Value& ret) -> bool {
             ret = Value(Tools::time());
             return true;
         }, "get the unix timestamp");
 
-        RegisterFunction("core::date", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::date", [](std::span<Value> args, Value& ret) -> bool {
             if (!args.empty() && !args[0].isString()) {
                 Tools::errorf("Usage core::date [strng format] [double time ]\n");
                 return true;
@@ -108,7 +108,7 @@ namespace DreiZehn {
         }, "Usage core::date format [double time]."
             "\nExample: core::date \"%Y-%m-%d %H:%M:%S\"");
 
-        RegisterFunction("core::dateutc", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::dateutc", [](std::span<Value> args, Value& ret) -> bool {
             if (!args.empty() && !args[0].isString()) {
                 Tools::errorf("Usage core::dateutc [string format] [double time ]\n");
                 return true;
@@ -123,17 +123,17 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // Garbage collection
         // ---------------------------------------------------------------------
-        RegisterFunction("core::gc", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::gc", [](std::span<Value> args, Value& ret) -> bool {
             GarbageCollection::run();
             return true;
         }, "Run the GarbageCollection manually");
 
-        RegisterFunction("core::printgc", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::printgc", [](std::span<Value> args, Value& ret) -> bool {
             GarbageCollection::print();
             return true;
         }, "Print the current GarbageCollection objects");
         // ---------------------------------------------------------------------
-        RegisterFunction("core::printGlob", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("core::printGlob", [](std::span<Value> args, Value& ret) -> bool {
             Tools::printf("---------------- Globals ------------------\n");
             for (auto & id: Globals::GlobalVarList) {
                 Value* valPtr = Globals::MasterVariableFrame->getVariablePtr(id);
@@ -150,7 +150,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // Help
         // ---------------------------------------------------------------------
-        RegisterFunction("help", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("help", [](std::span<Value> args, Value& ret) -> bool {
             Tools::printf("---------------- DreiZehn Help ------------------\n");
             Tools::printf(
                 "help::syntax    => print syntax informations.\n"
@@ -160,7 +160,7 @@ namespace DreiZehn {
             );
             return true;
         }, "print the help overview");
-        RegisterFunction("help::syntax", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("help::syntax", [](std::span<Value> args, Value& ret) -> bool {
             Tools::printf(
                 "Basics\n"
                 "- parameters for functions can be simple written word by word.\n"
@@ -197,7 +197,7 @@ namespace DreiZehn {
 
 
         // ---------------------------------------------------------------------
-        RegisterFunction("help::fn", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("help::fn", [](std::span<Value> args, Value& ret) -> bool {
             bool doFilter = false;
             std::string filter;
             if (!args.empty() && args[0].isString()) {
@@ -256,7 +256,7 @@ namespace DreiZehn {
 
         // ---------------------------------------------------------------------
 
-        RegisterFunction("help::objects", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("help::objects", [](std::span<Value> args, Value& ret) -> bool {
             Tools::printf("---------------- Object Types ------------------\n");
 
 
@@ -295,7 +295,7 @@ namespace DreiZehn {
         }, "list the registered object types. can be called with parameter id of the object type");
         // ---------------------------------------------------------------------
 
-        RegisterFunction("help::const", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("help::const", [](std::span<Value> args, Value& ret) -> bool {
             bool doFilter = false;
             std::string filter;
             if (!args.empty() && args[0].isString()) {

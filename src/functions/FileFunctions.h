@@ -89,7 +89,7 @@ struct FileStreamObject : public ValueObject {
     }
     // -------------------------------------------------------------------------
 
-    inline bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
+    inline bool onMethodCall(uint32_t methodId, std::span<Value> args, Value& ret) override {
         // ------- write
         if (writeProp.matchMethod(methodId, args) == 1) {
             if (output && args[0].isString()) {
@@ -293,7 +293,7 @@ void RegisterFileFunctions(Environment& env) {
     FileStreamObject::RegisterSymbols();
 
     // Constructor
-    RegisterFunction("FileStream::open", [](std::vector<Value>& args, Value& ret) -> bool {
+    RegisterFunction("FileStream::open", [](std::span<Value> args, Value& ret) -> bool {
         if (args.size() != 2 || !args[0].isString() || !args[1].isString()) {
             Tools::errorf("Usage: FileStream::open filename mode");
             ret = NumberNullValue;

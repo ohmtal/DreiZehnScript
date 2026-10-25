@@ -826,15 +826,34 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         U32 argCount = ADVANCE_U32();
 
         {
-            std::vector<Value> evaluatedArgs(argCount);
-            for (int i = (int)argCount - 1; i >= 0; i--) {
-                evaluatedArgs[i] = POP_STACK();
-            }
 
+            const size_t numArgs = argCount;
+            bool success = false;
             Value returnValue = NumberNullValue;
-            bool success = (*callPtr)(evaluatedArgs, returnValue);
 
-            if (!success) {
+            if (numArgs <= 12) [[likely]] {
+                Value evaluatedArgsStack[12];
+                for (int i = (int)numArgs - 1; i >= 0; i--) {
+                    evaluatedArgsStack[i] = POP_STACK();
+                }
+                success = (*callPtr)(std::span<Value>(evaluatedArgsStack, numArgs), returnValue);
+            }
+            else {
+                std::vector<Value> evaluatedArgs(numArgs);
+                for (int i = (int)numArgs - 1; i >= 0; i--) {
+                    evaluatedArgs[i] = POP_STACK();
+                }
+                success = (*callPtr)(evaluatedArgs, returnValue); // Konvertiert implizit in span
+            }
+            // std::vector<Value> evaluatedArgs(argCount);
+            // for (int i = (int)argCount - 1; i >= 0; i--) {
+            //     evaluatedArgs[i] = POP_STACK();
+            // }
+            //
+            // Value returnValue = NumberNullValue;
+            // bool success = (*callPtr)(evaluatedArgs, returnValue);
+
+            if (!success) [[unlikely]]{
                 Tools::errorf("Runtime Error in native function call\n");
             }
 

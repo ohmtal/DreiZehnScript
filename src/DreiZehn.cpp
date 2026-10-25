@@ -58,7 +58,7 @@ void Init(Environment& env, int argc, char* argv[]) {
     RegisterConstants("type::pointer",  (int32_t)ValueType::ValuePointer);
     RegisterConstants("type::string",  (int32_t)ValueType::StringId);
 
-    RegisterFunction("getType", [&env](std::vector<Value>& args, Value& ret ) -> bool {
+    RegisterFunction("getType", [&env](std::span<Value> args, Value& ret ) -> bool {
         if (args.size() != 1) {
             Tools::errorf("Usage: getType value. return the type id of the expression. (Example: Type::float)");
             ret =  Value(-1);
@@ -73,7 +73,7 @@ void Init(Environment& env, int argc, char* argv[]) {
     // ---------------------------------------------------------------------
     // -------- print --------------
     // ---------------------------------------------------------------------
-    RegisterFunction("print", [](std::vector<Value>& args, Value& ret) -> bool {
+    RegisterFunction("print", [](std::span<Value> args, Value& ret) -> bool {
         std::string line = "";
         for ( auto& value : args) {
             line = line + value.toString() + " ";
@@ -82,14 +82,14 @@ void Init(Environment& env, int argc, char* argv[]) {
         return true;
     }, "Print a line to console. @param value value value ...");
 
-    RegisterFunction("printraw", [](std::vector<Value>& args, Value& ret) -> bool {
+    RegisterFunction("printraw", [](std::span<Value> args, Value& ret) -> bool {
         for ( auto& value : args) {
             value.print();
         }
         return true;
     }, "Print a line without linefeed to console. @param value value value ...");
 
-    RegisterFunction("error", [](std::vector<Value>& args, Value& ret) -> bool {
+    RegisterFunction("error", [](std::span<Value> args, Value& ret) -> bool {
         std::string line = "";
         for ( auto& value : args) {
             line = line + value.toString() + " ";
@@ -100,7 +100,7 @@ void Init(Environment& env, int argc, char* argv[]) {
     // ---------------------------------------------------------------------
     // run
     // ---------------------------------------------------------------------
-    RegisterFunction("run", [&env](std::vector<Value>& args, Value& ret) -> bool {
+    RegisterFunction("run", [&env](std::span<Value> args, Value& ret) -> bool {
         if (Globals::ByteCodeMode) {
             Tools::errorf("Sorry cant run injected bytecode at the moment!");
             return false;
@@ -127,7 +127,7 @@ void Init(Environment& env, int argc, char* argv[]) {
         return true;
     }, "Run a script file. @param filename");
 
-    RegisterFunction("runbc", [&env](std::vector<Value>& args, Value& ret) -> bool {
+    RegisterFunction("runbc", [&env](std::span<Value> args, Value& ret) -> bool {
         if (Globals::ByteCodeRunning) {
             Tools::errorf("Sorry cant run recursive injected bytecode at the moment!");
             return false;
@@ -157,14 +157,14 @@ void Init(Environment& env, int argc, char* argv[]) {
     // ---------------------------------------------------------------------
     // list modules
     // ---------------------------------------------------------------------
-    RegisterFunction("modules", [&env](std::vector<Value>& args, Value& ret) -> bool {
+    RegisterFunction("modules", [&env](std::span<Value> args, Value& ret) -> bool {
         ModuleRegistry::Print();
         return true;
     }, "List all available modules which can be used by import");
     // ---------------------------------------------------------------------
     // int
     // ---------------------------------------------------------------------
-    RegisterFunction("int::cast", [](std::vector<Value>& args, Value& ret) -> bool {
+    RegisterFunction("int::cast", [](std::span<Value> args, Value& ret) -> bool {
         if (args.size() != 1) {
             Tools::errorf("Usage: int::cast value\n");
             return false;
@@ -184,7 +184,7 @@ void Init(Environment& env, int argc, char* argv[]) {
     // ---------------------------------------------------------------------
     // float
     // ---------------------------------------------------------------------
-    RegisterFunction("float::cast", [](std::vector<Value>& args, Value& ret) -> bool {
+    RegisterFunction("float::cast", [](std::span<Value> args, Value& ret) -> bool {
         if (args.size() != 1) {
             Tools::errorf("Usage: float::cast value\n");
             return false;

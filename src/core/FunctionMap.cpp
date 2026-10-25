@@ -14,7 +14,7 @@
 
 namespace DreiZehn::FunctionMap {
     // -------------------------------------------------------------------------
-    Value CallScriptFunction(Environment& env,const ScriptFunction* sf, std::vector<Value>& args)
+    Value CallScriptFunction(Environment& env,const ScriptFunction* sf, std::span<Value> args)
     {
         if (sf) {
             auto& func = *(sf);

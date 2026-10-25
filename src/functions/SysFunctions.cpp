@@ -35,7 +35,7 @@ namespace DreiZehn {
           // ---------------------------------------------------------------------
           // Environment
           // ---------------------------------------------------------------------
-          RegisterFunction("sys::getEnv", [](std::vector<Value>& args, Value& ret) -> bool {
+          RegisterFunction("sys::getEnv", [](std::span<Value> args, Value& ret) -> bool {
               if (args.size() < 1 || !args[0].isString()) {
                   Tools::printf("Usage example: core::getenv \"PATH\"");
                   ret = EmptyStringValue;
@@ -51,7 +51,7 @@ namespace DreiZehn {
               return true;
           }, "get a Environment variable. param variable name as string");
 
-          RegisterFunction("sys::fetchEnv", [](std::vector<Value>& args, Value& ret) -> bool {
+          RegisterFunction("sys::fetchEnv", [](std::span<Value> args, Value& ret) -> bool {
               ArrayObject* resObj = new ArrayObject();
               ret = Value(resObj);
               for (char** env = environ; *env != nullptr; ++env) {
@@ -72,7 +72,7 @@ namespace DreiZehn {
           // ---------------------------------------------------------------------
           // Exec
           // ---------------------------------------------------------------------
-          RegisterFunction("sys::exec", [](std::vector<Value>& args, Value& ret) -> bool {
+          RegisterFunction("sys::exec", [](std::span<Value> args, Value& ret) -> bool {
 
               if (!ArgsCheckString("sys::exec", args, 1)) return true;
               SysTools::ExecResult res = SysTools::ExecCommand(args[0].getString());

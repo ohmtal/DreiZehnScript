@@ -6,6 +6,7 @@
 
 #include <string>
 #include <iostream>
+#include <span>
 #include <memory>
 #include <functional>
 #include "toolbox/Tools.h"
@@ -13,7 +14,7 @@
 
 namespace DreiZehn{
 class Value;
-namespace FunctionMap{ struct  ScriptFunction; using CallBack = std::function< bool ( std::vector<Value>&, Value& )>; }
+namespace FunctionMap{ struct  ScriptFunction; using CallBack = std::function< bool ( std::span<Value>, Value& )>; }
 
 
 // =============================================================================
@@ -73,8 +74,8 @@ struct ValueObject {
     // this does not check for insert allowed!
     bool addDynamicField(const std::string & fieldName, const Value& value);
 
-    virtual bool onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret);
-    virtual Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args);
+    virtual bool onMethodCall(uint32_t methodNameSymbolId,  std::span<Value> args, Value& ret);
+    virtual Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::span<Value> args);
 
     virtual inline size_t onGetArraySize() {
         return 0;
@@ -163,11 +164,11 @@ struct ValueObjectProperty {
     }
 
 
-    bool ValidateArgs( std::vector<Value>& args);
+    bool ValidateArgs( std::span<Value> args);
     // -------------------------------------------------------------------------
     // like ValidateArgs but also check the symbolId
     // NOTE return 1 on success 0 = no match = -1 == param error
-    inline int matchMethod(uint32_t symbolId, std::vector<Value>& args) {
+    inline int matchMethod(uint32_t symbolId, std::span<Value> args) {
         if (this->mSymbolId != symbolId) return 0;
         if ( !ValidateArgs(args) ) return -1;
         return 1;

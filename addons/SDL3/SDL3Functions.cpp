@@ -107,7 +107,7 @@ namespace DreiZehn {
 
 
         SDL_FPointObject::RegisterSymbols();
-        RegisterFunction("SDL_FPoint", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_FPoint", [](std::span<Value> args, Value& ret) -> bool {
             SDL_FPointObject* obj= new SDL_FPointObject();
             if (args.size() > 0) obj->my = args[0];
             if (args.size() > 1) obj->mx = args[1];
@@ -157,7 +157,7 @@ namespace DreiZehn {
         // SDL_INIT_VIDEO = 0x00000020 (Dezimal: 32)
         // SDL_INIT_EVENTS = 0x00004000 (Dezimal: 16384)
         // extern SDL_DECLSPEC bool SDLCALL SDL_Init(SDL_InitFlags flags);
-        RegisterFunction("SDL_Init", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_Init", [](std::span<Value> args, Value& ret) -> bool {
             // if (args.size() != 1) {
             //     Tools::errorf("usage: SDL_Init(int flags)\n");
             //     return false;
@@ -176,7 +176,7 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC void SDLCALL SDL_Quit(void);
-        RegisterFunction("SDL_Quit", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_Quit", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("usage: SDL_Quit()\n");
                 return false;
@@ -187,7 +187,7 @@ namespace DreiZehn {
 
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC SDL_Window * SDLCALL SDL_CreateWindow(const char *title, int w, int h, SDL_WindowFlags flags);
-        RegisterFunction("SDL_CreateWindow", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_CreateWindow", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 4) {
                 Tools::errorf("usage: SDL_CreateWindow(const char *title, int w, int h, SDL_WindowFlags flags)\n");
                 return false;
@@ -210,7 +210,7 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC void SDLCALL SDL_DestroyWindow(SDL_Window *window);
-        RegisterFunction("SDL_DestroyWindow", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_DestroyWindow", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) {
                 Tools::errorf("usage: SDL_DestroyWindow(SDL_Window *window)\n");
                 return false;
@@ -225,7 +225,7 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC SDL_Renderer * SDLCALL SDL_CreateRenderer(SDL_Window *window, const char *name);
-        RegisterFunction("SDL_CreateRenderer", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_CreateRenderer", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() < 1 || !args[0].isPointer()) {
                 Tools::errorf("usage: SDL_CreateRenderer(SDL_Window *window, const char *name)\n");
                 return false;
@@ -251,14 +251,14 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // NOTE: Tool function to create an empty event object
         // used by SDL_PollEvent
-        RegisterFunction("SDL_CreateEvent", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_CreateEvent", [](std::span<Value> args, Value& ret) -> bool {
             SDL_Event_Object* obj = new SDL_Event_Object();
             ret = Value(obj);
 
             return true;
         });
         // extern SDL_DECLSPEC bool SDLCALL SDL_PollEvent(SDL_Event *event);
-        RegisterFunction("SDL_PollEvent", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_PollEvent", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) {
                 Tools::errorf("usage: SDL_PollEvent(SDL_Event event)\n");
                 return false;
@@ -273,7 +273,7 @@ namespace DreiZehn {
         });
 
         // NOTE Toolfunction for Event Type
-        RegisterFunction("SDL_GetEventType", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_GetEventType", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) return false;
             SDL_Event_Object* evObj = static_cast<SDL_Event_Object*>(args[0].asPointerObject());
             if (!evObj) return false;
@@ -284,7 +284,7 @@ namespace DreiZehn {
 
         // NOTE SDLK_ESCAPE = 27 SDLK_SPACE = 32 SDL_EVENT_QUIT = 0x100 (Dezimal: 256)
         // Tool Function for IsKeyDownEvent
-        RegisterFunction("SDL_IsKeyDownEvent", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_IsKeyDownEvent", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) return false;
             SDL_Event_Object* evObj = static_cast<SDL_Event_Object*>(args[0].asPointerObject());
             if (!evObj) return false;
@@ -294,7 +294,7 @@ namespace DreiZehn {
         });
 
         // Tools Function for Key Event
-        RegisterFunction("SDL_GetEventKey", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_GetEventKey", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) return false;
             SDL_Event_Object* evObj = static_cast<SDL_Event_Object*>(args[0].asPointerObject());
             if (!evObj) return false;
@@ -312,7 +312,7 @@ namespace DreiZehn {
         // Continue Render:
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC bool SDLCALL SDL_SetRenderDrawColor(SDL_Renderer *renderer, Uint8 r, Uint8 g, Uint8 b, Uint8 a);
-        RegisterFunction("SDL_SetRenderDrawColor", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_SetRenderDrawColor", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() < 4 || !args[0].isPointer()) {
                 Tools::errorf("usage: SDL_SetRenderDrawColor(SDL_Renderer *renderer, r, g, b, a)\n");
                 return false;
@@ -333,7 +333,7 @@ namespace DreiZehn {
 
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC bool SDLCALL SDL_RenderClear(SDL_Renderer *renderer);
-        RegisterFunction("SDL_RenderClear", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_RenderClear", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) return false;
             SDL_Renderer_Object* rendObj = static_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
             if (!rendObj || !rendObj->value) return false;
@@ -344,7 +344,7 @@ namespace DreiZehn {
 
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC bool SDLCALL SDL_RenderPresent(SDL_Renderer *renderer);
-        RegisterFunction("SDL_RenderPresent", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_RenderPresent", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isPointer()) return false;
             SDL_Renderer_Object* rendObj = static_cast<SDL_Renderer_Object*>(args[0].asPointerObject());
             if (!rendObj || !rendObj->value) return false;
@@ -354,7 +354,7 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC bool SDLCALL SDL_RenderDebugText(SDL_Renderer *renderer, float x, float y, const char *str);
-        RegisterFunction("SDL_RenderDebugText", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_RenderDebugText", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 4 || !args[0].isPointer()) {
                 Tools::errorf("usage: SDL_RenderDebugText(SDL_Renderer *renderer, float x, float y, const char *str)\n");
                 return false;
@@ -371,7 +371,7 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC bool SDLCALL SDL_SetRenderScale(SDL_Renderer *renderer, float scaleX, float scaleY);
-        RegisterFunction("SDL_SetRenderScale", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_SetRenderScale", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 3 || !args[0].isPointer()) {
                 Tools::errorf("usage: SDL_SetRenderScale(SDL_Renderer *renderer, float scaleX, float scaleY)\n");
                 return false;
@@ -387,7 +387,7 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC bool SDLCALL SDL_RenderFillRect(SDL_Renderer *renderer, const SDL_FRect *rect);
-        RegisterFunction("SDL_RenderFillRect", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_RenderFillRect", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 5 || !args[0].isPointer()) {
                 Tools::errorf("usage: SDL_RenderFillRect(SDL_Renderer *renderer, float x, float y, float w, float h)\n");
                 return false;
@@ -406,7 +406,7 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC bool SDLCALL SDL_RenderRect(SDL_Renderer *renderer, const SDL_FRect *rect);
-        RegisterFunction("SDL_RenderRect", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_RenderRect", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 5 || !args[0].isPointer()) {
                 Tools::errorf("usage: SDL_RenderRect(SDL_Renderer *renderer, float x, float y, float w, float h)\n");
                 return false;
@@ -425,7 +425,7 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC bool SDLCALL SDL_RenderLine(SDL_Renderer *renderer, float x1, float y1, float x2, float y2);
-        RegisterFunction("SDL_RenderLine", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_RenderLine", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 5 || !args[0].isPointer()) {
                 Tools::errorf("usage: SDL_RenderLine(SDL_Renderer *renderer, float x1, float y1, float x2, float y2)\n");
                 return false;
@@ -443,7 +443,7 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC Uint64 SDLCALL SDL_GetTicks(void);
-        RegisterFunction("SDL_GetTicks", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_GetTicks", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("usage: SDL_GetTicks()\n");
                 return false;
@@ -453,7 +453,7 @@ namespace DreiZehn {
         });
         // ---------------------------------------------------------------------
         // extern SDL_DECLSPEC void SDLCALL SDL_Delay(Uint32 ms);
-        RegisterFunction("SDL_Delay", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("SDL_Delay", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1) {
                 Tools::errorf("usage: SDL_Delay(int ms)\n");
                 return false;

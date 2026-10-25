@@ -213,7 +213,7 @@ namespace DreiZehn {
             mSymbolsLoaded = true;
         }
         // -------------------------------------------------------------------------
-        bool onMethodCall(uint32_t methodId, std::vector<Value>& args, Value& ret) override {
+        bool onMethodCall(uint32_t methodId, std::span<Value> args, Value& ret) override {
             if (!mFenster.buf || !mBuffer.buffer ) {
                 Tools::errorf("Fenster Object is closed! Method: %s ignored.\n", SymbolTable::getName(methodId).c_str());
                 return true; // return false says method not found!
@@ -454,7 +454,7 @@ namespace DreiZehn {
         // --------------------
 
 
-        RegisterFunction("Fenster::new", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("Fenster::new", [](std::span<Value> args, Value& ret) -> bool {
 
             if (args.size() < 4 || !args[0].isString()
                 || !args[1].isNumber() || !args[2].isNumber() || !args[3].isNumber()) {
@@ -470,7 +470,7 @@ namespace DreiZehn {
             return true;
         }, "Retrun a new Fenster object: Fenster:new \"Window Title\" width height float scale");
 
-         RegisterFunction("Fenster::color", [](std::vector<Value>& args, Value& ret) -> bool {
+         RegisterFunction("Fenster::color", [](std::span<Value> args, Value& ret) -> bool {
 
              if (args.size() < 3 ) {
                  Tools::errorf("Usage: Fenster:color int r int g int b [int a]\n");

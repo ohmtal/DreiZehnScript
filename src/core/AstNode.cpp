@@ -5,6 +5,7 @@
 // AST-Interpreter
 //-----------------------------------------------------------------------------
 #include <cmath>
+#include <span>
 #include "Environment.h"
 #include "bytecode/CompilerScope.h"
 #include "bytecode/VMStructure.h"
@@ -473,21 +474,62 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
 // #define FUNC_CACHE // about 200ms faster
 // #ifdef FUNC_CACHE
+    // Value CallFunc(Environment& env, const FunctionMap::CallBack* cb
+    //     , std::vector<std::unique_ptr<Expression>>& arguments, uint32_t symid) {
+    //     std::vector<Value> evaluatedArgs;
+    //     for (auto& argExpr : arguments) {
+    //         if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
+    //     }
+    //
+    //     Value returnValue = NumberNullValue;
+    //     bool success = (*cb)(evaluatedArgs, returnValue);
+    //
+    //     if (!success) {
+    //         Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
+    //     }
+    //     return returnValue;
+    // }
+    // In deiner Callback-Definition (falls anpassbar):
+    // using CallBack = bool(*)(std::span<Value> args, Value& ret);
+
     Value CallFunc(Environment& env, const FunctionMap::CallBack* cb
-        , std::vector<std::unique_ptr<Expression>>& arguments, uint32_t symid) {
-        std::vector<Value> evaluatedArgs;
-        for (auto& argExpr : arguments) {
-            if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
-        }
+    , std::vector<std::unique_ptr<Expression>>& arguments, uint32_t symid) {
 
-        Value returnValue = NumberNullValue;
-        bool success = (*cb)(evaluatedArgs, returnValue);
+        const size_t numArgs = arguments.size();
 
-        if (!success) {
-            Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
+        if (numArgs <= 12) {
+            Value evaluatedArgsStack[12];
+
+            for (size_t i = 0; i < numArgs; ++i) {
+                if (arguments[i]) {
+                    evaluatedArgsStack[i] = arguments[i]->evaluate(env);
+                }
+            }
+            Value returnValue = NumberNullValue;
+            bool success = (*cb)(std::span<Value>(evaluatedArgsStack, numArgs), returnValue);
+
+            if (!success) [[unlikely]] {
+                Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
+            }
+            return returnValue;
         }
-        return returnValue;
+        else {
+            std::vector<Value> evaluatedArgs;
+            evaluatedArgs.reserve(numArgs);
+            for (auto& argExpr : arguments) {
+                if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
+            }
+
+            Value returnValue = NumberNullValue;
+            bool success = (*cb)(evaluatedArgs, returnValue); // bzw. std::span(evaluatedArgs)
+
+            if (!success) [[unlikely]] {
+                Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
+            }
+            return returnValue;
+        }
     }
+
 
     Value CallScriptFunc(Environment& env, const FunctionMap::ScriptFunction* sf
     , std::vector<std::unique_ptr<Expression>>& arguments) {

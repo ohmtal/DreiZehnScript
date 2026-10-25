@@ -222,7 +222,7 @@ namespace DreiZehn::Raylib {
 
 
 
-        RegisterFunction("rl::Color", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::Color", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 0 && args.size() != 4) {
                 Tools::errorf("Usage: rl::Color or rl::Color unsigned char r, unsigned char g, unsigned char b, unsigned char a \n");
                 return false;
@@ -244,7 +244,7 @@ namespace DreiZehn::Raylib {
             return true;
         });
 
-        RegisterFunction("rl::InitWindow", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::InitWindow", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 3) {
                 Tools::errorf("Usage:raylib::InitWindow int width int height string title\n");
                 ret = NumberNullValue;
@@ -255,7 +255,7 @@ namespace DreiZehn::Raylib {
             return true;
         });
 
-        RegisterFunction("rl::SetTargetFPS", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::SetTargetFPS", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1) {
                 Tools::errorf("Usage: raylib::SetTargetFPS(int fps)\n");
                 return false;
@@ -267,7 +267,7 @@ namespace DreiZehn::Raylib {
             return true;
         });
 
-        RegisterFunction("rl::GetFrameTime", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::GetFrameTime", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("Usage: raylib::GetFrameTime()\n");
                 return false;
@@ -278,7 +278,7 @@ namespace DreiZehn::Raylib {
             return true;
         });
 
-        RegisterFunction("rl::WindowShouldClose", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::WindowShouldClose", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("Usage: raylib::WindowShouldClose()\n");
                 return false;
@@ -289,7 +289,7 @@ namespace DreiZehn::Raylib {
             return true;
         });
 
-        RegisterFunction("rl::ClearBackground", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::ClearBackground", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1) {
                 Tools::errorf("Usage: raylib::ClearBackground(Color color)\n");
                 return false;
@@ -308,7 +308,7 @@ namespace DreiZehn::Raylib {
         });
 
 
-        RegisterFunction("rl::DrawText", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::DrawText", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 5) {
                 Tools::errorf("Usage: raylib::DrawText(const char * text, int posX, int posY, int fontSize, Color color)\n");
                 return false;
@@ -330,7 +330,7 @@ namespace DreiZehn::Raylib {
             return true;
         });
 
-        RegisterFunction("rl::BeginDrawing", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::BeginDrawing", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("Usage: raylib::BeginDrawing()\n");
                 return false;
@@ -341,7 +341,7 @@ namespace DreiZehn::Raylib {
             return true;
         });
 
-        RegisterFunction("rl::EndDrawing", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::EndDrawing", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("Usage: raylib::EndDrawing()\n");
                 return false;
@@ -352,7 +352,7 @@ namespace DreiZehn::Raylib {
             return true;
         });
 
-        RegisterFunction("rl::CloseWindow", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::CloseWindow", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 0) {
                 Tools::errorf("Usage: raylib::CloseWindow()\n");
                 return false;
@@ -363,7 +363,7 @@ namespace DreiZehn::Raylib {
             return true;
         });
 
-        RegisterFunction("rl::MeasureText", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::MeasureText", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 2) {
                 Tools::errorf("Usage: raylib::MeasureText(const char * text, int fontSize)\n");
                 return false;
@@ -376,7 +376,7 @@ namespace DreiZehn::Raylib {
             return true;
         });
 
-        RegisterFunction("rl::DrawFPS", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("rl::DrawFPS", [](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 2) {
                 Tools::errorf("Usage: raylib::DrawFPS(int posX, int posY)\n");
                 return false;

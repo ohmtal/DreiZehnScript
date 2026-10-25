@@ -38,7 +38,7 @@ namespace DreiZehn {
     }
 
     // -------------------------------------------------------------------------
-    bool ValueObjectProperty::ValidateArgs( std::vector<Value>& args) {
+    bool ValueObjectProperty::ValidateArgs( std::span<Value> args) {
         if (args.size() < mMinParams || args.size() > mMaxParams) {
             Tools::errorf("Method %s parameter error. min:%d max:%d\n%s\n", mName.c_str(),mMinParams, mMaxParams, mHelp.c_str());
             return false;
@@ -205,7 +205,7 @@ namespace DreiZehn {
         }
     }
     // -------------------------------------------------------------------------
-    Value* ValueObject::onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args) {
+    Value* ValueObject::onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::span<Value> args) {
         if (methodNameSymbolId == sGetFieldId) {
             if (args.size() != 1   ) {
                 Tools::errorf("get a field value by fieldname Usage: \"fieldname\" OR index of dynamic field\n");
@@ -222,7 +222,7 @@ namespace DreiZehn {
         return nullptr;
     }
     // -------------------------------------------------------------------------
-    bool ValueObject::onMethodCall(uint32_t methodNameSymbolId,  std::vector<Value>& args, Value& ret) {
+    bool ValueObject::onMethodCall(uint32_t methodNameSymbolId,  std::span<Value> args, Value& ret) {
 
         // ----- User defined methods first ----
         //FIXME bytecode THIS IS A AST-INTERPRETER CALL!!!!!!
@@ -230,12 +230,29 @@ namespace DreiZehn {
             FunctionMap::ScriptFunction* sf;
             if (Globals::gCurEnv) {
                 sf = getScriptMethod(methodNameSymbolId);
-
-                if (sf) {
-                    args.insert(args.begin(), Value(this));
-                    ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, args);
-                    return true;
+                const size_t totalArgs = args.size() + 1;
+                if (totalArgs <= 12) {
+                    Value newArgsStack[12];
+                    newArgsStack[0] = Value(this);
+                    for (size_t i = 0; i < args.size(); ++i) {
+                        newArgsStack[i + 1] = args[i];
+                    }
+                    ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, std::span<Value>(newArgsStack, totalArgs));
                 }
+                else {
+                    std::vector<Value> fallbackArgs;
+                    fallbackArgs.reserve(totalArgs);
+                    fallbackArgs.push_back(Value(this));
+                    fallbackArgs.insert(fallbackArgs.end(), args.begin(), args.end());
+
+                    ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, fallbackArgs);
+                }
+
+                // if (sf) {
+                //     args.insert(args.begin(), Value(this));
+                //     ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, args);
+                //     return true;
+                // }
             }
         }
 

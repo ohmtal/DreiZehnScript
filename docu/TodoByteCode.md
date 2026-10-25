@@ -269,7 +269,8 @@ to bad i have use it in many scripts ^^  i may use SPC torque like do not want t
                 be patched.  ==>  **but what is if the main script is hot reloded ?!**
             - b) run everything in the ast interpreter and load critical stuff as
                 bytecode as i did with debug::bc. 
-    
+        - @a ==> save the function pointer NOT the jump adress and var_count!!!
+                 and yes i must add it at the back. 
 ---
 ## CRITICAL BUT LATER:
 

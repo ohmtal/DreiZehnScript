@@ -80,7 +80,7 @@ namespace DreiZehn {
             Tools::printf("\n");
         }
         // -------------------------------------------------------------------------
-        Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::vector<Value>& args) override{
+        Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::span<Value> args) override{
 
             if (mAtProp.matchMethod(methodNameSymbolId, args) == 1) {
                 if (mElements.size() > args[0].getInt()) {
@@ -109,7 +109,7 @@ namespace DreiZehn {
             return nullptr;
         }
         // -------------------------------------------------------------------------
-        inline bool onMethodCall(uint32_t methodId,  std::vector<Value>& args, Value& ret) override {
+        inline bool onMethodCall(uint32_t methodId,  std::span<Value> args, Value& ret) override {
 
 
             if ( methodId == mPushProp.mSymbolId ) {
@@ -264,7 +264,7 @@ namespace DreiZehn {
         VectorValueObject::RegisterSymbols();
 
         using namespace FunctionMap;
-        RegisterFunction("Vector::new", [](std::vector<Value>& args, Value& ret) -> bool {
+        RegisterFunction("Vector::new", [](std::span<Value> args, Value& ret) -> bool {
             VectorValueObject* arr = new VectorValueObject();
             ret = Value(arr);
 

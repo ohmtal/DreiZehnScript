@@ -8,6 +8,7 @@
 
 #include <functional>
 #include <vector>
+#include <span>
 #include <string>
 #include "Value.h"
 #include "toolbox/SymbolTable.h"
@@ -15,7 +16,7 @@
 
 namespace DreiZehn { class Environment; }
 namespace DreiZehn::FunctionMap {
-    using CallBack =  std::function< bool ( std::vector<Value>&, Value& )>;
+    using CallBack =  std::function< bool ( std::span<Value>, Value& )>;
     using FuncLookupMap = std::unordered_map<uint32_t, CallBack>;
 
     // symbolId, stringId
@@ -56,7 +57,7 @@ namespace DreiZehn::FunctionMap {
 
 
     // ---------------------------------------------------------------------
-    inline bool ArgsCheckString( const char* command,std::vector<Value>& args, uint32_t count) {
+    inline bool ArgsCheckString( const char* command,std::span<Value> args, uint32_t count) {
         if (args.size() < count ) {
             Tools::errorf("Usage: %s  [string value] %d times",command, count);
             return false;
@@ -95,7 +96,7 @@ namespace DreiZehn::FunctionMap {
             return nullptr;
     }
 
-    Value CallScriptFunction(Environment& env, const ScriptFunction* sf,std::vector<Value>& args );
+    Value CallScriptFunction(Environment& env, const ScriptFunction* sf,std::span<Value> args );
 
     // -------------------------------------------------------------
     // combined for parser

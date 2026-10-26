@@ -292,6 +292,7 @@ namespace DreiZehn {
 
         Vector3Object::RegisterSymbols();
         Vector2Object::RegisterSymbols();
+        Vector4Object::RegisterSymbols();
 
         RegisterFunction("Vector3::new", [](std::span<Value> args, Value& ret) -> bool {
             Vector3Object* v = new Vector3Object();
@@ -303,7 +304,7 @@ namespace DreiZehn {
         }, "Return a new Vector3 (3D floating point) Object. Optional x,y,z");
 
         RegisterFunction("Vector2::new", [](std::span<Value> args, Value& ret) -> bool {
-            Vector3Object* v = new Vector3Object();
+            Vector2Object* v = new Vector2Object();
             if (args.size() > 0 ) v->mVec.x = args[0].getDouble();
             if (args.size() > 1 ) v->mVec.y = args[1].getDouble();
             ret = Value(v);

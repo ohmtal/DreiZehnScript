@@ -14,6 +14,14 @@ str2 = "World"
 str  = str1 .. " " .. str2 .. "!"
 print str
 
+str   = "2.1"
+str  .= " "
+str  .= "Hello"
+str  .= " "
+str  .= "World"
+str  .= "!"
+print str
+
 -- with str::concat
 print (str::concat  3 ". " "Hello" " " "World" "!")
 
@@ -41,6 +49,7 @@ end
 printraw "\n"
 
 -- rot DreiZehn
+printraw "rot13 hex: "
 vec[0] = str::ord "7" 0
 forEach ascii vec
     if ascii >= 65 and ascii <= 90

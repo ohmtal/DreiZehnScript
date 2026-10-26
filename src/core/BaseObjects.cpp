@@ -258,11 +258,6 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         ArrayObject::RegisterSymbols();
         RegisterFunction("Array::new", [&env](std::span<Value> args, Value& ret) -> bool {
-            // if(args.size() == 0) {
-            //     Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
-            //     return true;
-            // }
-
             for(size_t i = 0; i < args.size(); i++) {
                 if (!args[i].isString() && !(args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
                     Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");

@@ -25,6 +25,7 @@ namespace DreiZehn {
     inline const int TypeArrayObject =  RegisterUserObjectType("Array");
 
     // -------------------------------------------------------------------------
+    // only a helper object for Array constructor
     struct KeyValueObject : public ValueObject {
         // inline static ValueObjectProperty mKeyProp, mValueProp;
         uint32_t mKeyId = 0;

@@ -100,7 +100,7 @@ fn createStruct tokenObject
         end
         result .= "      return ValueObject::onGetFieldPtr(fieldSymbolId);\n"
         result .= "   }\n"
-    }
+--     }
 
     -- other getter/setter
     result .= getFieldSetFieldStr
@@ -120,7 +120,7 @@ fn createStruct tokenObject
 
     -- --------------------------
     REGISTER_STR .= str::format "%s::RegisterSymbols();\n" objname
-    REGISTER_STR .= str::format "RegisterFunction(\"%s\", [](std::vector<Value>& args, Value& ret) -> bool {\n" \
+    REGISTER_STR .= str::format "RegisterFunction(\"%s\", [](std::span<Value> args, Value& ret) -> bool {\n" \
             tokenObject.name
     REGISTER_STR .= str::format "   %s* obj= new %s();\n" objname objname
     iter = 0
@@ -138,4 +138,3 @@ fn createStruct tokenObject
 
     return result
 end
-

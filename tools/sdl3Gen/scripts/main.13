@@ -10,12 +10,12 @@ include "../../common/JSONParser.13" true
 include "scripts/sourceGen.13" false
 include "scripts/tokens.13" true
 -- -----------------------------------------------------------------------------
-if sys::args.argv_2 == ""
+if sys::args->count < 3
     error "missing parameter Usage: main.13 SDL_File.h"
     return false
 end
 -- -----------------------------------------------------------------------------
-jsonFilename = str::concat "json/" sys::args.argv_2  ".json"
+jsonFilename = str::concat "json/" (sys::args->value 2)  ".json"
 print "** loading " jsonFilename
 fileTool = FileTool::new jsonFilename
 fileTool->load

@@ -1975,7 +1975,7 @@ namespace DreiZehn {
     // Include
     // -------------------------------------------------------------------------
     FlowStatus IncludeStatement::execute(DreiZehn::Environment& env){
-        if (mNoExecCondition || !mBody) {
+        if (!mNoExecCondition || !mBody) {
             // default is true so i exit here !
             return {FlowSignal::None};
         }

@@ -86,10 +86,10 @@ fn Tokens::generateSource this
             end
         end
 
---         if (token.kind == "struct"); print(createStruct token)
---         elif (token.kind == "constant_macro") print(createConst token)
-        if (token.kind == "struct"); createStruct token
-        elif (token.kind == "constant_macro") createConst token
+        if (token.kind == "struct"); print(createStruct token)
+        elif (token.kind == "constant_macro") print(createConst token)
+--         if (token.kind == "struct"); createStruct token
+--         elif (token.kind == "constant_macro") createConst token
         else this->debug "================ TODO:" token.kind token.name" =========================="
         end
     end

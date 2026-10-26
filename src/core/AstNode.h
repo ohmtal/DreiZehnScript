@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "core/Lexer.h"
+#include "core/Token.h"
 #include "core/Value.h"
 
 namespace DreiZehn {

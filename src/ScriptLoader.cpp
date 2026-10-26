@@ -12,18 +12,11 @@
 #include "Environment.h"
 #include "bytecode/VM.h"
 #include "toolbox/Tools.h"
-#include "core/Parser.h"
+#include "syntax13/Parser.h"
 
 namespace DreiZehn {
 
     enum class BlockType { Function, ForLoop, WhileLoop, IfBlock };
-    std::string blockTypeName[] = {
-        "Function: fn ",
-        "Loop (For/forRange/forEach)",
-        "While loop",
-        "If Statement"
-
-    };
 
     struct OpenBlock {
         BlockType mType;
@@ -194,15 +187,18 @@ namespace DreiZehn {
             } // for statements
         } // while lines ...
 
+
+
         if (blockStack.size() > 1) {
-            Tools::errorf("Syntax-Error: missing end. Open nodes:\n");
+            Tools::errorf("Syntax-Error: One or more END statements are missing!\n");
+            Tools::printf(" │─────────────────────────────────────────────────────────────────────\n");
+            Tools::printf(" │ %d open nodes \n", (int)blockStack.size() - 1);
+            Tools::printf(" │─────────────────────────────────────────────────────────────────────\n");
             for (size_t i = 1; i < blockStack.size() ; i++) {
                 auto& block = blockStack[i];
-                Tools::printf(" LINE:%d [%d]%s\n", block.mLineNumber
-                    , (int)block.mType
-                    , blockTypeName[(int)block.mType].c_str());
-                Tools::printf("  =>`%s`\n", block.mLine.c_str());
+                Tools::printf(" │ %04d ├─ %s\n", block.mLineNumber, block.mLine.c_str());
             }
+            Tools::printf(" │\n");
             return nullptr;
         }
 

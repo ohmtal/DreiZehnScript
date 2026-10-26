@@ -13,10 +13,9 @@
 #include <string.h>
 #include "core/BaseObjects.h"
 
-#ifdef DREIZEHN_BYTECODE
-#include "bytecode/VMStructure.h"
-#include "bytecode/CompilerScope.h"
-#endif
+#include "core/Token.h"
+
+
 
 namespace DreiZehn {
     // -------------------------------------------------------------------------

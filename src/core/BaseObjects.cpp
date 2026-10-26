@@ -14,6 +14,7 @@
 #include "core/FunctionMap.h"
 #include "VariableFrame.h"
 #include "BaseObjects.h"
+#include <syntax13/Syntax13.h>
 namespace DreiZehn {
 
     // ============================ KeyValueObject ==================================
@@ -82,7 +83,8 @@ namespace DreiZehn {
                 continue;
             }
 
-            if (!isValidVariableName(fieldName)) {
+            //FIXME Syntax13
+            if (!Syntax13::isValidVariableName(fieldName)) {
                 Tools::warnf("Field `%s` is not a valid variable name\n", fieldName.c_str());
                 continue;
             }

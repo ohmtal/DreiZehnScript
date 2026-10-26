@@ -12,7 +12,7 @@
 #include <algorithm>
 
 #include "Lexer.h"
-#include "AstNode.h"
+#include "core/AstNode.h"
 
 namespace DreiZehn{
 

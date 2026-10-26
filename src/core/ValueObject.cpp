@@ -12,6 +12,7 @@
 #include "ValueObject.h"
 #include "VariableFrame.h"
 #include "FunctionMap.h"
+#include <syntax13/Syntax13.h>
 
 
 namespace DreiZehn {
@@ -311,7 +312,8 @@ namespace DreiZehn {
                 return true;
             }
             std::string fieldName = args[0].getStringRef();
-            if (mValidateFieldName && !isValidVariableName(fieldName)) {
+            // FIXME Syntax13
+            if (mValidateFieldName && !Syntax13::isValidVariableName(fieldName)) {
                 Tools::warnf("Field `%s` is not a valid variable name\n", fieldName.c_str());
                 ret = NumberNullValue;
                 return true;
@@ -425,7 +427,8 @@ namespace DreiZehn {
     }
 
     bool  ValueObject::addDynamicField(const std::string & fieldName, const Value& value) {
-        if (mValidateFieldName &&  !isValidVariableName(fieldName)) return false;
+        // FIXME Syntax13
+        if (mValidateFieldName &&  !Syntax13::isValidVariableName(fieldName)) return false;
         uint32_t id = SymbolTable::insert(fieldName);
         insertUpdateDynamicField(id, value);
         return true;

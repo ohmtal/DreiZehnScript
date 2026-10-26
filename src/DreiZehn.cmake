@@ -21,6 +21,8 @@ set(DREIZEHN_SRC
     # core
     ${CMAKE_CURRENT_LIST_DIR}/core/AstNode.h
     ${CMAKE_CURRENT_LIST_DIR}/core/AstNode.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/core/Token.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/core/Token.h
 
     ${CMAKE_CURRENT_LIST_DIR}/core/BaseObjects.h
     ${CMAKE_CURRENT_LIST_DIR}/core/BaseObjects.cpp
@@ -28,10 +30,7 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/core/FunctionMap.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/GarbageCollection.h
     ${CMAKE_CURRENT_LIST_DIR}/core/GarbageCollection.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/core/Lexer.h
-    ${CMAKE_CURRENT_LIST_DIR}/core/Lexer.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/core/Parser.h
-    ${CMAKE_CURRENT_LIST_DIR}/core/Parser.cpp
+
     ${CMAKE_CURRENT_LIST_DIR}/core/Value.h
     ${CMAKE_CURRENT_LIST_DIR}/core/Value.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/ValueObject.h
@@ -43,6 +42,12 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/ScriptLoader.h
     ${CMAKE_CURRENT_LIST_DIR}/ScriptLoader.cpp
 
+
+    ${CMAKE_CURRENT_LIST_DIR}/syntax13/Syntax13.h
+    ${CMAKE_CURRENT_LIST_DIR}/syntax13/Lexer.h
+    ${CMAKE_CURRENT_LIST_DIR}/syntax13/Lexer.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/syntax13/Parser.h
+    ${CMAKE_CURRENT_LIST_DIR}/syntax13/Parser.cpp
 
     # Functions and objects
     ${CMAKE_CURRENT_LIST_DIR}/functions/CoreFunctions.cpp

@@ -5,7 +5,7 @@
 // Parser
 //-----------------------------------------------------------------------------
 #include "Parser.h"
-#include "FunctionMap.h"
+#include "core/FunctionMap.h"
 #include <ScriptLoader.h>
 
 namespace DreiZehn {

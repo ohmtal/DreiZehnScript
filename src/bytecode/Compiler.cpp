@@ -4,7 +4,7 @@
 #include "bytecode/VMStructure.h"
 
 
-namespace DreiZehn {
+namespace DreiZehn::VM {
 
    void Patch(BytecodeChunk& chunk) {
         // Apply function patches - what a HACK fest
@@ -77,15 +77,15 @@ namespace DreiZehn {
     Value compileExec(Environment& env, ASTNode* node) {
         if (!node) return NumberNullValue;
         BytecodeChunk chunk;
-        CompilerScope scope;
-        if (!Compile(node, env, chunk, scope)) {
+        // CompilerScope scope;
+        if (!Compile(node, env, chunk, VM::scope)) {
             Tools::errorf("Failed to compile code!\n");
             return NumberNullValue;
         }
         // after Compile we patch :)
         Patch(chunk);
 
-        Value res = runDirectThreadedVM(chunk, scope.getLocalCount());
+        Value res = VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount());
         #ifdef DEBUG_TRACE_EXECUTION
         Tools::printf("*** CompileExec VALUE IS: %s\n", res.toString().c_str());
         #endif

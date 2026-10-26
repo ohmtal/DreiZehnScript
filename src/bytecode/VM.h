@@ -1,10 +1,16 @@
 #pragma once
 #include <cstring>
-namespace DreiZehn {
+#include "CompilerScope.h"
+namespace DreiZehn::VM {
 
     Value compileExec(Environment& env, ASTNode* node);
 
     Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals);
+
+    // ------------------------------
+    inline CompilerScope scope;
+    inline std::vector<Value>locals;
+    // ------------------------------
 
     inline Value advance_value(const U32* code, U32& ip) {
         Value val;

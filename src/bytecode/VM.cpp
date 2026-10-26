@@ -27,7 +27,7 @@
 #include <core/BaseObjects.h>
 #include "VM.h"
 
-namespace DreiZehn {
+namespace DreiZehn::VM {
     //-----------------------------------------------------------------------------
     void PrintVMError(const U32 opcode,  const std::string& p1,
                        const std::string& p2 = "", const std::string& p3 = ""){
@@ -195,8 +195,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
     callFrame.push_back({ip, 0, numLocals});
     CallFrame* curFrame = &callFrame.back();
 
-    std::vector<Value>locals;
-    locals.resize(INITIAL_BC_LOCALS_SIZE);
+    // std::vector<Value>locals;
+    if (locals.size() == 0) locals.resize(INITIAL_BC_LOCALS_SIZE);
 
     // -----------------------
 

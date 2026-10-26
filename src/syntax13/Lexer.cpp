@@ -320,6 +320,14 @@ std::vector<Token> Lexer::tokenize() {
                 id += advance();
             }
 
+            // early out to enable fields and methods with the registered names
+            TokenType prevType = tokens.size() > 0 ? tokens.back().mType : TokenType::NoToken;
+            if (prevType == TokenType::Dot || prevType == TokenType::Arrow)
+            {
+                tokens.push_back({TokenType::Identifier, id});
+                continue;
+            }
+
             if (id == "if") { tokens.push_back({TokenType::If, "if"}); }
             else if (id == "else") { tokens.push_back({TokenType::Else, "else"}); }
             else if (id == "elif") { tokens.push_back({TokenType::ElIf, "elif"});  }

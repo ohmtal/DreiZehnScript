@@ -20,9 +20,7 @@ end
 -- -----------------------------------------------------------------------------
 fn Tokens::run this jsonTree
 
-
     forEach token jsonTree
-
         if (token.kind == "param")
             this->debug "SKIP PARAM: " token.function token.name
         elif (token.kind == "struct_field")

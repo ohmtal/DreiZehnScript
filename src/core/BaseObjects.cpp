@@ -152,7 +152,8 @@ namespace DreiZehn {
     void ArrayObject::PrintTree(int depth){
         uint32_t keyindex = 0;
         for (uint32_t i = 0; i < mDynamicFieldValues.size(); i++) {
-            const std::string key = SymbolTable::getName(SymbolIdByIndex(i, keyindex));
+            SymbolIdByIndex(i, keyindex);
+            const std::string key = SymbolTable::getName(keyindex);
             const Value* value = mDynamicFieldValues[i].get();
             if (value->isPointer() && value->asPointerObject()->mType == TypeArrayObject) {
                 for (int j = 0; j < depth; j++) Tools::printf("│  ");
@@ -182,27 +183,27 @@ namespace DreiZehn {
             ret =  Value((uint32_t)mDynamicFieldValues.size());
             return true;
         } else
-            if (mTreeProp.matchMethod(methodId, args) == 1) {
-                this->PrintTree();
-                ret = Value(1);
-                return true;
-            } else
-                if (mKeyProp.matchMethod(methodId, args)== 1) {
-                    uint32_t index = 0;
-                    if (SymbolIdByIndex(args[0].getUInt(), index) ) {
-                        ret = Value( SymbolTable::getName(index) );
-                    } else  {
-                        ret =  NumberNullValue;
-                    }
-                    return true;
-                } else
-                    if (mValueProp.matchMethod(methodId, args) == 1) {
-                        Value* valPtr = getDynamicFieldPtrByIndex(args[0].getUInt());
-                        if (valPtr) ret =  *valPtr;
-                        else ret =  NumberNullValue;
-                        return true;
-                    } else
-                        return ValueObject::onMethodCall(methodId, args, ret);
+        if (mTreeProp.matchMethod(methodId, args) == 1) {
+            this->PrintTree();
+            ret = Value(1);
+            return true;
+        } else
+        if (mKeyProp.matchMethod(methodId, args)== 1) {
+            uint32_t index = 0;
+            if (SymbolIdByIndex(args[0].getUInt(), index) ) {
+                ret = Value( SymbolTable::getName(index) );
+            } else  {
+                ret =  NumberNullValue;
+            }
+            return true;
+        } else
+        if (mValueProp.matchMethod(methodId, args) == 1) {
+            Value* valPtr = getDynamicFieldPtrByIndex(args[0].getUInt());
+            if (valPtr) ret =  *valPtr;
+            else ret =  NumberNullValue;
+            return true;
+        } else
+        return ValueObject::onMethodCall(methodId, args, ret);
     }
 
     // ============================ RegisterBaseObject ==================================

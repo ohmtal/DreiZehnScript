@@ -13,10 +13,10 @@ namespace DreiZehn {
 
     namespace Tools {
         void PrintParseError(std::string message){
-            errorf("DreiZehn Parse Error in Line [%d]:%s\n\t%s\n",
+            errorf("Parse Error:\n%s\n| %03d |%s\n",
+                   message.c_str(),
                    Globals::currentScriptLineNumber,
-                   Globals::currentScriptLine.c_str(),
-                   message.c_str());
+                   Globals::currentScriptLine.c_str());
         }
 
         void PrintRuntimeError(std::string message){

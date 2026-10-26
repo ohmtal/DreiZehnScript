@@ -107,7 +107,6 @@ namespace DreiZehn {
                 advance(); //  ')'
             } else {
                 Tools::PrintParseError("Error: Missing closing bracket");
-                // Tools::errorf("Error: Missing closing bracket %s %d\n", __FILE__, __LINE__);
             }
             return expr;
         }
@@ -183,9 +182,8 @@ namespace DreiZehn {
                 std::vector<std::unique_ptr<Expression>> args;
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
-                    args.push_back(parseMath());
-
-
+                    auto arg = parseMath();
+                    if (arg) args.push_back(std::move(arg));
                     if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
@@ -219,7 +217,8 @@ namespace DreiZehn {
                     std::vector<std::unique_ptr<Expression>> args;
                     while (isContinueToken(peek())) {
                         size_t lastPos = mPos;
-                        args.push_back(parseMath());
+                        auto arg = parseMath();
+                        if (arg) args.push_back(std::move(arg));
 
                         if (checkCommaBreak(args)) break; //TEST
 
@@ -345,7 +344,8 @@ namespace DreiZehn {
                 std::vector<std::unique_ptr<Expression>> args;
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
-                    args.push_back(parseMath());
+                    auto arg = parseMath();
+                    if (arg) args.push_back(std::move(arg));
 
                     if (checkCommaBreak(args)) break; //TEST
 
@@ -448,7 +448,7 @@ namespace DreiZehn {
             if (peek().mType == TokenType::RParen) {
                 advance(); // skip ')'
             } else {
-                Tools::errorf("Error: Missing closing bracket %s %d\n", __FILE__, __LINE__);
+                Tools::PrintParseError("Error: Missing closing brackets");
             }
             return expr;
         }
@@ -469,7 +469,8 @@ namespace DreiZehn {
                 while (isContinueToken(peek()))
                 {
                     size_t lastPos = mPos;
-                    args.push_back(parseMath());
+                    auto arg = parseMath();
+                    if (arg) args.push_back(std::move(arg));
 
                     if (checkCommaBreak(args)) break; //TEST
 
@@ -542,7 +543,7 @@ namespace DreiZehn {
                 advance(); //eat fn
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::errorf("Syntax-Error: function name required after fn\n");
+                    Tools::PrintParseError("function name required after fn\n");
                     return nullptr;
                 }
 
@@ -568,13 +569,16 @@ namespace DreiZehn {
                 advance(); //eat range
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::errorf("Syntax-Error: variable name after range expected\n");
+                    Tools::PrintParseError("Variable name after range expected");
                     return nullptr;
                 }
                 std::string varName = advance().mValue;
 
                 auto countExpr = parseMath();
-
+                if (!countExpr) {
+                    Tools::PrintParseError("forRange invalid count expresssion.");
+                    return nullptr;
+                }
                 ParserFrame::mBlockOpenTypes.push_back(tokenType);
 
                 return std::make_unique<ForRangeStatement>(SymbolTable::insert(varName)
@@ -586,12 +590,15 @@ namespace DreiZehn {
                 advance(); //eat
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::errorf("Syntax-Error: variable name after range expected\n");
+                    Tools::PrintParseError("variable name after range expected");
                     return nullptr;
                 }
                 std::string varName = advance().mValue;
                 auto varExpr = parseMath();
-
+                if (!varExpr) {
+                    Tools::PrintParseError("Invalid variable expression");
+                    return nullptr;
+                }
                 ParserFrame::mBlockOpenTypes.push_back(tokenType);
                 return std::make_unique<ForEachStatement>(SymbolTable::insert(varName)
                 , std::move(varExpr));
@@ -602,7 +609,7 @@ namespace DreiZehn {
                 advance();
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::errorf("Syntax-Error: variable name after for expected\n");
+                    Tools::PrintParseError("Variable name after for expected");
                     return nullptr;
                 }
                 std::string varName = advance().mValue;
@@ -610,6 +617,12 @@ namespace DreiZehn {
                 auto start = parseMath();
                 auto end = parseMath();
                 auto step= parseMath();
+
+                if (!start || !end ){
+                    Tools::PrintParseError("for invalid  borders:");
+                    return nullptr;
+                }
+
 
                 ParserFrame::mBlockOpenTypes.push_back(tokenType);
 
@@ -632,14 +645,15 @@ namespace DreiZehn {
             case TokenType::End:  {
                 advance();
 
-                // FIXME
-                TokenType startToken = ParserFrame::mBlockOpenTypes.back();
-                ParserFrame::mBlockOpenTypes.pop_back();
-                if (startToken == TokenType::Fn) {
-                    ParserFrame::endFunc(0);
-                }
+                if (ParserFrame::mBlockOpenTypes.size() > 0) {
+                    TokenType startToken = ParserFrame::mBlockOpenTypes.back();
+                    ParserFrame::mBlockOpenTypes.pop_back();
+                    if (startToken == TokenType::Fn) {
+                        ParserFrame::endFunc(0);
+                    }
 
-                return std::make_unique<FunctionDefineEndNode>();
+                    return std::make_unique<FunctionDefineEndNode>();
+                }
             }
             break;
 
@@ -697,7 +711,7 @@ namespace DreiZehn {
                 advance(); //eat define
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::errorf("Syntax-Error: variable name after define expected\n");
+                    Tools::PrintParseError("variable name after define expected");
                     return nullptr;
                 }
                 std::string varName = advance().mValue;
@@ -707,12 +721,12 @@ namespace DreiZehn {
                 auto expr = parseMath();
 
                 if (!expr) {
-                    Tools::errorf("Syntax-Error: value after define expected\n");
+                    Tools::PrintParseError("Value after define expected");
                     return nullptr;
                 }
 
                 if (!Globals::gCurEnv) {
-                    Tools::PrintParseError("System-Error: current enviroment not set!\n");
+                    Tools::PrintParseError("Current enviroment not set!");
                     return nullptr;
                 }
 
@@ -728,17 +742,17 @@ namespace DreiZehn {
                 advance();
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::PrintParseError("Syntax-Error: variable name after import expected\n");
+                    Tools::PrintParseError("Variable name after import expected");
                     return nullptr;
                 }
                 std::string modname = advance().mValue;
 
                 if (!Globals::gCurEnv) {
-                    Tools::PrintParseError("System-Error Import: current enviroment not set!\n");
+                    Tools::PrintParseError("Import: current enviroment not set!");
                     return nullptr;
                 }
                 if (modname.empty()) {
-                    Tools::PrintParseError("System-Error Import: module name empty.\n");
+                    Tools::PrintParseError("Import: module name empty.");
                     return nullptr;
                 }
                 // direct import
@@ -746,7 +760,7 @@ namespace DreiZehn {
                     FunctionMap::ModuleRegistry::LoadAll(*Globals::gCurEnv);
                 } else {
                     if (!FunctionMap::ModuleRegistry::Load(modname, *Globals::gCurEnv)) {
-                        Tools::errorf("Failed to load Module %s\n", modname.c_str());
+                        Tools::PrintParseError(("Failed to load Module: " + modname).c_str());
                     }
                 }
 
@@ -759,13 +773,13 @@ namespace DreiZehn {
                 advance();
 
                 if (peek().mType != TokenType::StringLiteral) {
-                    Tools::PrintParseError("Syntax-Error: filename after include expected\n");
+                    Tools::PrintParseError("Filename after include expected");
                     return nullptr;
                 }
                 std::string filename = advance().mValue;
 
                 if (filename.empty()) {
-                    Tools::PrintParseError("System-Error Include: filename empty.\n");
+                    Tools::PrintParseError("Include: filename empty.");
                     return nullptr;
                 }
                 auto noExecCond = parseMath();

@@ -122,21 +122,43 @@ struct BytecodeChunk {
     }
 
 
+    // U32 emitValue(Value val) {
+    //     U32 startIp = (U32)mByteCodes.size();
+    //     mByteCodes.resize(startIp + 2);
+    //     std::memcpy(&mByteCodes[startIp], &val, sizeof(Value));
+    //     return startIp;
+    // }
     U32 emitValue(Value val) {
+        static_assert(sizeof(Value) <= 2 * sizeof(U32), "Value size missmatch! Only 8 bytes allowed.");
+
         U32 startIp = (U32)mByteCodes.size();
         mByteCodes.resize(startIp + 2);
+
+        if (sizeof(Value) < 8) {
+            mByteCodes[startIp] = 0;
+            mByteCodes[startIp + 1] = 0;
+        }
+
         std::memcpy(&mByteCodes[startIp], &val, sizeof(Value));
         return startIp;
     }
 
+    // U32 emitPointer(void* ptr) {
+    //     U32 startIp = (U32)mByteCodes.size();
+    //     mByteCodes.resize(startIp + 2);
+    //
+    //     std::memcpy(&mByteCodes[startIp], &ptr, sizeof(void*));
+    //
+    //     return startIp;
+    // }
     U32 emitPointer(void* ptr) {
         U32 startIp = (U32)mByteCodes.size();
-        mByteCodes.resize(startIp + 2);
-
+        size_t slotsNeeded = sizeof(void*) / sizeof(U32);
+        mByteCodes.resize(startIp + slotsNeeded);
         std::memcpy(&mByteCodes[startIp], &ptr, sizeof(void*));
-
         return startIp;
     }
+
 
     U32 tell() {
         return (U32)mByteCodes.size();

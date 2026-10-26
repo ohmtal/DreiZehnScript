@@ -8,6 +8,12 @@
 //  3. threadChunk(chunk)
 //  4. runDirectThreadedVM(chunk)
 
+
+// NOTE: tesing most used OP Codes
+// >>>>
+// #define DREIZEHN_VM_STATS
+// <<<<
+
 //-----------------------------------------------------------------------------
 #include <vector>
 #include <iostream>
@@ -46,10 +52,6 @@ namespace DreiZehn {
     #define INITIAL_BC_LOCALS_SIZE  1024
     #endif
 
-    // NOTE: tesing most used OP Codes
-    // >>>>
-    // #define DREIZEHN_VM_STATS
-    // <<<<
 
     #ifdef DREIZEHN_DEBUG
     #define PUSH_STACK(val) \
@@ -82,20 +84,29 @@ namespace DreiZehn {
     #define PEEK_S32() static_cast<S32>(code[ip])
     #define PEEK_F32() static_cast<F32>(code[ip])
 
-    #define ADVANCE_VALUE()  (*(Value*)&code[(ip += 2) - 2])
-    #define ADVANCE_PTR() (*(void**)&code[(ip += 2) - 2])
 
-    #define PATCH_PTR( pos, ptr) \
-    do { \
-        std::memcpy(&code[pos], &ptr, sizeof(void*)); \
-        if (sizeof(void*) == 1) code[pos+1]=0; \
-    } while(0)
+    inline Value advance_value(const U32* code, U32& ip) {
+        Value val;
+        std::memcpy(&val, &code[ip], sizeof(Value));
+        ip += 2;
+        return val;
+    }
 
-    //TODO use sizeof(void*)! not hardcoded 2
-    #define SKIP_PTR( ) \
-    do { \
-        ip += 2; \
-    } while(0)
+
+    inline void* advance_ptr(const U32* code, U32& ip) {
+        void* ptr;
+        std::memcpy(&ptr, &code[ip], sizeof(void*));
+        ip += 2;
+        return ptr;
+    }
+
+    inline void patch_ptr(U32* code, U32 pos, void* ptr) {
+        code[pos] = 0;
+        code[pos + 1] = 0;
+        std::memcpy(&code[pos], &ptr, sizeof(void*));
+    }
+    #define SKIP_PTR() (ip += 2)
+
 
     // magic macro:
     #ifdef DREIZEHN_VM_STATS
@@ -197,7 +208,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
     }
     // -------------------------------
     handle_OP_PUSH_VALUE: {
-        PUSH_STACK(ADVANCE_VALUE());
+        // PUSH_STACK(ADVANCE_VALUE());
+        PUSH_STACK(advance_value(code, ip));
         DISPATCH();
     }
     // -------------------------------
@@ -263,10 +275,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value rVal = POP_STACK();
         Value lVal = POP_STACK();
 
-        // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-        //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) < std::bit_cast<double>(rVal.mBits) ? 1 : 0));
-        //     DISPATCH();
-        // }
         if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
             PUSH_STACK(Value(lVal.asFastDouble() < rVal.asFastDouble() ? 1 : 0));
             DISPATCH();
@@ -286,10 +294,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value rVal = POP_STACK();
         Value lVal = POP_STACK();
 
-        // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-        //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) <= std::bit_cast<double>(rVal.mBits) ? 1 : 0));
-        //     DISPATCH();
-        // }
         if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
              PUSH_STACK(Value(lVal.asFastDouble() <= rVal.asFastDouble() ? 1 : 0));
               DISPATCH();
@@ -308,10 +312,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value rVal = POP_STACK();
         Value lVal = POP_STACK();
 
-        // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-        //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) > std::bit_cast<double>(rVal.mBits) ? 1 : 0));
-        //     DISPATCH();
-        // }
         if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
             PUSH_STACK(Value(lVal.asFastDouble() > rVal.asFastDouble() ? 1 : 0));
             DISPATCH();
@@ -332,10 +332,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value rVal = POP_STACK();
         Value lVal = POP_STACK();
 
-        // if (((lVal.mBits & QNAN_MASK) != QNAN_MASK) && ((rVal.mBits & QNAN_MASK) != QNAN_MASK)) [[likely]] {
-        //     PUSH_STACK(Value(std::bit_cast<double>(lVal.mBits) >= std::bit_cast<double>(rVal.mBits) ? 1 : 0));
-        //     DISPATCH();
-        // }
         if (lVal.isDouble() && rVal.isDouble()) [[likely]] {
             PUSH_STACK(Value(lVal.asFastDouble() >= rVal.asFastDouble() ? 1 : 0));
             DISPATCH();
@@ -486,7 +482,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
     handle_OP_LOAD_VAR:{
         U32 symID = ADVANCE_U32();
         U32 ptrPOS = ip;
-        void* rawPtr = ADVANCE_PTR();
+        // void* rawPtr = ADVANCE_PTR();
+        void* rawPtr = advance_ptr(code,ip);
         Value* valuePtr = nullptr;
 
         if (rawPtr) {
@@ -496,7 +493,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         }
         VariableFrame* frame = Globals::MasterVariableFrame;
         valuePtr = frame->getVariablePtr(symID);
-        PATCH_PTR(ptrPOS,valuePtr);
+        // PATCH_PTR(ptrPOS,valuePtr);
+        patch_ptr(code, ptrPOS, valuePtr);
         PUSH_STACK(*valuePtr);
 
         DISPATCH();
@@ -505,7 +503,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
     handle_OP_SAVE_VAR:{
         U32 symID = ADVANCE_U32();
         U32 ptrPOS = ip;
-        void* rawPtr = ADVANCE_PTR();
+        // void* rawPtr = ADVANCE_PTR();
+        void* rawPtr =  advance_ptr(code,ip);
         Value* valuePtr = nullptr;
 
         if (rawPtr) {
@@ -515,7 +514,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         }
         VariableFrame* frame = Globals::MasterVariableFrame;
         valuePtr = frame->getVariablePtr(symID, true);
-        PATCH_PTR(ptrPOS,valuePtr);
+        // PATCH_PTR(ptrPOS,valuePtr);
+        patch_ptr(code, ptrPOS, valuePtr);
         *valuePtr = PEEK_STACK(0);
 
 
@@ -528,9 +528,11 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         U32 fieldSymId = ADVANCE_U32();
         U32 saveObjPtrPos = ip;
-        void* rawObjectPtr = ADVANCE_PTR();
+        // void* rawObjectPtr = ADVANCE_PTR();
+        void* rawObjectPtr =  advance_ptr(code,ip);
         U32 saveFieldPtrPos = ip;
-        void* rawFieldValuePtr = ADVANCE_PTR();
+        // void* rawFieldValuePtr = ADVANCE_PTR();
+        void* rawFieldValuePtr =  advance_ptr(code,ip);
 
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) [[unlikely]] {
@@ -555,8 +557,10 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
                 PUSH_STACK(NumberNullValue);
                 DISPATCH();
             }
-            PATCH_PTR(saveObjPtrPos, obj);
-            PATCH_PTR(saveFieldPtrPos, fieldValuePtr);
+            // PATCH_PTR(saveObjPtrPos, obj);
+            patch_ptr(code, saveObjPtrPos, obj);
+            // PATCH_PTR(saveFieldPtrPos, fieldValuePtr);
+            patch_ptr(code, saveFieldPtrPos, fieldValuePtr);
         }
         PUSH_STACK(*fieldValuePtr);
 
@@ -595,9 +599,11 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         U32 fieldSymId = ADVANCE_U32();
         U32 saveObjPtrPos = ip;
-        void* rawObjectPtr = ADVANCE_PTR();
+        // void* rawObjectPtr = ADVANCE_PTR();
+        void* rawObjectPtr =  advance_ptr(code,ip);
         U32 saveFieldPtrPos = ip;
-        void* rawFieldValuePtr = ADVANCE_PTR();
+        // void* rawFieldValuePtr = ADVANCE_PTR();
+        void* rawFieldValuePtr =  advance_ptr(code,ip);
 
         Value objectValue = POP_STACK();
         if (!objectValue.isPointer()) [[unlikely]] {
@@ -621,8 +627,10 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
                              SymbolTable::getName(fieldSymId));
                 DISPATCH();
             }
-            PATCH_PTR(saveObjPtrPos, obj);
-            PATCH_PTR(saveFieldPtrPos, fieldValuePtr);
+            // PATCH_PTR(saveObjPtrPos, obj);
+            patch_ptr(code,saveObjPtrPos, obj);
+            // PATCH_PTR(saveFieldPtrPos, fieldValuePtr);
+            patch_ptr(code,saveFieldPtrPos, fieldValuePtr);
         }
 
         _set_var_pointer_value(fieldValuePtr, PEEK_STACK(0));
@@ -688,7 +696,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
                     ip -= 4;
                     code[ ip ] = OP_CALL_SF_FUNCTION;
                     code[ ip + 1 ] = argCount + 1;
-                    PATCH_PTR( ip + 2, sf);
+                    // PATCH_PTR( ip + 2, sf);
+                    patch_ptr(code, ip + 2, sf);
                     // code[ ip + 2 ] = sf->bytecodeAddress;
                     // code[ ip + 3 ] = sf->localVarCount;
                     PUSH_STACK(obj); //push this
@@ -831,13 +840,15 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         // pull function name id
         U32 symID = ADVANCE_U32();
         U32 ptrPOS = ip;
-        void* rawPtr = ADVANCE_PTR();
+        // void* rawPtr = ADVANCE_PTR();
+        void* rawPtr =  advance_ptr(code,ip);
         FunctionMap::CallBack* callPtr = nullptr;
         if (rawPtr) [[likely]] {
             callPtr = static_cast<FunctionMap::CallBack*>(rawPtr);
         } else {
             callPtr = FunctionMap::GetCFunction(symID);
-            PATCH_PTR(ptrPOS, callPtr);
+            // PATCH_PTR(ptrPOS, callPtr);
+            patch_ptr(code, ptrPOS, callPtr);
         }
         U32 argCount = ADVANCE_U32();
 
@@ -875,7 +886,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
     handle_OP_CALL_SF_FUNCTION: {
         U32 argCount = ADVANCE_U32();
 
-        void* rawPtr = ADVANCE_PTR();
+        // void* rawPtr = ADVANCE_PTR();
+        void* rawPtr =  advance_ptr(code,ip);
         // should not happen but i prevent a crash here ..
 
         if (!rawPtr) [[unlikely]] {

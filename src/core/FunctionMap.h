@@ -109,18 +109,23 @@ namespace DreiZehn::FunctionMap {
     using ConstantsLookupMap = std::unordered_map<uint32_t, Value>;
     inline ConstantsLookupMap RegisteredConstants;
 
-    inline void RegisterConstants(const std::string& name, Value value) {
-        if (value.isPointer()) {
-            value.asPointerObject()->setAssigned(true);
-        }
-        RegisteredConstants[SymbolTable::insert( name )] = value;
-    }
     inline Value* getConstants( uint32_t symbolId) {
         auto it = RegisteredConstants.find(symbolId);
         if (it != RegisteredConstants.end())
             return &it->second;
         else
             return nullptr;
+    }
+    inline void RegisterConstants(const std::string& name, Value value) {
+        U32 symId = SymbolTable::insert( name );
+        Value* curConst = getConstants(symId);
+        if (curConst && curConst->isPointer()) {
+            curConst->asPointerObject()->setAssigned(false);
+        }
+        if (value.isPointer()) {
+            value.asPointerObject()->setAssigned(true);
+        }
+        RegisteredConstants[symId] = value;
     }
 
     #define REGISTER_CONST(constName) RegisterConstants(#constName, Value(constName))

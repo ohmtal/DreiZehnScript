@@ -183,7 +183,7 @@ namespace DreiZehn {
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
                     auto arg = parseMath();
-                    if (arg) args.push_back(std::move(arg));
+                    if (arg.get()) args.push_back(std::move(arg));
                     if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {

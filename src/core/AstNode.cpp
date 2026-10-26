@@ -1237,6 +1237,10 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
 
     Value BinarySingleRightOpExpression::evaluate(Environment& env)  {
+        if (!mRight) {
+            PrintASTError(this,"Not missing right.");
+            return NumberNullValue;
+        }
         Value rVal = mRight->evaluate(env);
         return Value(!rVal.getInt());
     }

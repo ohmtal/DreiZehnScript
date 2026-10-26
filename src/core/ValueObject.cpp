@@ -91,7 +91,7 @@ namespace DreiZehn {
     }
     Value* ValueObject::getDynamicFieldPtrByIndex(size_t index) {
         if (index >= mDynamicFieldValues.size()) {
-            Tools::warnf("Vector array index: %zu out of bounds.", index);
+            Tools::warnf("Array index: %zu out of bounds (%zu).\n", index, mDynamicFieldValues.size());
             return nullptr;
         }
         return mDynamicFieldValues[index].get();

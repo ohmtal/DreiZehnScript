@@ -1305,11 +1305,23 @@ namespace DreiZehn {
 
         Value rightHand = mRhs->evaluate(env);
 
-        // if (mOp == TokenType::AssignPlus && valuePtr->isString()) {
-        //     *valuePtr = Value::handleGenericAdd(*valuePtr, rightHand);
-        //     return *valuePtr;
+        // ---------------
+        // NOTE THIS IS NOT FASTER
+        // double target_a = valuePtr->isDouble() ? valuePtr->asFastDouble() : (valuePtr->isInt() ? static_cast<double>(valuePtr->asFastInt()) : 0.0);
+        // double target_b = rightHand.isDouble() ? rightHand.asFastDouble() : (rightHand.isInt() ? static_cast<double>(rightHand.asFastInt()) : 0.0);
+        //
+        // switch(mOp) {
+        //     case TokenType::AssignPlus:  target_a += target_b;  break;
+        //     case TokenType::AssignMinus: target_a -= target_b;  break;
+        //     case TokenType::AssignMul:   target_a *= target_b;  break;
+        //     case TokenType::AssignDiv:   target_a /= target_b;  break;
+        //     default: return false;
         // }
+        //
+        // *valuePtr = target_a;
+        // return *valuePtr;
 
+        // ---------------
         Value result;
         const bool l_is_double = valuePtr->isDouble();
         const bool r_is_double = rightHand.isDouble();
@@ -1357,71 +1369,7 @@ namespace DreiZehn {
         return *valuePtr;
     }
 
-    // Value AssignOPStatement::evaluate(Environment& env) {
-    //
-    //     Value * valuePtr = mVarExpr->evaluatePtr(env);
-    //
-    //     if ( !valuePtr || !this->mRhs ) {
-    //         Tools::PrintParseError("AssignOP: variable or right is missing or invalid");
-    //         return NumberNullValue;
-    //     }
-    //     Value rightHand = this->mRhs->evaluate(env);
-    //
-    //
-    //     if (valuePtr->isDouble() && rightHand.isDouble()) {
-    //         double doubleval = valuePtr->asFastDouble();
-    //         switch(this->mOp) {
-    //             case TokenType::AssignPlus:  doubleval += rightHand.asFastDouble(); break;
-    //             case TokenType::AssignMinus: doubleval -= rightHand.asFastDouble(); break;
-    //             case TokenType::AssignMul:   doubleval *= rightHand.asFastDouble(); break;
-    //             case TokenType::AssignDiv:  {
-    //                 double r = rightHand.asFastDouble();
-    //                 r != 0.0 ? doubleval /= r : doubleval = 0; break;
-    //             }
-    //             default: return NumberNullValue;
-    //         }
-    //         *valuePtr = Value(doubleval);
-    //         return *valuePtr;
-    //
-    //     } else if (valuePtr->isInt( ) && rightHand.isInt()) {
-    //         int32_t intval = valuePtr->asFastInt();
-    //         switch(this->mOp) {
-    //             case TokenType::AssignPlus:  intval += rightHand.asFastInt(); break;
-    //             case TokenType::AssignMinus: intval -= rightHand.asFastInt(); break;
-    //             case TokenType::AssignMul:   intval *= rightHand.asFastInt(); break;
-    //             case TokenType::AssignDiv:  {
-    //                 int32_t r = rightHand.asFastInt();
-    //                 r != 0 ? intval /= r : intval = 0; break;
-    //             }
-    //             default: break;
-    //         }
-    //         *valuePtr = Value(intval);
-    //         return *valuePtr;
-    //
-    //     } else if (valuePtr->isString( )) {
-    //         if (this->mOp == TokenType::AssignPlus) *valuePtr = Value (valuePtr->getStringRef() +  rightHand.toString() );
-    //         else return NumberNullValue;
-    //         return *valuePtr;
-    //
-    //     } else {
-    //         double doubleval = valuePtr->getDouble();
-    //         switch(this->mOp) {
-    //             case TokenType::AssignPlus:  doubleval += rightHand.getDouble(); break;
-    //             case TokenType::AssignMinus: doubleval -= rightHand.getDouble(); break;
-    //             case TokenType::AssignMul:   doubleval *= rightHand.getDouble(); break;
-    //             case TokenType::AssignDiv: {
-    //                 double r = rightHand.asFastDouble();
-    //                 r != 0.0 ? doubleval /= r : doubleval = 0; break;
-    //             }
-    //             default: return NumberNullValue;
-    //         }
-    //         *valuePtr = Value(doubleval);
-    //         return *valuePtr;
-    //     }
-    //
-    //     return NumberNullValue;
-    // }
-
+    // ---------------------
     bool AssignOPStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
 
         if (!mVarExpr || !mRhs) [[unlikely]] {

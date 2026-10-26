@@ -25,6 +25,7 @@
 #include "VMStructure.h"
 #include "core/FunctionMap.h"
 #include <core/BaseObjects.h>
+#include "VM.h"
 
 namespace DreiZehn {
     //-----------------------------------------------------------------------------
@@ -85,26 +86,26 @@ namespace DreiZehn {
     #define PEEK_F32() static_cast<F32>(code[ip])
 
 
-    inline Value advance_value(const U32* code, U32& ip) {
-        Value val;
-        std::memcpy(&val, &code[ip], sizeof(Value));
-        ip += 2;
-        return val;
-    }
-
-
-    inline void* advance_ptr(const U32* code, U32& ip) {
-        void* ptr;
-        std::memcpy(&ptr, &code[ip], sizeof(void*));
-        ip += 2;
-        return ptr;
-    }
-
-    inline void patch_ptr(U32* code, U32 pos, void* ptr) {
-        code[pos] = 0;
-        code[pos + 1] = 0;
-        std::memcpy(&code[pos], &ptr, sizeof(void*));
-    }
+    // inline Value advance_value(const U32* code, U32& ip) {
+    //     Value val;
+    //     std::memcpy(&val, &code[ip], sizeof(Value));
+    //     ip += 2;
+    //     return val;
+    // }
+    //
+    //
+    // inline void* advance_ptr(const U32* code, U32& ip) {
+    //     void* ptr;
+    //     std::memcpy(&ptr, &code[ip], sizeof(void*));
+    //     ip += 2;
+    //     return ptr;
+    // }
+    //
+    // inline void patch_ptr(U32* code, U32 pos, void* ptr) {
+    //     code[pos] = 0;
+    //     code[pos + 1] = 0;
+    //     std::memcpy(&code[pos], &ptr, sizeof(void*));
+    // }
     #define SKIP_PTR() (ip += 2)
 
 

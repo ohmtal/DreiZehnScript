@@ -18,7 +18,7 @@ namespace DreiZehn{
         , LParen
         , RParen
         , LSquare, RSquare
-        // , LCurly, RCurly
+        , LCurly, RCurly
         // math
         , Plus , Minus , Mul , Div
 

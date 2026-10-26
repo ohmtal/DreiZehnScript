@@ -19,8 +19,8 @@ const char* tokenTypeToString(TokenType type) {
         case TokenType::RParen:        return "RParen )";
         case TokenType::LSquare:        return "LSquare [";
         case TokenType::RSquare:        return "RSquare ]";
-        // case TokenType::LCurly:        return "LCurly {";
-        // case TokenType::RCurly:        return "RCurly }";
+        case TokenType::LCurly:        return "LCurly {";
+        case TokenType::RCurly:        return "RCurly }";
 
         // math
         case TokenType::Plus:          return "Plus";

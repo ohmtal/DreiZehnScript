@@ -136,9 +136,6 @@ struct ASTNode {
         return false;
     }
 
-    virtual bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
-        return false;
-    }
 };
 
 // base expression -------------------------------------------------------------
@@ -151,6 +148,15 @@ struct Expression : public ASTNode {
     // fetch a Ptr to a value instead of a value
     virtual Value* evaluatePtr(Environment& env) {
         return nullptr;
+    }
+
+    // push a pointer to the stack!
+    virtual bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+        return false;
+    }
+
+    virtual bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+        return false;
     }
 
 };
@@ -227,6 +233,8 @@ struct VariableExpression : public Expression {
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
     bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+
 
 };
 
@@ -276,6 +284,7 @@ struct ArrayVariableExpression : public Expression {
     Value* evaluatePtr(Environment& env) override;
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
     bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 
 };
@@ -295,7 +304,9 @@ struct ObjectFieldExpression : public Expression {
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
+
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
     bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 
 };
@@ -338,6 +349,7 @@ struct MethodExpression : public Expression {
     Value* evaluatePtr(Environment& env) override;
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
     bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 
 };

@@ -140,6 +140,26 @@ namespace DreiZehn {
         return true;
     }
 
+    bool VariableExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (requestType == ValueType::NONE) {
+            PrintASTError(this,"compile pointer need a request!");
+            return false;
+        }
+        if (mGlobalVariable) {
+            chunk.emit(OP_PUSHPTR_VAR);
+            chunk.emit(mVariableNameSymbolId);
+            chunk.emitPointer(nullptr); //space for cache ptr
+        } else {
+            U32 localSlot = scope.insert(mVariableNameSymbolId);
+            chunk.emit(OP_PUSHPRT_LOCAL);
+            chunk.emit(static_cast<U32>(localSlot));
+        }
+
+
+        return true;
+    }
+
+
     bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         // save var
         if (mGlobalVariable) {
@@ -233,7 +253,8 @@ namespace DreiZehn {
             Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr(index);
             if (valPtr) return Value(*valPtr);
         } else if (indexValue.isString() && varValue.isPointer()) {
-            Value* valPtr = varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
+            //FIXME SymbolTable?!
+            Value* valPtr = varValue.asPointerObject()->onGetArrayByStringSymId(SymbolTable::insert( indexValue.getStringRef()));
             if (valPtr) return Value(*valPtr);
         }
 
@@ -254,8 +275,8 @@ namespace DreiZehn {
         if (indexValue.isNumber()) {
             return varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.getUInt());
         } else if (indexValue.isString()) {
-
-            return varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
+            //FIXME SymbolTable
+            return varValue.asPointerObject()->onGetArrayByStringSymId(SymbolTable::insert(indexValue.getStringRef()));
         }
         // only works on objects which support onGetArrayIndexPtr
         return nullptr;
@@ -267,10 +288,58 @@ namespace DreiZehn {
             return false;
         }
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
-        if (!mIndexExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
 
-        chunk.emit(OP_LOAD_ARRAY);
+        if (mIndexExpr->mNodeType == NodeType::LiteralExpression) {
+            Value val = mIndexExpr->evaluate(env);
+            if (val.isNumber()) {
+                chunk.emit(OP_LOAD_ARRAY_INDEX);
+                chunk.emit(val.getUInt());
+            } else if (val.isString()) {
+                chunk.emit(OP_LOAD_ARRAY_SYMID);
+                chunk.emit(SymbolTable::insert( val.getStringRef()) );
+            } else {
+                PrintASTError(this,"Array Field index is NOT a number and NOT a string ?!");
+                return false;
+            }
+        } else {
+            if (!mIndexExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
+            chunk.emit(OP_LOAD_ARRAY);
+        }
+
+
         if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+
+        return true;
+    }
+    // ----------------
+    bool ArrayVariableExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (requestType == ValueType::NONE) {
+            PrintASTError(this,"compile pointer need a request!");
+            return false;
+        }
+
+        if (!mVarExpr || !mIndexExpr ) {
+            PrintASTError(this,"Array Field invalid Variable or index");
+            return false;
+        }
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
+
+       if (mIndexExpr->mNodeType == NodeType::LiteralExpression) {
+            Value val = mIndexExpr->evaluate(env);
+            if (val.isNumber()) {
+                chunk.emit(OP_PUSHPTR_ARRAY_INDEX);
+                chunk.emit(val.getUInt());
+            } else if (val.isString()) {
+                chunk.emit(OP_PUSHPTR_ARRAY_SYMID);
+                chunk.emit(SymbolTable::insert( val.getStringRef()) );
+            } else {
+                PrintASTError(this,"Array Field index is NOT a number and NOT a string ?!");
+                return false;
+            }
+        } else {
+            if (!mIndexExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
+            chunk.emit(OP_PUSHPTR_ARRAY);
+        }
 
         return true;
     }
@@ -362,6 +431,30 @@ namespace DreiZehn {
         chunk.emitPointer(nullptr);
         // SPACE FOR cached fieldvalue
         chunk.emitPointer(nullptr);
+
+        return true;
+    }
+    // -----------------------
+    bool ObjectFieldExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (!mVarExpr ) {
+            PrintASTError(this, "Field without an variable");
+            return false;
+        }
+        if (requestType == ValueType::NONE) {
+            PrintASTError(this,"compile pointer need a request!");
+            return false;
+        }
+        // PUSH VAR
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
+
+        chunk.emit(OP_PUSHPTR_OBJECT_FIELD);
+        // Field symid
+        chunk.emit(mFieldSymbolId);
+        // SPACE FOR Cached object
+        chunk.emitPointer(nullptr);
+        // SPACE FOR cached fieldvalue
+        chunk.emitPointer(nullptr);
+
 
         return true;
     }
@@ -459,6 +552,30 @@ namespace DreiZehn {
         chunk.emit(0); //placeholder when it's a Script method
 
         if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+        return true;
+    }
+    // ---------------------
+    bool MethodExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (requestType == ValueType::NONE) {
+            PrintASTError(this,"compile pointer need a request!");
+            return false;
+        }
+        if (!mVarExpr) {
+            PrintASTError(this, "No Variable Expression!");
+            return false;
+        }
+        U32 argCount = 0;
+        for (auto& argExpr : mArguments) {
+            if (argExpr) {
+                if (!argExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
+                argCount++;
+            }
+        }
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
+        chunk.emit(OP_PUSHPTR_OBJECT_METHOD);
+        chunk.emit(mMethodNameSymbolId);
+        chunk.emit(argCount);
+
         return true;
     }
     // ---------------------
@@ -881,17 +998,31 @@ namespace DreiZehn {
             }
         }
 
-        // load left
-        if (!mExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
-        // PUSH INC
-        chunk.emit(OP_PUSH_VALUE);
-        chunk.emitValue(Value(inc));
-        // ADD INC
-        chunk.emit(OP_ADD);
-        // SAVE VAR
-        if (!mExpr->compileAssignment(env,chunk,scope, requestType)) return false;
+        // load var pointer
+        // FIXME FALLBACK
+        if (mExpr->compilePtr(env,chunk,scope,ValueType::ANY)) {
+            chunk.emit(OP_INC_PTR);
+            chunk.emitS32(inc);
+            if (requestType == ValueType::NONE) {
+                chunk.emit(OP_POP_STACK);
+            }
+            return true;
+        } else {
 
-        return true;
+            // load left
+            if (!mExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
+            // PUSH INC
+            chunk.emit(OP_PUSH_VALUE);
+            chunk.emitValue(Value(inc));
+            // ADD INC
+            chunk.emit(OP_ADD);
+            // SAVE VAR
+            if (!mExpr->compileAssignment(env,chunk,scope, requestType)) return false;
+            return true;
+        }
+
+
+
 
     }
     // -------------------------------------------------------------------------
@@ -1408,21 +1539,39 @@ namespace DreiZehn {
             }
         }
 
+        if (mVarExpr->compilePtr(env,chunk,scope,ValueType::ANY)) {
+            if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
+
+            switch(mOp) {
+                case TokenType::AssignPlus:  chunk.emit(OP_ADD_PTR);  break;
+                case TokenType::AssignMinus: chunk.emit(OP_SUB_PTR);  break;
+                case TokenType::AssignMul:   chunk.emit(OP_MUL_PTR);  break;
+                case TokenType::AssignDiv:   chunk.emit(OP_DIV_PTR);  break;
+                default: return false;
+            }
+
+            if (requestType == ValueType::NONE) {
+                chunk.emit(OP_POP_STACK);
+            }
+            return true;
 
 
-        if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
-        if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
-        switch(mOp) {
-            case TokenType::AssignPlus:  chunk.emit(OP_ADD);  break;
-            case TokenType::AssignMinus: chunk.emit(OP_SUB);  break;
-            case TokenType::AssignMul:   chunk.emit(OP_MUL);  break;
-            case TokenType::AssignDiv:   chunk.emit(OP_DIV);  break;
-            default: return false;
+        } else {
+
+            if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
+            if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
+            switch(mOp) {
+                case TokenType::AssignPlus:  chunk.emit(OP_ADD);  break;
+                case TokenType::AssignMinus: chunk.emit(OP_SUB);  break;
+                case TokenType::AssignMul:   chunk.emit(OP_MUL);  break;
+                case TokenType::AssignDiv:   chunk.emit(OP_DIV);  break;
+                default: return false;
+            }
+
+
+            if (!mVarExpr->compileAssignment(env,chunk,scope, requestType)) return false;
+            return true;
         }
-
-
-        if (!mVarExpr->compileAssignment(env,chunk,scope, requestType)) return false;
-        return true;
     }
 
 

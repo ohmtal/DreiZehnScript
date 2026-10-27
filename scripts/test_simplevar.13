@@ -6,12 +6,8 @@ define JLOOPS 25
 define ILOOPS 1000000
 define HLOOPS ILOOPS / 2
 
-if (sys::args->count) > 2 && (sys::args->value 2) == "global"
-    global varX = 0.0;
-    type = "GLOBAL"
-else
-    varX = 0.0; type = "LOCAL"
-end
+global varX = 0.0; type = "GLOBAL"
+-- varX = 0.0; type = "LOCAL"
 
 
 forRange j JLOOPS

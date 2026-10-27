@@ -89,8 +89,8 @@ struct ValueObject {
     }
 
     // .... array by string key ....
-    virtual inline Value* onGetArrayByStringPtr(std::string strKey) {
-        Tools::warnf("%s does not support array getter by string key: %s.\n", GetObjectTypeName(this), strKey.c_str());
+    virtual inline Value* onGetArrayByStringSymId(uint32_t symId) {
+        Tools::warnf("%s does not support array getter by string key: %s.\n", GetObjectTypeName(this), SymbolTable::getName(symId).c_str());
         return nullptr;
     }
 

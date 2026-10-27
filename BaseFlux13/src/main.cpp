@@ -155,6 +155,7 @@ int main(int argc, char* argv[]) {
 
     app.getSettings() = {
         .ScreenSize = { 800, 450},
+        .EnableVSync = false,
         .Company = "Ohmtal",
         .Caption = "BaseFlux13",
         .Version = "Version 0.1",

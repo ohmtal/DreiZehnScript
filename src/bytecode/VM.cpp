@@ -502,6 +502,26 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         DISPATCH();
     }
     // -------------------------------
+    //NOTE NEW
+    handle_OP_PUSHPTR_VAR: {
+        U32 symID = ADVANCE_U32();
+        U32 ptrPOS = ip;
+        void* rawPtr = advance_ptr(code,ip);
+        Value* valuePtr = nullptr;
+
+        if (rawPtr) {
+            valuePtr = static_cast<Value*>(rawPtr);
+            PUSH_STACK(valuePtr);
+            DISPATCH();
+        }
+        VariableFrame* frame = Globals::MasterVariableFrame;
+        valuePtr = frame->getVariablePtr(symID, true);
+        patch_ptr(code, ptrPOS, valuePtr);
+        PUSH_STACK(valuePtr);
+
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_SAVE_VAR:{
         U32 symID = ADVANCE_U32();
         U32 ptrPOS = ip;
@@ -597,6 +617,76 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         DISPATCH();
     }
     // -------------------------------
+    handle_OP_PUSHPTR_OBJECT_FIELD: {
+
+        U32 fieldSymId = ADVANCE_U32();
+        U32 saveObjPtrPos = ip;
+        void* rawObjectPtr =  advance_ptr(code,ip);
+        U32 saveFieldPtrPos = ip;
+        void* rawFieldValuePtr =  advance_ptr(code,ip);
+
+        Value objectValue = POP_STACK();
+        if (!objectValue.isPointer()) [[unlikely]] {
+            PrintVMError(OP_PUSHPTR_OBJECT_FIELD, "Object not found:",objectValue.toString());
+            DISPATCH();
+        }
+
+        ValueObject* obj = objectValue.asPointerObject();
+        Value* fieldValuePtr = nullptr;
+        if ( rawObjectPtr == (void*) obj ) [[likely]]{
+            fieldValuePtr = static_cast<Value*>(rawFieldValuePtr);
+            PUSH_STACK(fieldValuePtr);
+            DISPATCH();
+        } else {
+            fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
+            if (rawObjectPtr) {
+                code[saveObjPtrPos - 2] = OP_PUSHPTR_OBJECT_FIELD_GENERIC;
+            }
+            if (!fieldValuePtr) [[unlikely]] {
+                PrintVMError(OP_PUSHPTR_OBJECT_FIELD, "Object have no field named:",
+                             objectValue.toString(),
+                             SymbolTable::getName(fieldSymId));
+                PUSH_STACK(NumberNullValue);
+                DISPATCH();
+            }
+            // PATCH_PTR(saveObjPtrPos, obj);
+            patch_ptr(code,saveObjPtrPos, obj);
+            // PATCH_PTR(saveFieldPtrPos, fieldValuePtr);
+            patch_ptr(code,saveFieldPtrPos, fieldValuePtr);
+
+            PUSH_STACK(fieldValuePtr);
+        }
+
+        DISPATCH();
+    }
+
+    handle_OP_PUSHPTR_OBJECT_FIELD_GENERIC: {
+
+        U32 fieldSymId = ADVANCE_U32();
+        SKIP_PTR();
+        SKIP_PTR();
+
+        Value objectValue = POP_STACK();
+        if (!objectValue.isPointer()) [[unlikely]] {
+            PrintVMError(OP_PUSHPTR_OBJECT_FIELD_GENERIC, "Object not found:",objectValue.toString());
+            DISPATCH();
+        }
+
+        ValueObject* obj = objectValue.asPointerObject();
+        Value* fieldValuePtr = nullptr;
+        fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
+        if (!fieldValuePtr) [[unlikely]] {
+            PrintVMError(OP_SAVE_OBJECT_FIELD_GENERIC, "Object have no field named:",
+                         objectValue.toString(),
+                         SymbolTable::getName(fieldSymId));
+            DISPATCH();
+        }
+
+        PUSH_STACK(fieldValuePtr);
+
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_SAVE_OBJECT_FIELD: {
 
         U32 fieldSymId = ADVANCE_U32();
@@ -640,6 +730,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
 
         DISPATCH();
     }
+    // -------------------------------
     handle_OP_SAVE_OBJECT_FIELD_GENERIC: {
 
         U32 fieldSymId = ADVANCE_U32();
@@ -725,6 +816,43 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         DISPATCH();
     }
     // -----------------
+    handle_OP_PUSHPTR_OBJECT_METHOD : {
+        // pull method name id
+        U32 symID = ADVANCE_U32();
+        U32 argCount = ADVANCE_U32();
+
+        Value objectValue = POP_STACK();
+        if (!objectValue.isPointer()) [[unlikely]] {
+            PrintVMError(OP_SAVE_OBJECT_METHOD, "Object not found:",objectValue.toString());
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+        ValueObject* obj = objectValue.asPointerObject();
+        if (!obj) [[unlikely]]{
+            PrintVMError(OP_SAVE_OBJECT_METHOD, "Object not INVALID:",objectValue.toString());
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+
+        Value* destPrt = nullptr;
+        {
+            std::vector<Value> evaluatedArgs(argCount);
+            for (int i = (int)argCount - 1; i >= 0; i--) {
+                evaluatedArgs[i] = POP_STACK();
+            }
+
+            destPrt =  obj->onMethodCallGetAssignPtr(symID, evaluatedArgs);
+        }
+        if (!destPrt) [[unlikely]] {
+            PrintVMError(OP_SAVE_OBJECT_METHOD, "Cant fins method on object:",objectValue.toString());
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+
+        PUSH_STACK(destPrt);
+        DISPATCH();
+    }
+    // -----------------
     handle_OP_SAVE_OBJECT_METHOD : {
         // pull method name id
         U32 symID = ADVANCE_U32();
@@ -778,9 +906,88 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         if (indexValue.isNumber()) [[likely]] {
              resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.getUInt());
         } else if (indexValue.isString()) {
-                resultPtr =varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
+            resultPtr =varValue.asPointerObject()->onGetArrayByStringSymId(SymbolTable::insert( indexValue.getStringRef()));
         }
         PUSH_STACK(resultPtr ? *resultPtr : NumberNullValue);
+        DISPATCH();
+    }
+    // ---------------------
+    handle_OP_LOAD_ARRAY_INDEX: {
+        U32 index = ADVANCE_U32();
+        Value varValue = POP_STACK();
+
+        if (!varValue.isPointer()) {
+            PrintVMError(OP_LOAD_ARRAY,"Array is not an Object!");
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+        const Value* resultPtr = nullptr;
+        resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)index);
+        PUSH_STACK(resultPtr ? *resultPtr : NumberNullValue);
+        DISPATCH();
+    }
+    // ---------------------
+    handle_OP_LOAD_ARRAY_SYMID: {
+        U32 symId = ADVANCE_U32();
+        Value varValue = POP_STACK();
+
+        if (!varValue.isPointer()) {
+            PrintVMError(OP_LOAD_ARRAY,"Array is not an Object!");
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+        const Value* resultPtr = nullptr;
+        resultPtr =varValue.asPointerObject()->onGetArrayByStringSymId(symId);
+        PUSH_STACK(resultPtr ? *resultPtr : NumberNullValue);
+        DISPATCH();
+    }
+    // ---------------------
+    handle_OP_PUSHPTR_ARRAY_INDEX: {
+        U32 index = ADVANCE_U32();
+        Value varValue = POP_STACK();
+
+        if (!varValue.isPointer()) [[unlikely]] {
+            PrintVMError(OP_PUSHPTR_ARRAY_INDEX,"Array is not an Object!");
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+        Value* resultPtr = nullptr;
+        resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)index);
+        PUSH_STACK(resultPtr ? resultPtr : NumberNullValue);
+        DISPATCH();
+    }
+    // ---------------------
+    handle_OP_PUSHPTR_ARRAY_SYMID: {
+        U32 symId = ADVANCE_U32();
+        Value varValue = POP_STACK();
+
+        if (!varValue.isPointer()) [[unlikely]] {
+            PrintVMError(OP_PUSHPTR_ARRAY_SYMID,"Array is not an Object!");
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+        Value* resultPtr = nullptr;
+        resultPtr =varValue.asPointerObject()->onGetArrayByStringSymId(symId);
+        PUSH_STACK(resultPtr ? resultPtr : NumberNullValue);
+        DISPATCH();
+    }
+    // ---------------------
+    handle_OP_PUSHPTR_ARRAY: {
+        Value indexValue = POP_STACK();
+        Value varValue = POP_STACK();
+
+        if (!varValue.isPointer()) [[unlikely]] {
+            PrintVMError(OP_PUSHPTR_ARRAY,"Array is not an Object!");
+            PUSH_STACK(NumberNullValue);
+            DISPATCH();
+        }
+        Value* resultPtr = nullptr;
+        if (indexValue.isNumber()) [[likely]] {
+            resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.getUInt());
+        } else if (indexValue.isString()) {
+            resultPtr =varValue.asPointerObject()->onGetArrayByStringSymId(SymbolTable::insert( indexValue.getStringRef()));
+        }
+        PUSH_STACK(resultPtr ? resultPtr : NumberNullValue);
         DISPATCH();
     }
     // ---------------------
@@ -788,12 +995,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value indexValue = POP_STACK();
         Value varValue = POP_STACK();
         Value assignValue = PEEK_STACK(0);
-
-        // Tools::printf("Assign:%s, Index:%s, Var:%s\n"
-        //     , assignValue.toString().c_str()
-        //     , indexValue.toString().c_str()
-        //     , varValue.toString().c_str()
-        // );
 
         if (!varValue.isPointer()) {
             PrintVMError(OP_SAVE_ARRAY,"Array is not an Object!");
@@ -806,7 +1007,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         if (indexValue.isNumber()) [[likely]] {
             resultPtr = arrPtr->onGetArrayIndexPtr((size_t)indexValue.getUInt());
         } else if (indexValue.isString()) {
-            resultPtr = arrPtr->onGetArrayByStringPtr(indexValue.getStringRef());
+            //FIXME SymbolTable insert all the time
+            resultPtr = arrPtr->onGetArrayByStringSymId(SymbolTable::insert(indexValue.getStringRef()));
         }
         if (resultPtr) [[likely]]{
             _set_var_pointer_value(resultPtr, assignValue);
@@ -823,6 +1025,13 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         // frame pointer for call stack
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex ;
         PUSH_STACK(locals[slot]);
+        DISPATCH();
+    }
+    // -------------------------------
+    //NOTE NEW
+    handle_OP_PUSHPRT_LOCAL: {
+        U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex ;
+        PUSH_STACK(&locals[slot]);
         DISPATCH();
     }
     // -------------------------------
@@ -949,6 +1158,28 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         DISPATCH();
     }
     // -------------------------------
+    handle_OP_INC_PTR: {
+        S32 inc = ADVANCE_S32();
+
+        Value* varPTR = POP_STACK().asValuePointer();
+        if (!varPTR) [[unlikely]] {
+            PUSH_STACK(NumberNullValue);
+            PrintVMError(OP_INC_PTR, "Invalid variable!!");
+            DISPATCH();
+        }
+
+        if (varPTR->isInt()) [[likely]] {
+            *varPTR = Value(varPTR->asFastInt() + inc);
+            PUSH_STACK(*varPTR);
+            DISPATCH();
+        }
+
+        *varPTR = Value(varPTR->getInt() + inc);
+        PUSH_STACK(*varPTR);
+
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_ADD_LOCAL: {
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
@@ -960,6 +1191,26 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         }
         val = Value(val.getDouble() + b.getDouble());
         PUSH_STACK(val);
+        DISPATCH();
+    }
+    // -------------------------------
+    handle_OP_ADD_PTR: {
+        Value b = POP_STACK();
+        Value* varPTR = POP_STACK().asValuePointer();
+        if (!varPTR) [[unlikely]] {
+            PUSH_STACK(NumberNullValue);
+            PrintVMError(OP_INC_PTR, "Invalid variable!!");
+            DISPATCH();
+        }
+        if (varPTR->isDouble() && b.isDouble()) [[likely]] {
+            *varPTR = Value(varPTR->asFastDouble() + b.asFastDouble());
+            PUSH_STACK(*varPTR);
+            DISPATCH();
+        }
+        *varPTR = Value(varPTR->getDouble() + b.getDouble());
+        PUSH_STACK(*varPTR);
+
+
         DISPATCH();
     }
     // -------------------------------
@@ -977,6 +1228,26 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         DISPATCH();
     }
     // -------------------------------
+    handle_OP_SUB_PTR: {
+        Value b = POP_STACK();
+        Value* varPTR = POP_STACK().asValuePointer();
+        if (!varPTR) [[unlikely]] {
+            PUSH_STACK(NumberNullValue);
+            PrintVMError(OP_INC_PTR, "Invalid variable!!");
+            DISPATCH();
+        }
+        if (varPTR->isDouble() && b.isDouble()) [[likely]] {
+            *varPTR = Value(varPTR->asFastDouble() - b.asFastDouble());
+            PUSH_STACK(*varPTR);
+            DISPATCH();
+        }
+        *varPTR = Value(varPTR->getDouble() - b.getDouble());
+        PUSH_STACK(*varPTR);
+
+
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_MUL_LOCAL: {
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
@@ -991,10 +1262,31 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         DISPATCH();
     }
     // -------------------------------
+    handle_OP_MUL_PTR: {
+        Value b = POP_STACK();
+        Value* varPTR = POP_STACK().asValuePointer();
+        if (!varPTR) [[unlikely]] {
+            PUSH_STACK(NumberNullValue);
+            PrintVMError(OP_INC_PTR, "Invalid variable!!");
+            DISPATCH();
+        }
+        if (varPTR->isDouble() && b.isDouble()) [[likely]] {
+            *varPTR = Value(varPTR->asFastDouble() * b.asFastDouble());
+            PUSH_STACK(*varPTR);
+            DISPATCH();
+        }
+        *varPTR = Value(varPTR->getDouble() * b.getDouble());
+        PUSH_STACK(*varPTR);
+
+
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_DIV_LOCAL: {
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
         Value& val = locals[slot];
+        // FIXME division by zero
         if (val.isDouble() && b.isDouble()) [[likely]] {
             val = Value(val.asFastDouble() / b.asFastDouble());
             PUSH_STACK(val);
@@ -1002,6 +1294,25 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         }
         val = Value(val.getDouble() / b.getDouble());
         PUSH_STACK(val);
+        DISPATCH();
+    }
+    // -------------------------------
+    handle_OP_DIV_PTR: {
+        Value b = POP_STACK();
+        Value* varPTR = POP_STACK().asValuePointer();
+        if (!varPTR) [[unlikely]] {
+            PUSH_STACK(NumberNullValue);
+            PrintVMError(OP_INC_PTR, "Invalid variable!!");
+            DISPATCH();
+        }
+        // FIXME division by zero
+        if (varPTR->isDouble() && b.isDouble()) [[likely]] {
+            *varPTR = Value(varPTR->asFastDouble() / b.asFastDouble());
+            PUSH_STACK(*varPTR);
+            DISPATCH();
+        }
+        *varPTR = Value(varPTR->getDouble() / b.getDouble());
+        PUSH_STACK(*varPTR);
         DISPATCH();
     }
     // -------------------------------

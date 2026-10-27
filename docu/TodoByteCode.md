@@ -237,7 +237,7 @@ to bad i have use it in many scripts ^^  i may use SPC torque like do not want t
     default is IP(Interpreter) use -ip for interpreter and -bc for bytecode
 
     
-- [ ] BUG: something is wrong with locals or ARRAY or my change locals to outside    
+- [X] BUG: something is wrong with locals or ARRAY or my change locals to outside    
 Something is really wrong with [] access. Using it on new BaseFlux13 is cause crash 
 with dangling pointer!!!!
 ```
@@ -256,6 +256,36 @@ template = Array::new "point" => 0, "color" => 0, "fill" => 0
 Rects = Vector::new; Rects->fill 2000 template
 foreach item Rects; item[0] = (Vector::new 1 2 3 4);;
 
+I first wanted to add garbage collection to a new Tick void or breath but now
+i check the creation time 
+
+- [ ] compilePtr  (not tested!)
+    - [X] VariableExpression local and global 
+    - [X] ObjectFieldExpression with cache
+    - [X] ArrayVariableExpression
+    - [ ] MethodExpression method is really slow so do i need it ?! 
+    
+
+- [ ] replace assign on inline math 
+    - [ ] TEST VariableExpression local and global 
+        - [X] OP_INC_PTR
+    - [ ] TEST ObjectFieldExpression with cache
+        - [X] OP_INC_PTR
+    - [ ] TEST ArrayVariableExpression
+        - [X] OP_INC_PTR
+    - [ ] TEST MethodExpression
+
+    
+    
+- [ ] change inline OP to also do it directly like the local!!! 
+    - [X] changed to load by symid
+    - [X] Bytecode push pointer
+    - [X] Bytecode load 
+    - [ ] Bytecode assign
+    
+- [ ] Array should check it it's a literal and call op for index or symbol 
+
+- [ ] ByteCode Stuff for call script function
 
 
     

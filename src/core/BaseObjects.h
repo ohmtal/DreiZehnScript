@@ -78,8 +78,8 @@ namespace DreiZehn {
             return getDynamicFieldPtrByIndex(arrayIndex);
         }
         // .... array by string key ....
-        inline Value* onGetArrayByStringPtr(std::string strKey) override{
-            return getDynamicFieldPtr(SymbolTable::insert( strKey ));
+        inline Value* onGetArrayByStringSymId(uint32_t symId) override{
+            return getDynamicFieldPtr(symId);
         }
 
         // -------------------------------------------------------------------------
@@ -119,8 +119,8 @@ namespace DreiZehn {
             return getDynamicFieldPtrByIndex(arrayIndex);
         }
         // .... array by string key ....
-        inline Value* onGetArrayByStringPtr(std::string strKey) override{
-            uint32_t id = SymbolTable::insert( strKey );
+        inline Value* onGetArrayByStringSymId(uint32_t symId) override{
+            uint32_t id = symId;
             Value* valPtr =  getDynamicFieldPtr(id);
             if (valPtr) return valPtr;
             insertUpdateDynamicField(id, NumberNullValue);

@@ -236,6 +236,29 @@ to bad i have use it in many scripts ^^  i may use SPC torque like do not want t
 - [X] condional activate to run it without debug::bc
     default is IP(Interpreter) use -ip for interpreter and -bc for bytecode
 
+    
+- [ ] BUG: something is wrong with locals or ARRAY or my change locals to outside    
+Something is really wrong with [] access. Using it on new BaseFlux13 is cause crash 
+with dangling pointer!!!!
+```
+template = Array::new "point" => 0, "color" => 0, "fill" => 0
+Rects = Vector::new; Rects->fill 2 template
+foreach item Rects; item[0] = (Vector::new 1 2 3 4);;
+--
+foreach item Rects; print item[0][0];;
+--
+foreach item Rects; item[0][0] = 5;;
+
+```
+THIS!=> OK here it works ... i Guess it's another garbage collection story!!! 
+
+template = Array::new "point" => 0, "color" => 0, "fill" => 0
+Rects = Vector::new; Rects->fill 2000 template
+foreach item Rects; item[0] = (Vector::new 1 2 3 4);;
+
+
+
+    
 ## CRITICAL BUT LATER:
 ### ??: host reload
 

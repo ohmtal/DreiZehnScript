@@ -51,7 +51,9 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     ValueObject::ValueObject(int t) : mType(t) {
         GarbageCollection::insert(this);
+        mCreationTime = Tools::time_seconds();
         mObjectTypeName = GetObjectTypeName(this);
+
         // this make is slower !!
         // mDynmaicFieldIndex.reserve(256);
         // mDynamicFieldValues.reserve(256);

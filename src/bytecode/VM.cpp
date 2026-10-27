@@ -41,6 +41,7 @@ namespace DreiZehn::VM {
 
     }
     //-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
 
 
 
@@ -777,7 +778,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         if (indexValue.isNumber()) [[likely]] {
              resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.getUInt());
         } else if (indexValue.isString()) {
-            resultPtr =varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
+                resultPtr =varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
         }
         PUSH_STACK(resultPtr ? *resultPtr : NumberNullValue);
         DISPATCH();
@@ -788,19 +789,26 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         Value varValue = POP_STACK();
         Value assignValue = PEEK_STACK(0);
 
+        // Tools::printf("Assign:%s, Index:%s, Var:%s\n"
+        //     , assignValue.toString().c_str()
+        //     , indexValue.toString().c_str()
+        //     , varValue.toString().c_str()
+        // );
+
         if (!varValue.isPointer()) {
             PrintVMError(OP_SAVE_ARRAY,"Array is not an Object!");
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
+        ValueObject* arrPtr = varValue.asPointerObject();
+
         Value* resultPtr = nullptr;
         if (indexValue.isNumber()) [[likely]] {
-            resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.getUInt());
+            resultPtr = arrPtr->onGetArrayIndexPtr((size_t)indexValue.getUInt());
         } else if (indexValue.isString()) {
-            resultPtr =varValue.asPointerObject()->onGetArrayByStringPtr(indexValue.getStringRef());
+            resultPtr = arrPtr->onGetArrayByStringPtr(indexValue.getStringRef());
         }
         if (resultPtr) [[likely]]{
-            // *resultPtr = assignValue;
             _set_var_pointer_value(resultPtr, assignValue);
             DISPATCH();
         }

@@ -8,6 +8,8 @@ namespace DreiZehn::VM {
     Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals);
 
     // ------------------------------
+    // bytecode scope and locals
+    // ------------------------------
     inline CompilerScope scope;
     inline std::vector<Value>locals;
     // ------------------------------

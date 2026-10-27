@@ -15,6 +15,7 @@
 #include "core/Value.h"
 #include "core/ValueObject.h"
 #include "core/FunctionMap.h"
+#include "core/GarbageCollection.h"
 
 namespace DreiZehn {
 
@@ -24,7 +25,9 @@ namespace DreiZehn {
     struct VectorValueObject : public ValueObject {
         std::vector<Value> mElements;
 
-        VectorValueObject() : ValueObject(TypeVectorObject) {  }
+        VectorValueObject() : ValueObject(TypeVectorObject) {
+             mSupportClone = true;
+        }
         ~VectorValueObject() {
             // GarbageCollection: cleanup assigned flags for object members
             if (!Globals::shutDownRUNNING)
@@ -35,6 +38,12 @@ namespace DreiZehn {
                 }
             }
             mElements.clear();
+        }
+        virtual ValueObject* clone() override {
+            VectorValueObject* clone = new VectorValueObject();
+            ValueObject::cloneBase(clone);
+            clone->mElements = this->mElements;
+            return clone;
         }
 
         inline static ValueObjectProperty mPushProp;
@@ -215,8 +224,13 @@ namespace DreiZehn {
                 ValueObject* cloneParent = nullptr;
                 if (args[1].isPointer()) {
                     cloneParent = args[1].asPointerObject();
+                    if (cloneParent == this) {
+                        Tools::errorf("Sorry cant fill myself as a clone\n");
+                        ret = NumberNullValue;
+                        return true;
+                    }
                     if (!cloneParent->mSupportClone) {
-                        Tools::errorf("Sorry the object %s does not support cloneing!"
+                        Tools::errorf("Sorry the object %s does not support cloneing!\n"
                             , cloneParent->mClassName.c_str());
                         ret = NumberNullValue;
                         return true;
@@ -256,7 +270,7 @@ namespace DreiZehn {
         }
     };
     // -------------------------------------------------------------------------
-    void RegisterVectorFunctions(Environment& env) {
+    inline void RegisterVectorFunctions(Environment& env) {
         static bool registered = false;
         if (registered) return;
         registered = true;

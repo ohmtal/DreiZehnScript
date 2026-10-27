@@ -605,7 +605,6 @@ namespace DreiZehn {
 
             chunk.emit(OP_CALL_SF_FUNCTION);
 
-
             chunk.emit(argCount);
 
             // mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::Adress});

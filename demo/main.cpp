@@ -22,7 +22,7 @@
 
 
 #include "DreiZehn.h"
-#include <ScriptLoader.h>
+#include "ScriptLoader.h"
 
 #ifdef DREIZEHN_FENSTER
 #include "addons/Fenster/Fenster.h"
@@ -158,6 +158,9 @@ int main(int argc, char* argv[]) {
     Environment env;
     Init(env, argc, argv);
 
+
+
+
     #ifdef DREIZEHN_FENSTER
     FunctionMap::ModuleRegistry::Register("Fenster", RegisterFensterFunctions);
     FunctionMap::ModuleRegistry::Register("FensterAudio", RegisterFensterAudioFunctions);
@@ -202,7 +205,6 @@ int main(int argc, char* argv[]) {
 
         bool success = RunScriptFile(scriptPath, env, Globals::ByteCodeMode);
 
-        env.shutDown();
 
         return success ? 0 : 1;
 
@@ -224,6 +226,5 @@ int main(int argc, char* argv[]) {
 
     }
 #endif
-    env.shutDown();
     return 0;
 }

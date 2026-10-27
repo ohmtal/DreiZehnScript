@@ -105,6 +105,12 @@ namespace DreiZehn::Tools{
         return std::chrono::duration<double>(duration).count();
     }
 
+    uint64_t time_seconds() {
+        auto now = std::chrono::system_clock::now();
+        auto duration = now.time_since_epoch();
+        return std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+    }
+
     std::string date(std::string format, double timestamp, bool is_utc) {
         std::time_t time_raw;
 

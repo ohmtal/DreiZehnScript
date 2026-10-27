@@ -89,13 +89,15 @@ void GarbageCollection::doGarbageCollection(bool isShutDown) {
         mGarbageCollection.clear();
     } else {
 
+
+        uint64_t curTime = Tools::time_seconds();
         for (int i = 0; i < 3; i++) {
             size_t startcount = mGarbageCollection.size();
             std::vector<ValueObject*> byebye;
             std::vector<ValueObject*> muststay;
 
             for (auto* obj : mGarbageCollection) {
-                if (obj->mAssigned < 1) {
+                if (obj->mAssigned < 1 && (curTime -  obj->mCreationTime) > 10 ) {
                     byebye.push_back(obj);
                 } else {
                     muststay.push_back(obj);

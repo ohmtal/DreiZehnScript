@@ -18,6 +18,23 @@
 
 namespace DreiZehn {
 
+    namespace Core {
+        Value Eval(const std::string& command, Environment& env) {
+            std::stringstream stream(command);
+
+            if (DreiZehn::Globals::ByteCodeMode) {
+                return DreiZehn::RunScriptStreamByteCode(stream, env);
+            } else {
+                return Value(DreiZehn::RunScriptStream(stream, env));
+            }
+        }
+
+        bool IsFunction(const std::string& funcName) {
+            uint32_t nameTokenSymbolId = SymbolTable::insert(funcName);
+            return FunctionMap::IsFunction(nameTokenSymbolId);
+        }
+    } // namespace Core
+
     // =============================================================================
     // --- RegisterCoreFunctions ---
     // =============================================================================
@@ -35,14 +52,15 @@ namespace DreiZehn {
                 ret = NumberNullValue;
                 return true;
             }
-            std::stringstream stream(args[0].getStringRef());
-
-            if (DreiZehn::Globals::ByteCodeMode) {
-                ret = DreiZehn::RunScriptStreamByteCode(stream, env);
-
-            } else {
-                ret = Value(DreiZehn::RunScriptStream(stream, env));
-            }
+            ret = Core::Eval(args[0].getStringRef(), env);
+            // std::stringstream stream(args[0].getStringRef());
+            //
+            // if (DreiZehn::Globals::ByteCodeMode) {
+            //     ret = DreiZehn::RunScriptStreamByteCode(stream, env);
+            //
+            // } else {
+            //     ret = Value(DreiZehn::RunScriptStream(stream, env));
+            // }
 
             return true;
         }, "run a script embedded in a string");
@@ -53,8 +71,11 @@ namespace DreiZehn {
                 ret = NumberNullValue;
                 return true;
             }
-            uint32_t nameTokenSymbolId = SymbolTable::insert(args[0].getStringRef());
-            ret = Value(FunctionMap::IsFunction(nameTokenSymbolId));
+
+            // uint32_t nameTokenSymbolId = SymbolTable::insert(args[0].getStringRef());
+            // ret = Value(FunctionMap::IsFunction(nameTokenSymbolId));
+
+            ret = Value(Core::IsFunction(args[0].getStringRef()));
 
             return true;
         }, "return if a function exists or not. useful to check a include failed");

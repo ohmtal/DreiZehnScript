@@ -30,6 +30,7 @@ const char* GetObjectTypeName(ValueObject* object);
 struct ValueObject {
     int mType;
     int mAssigned = 0;
+    uint64_t mCreationTime = 0;
 
     bool mSupportClone = false; // you need to add a clone override to your class (see also struct)
     bool mAutoCreateDynamicFields = true; // you can deny autocreate (see also struct)

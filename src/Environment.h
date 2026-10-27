@@ -290,8 +290,5 @@ public:
          return execute(node, *this);
     }
     // -------------------------------------------------------------------------
-    void shutDown() {
-        // done be destructor: doGarbageCollection();
-    }
 }; //Class
 } //Namespace

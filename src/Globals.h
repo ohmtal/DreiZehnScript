@@ -38,9 +38,16 @@ namespace DreiZehn {
 
 
     inline std::function<bool()> OnBreath = nullptr;
-    bool BaseBreath();
+    // bool BaseBreath();
 
 
+
+    inline bool BaseBreath() {
+        if (OnBreath) {
+            return OnBreath();
+        }
+        return true;
+    }
 
 
 

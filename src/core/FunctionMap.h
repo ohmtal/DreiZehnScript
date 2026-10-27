@@ -96,6 +96,13 @@ namespace DreiZehn::FunctionMap {
             return nullptr;
     }
 
+
+    // Register an empty Script function
+    inline void RegisterScriptFunctionStub(const std::string& funcName, const std::vector<std::string>& parameters = {} ) {
+        U32 symId = SymbolTable::insert(funcName);
+        RegisteredScriptFunctions[symId] = ScriptFunction({parameters});
+    }
+
     Value CallScriptFunction(Environment& env, const ScriptFunction* sf,std::span<Value> args );
 
     // -------------------------------------------------------------

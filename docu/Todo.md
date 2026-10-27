@@ -464,7 +464,40 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - StarField2 (bench): 6.878u 0.199s 0:07.30 96.7% 
     - i had test_var down to 2.1 and field down to 2.7 no idea what it make it slower again 
     
-    
+- [ ] Testing BaseFlux13
+    - [ ] Tools::LogHandler should be added to Init
+    - [ ] eval is a bad idea to call events like onRender
+        - on Interpreter i can simply use => FunctionMap::CallScriptFunction
+        - on Bytecode it's compiled in !
+            - CallExpression::compile create the chunk with a placeholder for the 
+              FunctionPointer
+            - I may compile a new call with a single chunk, and patch it
+            - i also have all parameters as LiteralExpressions in the AST
+            - it should look like
+                - for each param:
+                    - OP_CONST 
+                    - U32 constIdx (pushed as chunk.addConstant(this->evaluate(env));)
+                - call
+                    - OP_CALL_SF_FUNCTION
+                    - U32 argCount
+                    - pointer to ScriptFunction
+                    - IF NOT RESULT IS REQUESTES: OP_POP_STACK
+            - example flux::init is 5 bytes
+                - OP_CALL_SF_FUNCTION
+                - 0
+                - 0x... pointer 
+                - OP_POP_STACK
+            - example flux::OnMouse x y button isDown << 13 ( 4 * 2 + 5) bytes 
+                - chunk.addConstant x, patch pos + 1 
+                - chunk.addConstant y, patch pos + 3
+                - chunk.addConstant button, patch pos + 5
+                - chunk.addConstant isDown, patch pos + 7
+                - ONCE! patch pointer: pos + 10
+                
+              
+    - [ ] Objects
+        - [ ] mClassName is a String not a Symbol?! 
+        - [ ] need ->clone method on ValueObject
 
 
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 

@@ -31,7 +31,7 @@ define BROWN      Vector::new 127 106 79 255     # Brown
 define DARKBROWN  Vector::new 76 63 47 255       # Dark Brown
 
 global Rects = 0
-
+global Count = 4000
 -- -----------------------------------------------------------------------------
 -- To set parameters before it open the window
 fn flux::Load
@@ -40,7 +40,7 @@ end
 fn flux::Init
     template = Array::new "point" => 0, "color" => 0, "fill" => 0
     Rects = Vector::new
-    Rects->fill 1000 template
+    Rects->fill Count template
 
     forEach item Rects
         item["point"] = Vector::new 0 0 0 0;
@@ -62,10 +62,10 @@ end
 -- -----------------------------------------------------------------------------
 fn flux::Render
     forEach item Rects
-        flux::DrawRect item[0] item[1] item[2]
+        flux::DrawRect item["point"] item["color"] item["fill"]
     end
 
-    flux::DrawFPS 10 10
+    flux::DrawFPS 10.0 10.0 3.0
 end
 -- -----------------------------------------------------------------------------
 fn flux::ShutDown

@@ -37,6 +37,8 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/core/ValueObject.cpp
     ${CMAKE_CURRENT_LIST_DIR}/core/VariableFrame.h
 
+    ${CMAKE_CURRENT_LIST_DIR}/core/VectorFunctions.h
+
     ${CMAKE_CURRENT_LIST_DIR}/Environment.h
 
     ${CMAKE_CURRENT_LIST_DIR}/ScriptLoader.h
@@ -54,7 +56,6 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/functions/DebugFunctions.cpp
     ${CMAKE_CURRENT_LIST_DIR}/functions/MathFunctions.cpp
     ${CMAKE_CURRENT_LIST_DIR}/functions/StringFunctions.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/functions/VectorFunctions.h
     ${CMAKE_CURRENT_LIST_DIR}/functions/PointVectorObjectFunctions.h
     ${CMAKE_CURRENT_LIST_DIR}/functions/SysFunctions.cpp
 

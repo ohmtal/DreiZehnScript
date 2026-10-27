@@ -110,31 +110,31 @@ namespace DreiZehn {
             }
             return expr;
         }
-        // else if (peek().mType == TokenType::LCurly) {
-        //     advance();
-        //
-        //     // while (peek().mType != TokenType::RCurly || peek().mType == TokenType::EOFToken)
-        //     // {
-        //     // }
-        //     std::vector<std::unique_ptr<Expression>> args;
-        //     while (isContinueToken(peek())) {
-        //         size_t lastPos = mPos;
-        //         args.push_back(parseMath());
-        //         if (lastPos == mPos) {
-        //             Tools::PrintParseError("In Curly Brackets:");
-        //             break;
-        //         }
-        //     }
-        //
-        //     if (peek().mType == TokenType::RCurly) {
-        //         advance();
-        //
-        //         return std::make_unique<CurlyArgumentsExpression>(std::move(args));
-        //     } else {
-        //         Tools::PrintParseError("Error: Missing closing curly bracket\n");
-        //     }
-        //     return nullptr;
-        // }
+        else if (peek().mType == TokenType::LCurly) {
+            advance();
+
+            // while (peek().mType != TokenType::RCurly || peek().mType == TokenType::EOFToken)
+            // {
+            // }
+            std::vector<std::unique_ptr<Expression>> args;
+            while (isContinueToken(peek())) {
+                size_t lastPos = mPos;
+                args.push_back(parseMath());
+                if (checkCommaBreak(args)) break; //TEST
+                if (lastPos == mPos) {
+                    Tools::PrintParseError("In Curly Brackets:");
+                    break;
+                }
+            }
+            if (peek().mType == TokenType::RCurly) {
+                advance();
+
+                return std::make_unique<ListExpression>(std::move(args));
+            } else {
+                Tools::PrintParseError("Error: Missing closing curly bracket\n");
+            }
+            return nullptr;
+        }
         else if (peek().mType == TokenType::Not) {
             advance(); //eat Not
             auto expr = parseMath();
@@ -144,31 +144,30 @@ namespace DreiZehn {
             Token t = advance();
             return std::make_unique<LiteralExpression>(t.mType, t.mValue);
         }
-        // 0.9 removed!
-        // // else if (peek().mType == TokenType::BitAnd ) {
-        // //     Token t = advance();
-        // //     auto expr = parseMath();
-        // //     if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
-        // //         expr.get()->mNodeType != NodeType::ObjectFieldExpression)
-        // //     ) {
-        // //         Tools::PrintParseError("Get by Reference (&) need a Variable!");
-        // //         return nullptr;
-        // //     }
-        // //
-        // //     return std::make_unique<VariableReferenceExpression>(std::move(expr));
-        // // } else
-        // // if (peek().mType == TokenType::Mul ) {
-        // //     Token t = advance();
-        // //     auto expr = parseExpression();
-        // //     if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
-        // //         expr.get()->mNodeType != NodeType::ObjectFieldExpression)
-        // //     ) {
-        // //         Tools::PrintParseError("Get by Reference (&) need a Variable!");
-        // //         return nullptr;
-        // //     }
-        // //
-        // //     return std::make_unique<VariablePointerExpression>(std::move(expr));
-        // // }
+        else if (peek().mType == TokenType::BitAnd ) {
+            Token t = advance();
+            auto expr = parseMath();
+            if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
+                expr.get()->mNodeType != NodeType::ObjectFieldExpression)
+            ) {
+                Tools::PrintParseError("Get by Reference (&) need a Variable!");
+                return nullptr;
+            }
+
+            return std::make_unique<VariableReferenceExpression>(std::move(expr));
+        } else
+        if (peek().mType == TokenType::Mul ) {
+            Token t = advance();
+            auto expr = parseExpression();
+            if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
+                expr.get()->mNodeType != NodeType::ObjectFieldExpression)
+            ) {
+                Tools::PrintParseError("Get by Reference (&) need a Variable!");
+                return nullptr;
+            }
+
+            return std::make_unique<VariablePointerExpression>(std::move(expr));
+        }
         else
         if (peek().mType == TokenType::Identifier) {
             std::unique_ptr<Expression> currentExpression = nullptr;

@@ -26,6 +26,7 @@
 #include "core/FunctionMap.h"
 #include <core/BaseObjects.h>
 #include "VM.h"
+#include <core/VectorFunctions.h>
 
 namespace DreiZehn::VM {
     //-----------------------------------------------------------------------------
@@ -1194,6 +1195,18 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         DISPATCH();
     }
     // -------------------------------
+    handle_OP_ASSIGN_PTR: {
+        Value* varPTR = POP_STACK().asValuePointer();
+        Value b = PEEK_STACK(0);
+        if (!varPTR) [[unlikely]] {
+            PUSH_STACK(NumberNullValue);
+            PrintVMError(OP_INC_PTR, "Invalid variable!!");
+            DISPATCH();
+        }
+        *varPTR = b;
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_ADD_PTR: {
         Value b = POP_STACK();
         Value* varPTR = POP_STACK().asValuePointer();
@@ -1577,12 +1590,69 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
         DISPATCH();
     }
     // -------------------------------
+    handle_OP_CREATE_LIST: {
+        U32 argCount = ADVANCE_U32();
+        VectorValueObject* arr = new VectorValueObject();
+
+        for (int i = (int)argCount - 1; i >= 0; i--) {
+            Value arg = PEEK_STACK(i);
+            if (arg.isPointer()) {
+                arg.asPointerObject()->setAssigned(true);
+            }
+            arr->mElements.push_back(arg);
+        }
+        _STK -= argCount;
+
+        PUSH_STACK(Value(arr));
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_STR_CONCAT: {
         Value b = POP_STACK();
         Value a = POP_STACK();
 
         PUSH_STACK(Value::handleStringAdd(a, b));
         DISPATCH();
+    }
+    // -------------------------------
+    // used by print (*foo)
+    handle_OP_VALUE_PTR_PTR_TO_VALUE_PTR: {
+        // get Value pointer to pointer
+        if (!PEEK_STACK(0).isValuePointer()) [[unlikely]] {
+            PrintVMError(OP_VALUE_PTR_PTR_TO_VALUE,"Value is not a pointer");
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+        Value* varPTR = PEEK_STACK(0).asValuePointer();
+        if (!varPTR->isValuePointer()) [[unlikely]] {
+            PrintVMError(OP_VALUE_PTR_PTR_TO_VALUE,"Value from pointer is not a pointer");
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+        // get Value pointer to value ...
+        PEEK_STACK(0) = varPTR->asValuePointer();
+        DISPATCH();
+
+    }
+    // -------------------------------
+    // used by print (*foo)
+    handle_OP_VALUE_PTR_PTR_TO_VALUE: {
+        // get Value pointer to pointer
+        if (!PEEK_STACK(0).isValuePointer()) [[unlikely]] {
+            PrintVMError(OP_VALUE_PTR_PTR_TO_VALUE,"Value is not a pointer");
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+        Value* varPTR = PEEK_STACK(0).asValuePointer();
+        if (!varPTR->isValuePointer()) [[unlikely]] {
+            PrintVMError(OP_VALUE_PTR_PTR_TO_VALUE,"Value from pointer is not a pointer");
+            PEEK_STACK(0) = NumberNullValue;
+            DISPATCH();
+        }
+        // get Value pointer to value ...
+        PEEK_STACK(0) = *varPTR->asValuePointer();
+        DISPATCH();
+
     }
     // -------------------------------
     handle_OP_POP_STACK: {

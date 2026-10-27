@@ -161,6 +161,7 @@ bool isContinueToken(const Token& op) {
     && op.mType != TokenType::Else
     && op.mType != TokenType::ElIf
     && op.mType != TokenType::RSquare
+    && op.mType != TokenType::RCurly
     && !isMathType(op)
     ;
 }

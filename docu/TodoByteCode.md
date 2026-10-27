@@ -259,31 +259,45 @@ foreach item Rects; item[0] = (Vector::new 1 2 3 4);;
 I first wanted to add garbage collection to a new Tick void or breath but now
 i check the creation time 
 
-- [ ] compilePtr  (not tested!)
+- [X] compilePtr  (not tested!)
     - [X] VariableExpression local and global 
     - [X] ObjectFieldExpression with cache
     - [X] ArrayVariableExpression
-    - [ ] MethodExpression method is really slow so do i need it ?! 
+    - [X] MethodExpression method is really slow so do i need it ?! 
     
 
-- [ ] replace assign on inline math 
-    - [ ] TEST VariableExpression local and global 
+- [X] replace assign on inline math 
+    - [X] TEST VariableExpression local and global 
         - [X] OP_INC_PTR
-    - [ ] TEST ObjectFieldExpression with cache
+    - [X] TEST ObjectFieldExpression with cache
         - [X] OP_INC_PTR
-    - [ ] TEST ArrayVariableExpression
+    - [X] TEST ArrayVariableExpression
         - [X] OP_INC_PTR
-    - [ ] TEST MethodExpression
+    - [X] TEST MethodExpression
 
     
     
-- [ ] change inline OP to also do it directly like the local!!! 
+- [X] change inline OP to also do it directly like the local!!! 
     - [X] changed to load by symid
     - [X] Bytecode push pointer
     - [X] Bytecode load 
-    - [ ] Bytecode assign
+
     
-- [ ] Array should check it it's a literal and call op for index or symbol 
+# 0.9g    
+    
+- [X] pointer and reference 
+    - [X] reactivate 
+    - [X] add bytecode compiler
+    - [X] test StarField3
+- [X] Curly as Vector Constructor
+    - [X] moved vector to core like the base object
+    - [X] lexer / parser
+    - [X] Interpreter
+    - [X] ByteCode
+    
+- [ ] Marshall testing with BaseFlux Setting
+- [ ] Imgui (now i can use the pointer) 
+- [ ] Array: compileAssignment still uses SymbolTable::insert!
 
 - [ ] ByteCode Stuff for call script function
 

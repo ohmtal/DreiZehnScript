@@ -76,6 +76,7 @@ X(OP_ADD_LOCAL,                1, "add to local variable") \
 X(OP_SUB_LOCAL,                1, "subtract from local variable") \
 X(OP_MUL_LOCAL,                1, "multiply local variable") \
 X(OP_DIV_LOCAL,                1, "divide local variable") \
+X(OP_ASSIGN_PTR,               1, "assign to the pointer") \
 X(OP_ADD_PTR,                  1, "add to pointer variable") \
 X(OP_SUB_PTR,                  1, "subtract pointer variable") \
 X(OP_MUL_PTR,                  1, "multiply pointer variable") \
@@ -94,7 +95,10 @@ X(OP_FOR_EACH_INCREMENT_JUMP,  2, "increment foreach and jump") \
 /* ..... */ \
 X(OP_LOAD_OBJECT_FIELD_GENERIC, 1 + (2 * 2 /*sizeof(void*)*/), "load object field with skip cache!") \
 X(OP_SAVE_OBJECT_FIELD_GENERIC, 1 + (2 * 2 /*sizeof(void*)*/), "save object field with skip cache!") \
+X(OP_VALUE_PTR_PTR_TO_VALUE_PTR,   0, "translate to current stack pointer of a pointer to pointer") \
+X(OP_VALUE_PTR_PTR_TO_VALUE,   0, "translate to current stack pointer of a pointer to value of a pointer") \
 X(OP_CREATE_KEYVALUE,          0, "create key-value pair") \
+X(OP_CREATE_LIST,              0, "create curly list to vector") \
 X(OP_RETURN,                   0, "return from function") \
 X(OP_STR_CONCAT,               0, "string add (concat)") \
 X(OP_EXIT,                     0, "exit interpreter") \

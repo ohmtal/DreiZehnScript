@@ -15,20 +15,7 @@
 
 namespace DreiZehn {
 
-size_t getNextGcPrimeSize(size_t currentCapacity) {
-    static const size_t primeSizes[] = {
-        2048, 4099, 8209, 16411, 32771, 65537, 131101,
-        262147, 524309, 1048583, 2097169, 4194319, 8388617
-    };
-    const size_t numPrimes = sizeof(primeSizes) / sizeof(primeSizes[0]);
 
-    for (size_t i = 0; i < numPrimes; ++i) {
-        if (primeSizes[i] > currentCapacity) {
-            return primeSizes[i];
-        }
-    }
-    return currentCapacity * 2; // Fallback
-}
 // ------------------------------------------------------------------------
 void GarbageCollection::addToGarbageCollection(ValueObject* obj) {
 
@@ -36,14 +23,14 @@ void GarbageCollection::addToGarbageCollection(ValueObject* obj) {
 
     // garbage collection border check before new object !!
     mInsertCounter++;
-    if (!mLocked && mInsertCounter > (gcVector.capacity() / 2)) {
+    if (!mLocked && (mInsertCounter > DREIZEHN_GARBAGE_CHECK_BORDER)) {
         mInsertCounter = 0;
         doGarbageCollection(false);
     }
 
 
     if (gcVector.size() >= gcVector.capacity()) {
-        size_t newCapacity = getNextGcPrimeSize(gcVector.capacity());
+        size_t newCapacity = gcVector.capacity() * 2;
         gcVector.reserve(newCapacity);
     }
 
@@ -97,7 +84,7 @@ void GarbageCollection::doGarbageCollection(bool isShutDown) {
             std::vector<ValueObject*> muststay;
 
             for (auto* obj : mGarbageCollection) {
-                if (obj->mAssigned < 1 && (curTime -  obj->mCreationTime) > 10 ) {
+                if (obj->mAssigned < 1 && (curTime -  obj->mCreationTime) > DREIZEHN_GARBAGE_AGE_SEC_BORDER ) {
                     byebye.push_back(obj);
                 } else {
                     muststay.push_back(obj);

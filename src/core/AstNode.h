@@ -37,8 +37,8 @@ enum class NodeType {
     LiteralExpression,
     ValueExpression,
     VariableExpression,
-    VariableReferenceExpression,  //NOTE removed in Version 0.9, since it not good for anything!
-    VariablePointerExpression,    //NOTE removed in Version 0.9, since it not good for anything!
+    VariableReferenceExpression,
+    VariablePointerExpression,
     ArrayVariableExpression,
     CallExpression,
     MethodExpression,
@@ -60,7 +60,7 @@ enum class NodeType {
     ObjectFieldExpression,
     RangeStatement,
     TernaryExpression
-    // ,CurlyArgumentsExpression
+    ,ListExpression
     ,ForEachStatement
     ,IncludeStatement
     ,KeyValueExpression
@@ -101,10 +101,10 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::ObjectFieldExpression:   return "ObjectFieldExpression";
         case NodeType::RangeStatement:          return "RangeStatement";
         case NodeType::TernaryExpression:       return "TernaryExpression";
-        // case NodeType::CurlyArgumentsExpression: return "CurlyArgumentsExpression";
-        case NodeType::ForEachStatement:       return "ForEachStatement";
-        case NodeType::IncludeStatement:       return "IncludeStatement";
-        case NodeType::KeyValueExpression:       return "KeyValueExpression";
+        case NodeType::ListExpression:          return "ListExpression";
+        case NodeType::ForEachStatement:        return "ForEachStatement";
+        case NodeType::IncludeStatement:        return "IncludeStatement";
+        case NodeType::KeyValueExpression:      return "KeyValueExpression";
         case NodeType::StringConcatExpression:       return "StringConcatExpression";
         case NodeType::StringConcatAssignExpression:       return "StringConcatAssignExpression";
     }
@@ -239,37 +239,40 @@ struct VariableExpression : public Expression {
 };
 
 
-// 0.9 removed !! - it is basically useless !!!
-// // VariableReferenceExpression  (&foo)----------------------------------------------------------
-// struct VariableReferenceExpression : public Expression {
-//      std::unique_ptr<Expression> mVarExpr;
-//
-//     VariableReferenceExpression(std::unique_ptr<Expression> varExpr)
-//     : mVarExpr(std::move(varExpr)) {
-//         mNodeType  = NodeType::VariableReferenceExpression;
-//     }
-//     Value evaluate(Environment& env) override;
-//     Value* evaluatePtr(Environment& env) override;
-//
-//     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
-//
-// };
-//
-// // VariablePointerExpression  (*fooptr)----------------------------------------------------------
-// struct VariablePointerExpression : public Expression {
-//     std::unique_ptr<Expression> mVarExpr;
-//
-//     Value* mCachedPtr = nullptr;
-//
-//     VariablePointerExpression(std::unique_ptr<Expression> varExpr)
-//     : mVarExpr(std::move(varExpr)) {
-//         mNodeType  = NodeType::VariablePointerExpression;
-//     }
-//     Value evaluate(Environment& env) override;
-//     Value* evaluatePtr(Environment& env) override;
-//     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
-//
-// };
+// VariableReferenceExpression  (&foo)----------------------------------------------------------
+struct VariableReferenceExpression : public Expression {
+     std::unique_ptr<Expression> mVarExpr;
+
+    VariableReferenceExpression(std::unique_ptr<Expression> varExpr)
+    : mVarExpr(std::move(varExpr)) {
+        mNodeType  = NodeType::VariableReferenceExpression;
+    }
+    Value evaluate(Environment& env) override;
+    Value* evaluatePtr(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+
+};
+
+// VariablePointerExpression  (*fooptr)----------------------------------------------------------
+struct VariablePointerExpression : public Expression {
+    std::unique_ptr<Expression> mVarExpr;
+
+    Value* mCachedPtr = nullptr;
+
+    VariablePointerExpression(std::unique_ptr<Expression> varExpr)
+    : mVarExpr(std::move(varExpr)) {
+        mNodeType  = NodeType::VariablePointerExpression;
+    }
+    Value evaluate(Environment& env) override;
+    Value* evaluatePtr(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+
+};
 
 // ArrayVariableExpression --------------------------------------------------------------
 struct ArrayVariableExpression : public Expression {
@@ -353,24 +356,6 @@ struct MethodExpression : public Expression {
     bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 
 };
-
-
-// CurlyArgumentsExpression  --------------------------------------------------------------
-// Nonsense !!
-// struct CurlyArgumentsExpression : public Expression {
-//     std::vector<std::unique_ptr<Expression>> arguments;
-//
-//     CurlyArgumentsExpression( std::vector<std::unique_ptr<Expression>> args)
-//     :  arguments(std::move(args)) {
-//         mNodeType  = NodeType::CurlyArgumentsExpression;
-//     }
-//
-//     Value evaluate(Environment& env) override {
-//         //FIXME
-//         Tools::errorf("FIXME CurlyArgumentsExpression evaluate\n");
-//         return Value();
-//     }
-// };
 
 // Assingment ------------------------------------------------------------------
 
@@ -686,6 +671,20 @@ struct IncludeStatement : public FlowBaseStatement {
     }
 
     FlowStatus execute(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+
+};
+// lists {} --------------------------------------------------------------
+struct ListExpression : public Expression {
+    std::vector<std::unique_ptr<Expression>> arguments;
+
+    ListExpression( std::vector<std::unique_ptr<Expression>> args)
+    :  arguments(std::move(args)) {
+        mNodeType  = NodeType::ListExpression;
+    }
+
+    Value evaluate(Environment& env) override;
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 

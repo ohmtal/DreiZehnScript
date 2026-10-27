@@ -8,7 +8,7 @@
 #include "Environment.h"
 
 #include "core/BaseObjects.h"
-#include "functions/VectorFunctions.h"
+#include "core/VectorFunctions.h"
 #include "functions/PointVectorObjectFunctions.h"
 #include "functions/FileFunctions.h"
 #include "ScriptLoader.h"
@@ -21,7 +21,7 @@ void Init(Environment& env, int argc, char* argv[]) {
     static bool registered = false; if (registered) return; registered = true;
 
     RegisterBaseObject(env);
-
+    RegisterVectorFunctions(env);
 
     char buffer[256];
     ArrayObject* obj = new ArrayObject();
@@ -38,7 +38,7 @@ void Init(Environment& env, int argc, char* argv[]) {
     ModuleRegistry::Register("Core", RegisterCoreFunctions);
     ModuleRegistry::Register("Math", RegisterMathFunctions);
     ModuleRegistry::Register("String", RegisterStringFunctions);
-    ModuleRegistry::Register("Vector", RegisterVectorFunctions);
+    //moved to base! ModuleRegistry::Register("Vector", RegisterVectorFunctions);
     ModuleRegistry::Register("Debug", RegisterDebugFunctions);
     ModuleRegistry::Register("PointVector", RegisterPointVectorObjectFunctions);
     ModuleRegistry::Register("File", RegisterFileFunctions);

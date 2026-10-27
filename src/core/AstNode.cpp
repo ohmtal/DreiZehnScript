@@ -14,6 +14,7 @@
 #include "core/BaseObjects.h"
 
 #include "core/Token.h"
+#include "core/VectorFunctions.h"
 
 
 
@@ -177,53 +178,119 @@ namespace DreiZehn {
         }
 
         return true;
+
     }
 
-    // THIS IS NOT WORTH TO KEEP IT HERE !!!!!
-    // // // // -------------------------------------------------------------------------
-    // // // // VariableReferenceExpression
-    // // // // -------------------------------------------------------------------------
-    // // // Value VariableReferenceExpression::evaluate(Environment& env) {
-    // // //     if (!mVarExpr) return Value();
-    // // //     Value* varValuePtr = mVarExpr->evaluatePtr(env);
-    // // //     return Value(varValuePtr);
-    // // // }
-    // // // Value* VariableReferenceExpression::evaluatePtr(Environment& env) {
-    // // //     if (!mVarExpr) return nullptr;
-    // // //     return mVarExpr->evaluatePtr(env);
-    // // // }
-    // // //
-    // // // bool VariableReferenceExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-    // // //     return false;
-    // // // }
-    // // //
-    // // // // -------------------------------------------------------------------------
-    // // // // VariablePointerExpression
-    // // // // -------------------------------------------------------------------------
-    // // // Value VariablePointerExpression::evaluate(Environment& env) {
-    // // //
-    // // //     Value* varValuePtr = this->evaluatePtr(env);
-    // // //
-    // // //     if (varValuePtr) {
-    // // //         return *varValuePtr;
-    // // //     }
-    // // //     return Value();
-    // // // }
-    // // // Value* VariablePointerExpression::evaluatePtr(Environment& env) {
-    // // //     if (!mVarExpr) return nullptr;
-    // // //
-    // // //
-    // // //     Value* mCachedPtr = mVarExpr->evaluatePtr(env);
-    // // //     if (mCachedPtr->isValuePointer()) {
-    // // //         return mCachedPtr->asValuePointer();
-    // // //     }
-    // // //     mCachedPtr  = nullptr;
-    // // //
-    // // //     return mCachedPtr;
-    // // // }
-    // // // bool VariablePointerExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-    // // //     return false;
-    // // // }
+    // -------------------------------------------------------------------------
+    // VariableReferenceExpression
+    // -------------------------------------------------------------------------
+    Value VariableReferenceExpression::evaluate(Environment& env) {
+        if (!mVarExpr) return Value();
+        Value* varValuePtr = mVarExpr->evaluatePtr(env);
+        return Value(varValuePtr);
+    }
+    // -------------------------
+    Value* VariableReferenceExpression::evaluatePtr(Environment& env) {
+        if (!mVarExpr) return nullptr;
+        return mVarExpr->evaluatePtr(env);
+    }
+
+    // -------------------------
+    bool VariableReferenceExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (!mVarExpr) {
+            PrintASTError(this, "bytecode compile missing Variable");
+            return false;;
+        }
+        mVarExpr->compilePtr(env,chunk,scope,requestType);
+        return true;
+    }
+    // -------------------------
+    bool VariableReferenceExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (!mVarExpr) {
+            PrintASTError(this, "bytecode compileAssignment missing Variable");
+            return false;
+        }
+        PrintASTError(this, "Variable Reference can't be assigned directly to set the value use (*var)");
+
+        return false;
+    }
+    // -------------------------
+    bool VariableReferenceExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (!mVarExpr) {
+            PrintASTError(this, "bytecode compilePtr missing Variable");
+            return false;
+        }
+        return mVarExpr->compilePtr(env,chunk,scope,requestType);
+    }
+
+    // -------------------------------------------------------------------------
+    // VariablePointerExpression
+    // -------------------------------------------------------------------------
+    Value VariablePointerExpression::evaluate(Environment& env) {
+
+        Value* varValuePtr = this->evaluatePtr(env);
+
+        if (varValuePtr) {
+            return *varValuePtr;
+        }
+        return Value();
+    }
+    // -------------------------
+    Value* VariablePointerExpression::evaluatePtr(Environment& env) {
+        if (!mVarExpr) return nullptr;
+
+        if (!mCachedPtr) mCachedPtr = mVarExpr->evaluatePtr(env);
+
+        if (mCachedPtr && mCachedPtr->isValuePointer()) {
+            return mCachedPtr->asValuePointer();
+        }
+
+        return nullptr;
+    }
+    // -------------------------
+    bool VariablePointerExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (requestType == ValueType::NONE) {
+            PrintASTError(this,"need a request!");
+            return false;
+        }
+        if (!mVarExpr) {
+            PrintASTError(this, "bytecode compile missing Variable");
+            return false;;
+        }
+
+        mVarExpr->compilePtr(env,chunk,scope,requestType);
+        chunk.emit(OP_VALUE_PTR_PTR_TO_VALUE);
+
+        return true;
+    }
+    // -------------------------
+    bool VariablePointerExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (!mVarExpr) {
+            PrintASTError(this, "bytecode compileAssignment missing Variable");
+            return false;
+        }
+
+        mVarExpr->compilePtr(env,chunk,scope,ValueType::ANY);
+        chunk.emit(OP_VALUE_PTR_PTR_TO_VALUE_PTR);
+        chunk.emit(OP_ASSIGN_PTR);
+
+        if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+        return true;
+    }
+    // -------------------------
+    bool VariablePointerExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+
+        if (!mVarExpr) {
+            PrintASTError(this, "bytecode compilePtr missing Variable");
+            return false;
+        }
+
+        mVarExpr->compilePtr(env,chunk,scope,requestType);
+        chunk.emit(OP_VALUE_PTR_PTR_TO_VALUE_PTR);
+
+
+        return true;
+    }
     // -------------------------------------------------------------------------
     // ArrayVariableExpression
     // -------------------------------------------------------------------------
@@ -600,7 +667,44 @@ namespace DreiZehn {
         if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
         return true;
     }
+    // -------------------------------------------------------------------------
+    // ListExpression
+    // -------------------------------------------------------------------------
+    Value ListExpression::evaluate(Environment& env) {
 
+        VectorValueObject* arr = new VectorValueObject();
+
+        // add args!
+        for (auto& argExpr: arguments) {
+            if (!argExpr) continue;
+            auto arg = argExpr->evaluate(env);
+
+            if (arg.isPointer()) {
+                arg.asPointerObject()->setAssigned(true);
+            }
+            arr->mElements.push_back(arg);
+        }
+
+        return Value(arr);
+    }
+    // --------------------
+    bool ListExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (requestType == ValueType::NONE) {
+            PrintASTError(this,"list need a request!");
+            return false;
+        }
+        U32 argCount = 0;
+        for (auto& argExpr : arguments) {
+            if (argExpr) {
+                if (!argExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
+                argCount++;
+            }
+        }
+        chunk.emit(OP_CREATE_LIST);
+        chunk.emit(argCount);
+
+        return true;
+    }
     // -------------------------------------------------------------------------
     // CallExpression
     // -------------------------------------------------------------------------

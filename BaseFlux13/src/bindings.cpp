@@ -5,7 +5,7 @@
 #include "BaseFlux/Draw.h"
 #include "BaseFlux/Collision.h"
 #include "ColorConstants.h"
-#include "functions/VectorFunctions.h"
+#include "core/VectorFunctions.h"
 
 #include "Globals.h"
 #include <span>
@@ -81,6 +81,10 @@ void RegisterBaseFluxFunctions(Environment& env) {
         float x = args[0].getFloat();
         float y = args[1].getFloat();
 
+        float fontSize  = 1.0;
+        if (args.size() > 2) fontSize = args[2].getFloat();
+
+
         SDL_Color color = GREEN;
         U32 fps =  BaseFlux::getFPS();
 
@@ -96,7 +100,7 @@ void RegisterBaseFluxFunctions(Environment& env) {
         if (fps < 15) color = RED;
         else if (fps < 30) color = ORANGE;
 
-         BaseFlux::DrawDebugText(app.getRenderer(),x,y,fps_text.c_str(), 1.0f, color, true/*, shadowColor*/);
+         BaseFlux::DrawDebugText(app.getRenderer(),x,y,fps_text.c_str(), fontSize, color, true/*, shadowColor*/);
         return true;
     }, "Draw FPS as position x y ");
 

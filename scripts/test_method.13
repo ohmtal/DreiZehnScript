@@ -1,0 +1,47 @@
+print "Dynamic Field Benchmark-Test for DreiZehn Script (0.8)"
+import Core
+import Math
+
+define JLOOPS 25
+define ILOOPS 1000000
+define HLOOPS ILOOPS / 2
+
+vec = Vector::new 0
+
+forRange j JLOOPS
+    forRange i ILOOPS
+        (vec->at 0)++
+    end
+    print  "SUM (++) IS: " (vec->at 0)
+
+    forRange i ILOOPS
+        (vec->at 0)--
+    end
+    print  "SUM (--) IS: " (vec->at 0)
+
+    (vec->at 0) = 66
+    print  "set Sum to 66 == " ((vec->at 0) * 1)
+
+    forRange i ILOOPS
+        (vec->at 0) *=  (i + 1)
+        (vec->at 0) /=  (i + 1)
+    end
+    print  "SUM (*/ %i+1) IS: " (vec->at 0)
+
+
+    ran = 0.0
+    forRange i HLOOPS
+        ran = math::randomf * i
+        (vec->at 0) += ran
+        (vec->at 0) -= ran
+    end
+    print  "last ran" ran
+    print  "SUM (rand +-) IS: " (vec->at 0)
+end
+
+(vec->at 0) = (vec->at 0) - 33
+print "---------------------"
+print "---------------------"
+print  "Final sum should be 33 == " (vec->at 0)
+print "---------------------"
+print "---------------------"

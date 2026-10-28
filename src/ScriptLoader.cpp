@@ -223,7 +223,7 @@ namespace DreiZehn {
         auto mainProgram = ParseScriptToAST(stream);
         if (!mainProgram) return false;
 
-        Value res = VM::compileExec(env, mainProgram.get());
+        Value res = VM::Compiler::compileExec(env, mainProgram.get());
         // #ifdef DEBUG_TRACE_EXECUTION
         // Tools::printf("RunScriptStreamByteCode VALUE IS: %s\n", res.toString().c_str());
         // #endif

@@ -1,12 +1,17 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2026 Thomas Hühn (XXTH)
+// SPDX-License-Identifier: MIT
+//-----------------------------------------------------------------------------
+
 #include "Environment.h"
 #include "bytecode/VM.h"
 #include "bytecode/CompilerScope.h"
 #include "bytecode/VMStructure.h"
 
 
-namespace DreiZehn::VM {
+namespace DreiZehn::VM::Compiler {
 
-   void Patch(BytecodeChunk& chunk) {
+   void patch(BytecodeChunk& chunk) {
         // Apply function patches - what a HACK fest
         // Love this part :D
         for (auto& patch: mFunctionPatches) {
@@ -26,27 +31,8 @@ namespace DreiZehn::VM {
         mFunctionPatches.clear();
     }
 
-    bool Compile( ASTNode* node, Environment& env, BytecodeChunk& chunk, CompilerScope& scope)
-    {
-        if (!node) return false;
-
-        mFunctionPatches.clear();
-
-        switch(node->mNodeType) {
-            case NodeType::BlockStatement:
-            {
-                auto* flowStmt = static_cast<BlockStatement*>(node);
-                if (!flowStmt->compile(env, chunk, scope, ValueType::NONE)) return false;
-                break;
-            }
-            default:
-                Tools::errorf("UNKNOWN Expression Compile: %s\n", NodeTypeToString(node->mNodeType));
-                return false;
-        }
-
-
-        chunk.emit(OP_EXIT);
-
+    // -------------------------------------------------------------------------
+    void attachFunctions(Environment& env, BytecodeChunk& chunk) {
         // ----------------- ATTACH FUNCTIONS ----------------------------
         ///  added scripts on back of byte code after EXIT
         // LOL ON THE BACK I DONT HAVE THE **bytecodeAddress** on a function call!
@@ -69,16 +55,44 @@ namespace DreiZehn::VM {
 
             func.localVarCount = funcScope.getLocalCount();
         }
+        patch(chunk);
+    }
+    // -------------------------------------------------------------------------
+    void prepare(Environment& env, BytecodeChunk& chunk) {
+
+        mFunctionPatches.clear();
+    }
+    // -------------------------------------------------------------------------
+    bool Compile( ASTNode* node, Environment& env, BytecodeChunk& chunk, CompilerScope& scope)
+    {
+        if (!node) return false;
+
+        prepare(env,chunk);
+
+        switch(node->mNodeType) {
+            case NodeType::BlockStatement:
+            {
+                auto* flowStmt = static_cast<BlockStatement*>(node);
+                if (!flowStmt->compile(env, chunk, scope, ValueType::NONE)) return false;
+                break;
+            }
+            default:
+                Tools::errorf("UNKNOWN Expression Compile: %s\n", NodeTypeToString(node->mNodeType));
+                return false;
+        }
 
 
+        chunk.emit(OP_EXIT);
+
+        attachFunctions(env,chunk);
 
         return true;
     }
-
+    // -------------------------------------------------------------------------
     Value compileExec(Environment& env, ASTNode* node) {
         if (!node) return NumberNullValue;
 
-        BytecodeChunk& chunk = Compiler::MasterByteCodeChunk;
+        BytecodeChunk chunk;
 
 
         // CompilerScope scope;
@@ -87,7 +101,7 @@ namespace DreiZehn::VM {
             return NumberNullValue;
         }
         // after Compile we patch :)
-        Patch(chunk);
+        // moved to attachFunctions==> Patch(chunk);
 
         Value res = VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount());
         #ifdef DEBUG_TRACE_EXECUTION

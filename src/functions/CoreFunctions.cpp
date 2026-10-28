@@ -23,9 +23,7 @@ namespace DreiZehn {
             std::stringstream stream(command);
 
             if (DreiZehn::Globals::ByteCodeMode) {
-                Tools::errorf("BYTE CODE EVAL MUST BE REVISITED AND IS BROKEN AT THE MOMENT!\n");
-                return NumberNullValue;
-                // return DreiZehn::RunScriptStreamByteCode(stream, env);
+                return DreiZehn::RunScriptStreamByteCode(stream, env);
             } else {
                 return Value(DreiZehn::RunScriptStream(stream, env));
             }

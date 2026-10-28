@@ -52,9 +52,6 @@ namespace DreiZehn {
     public:
         std::vector<LoopInfo> mLoopStack;
 
-
-
-
         uint32_t insert(uint32_t symbolId) {
             auto it = mSymbolIdToSlot.find(symbolId);
             if (it != mSymbolIdToSlot.end()) {

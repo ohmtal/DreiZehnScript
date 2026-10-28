@@ -14,14 +14,11 @@
 namespace DreiZehn {
 
 
-
-
-
-
 struct CallFrame {
     U32 mIP = 0;
     U32 mLocalsStartIndex = 0; // start of current locals
     U32 mLocalsCount = 0;      // locals count
+    S64 mConstansOffset = 0;   // offset of the constans
 };
 
 

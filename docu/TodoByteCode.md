@@ -297,6 +297,32 @@ how to sepate it ?
     - chunks must be moved together on execute 
     - single line statememnt do not need to be saved 
 
+==> Fixed by split attach functions.
+
+-  [X] every function bytecode and scope should be cached at script function 
+    caching was a nice idea BUT the Constant index does not match the OP_CONST
+    index and so it crash.
+    
+    possible solutions:
+    - constans need to be patched 
+    - separare constants in functions with extra constant or i simple save the constant
+    offset and push it in the function call.
+    
+    ==> saving the compiled position, add the offset on load cache and use the offset 
+        in the callFrame!
+    
+- [ ] on compile jump adresses are patched!!! this is bad when the bytecode is 
+loaded from cache and on a other position !!!!!!! look for all chunk.patch!
+
+THATS A BUMMER! ... 
+    - ForStatement
+    - WhileStatement
+    - ForEachStatement
+    - IncludeStatement
+    - BinaryAndOrExpression
+    - TernaryExpression
+    - IfStatement
+    - ForRangeStatement
     
 ## CRITICAL BUT LATER:
 ### ??: host reload

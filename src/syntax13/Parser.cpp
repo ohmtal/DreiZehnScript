@@ -558,7 +558,7 @@ namespace DreiZehn {
 
                     params.push_back(varName);
                 }
-                FunctionMap::RegisteredScriptFunctions[funcNameSymbolId] = { params, {} };
+                FunctionMap::RegisteredScriptFunctions[funcNameSymbolId] = { params, {},0,0,true,{},{},0,0 };
                 ParserFrame::mBlockOpenTypes.push_back(tokenType);
                 return std::make_unique<FunctionDefineStartNode>(funcNameSymbolId);
             }

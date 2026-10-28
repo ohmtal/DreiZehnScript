@@ -13,6 +13,8 @@
 #include "Value.h"
 #include "toolbox/SymbolTable.h"
 #include "AstNode.h"
+#include "bytecode/VMStructure.h"
+#include "bytecode/CompilerScope.h"
 
 namespace DreiZehn { class Environment; }
 namespace DreiZehn::FunctionMap {
@@ -78,8 +80,16 @@ namespace DreiZehn::FunctionMap {
     struct ScriptFunction {
         std::vector<std::string> parameterNames;
         std::vector<std::shared_ptr<ASTNode>> body;
+
         uint32_t bytecodeAddress = 0;
         uint32_t localVarCount = 0;
+        // CACHE !
+        bool bytecodeDirty = true;
+        BytecodeChunk chunk;
+        CompilerScope scope;
+        uint32_t compiledConstantsOffset = 0;
+        int64_t constantsOffset = 0;
+
     };
 
     inline std::unordered_map<uint32_t, ScriptFunction> RegisteredScriptFunctions;

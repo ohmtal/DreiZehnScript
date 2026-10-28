@@ -175,6 +175,7 @@ Value FireScriptEvent( ScriptEvent& event, std::vector<Value> arguments) {
             // chunk.emit(OP_POP_STACK); //?? need the result
             chunk.emit(OP_EXIT);
 
+            // attach and patch all functions
             DreiZehn::VM::Compiler::attachFunctions(*event.envPtr,chunk);
 
             return VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount(), ip);

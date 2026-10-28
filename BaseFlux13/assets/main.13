@@ -35,14 +35,19 @@ global Count = 250 # better for debug
 -- -----------------------------------------------------------------------------
 -- To set parameters before it open the window
 fn flux::Load
+    print " *** Load"
 --     flux::maxfps 0
 end
 -- -----------------------------------------------------------------------------
 fn flux::Init
+    print " *** Init"
     template = Array::new "point" => 0, "color" => 0, "fill" => 0
+    print " *** Init2"
     Rects = Vector::new
+    print " *** Init3"
     Rects->fill Count template
 
+    print " *** Init4" Rects
     forEach item Rects
         item["point"] = Vector::new 0 0 0 0;
         item["point"][2] = 5 + math::randomf * 30

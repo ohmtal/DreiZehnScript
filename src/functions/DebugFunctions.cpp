@@ -56,7 +56,7 @@ namespace DreiZehn {
             }
 
             if (args.size() != 1 || !args[0].isString()) {
-                Tools::errorf("Usage: debug::bc codeled\n");
+                Tools::errorf("Usage: debug::bc codelet\n");
                 ret = NumberNullValue;
                 return true;
             }
@@ -69,7 +69,7 @@ namespace DreiZehn {
         // Interpreter
         RegisterFunction("debug::ip", [&env](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isString()) {
-                Tools::errorf("Usage: debug::bc codeled\n");
+                Tools::errorf("Usage: debug::bc codelet\n");
                 ret = NumberNullValue;
                 return true;
             }

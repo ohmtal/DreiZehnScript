@@ -324,6 +324,9 @@ THATS A BUMMER! ...
     - IfStatement
     - ForRangeStatement
     
+**Note** started a codelet hackfest but this also sucks since i can not add or
+modify a function. the MasterChunk is also back ... 
+    
 ## CRITICAL BUT LATER:
 ### ??: host reload
 

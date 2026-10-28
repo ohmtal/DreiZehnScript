@@ -805,9 +805,15 @@ namespace DreiZehn {
             }
             chunk.emit(OP_CALL_C_FUNCTION);
             chunk.emit(mFuncSymbolId);
-            mFunctionPatches.push_back({cb,chunk.tell(),FuncPatchType::CFuncPrt});
-            chunk.emitPointer(nullptr); //placeholder for cache
+
+            if (env.mIsByteCodeCodelet) {
+                chunk.emitPointer(cb); // we use a codelet patch in the pointer directly
+            } else {
+                mFunctionPatches.push_back({cb,chunk.tell(),FuncPatchType::CFuncPrt});
+                chunk.emitPointer(nullptr); //placeholder for cache
+            }
             chunk.emit(argCount);
+
 
             if (requestType == ValueType::NONE) {
                 chunk.emit(OP_POP_STACK);
@@ -833,9 +839,14 @@ namespace DreiZehn {
             // mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::VarCount});
             // chunk.emit(0);
 
-            //  0.9f changed to script pointer
-            mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::ScriptFuncPtr});
-            chunk.emitPointer(nullptr);
+            if (env.mIsByteCodeCodelet) {
+
+                chunk.emitPointer(sf);
+            } else {
+                //  0.9f changed to script pointer
+                mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::ScriptFuncPtr});
+                chunk.emitPointer(nullptr);
+            }
 
 
 

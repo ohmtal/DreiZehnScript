@@ -126,7 +126,7 @@ namespace DreiZehn::VM::Compiler {
         mFunctionPatches.clear();
     }
     // -------------------------------------------------------------------------
-    bool Compile( ASTNode* node, Environment& env, BytecodeChunk& chunk, CompilerScope& scope)
+    bool Compile( ASTNode* node, Environment& env, BytecodeChunk& chunk, CompilerScope& scope, bool AttachFunctions)
     {
         if (!node) return false;
 
@@ -147,19 +147,40 @@ namespace DreiZehn::VM::Compiler {
 
         chunk.emit(OP_EXIT);
 
-        attachFunctions(env,chunk);
+        if (AttachFunctions) attachFunctions(env,chunk);
 
         return true;
+    }
+    // -------------------------------------------------------------------------
+    Value compileCodeletExec(Environment& env, ASTNode* node) {
+        if (!node) return NumberNullValue;
+
+        // Copy ! :/
+        BytecodeChunk chunk = MasterChunk;
+        U32 offset = chunk.tell();
+
+        env.mIsByteCodeCodelet = true;
+        // CompilerScope scope;
+        if (!Compile(node, env, chunk, VM::scope, false)) {
+            Tools::errorf("Failed to compile code!\n");
+            return NumberNullValue;
+        }
+        env.mIsByteCodeCodelet = false;
+
+        Value res = VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount(), offset);
+        #ifdef DEBUG_TRACE_EXECUTION
+        Tools::printf("*** CompileExec VALUE IS: %s\n", res.toString().c_str());
+        #endif
+        return res;
     }
     // -------------------------------------------------------------------------
     Value compileExec(Environment& env, ASTNode* node) {
         if (!node) return NumberNullValue;
 
-        BytecodeChunk chunk;
-
+        BytecodeChunk& chunk = MasterChunk;
 
         // CompilerScope scope;
-        if (!Compile(node, env, chunk, VM::scope)) {
+        if (!Compile(node, env, chunk, VM::scope, true)) {
             Tools::errorf("Failed to compile code!\n");
             return NumberNullValue;
         }

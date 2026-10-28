@@ -541,6 +541,7 @@ namespace DreiZehn {
             case TokenType::Fn: {
                 advance(); //eat fn
 
+
                 if (peek().mType != TokenType::Identifier) {
                     Tools::PrintParseError("function name required after fn\n");
                     return nullptr;

@@ -46,6 +46,8 @@ private:
     Environment* mParentEnv = nullptr;
     VariableFrame* mVariableFrame = nullptr;
 public:
+    bool mIsByteCodeCodelet = false;
+
     Environment() : mParentEnv(nullptr) {
         Globals::gCurEnv = this;
         Globals::gMainEnv = this;

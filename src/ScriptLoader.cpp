@@ -218,12 +218,19 @@ namespace DreiZehn {
 
 
     // --------------------------------------------------------------------------------
-    Value RunScriptStreamByteCode(std::istream& stream, Environment& env) {
+    Value RunScriptStreamByteCode(std::istream& stream, Environment& env, bool isCodelet ) {
 
         auto mainProgram = ParseScriptToAST(stream);
         if (!mainProgram) return false;
 
-        Value res = VM::Compiler::compileExec(env, mainProgram.get());
+
+        Value res;
+        if (isCodelet)
+            VM::Compiler::compileCodeletExec(env, mainProgram.get());
+        else
+            VM::Compiler::compileExec(env, mainProgram.get());
+
+
         // #ifdef DEBUG_TRACE_EXECUTION
         // Tools::printf("RunScriptStreamByteCode VALUE IS: %s\n", res.toString().c_str());
         // #endif
@@ -248,7 +255,7 @@ namespace DreiZehn {
             return false;
         }
         if (useByteCode) {
-            RunScriptStreamByteCode(file,env);
+            RunScriptStreamByteCode(file,env, false);
             return true ; //??
         }
         return RunScriptStream(file, env);

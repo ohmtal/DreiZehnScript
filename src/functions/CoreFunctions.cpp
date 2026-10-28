@@ -23,7 +23,7 @@ namespace DreiZehn {
             std::stringstream stream(command);
 
             if (DreiZehn::Globals::ByteCodeMode) {
-                return DreiZehn::RunScriptStreamByteCode(stream, env);
+                return DreiZehn::RunScriptStreamByteCode(stream, env, true);
             } else {
                 return Value(DreiZehn::RunScriptStream(stream, env));
             }
@@ -48,7 +48,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         RegisterFunction("core::eval", [&env](std::span<Value> args, Value& ret) -> bool {
             if (args.size() != 1 || !args[0].isString()) {
-                Tools::errorf("Usage: core::eval codeled\n");
+                Tools::errorf("Usage: core::eval codelet\n");
                 ret = NumberNullValue;
                 return true;
             }

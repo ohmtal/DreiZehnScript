@@ -151,12 +151,10 @@ Value FireScriptEvent( ScriptEvent& event, std::vector<Value> arguments) {
     if ( Globals::ByteCodeMode ) {
         //Compile:
         // if (chunk.mByteCodes.size() == 0 || chunkArguments != arguments.size()) {
-            // copy ?! or reference .. << Copy else it will attached all the
-            // time but i should changes this .. eval sucks hard here too - it
-            // always add the complete chunk again since i made the MasterByteCodeChunk
-            // global! - each file need it's own chunk
-            BytecodeChunk chunk; // =  DreiZehn::VM::Compiler::MasterByteCodeChunk;
-            DreiZehn::VM::Compiler::prepare(*event.envPtr,chunk);
+
+            // Copy ! :/
+            BytecodeChunk chunk =  DreiZehn::VM::Compiler::MasterChunk;
+            // // DreiZehn::VM::Compiler::prepare(*event.envPtr,chunk);
 
             size_t chunkArguments = arguments.size();
             uint32_t ip = chunk.tell();
@@ -176,7 +174,7 @@ Value FireScriptEvent( ScriptEvent& event, std::vector<Value> arguments) {
             chunk.emit(OP_EXIT);
 
             // attach and patch all functions
-            DreiZehn::VM::Compiler::attachFunctions(*event.envPtr,chunk);
+            // NOT! DreiZehn::VM::Compiler::attachFunctions(*event.envPtr,chunk);
 
             return VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount(), ip);
         // }

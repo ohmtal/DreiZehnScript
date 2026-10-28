@@ -284,7 +284,18 @@ i check the creation time
 
     
 
-
+## !!!! EVAL ALWAYS DOUBLE THE BYTECODE !!!! << save chunks in a Vector ?! 
+    - at the moment it live in DreiZehn::VM::Compiler::MasterByteCodeChunk 
+    - thats why eval double it! EVAL commit the complete AST to ByteCode agaib
+      instead of only the new command at the end!!
+    - look at my hackfest in BaseFlux13/src/main.cpp :D 
+    
+how to sepate it ? 
+    - need to change the shared ptr mainProgramm since this cause the complete
+      rebuild on eval .. only the new BlockStatement must be attached
+    - only chunks with function definitions must be saved
+    - chunks must be moved together on execute 
+    - single line statememnt do not need to be saved 
 
     
 ## CRITICAL BUT LATER:

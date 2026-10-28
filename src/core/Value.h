@@ -78,6 +78,10 @@ public:
         mBits = QNAN_MASK | TAG_INT | static_cast<uint32_t>(i);
     }
     // -------------------------------------------------------------------------
+    Value(uint8_t i) {
+        mBits = QNAN_MASK | TAG_INT | static_cast<uint32_t>(i);
+    }
+    // -------------------------------------------------------------------------
     Value(uint32_t i) {
         // NaN Mask + Int-Tag + 32-Bit Integers
         mBits = QNAN_MASK | TAG_INT | i;
@@ -228,7 +232,10 @@ public:
     inline uint32_t getUInt() const {
         return static_cast<uint32_t>(getInt());
     }
-
+    // -------------------------------------------------------------------------
+    inline uint32_t getU8() const {
+        return static_cast<uint8_t>(getInt());
+    }
     // -------------------------------------------------------------------------
     inline bool getBool() const {
         if (isInt()) [[likely]] {

@@ -11,15 +11,16 @@ namespace DreiZehn {
     // }
     // ------------------------------------------------
     namespace Tools {
-        void PrintParseError(std::string message){
-            errorf("Parse Error:\n%s\n| %03d |%s\n",
-                   message.c_str(),
-                   Globals::currentScriptLineNumber,
-                   Globals::currentScriptLine.c_str());
+        void PrintParseError(const std::string& message , const std::string& p2 , const std::string& p3 ){
+            errorf("Parse Error:\n%s %s %s\n| %03d |%s\n",
+                   message.c_str()
+                   , p2.c_str(),p3.c_str()
+                   ,Globals::currentScriptLineNumber
+                   ,Globals::currentScriptLine.c_str());
         }
 
-        void PrintRuntimeError(std::string message){
-            errorf("RunTime Error: %s", message.c_str());
+        void PrintRuntimeError(const std::string& message, const std::string& p2 , const std::string& p3 ){
+            errorf("RunTime Error: %s %s %s", message.c_str(), p2.c_str(),p3.c_str());
         }
     }
 

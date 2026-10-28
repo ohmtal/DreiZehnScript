@@ -43,10 +43,10 @@ bool MapVectorFRect(const Value& value, SDL_FRect& rect) {
 bool MapVectorColor(const Value& value, SDL_Color& color) {
     VectorValueObject* vec = GetVectorObject(value, 4);
     if (vec) {
-        color.r = static_cast<uint8_t>( vec->mElements[0].getInt());
-        color.g = static_cast<uint8_t>( vec->mElements[1].getInt());
-        color.b = static_cast<uint8_t>( vec->mElements[2].getInt());
-        color.a = static_cast<uint8_t>( vec->mElements[3].getInt());
+        color.r =  vec->mElements[0].getU8();
+        color.g =  vec->mElements[1].getU8();
+        color.b =  vec->mElements[2].getU8();
+        color.a =  vec->mElements[3].getU8();
         return true;
     }
     return false;
@@ -76,7 +76,6 @@ void RegisterBaseFluxFunctions(Environment& env) {
 
     // ---------------------------------
     FunctionMap::RegisterFunction("flux::maxfps", [](std::span<Value> args, Value& ret) -> bool {
-        // NOTE MAKE SURE THE TYPE EXISTS!!!
         DirectVariableAccessor vsyncer(&app.getSettings().FpsLimit);
         if (args.size() == 1) {
             vsyncer.toCpp(args[0]);
@@ -92,9 +91,10 @@ void RegisterBaseFluxFunctions(Environment& env) {
 
     // ---------------------------------
     FunctionMap::RegisterFunction("flux::DrawRect", [](std::span<Value> args, Value& ret) -> bool {
-//NOTE FIXME ERROR MESSAGES
-        if (args.size() < 3 || !args[0].isPointer() || !args[1].isPointer()) return false;
-
+        if (args.size() < 3 || !args[0].isPointer() || !args[1].isPointer()) {
+            Tools::PrintRuntimeError("flux::DrawRect: Missing Parameter");
+            return false;
+        }
         SDL_FRect rect;
         if (!MapVectorFRect(args[0], rect)) return false;
         SDL_Color color;

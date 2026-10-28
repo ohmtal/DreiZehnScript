@@ -45,6 +45,8 @@ namespace DreiZehn {
                 dest = Value(*m_ptr);
             } else if constexpr (std::is_same_v<MemberType, uint32_t>) {
                 dest = Value(*m_ptr);
+            } else if constexpr (std::is_same_v<MemberType, uint8_t>) {
+                dest = Value(*m_ptr);
             } else if constexpr (std::is_same_v<MemberType, int>) {
                 dest = Value(*m_ptr);
             } else if constexpr (std::is_same_v<MemberType, bool>) {
@@ -61,6 +63,8 @@ namespace DreiZehn {
                 *m_ptr = src.getInt();
             } else if constexpr (std::is_same_v<MemberType, uint32_t>) {
                 *m_ptr = src.getUInt();
+            } else if constexpr (std::is_same_v<MemberType, uint8_t>) {
+                *m_ptr = src.getU8();
             } else if constexpr (std::is_same_v<MemberType, bool>) {
                 *m_ptr = src.getBool();
             }

@@ -155,7 +155,7 @@ namespace DreiZehn::VM {
     }
 
 // -----------------------------------------------------------------------------
-Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
+Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
     // TEST! register const uint8_t* pc __asm__("r14");
     if (Globals::ByteCodeRunning) {
@@ -188,7 +188,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals) {
     int64_t op_counter[OP_INVALID] = {0};
     #endif
 
-    uint32_t  ip = 0;
+    uint32_t  ip = offset;
     uint32_t* code = chunk.mByteCodes.data();
     size_t codeSize = chunk.mByteCodes.size();
 

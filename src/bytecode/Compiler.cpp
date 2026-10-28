@@ -47,6 +47,7 @@ namespace DreiZehn::VM {
 
         chunk.emit(OP_EXIT);
 
+        // ----------------- ATTACH FUNCTIONS ----------------------------
         ///  added scripts on back of byte code after EXIT
         // LOL ON THE BACK I DONT HAVE THE **bytecodeAddress** on a function call!
         for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
@@ -76,7 +77,10 @@ namespace DreiZehn::VM {
 
     Value compileExec(Environment& env, ASTNode* node) {
         if (!node) return NumberNullValue;
-        BytecodeChunk chunk;
+
+        BytecodeChunk& chunk = Compiler::MasterByteCodeChunk;
+
+
         // CompilerScope scope;
         if (!Compile(node, env, chunk, VM::scope)) {
             Tools::errorf("Failed to compile code!\n");

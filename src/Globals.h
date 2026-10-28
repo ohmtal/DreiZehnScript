@@ -92,8 +92,8 @@ namespace Globals {
 }
 
 namespace Tools {
-    void PrintParseError(std::string message);
-    void PrintRuntimeError(std::string message);
+    void PrintParseError(const std::string& message , const std::string& p2 = "", const std::string& p3 = "");
+    void PrintRuntimeError(const std::string& message, const std::string& p2 = "", const std::string& p3 = "");
 }
 
 

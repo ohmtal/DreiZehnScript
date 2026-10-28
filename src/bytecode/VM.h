@@ -1,11 +1,16 @@
 #pragma once
 #include <cstring>
 #include "CompilerScope.h"
+#include "VMStructure.h"
 namespace DreiZehn::VM {
+
+    namespace Compiler {
+        inline BytecodeChunk MasterByteCodeChunk;
+    }
 
     Value compileExec(Environment& env, ASTNode* node);
 
-    Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals);
+    Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset = 0);
 
     // ------------------------------
     // bytecode scope and locals

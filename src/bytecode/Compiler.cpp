@@ -42,60 +42,75 @@ namespace DreiZehn::VM::Compiler {
             func.bytecodeAddress = chunk.tell();
 
             CompilerScope funcScope;
-            if (func.bytecodeDirty) {
-                func.compiledConstantsOffset = chunk.mConstants.size();
-                func.constantsOffset = 0;
 
-                for (const auto& paramName : func.parameterNames) {
-                    funcScope.insert(SymbolTable::insert(paramName));
-                }
+            // ----
+            func.compiledConstantsOffset = chunk.mConstants.size();
+            func.constantsOffset = 0;
+            // ----
 
-                for (auto& statement : func.body) {
-                    statement->compile(env, chunk, funcScope, ValueType::NONE);
-                }
-
-                // FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
-                // fixed: cache does not work because of constants index missmatch!
-                // FIXME: cache does not work because of absolute jumps in many Expressions !!!
-                /*
-
-                // Cache it ....
-                func.scope = funcScope;
-                func.chunk.mByteCodes.assign(
-                    chunk.mByteCodes.begin() + func.bytecodeAddress ,
-                    chunk.mByteCodes.end()
-                );
-                if (chunk.mConstants.size() > func.compiledConstantsOffset) {
-                    func.chunk.mConstants.assign( chunk.mConstants.begin() + func.compiledConstantsOffset , chunk.mConstants.end()
-                    );
-                } else {
-                    func.chunk.mConstants.clear();
-                }
-
-                // func.bytecodeDirty = false;
-                */
-
-            } else {
-                // Use the cache
-                // append the func.chunk.mByteCodes func.chunk.mConstants to chunk
-
-                funcScope = func.scope;
-
-                chunk.mByteCodes.insert(
-                        chunk.mByteCodes.end(),
-                        func.chunk.mByteCodes.begin(),
-                        func.chunk.mByteCodes.end()
-                );
-
-                size_t currentConstantPos = chunk.mConstants.size();
-                func.constantsOffset  = currentConstantPos - func.compiledConstantsOffset ;
-
-                chunk.mConstants.insert(
-                        chunk.mConstants.end(),
-                        func.chunk.mConstants.begin(),
-                        func.chunk.mConstants.end()
-                );
+            for (const auto& paramName : func.parameterNames) {
+                funcScope.insert(SymbolTable::insert(paramName));
             }
+
+            for (auto& statement : func.body) {
+                statement->compile(env, chunk, funcScope, ValueType::NONE);
+            }
+            // -----
+
+            // // if (func.bytecodeDirty) {
+            // //     func.compiledConstantsOffset = chunk.mConstants.size();
+            // //     func.constantsOffset = 0;
+            // //
+            // //     for (const auto& paramName : func.parameterNames) {
+            // //         funcScope.insert(SymbolTable::insert(paramName));
+            // //     }
+            // //
+            // //     for (auto& statement : func.body) {
+            // //         statement->compile(env, chunk, funcScope, ValueType::NONE);
+            // //     }
+            // //
+            // //     // FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
+            // //     // fixed: cache does not work because of constants index missmatch!
+            // //     // FIXME: cache does not work because of absolute jumps in many Expressions !!!
+            // //     /*
+            // //
+            // //     // Cache it ....
+            // //     func.scope = funcScope;
+            // //     func.chunk.mByteCodes.assign(
+            // //         chunk.mByteCodes.begin() + func.bytecodeAddress ,
+            // //         chunk.mByteCodes.end()
+            // //     );
+            // //     if (chunk.mConstants.size() > func.compiledConstantsOffset) {
+            // //         func.chunk.mConstants.assign( chunk.mConstants.begin() + func.compiledConstantsOffset , chunk.mConstants.end()
+            // //         );
+            // //     } else {
+            // //         func.chunk.mConstants.clear();
+            // //     }
+            // //
+            // //     // func.bytecodeDirty = false;
+            // //     */
+            // //
+            // // } else {
+            // //     // Use the cache
+            // //     // append the func.chunk.mByteCodes func.chunk.mConstants to chunk
+            // //
+            // //     funcScope = func.scope;
+            // //
+            // //     chunk.mByteCodes.insert(
+            // //             chunk.mByteCodes.end(),
+            // //             func.chunk.mByteCodes.begin(),
+            // //             func.chunk.mByteCodes.end()
+            // //     );
+            // //
+            // //     size_t currentConstantPos = chunk.mConstants.size();
+            // //     func.constantsOffset  = currentConstantPos - func.compiledConstantsOffset ;
+            // //
+            // //     chunk.mConstants.insert(
+            // //             chunk.mConstants.end(),
+            // //             func.chunk.mConstants.begin(),
+            // //             func.chunk.mConstants.end()
+            // //     );
+            // // }
 
             chunk.emit(OP_PUSH_VALUE);
             chunk.emitValue(NumberNullValue);

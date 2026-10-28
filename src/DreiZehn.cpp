@@ -9,6 +9,7 @@
 
 #include "core/BaseObjects.h"
 #include "core/VectorFunctions.h"
+#include "core/ValueMarshaller.h"
 #include "functions/PointVectorObjectFunctions.h"
 #include "functions/FileFunctions.h"
 #include "ScriptLoader.h"
@@ -16,12 +17,15 @@
 
 namespace DreiZehn {
 
+    // VariableMarshaller gMarshall;
 
 void Init(Environment& env, int argc, char* argv[]) {
     static bool registered = false; if (registered) return; registered = true;
 
     RegisterBaseObject(env);
     RegisterVectorFunctions(env);
+
+    // Globals::Marshall = &gMarshall;
 
     char buffer[256];
     ArrayObject* obj = new ArrayObject();

@@ -283,23 +283,7 @@ i check the creation time
     - [X] Bytecode load 
 
     
-# 0.9g    
-    
-- [X] pointer and reference 
-    - [X] reactivate 
-    - [X] add bytecode compiler
-    - [X] test StarField3
-- [X] Curly as Vector Constructor
-    - [X] moved vector to core like the base object
-    - [X] lexer / parser
-    - [X] Interpreter
-    - [X] ByteCode
-    
-- [ ] Marshall testing with BaseFlux Setting
-- [ ] Imgui (now i can use the pointer) 
-- [ ] Array: compileAssignment still uses SymbolTable::insert!
 
-- [ ] ByteCode Stuff for call script function
 
 
     

@@ -466,6 +466,27 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     
     
     
+# 0.9g    
+    
+- [X] pointer and reference 
+    - [X] reactivate 
+    - [X] add bytecode compiler
+    - [X] test StarField3
+- [X] Curly as Vector Constructor
+    - [X] moved vector to core like the base object
+    - [X] lexer / parser
+    - [X] Interpreter
+    - [X] ByteCode
+    
+- [ ] Marshall testing with BaseFlux Setting ... 
+    mhh how to make the bridge?! onGetFieldPtr is a bit tricky since i do not have
+    a Value pointer for setting a new Value .... is fast but not usable for 
+    that. 
+- [ ] Imgui (now i can use the pointer) 
+- [ ] Array: compileAssignment still uses SymbolTable::insert!
+
+- [ ] ByteCode Stuff for call script function
+    
 - [ ] Testing BaseFlux13
     - [ ] Tools::LogHandler should be added to Init
     - [ ] eval is a bad idea to call events like onRender

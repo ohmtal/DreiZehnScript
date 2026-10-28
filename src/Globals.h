@@ -26,6 +26,7 @@
 namespace DreiZehn {
     class Environment;
     class VariableFrame;
+    // class VariableMarshaller;
 
     // dont want to break my fingers every time
     typedef uint32_t U32;
@@ -57,6 +58,8 @@ namespace Globals {
 
     inline int currentScriptLineNumber = 0;
     inline std::string currentScriptLine =  "";
+    // ------
+    // inline VariableMarshaller* Marshall;
     // ------
     inline bool shutDownRUNNING = false;
     // ------

@@ -31,7 +31,7 @@ define BROWN      Vector::new 127 106 79 255     # Brown
 define DARKBROWN  Vector::new 76 63 47 255       # Dark Brown
 
 global Rects = 0
-global Count = 4000
+global Count = 500 # better for debug
 -- -----------------------------------------------------------------------------
 -- To set parameters before it open the window
 fn flux::Load

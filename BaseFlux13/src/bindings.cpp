@@ -10,6 +10,7 @@
 #include "Globals.h"
 #include <span>
 #include "core/FunctionMap.h"
+#include "core/ValueMarshaller.h"
 
 extern BaseFlux::Main app;
 extern SDL_Point gMousePos;
@@ -50,9 +51,39 @@ bool MapVectorColor(const Value& value, SDL_Color& color) {
     }
     return false;
 }
+
 // -----------------------------------------------------------------------------
 void RegisterBaseFluxFunctions(Environment& env) {
 
+    // StructMarshaller<SDL_Point> SDL_PointMarshall;
+    // SDL_PointMarshall.registerField(&SDL_Point::x);
+    // SDL_PointMarshall.registerField(&SDL_Point::y);
+
+    // ValueMarshaller<BaseFlux::Settings> SettingsMarshall;
+    // SettingsMarshall.registerField(&BaseFlux::Settings);
+    // SettingsMarshall.registerField(&BaseFlux::Settings::EnableVSync)
+    // uint32_t smyId = SymbolTable::insert("flux::EnableVSync");
+    // Globals::Marshall->registerSymbol(smyId, &app.getSettings().EnableVSync);
+    // Globals::Va
+
+    // NOTE THIS ONLY WORKS WITH Interpreter!!
+    // VariableMarshaller SettingsMarshall;
+    // uint32_t symId = SymbolTable::insert("flux::EnableVSync");
+    // SettingsMarshall.registerSymbol(symId, &app.getSettings().EnableVSync);
+    // static Value valEnableVSync;
+    // Globals::MasterVariableFrame->setVariable(symId,Value(&valEnableVSync),true );
+    // SettingsMarshall.Load(symId, valEnableVSync);
+
+    // ---------------------------------
+    FunctionMap::RegisterFunction("flux::maxfps", [](std::span<Value> args, Value& ret) -> bool {
+        // NOTE MAKE SURE THE TYPE EXISTS!!!
+        DirectVariableAccessor vsyncer(&app.getSettings().FpsLimit);
+        if (args.size() == 1) {
+            vsyncer.toCpp(args[0]);
+        }
+        vsyncer.toValue(ret);
+        return true;
+    }, "set / get the max fps");
     // ---------------------------------
     FunctionMap::RegisterFunction("flux::Close", [](std::span<Value> args, Value& ret) -> bool {
         app.TerminateApplication(); return true;

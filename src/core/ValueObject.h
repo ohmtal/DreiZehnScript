@@ -110,9 +110,7 @@ struct ValueObject {
 
     }
 
-
     virtual void Dump();
-
 
 protected:
     ValueObject(int t);

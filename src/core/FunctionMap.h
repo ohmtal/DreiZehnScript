@@ -84,12 +84,12 @@ namespace DreiZehn::FunctionMap {
 
         uint32_t bytecodeAddress = 0;
         uint32_t localVarCount = 0;
-        // FIXME CACHE !
-        bool bytecodeDirty = true;
-        BytecodeChunk chunk;
-        CompilerScope scope;
-        uint32_t compiledConstantsOffset = 0;
-        int64_t constantsOffset = 0;
+        // // FIXME CACHE !
+        // bool bytecodeDirty = true;
+        // BytecodeChunk chunk;
+        // CompilerScope scope;
+        // uint32_t compiledConstantsOffset = 0;
+        // int64_t constantsOffset = 0;
 
     };
 

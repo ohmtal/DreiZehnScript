@@ -18,7 +18,7 @@ struct CallFrame {
     U32 mIP = 0;
     U32 mLocalsStartIndex = 0; // start of current locals
     U32 mLocalsCount = 0;      // locals count
-    S64 mConstansOffset = 0;   // offset of the constans
+    // S64 mConstansOffset = 0;   // offset of the constans
 };
 
 
@@ -191,6 +191,7 @@ struct BytecodeChunk {
         mByteCodes[pos] = code;
         return true;
     }
+
 
     bool patchPtr(U32 pos, void* ptr) {
         if ((pos + 2) >= mByteCodes.size()) return false;

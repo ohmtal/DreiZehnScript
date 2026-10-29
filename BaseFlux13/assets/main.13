@@ -32,7 +32,6 @@ define BROWN      Vector::new 127 106 79 255     # Brown
 define DARKBROWN  Vector::new 76 63 47 255       # Dark Brown
 
 global Rects = 0
-global Count = 250 # better for debug
 -- -----------------------------------------------------------------------------
 -- To set parameters before it open the window
 fn flux::Load
@@ -41,15 +40,17 @@ fn flux::Load
 --     flux::maxfps 0
 end
 -- -----------------------------------------------------------------------------
-global WIDTH = 600
-global HEIGTH = 380
+define WIDTH  600.0
+define HEIGTH  380.0
+define COUNT  500
+
 fn flux::Init
     print " *** Init"
     flux::size WIDTH HEIGTH WIDTH HEIGTH
 
-    template = Array::new "point" => 0, "color" => 0, "fill" => 0
+    template = Array::new "point" => 0, "color" => 0, "fill" => 0, "vec" => 0
     Rects = Vector::new
-    Rects->fill Count template
+    Rects->fill COUNT template
     forEach item Rects
         item["point"] = Vector::new 0 0 0 0;
         item["point"][2] = 5 + math::randomf * 30
@@ -62,18 +63,27 @@ fn flux::Init
         item["color"][1] = math::random 50 200
         item["color"][2] = math::random 50 200
 
+        item["vec"] = Vector::new (math::randomf * 2.0 - 1.0) (math::randomf * 2.0 - 1.0)
+
         item["fill"] =  math::random 0 1
 
     end
 
 end
 -- -----------------------------------------------------------------------------
-fn flux::Render
+fn flux::Render ft
     forEach item Rects
         flux::DrawRect item["point"] item["color"] item["fill"]
+        item["point"][0] += item["vec"][0] # * ft
+        if item["point"][0] + item["point"][2] >= WIDTH;  item["vec"][0] *= (-1.0);;
+        if item["point"][0]  <= 0.0;  item["vec"][0] *= (-1.0);;
+
+        item["point"][1] += item["vec"][1] # * ft
+        if item["point"][1] + item["point"][3] >= HEIGTH;  item["vec"][1] *= (-1.0);;
+        if item["point"][1]  <= 0.0;  item["vec"][1] *= (-1.0);;
     end
 
-    flux::Text 10 60 "BaseFlux13 Demo" 1.0 YELLOW true DARKGRAY
+    flux::Text 10, 60, "BaseFlux13 Demo" , 1.0, YELLOW, true, DARKGRAY
     flux::DrawFPS 10.0 10.0 1.0
 end
 -- -----------------------------------------------------------------------------

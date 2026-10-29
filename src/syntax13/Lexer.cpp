@@ -97,10 +97,13 @@ std::vector<Token> Lexer::tokenize() {
         }
 
         // --- Normal number
-        if (std::isdigit(peek()) || (peek() == '.' && std::isdigit(peekNext()))) {
+        if ( std::isdigit(peek()) || (peek() == '.' && std::isdigit(peekNext()))
+            || (peek() == '-' && std::isdigit(peekNext()))
+        ) {
             std::string num;
             bool hasDot = false;
             bool hasExponent = false;
+            uint32_t needle = 0;
 
             while (peek() != '\0') {
                 char c = peek();
@@ -110,6 +113,12 @@ std::vector<Token> Lexer::tokenize() {
                 }
                 else if (c == '.' && !hasDot && !hasExponent) {
                     hasDot = true;
+                    num += advance();
+                }
+                else if (c == 'f' && hasDot && !hasExponent) {
+                    advance();
+                }
+                else if (c == '-' && needle == 0) {
                     num += advance();
                 }
                 else if ((c == 'e' || c == 'E') && !hasExponent) {
@@ -122,28 +131,12 @@ std::vector<Token> Lexer::tokenize() {
                 else {
                     break;
                 }
+                needle++;
             }
             tokens.push_back({TokenType::Number, num});
             continue;
         }
 
-
-        // if ( std::isdigit(peek())
-        //     || (std::isdigit(peekPrev()) && peek() == '.' && std::isdigit(peekNext()))
-        //     || (peek() == '-' && std::isdigit(peekNext()) && (tokens.size()>0 && isMathType(tokens.back())) )
-        //     // || (!std::isdigit(peekPrev()) && peek() == '-' && std::isdigit(peekNext()))
-        //
-        //
-        // ){
-        //     std::string num;
-        //     bool isFirst = true;
-        //     while (std::isdigit(peek()) || (peek() == '.' && !isFirst) || (peek() == '-' && isFirst)) {
-        //         num += advance();
-        //         isFirst = false;
-        //     }
-        //     tokens.push_back({TokenType::Number, num});
-        //     continue;
-        // }
 
         // minus after number
         if (peek() == '-') { advance(); tokens.push_back({TokenType::Minus, "-"}); continue; }

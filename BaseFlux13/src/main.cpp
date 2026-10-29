@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     FunctionMap::ScriptEvent evLoad, evInit, evRender, evShutDown, evOnKey, evOnMouse;
     FunctionMap::RegisterScriptEvent(&env, evLoad,"flux::Load",{},"When is start bevore sdl is initialited.");
     FunctionMap::RegisterScriptEvent(&env, evInit,"flux::Init",{},"When ready to load stuff");
-    FunctionMap::RegisterScriptEvent(&env, evRender,"flux::Render",{},"When is rendered.");
+    FunctionMap::RegisterScriptEvent(&env, evRender,"flux::Render",{"ft"},"When is rendered.");
     FunctionMap::RegisterScriptEvent(&env, evShutDown,"flux::ShutDown",{},"When it-s ShutDown.");
     FunctionMap::RegisterScriptEvent(&env, evOnKey,"flux::OnKey",{"keycode","isDown", "mod"},"When is is pressed or released.");
     FunctionMap::RegisterScriptEvent(&env, evOnMouse,"flux::OnMouse",{"x","y","button","isDown"},"mouse event.");
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
     app.OnRender = [&](SDL_Renderer* renderer) {
 
         // Core::Eval("flux::Render", env);
-        FunctionMap::FireScriptEvent(evRender,{});
+        FunctionMap::FireScriptEvent(evRender,{Value(BaseFlux::getFrameTime())});
 
         if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent)) gShowConsole = !gShowConsole;
         gConsole.Draw("Console",&gShowConsole);

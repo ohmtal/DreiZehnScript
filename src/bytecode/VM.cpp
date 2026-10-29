@@ -194,7 +194,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
     // -----------------------
     std::vector<CallFrame> callFrame;
-    callFrame.push_back({ip, 0, numLocals, 0});
+    callFrame.push_back({ip, 0, numLocals/*, 0*/});
     CallFrame* curFrame = &callFrame.back();
 
     // std::vector<Value>locals;
@@ -1119,7 +1119,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         FunctionMap::ScriptFunction* sf = static_cast<FunctionMap::ScriptFunction*>(rawPtr);
         U32 targetIP = sf->bytecodeAddress;
         U32 varCount = sf->localVarCount;
-        S32 constantsOffset = sf->constantsOffset;
+        // S64 constantsOffset = sf->constantsOffset;
 
         // U32 targetIP = ADVANCE_U32();
         // U32 varCount = ADVANCE_U32();
@@ -1129,7 +1129,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         // push new frame with offsets:
         U32 startIndex = curFrame->mLocalsStartIndex + curFrame->mLocalsCount;
         U32 localCount = argCount + varCount;
-        callFrame.push_back({targetIP, startIndex, localCount, constantsOffset});
+        callFrame.push_back({targetIP, startIndex, localCount/*, constantsOffset*/});
         // update curFrame
         curFrame = &callFrame.back();
 

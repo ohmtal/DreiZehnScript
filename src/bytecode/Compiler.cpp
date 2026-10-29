@@ -44,8 +44,8 @@ namespace DreiZehn::VM::Compiler {
             CompilerScope funcScope;
 
             // ----
-            func.compiledConstantsOffset = chunk.mConstants.size();
-            func.constantsOffset = 0;
+            // func.compiledConstantsOffset = chunk.mConstants.size();
+            // func.constantsOffset = 0;
             // ----
 
             for (const auto& paramName : func.parameterNames) {

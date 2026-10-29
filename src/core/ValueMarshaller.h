@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // Value Marshaller NOTE: EXPERIMENTAL!
+// NOTE: is cool but i would need to kick evaluatePtr/compilePtr which make every assign much
+//       slower !!!!!
 //
 // At the moment i use it for lazy translate. Example:
 //
@@ -77,17 +79,24 @@ namespace DreiZehn {
     class VariableMarshaller {
         std::unordered_map<uint32_t, std::unique_ptr<ISymbolAccessor>> mVariables;
 
+
     public:
         template <typename T>
         void registerSymbol(const uint32_t symbolId, T* varPtr) {
             mVariables[symbolId] = std::make_unique<DirectVariableAccessor<T>>(varPtr);
+        }
+        template <typename T>
+        uint32_t registerName(const std::string& name, T* varPtr) {
+            uint32_t symbolId = SymbolTable::insert(name);
+            mVariables[symbolId] = std::make_unique<DirectVariableAccessor<T>>(varPtr);
+            return symbolId;
         }
 
         bool Load(const uint32_t symbolId, Value& val) {
             auto it = mVariables.find(symbolId);
             if (it != mVariables.end()) {
                 it->second->toValue(val);
-                return false;
+                return true;
             }
             return false;
         }
@@ -100,6 +109,7 @@ namespace DreiZehn {
             }
             return false;
         }
+
 
 
         // struct example:

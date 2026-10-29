@@ -230,7 +230,7 @@ namespace DreiZehn {
         // Base Objects
         // ---------------------------------------------------------------------
 
-        RegisterFunction("Object::new", [&env](std::span<Value> args, Value& ret ) -> bool {
+        RegisterFunction("Object::new", [](std::span<Value> args, Value& ret ) -> bool {
             BaseValueObject* obj = new BaseValueObject();
             ret = Value(obj);
             return true;
@@ -238,7 +238,7 @@ namespace DreiZehn {
 
         // ---------------------------------------------------------------------
         StructObject::RegisterSymbols();
-        RegisterFunction("Struct::new", [&env](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("Struct::new", [](std::span<Value> args, Value& ret) -> bool {
             if(args.size() == 0) {
                 Tools::errorf("Usage Struct::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
                 return true;
@@ -258,7 +258,7 @@ namespace DreiZehn {
         },"Constructor of Struct. return a Struct, @params [string fieldname] or [KeyValue ] ....");
         // ---------------------------------------------------------------------
         ArrayObject::RegisterSymbols();
-        RegisterFunction("Array::new", [&env](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("Array::new", [](std::span<Value> args, Value& ret) -> bool {
             for(size_t i = 0; i < args.size(); i++) {
                 if (!args[i].isString() && !(args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
                     Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
@@ -274,7 +274,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // Helper
         // ---------------------------------------------------------------------
-        RegisterFunction("obj::isType", [&env](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("obj::isType", [](std::span<Value> args, Value& ret) -> bool {
             if(args.size() != 2  || !args[1].isNumber()) {
                 Tools::errorf("Usage obj::isType var Type\n");
                 return true;

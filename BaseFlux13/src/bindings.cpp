@@ -18,6 +18,156 @@ using namespace DreiZehn;
 typedef SDL_Color Color;
 
 // -----------------------------------------------------------------------------
+inline const int TypeSDL_FRect =  RegisterUserObjectType("SDL_FRect");
+
+// Marshall + onGetFieldPtr is much to compicated where !
+// but i may do it with the shadows and dont need the rect.
+// // struct SDL_FRect_Object: public ValueObject {
+// //     SDL_FRect mRect;
+// //     static constexpr uint32_t mSymCount = 4;
+// //     //FIXME mSymList should be static!
+// //     uint32_t mSymList[4];
+// //     VariableMarshaller mMarhall;
+// //     std::unordered_map<uint32_t, Value> mShadows;
+// //     SDL_FRect_Object() : ValueObject(TypeSDL_FRect) {
+// //         mAutoCreateDynamicFields = false;
+// //        mSymList[0] =  mMarhall.registerName("x", &mRect.x);
+// //        mSymList[1] =  mMarhall.registerName("y", &mRect.y);
+// //        mSymList[2] =  mMarhall.registerName("w", &mRect.w);
+// //        mSymList[3] =  mMarhall.registerName("h", &mRect.h);
+// //        for (int i = 0 ; i <  mSymCount; i++) {
+// //             mShadows[mSymList[i]] = Value(0.f);
+// //        }
+// //     }
+// //
+// //     bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
+// //         Value* shadow = &mShadows[fieldSymbolId];
+// //         if (!shadow) return false;
+// //         ret = *shadow;
+// //         return true;
+// //     }
+// //
+// //     Value* onGetFieldPtr(uint32_t fieldSymbolId) override{
+// //         return &mShadows[fieldSymbolId];
+// //     }
+// //
+// //     bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
+// //         //NOTE it would work but i've broken it with using onGetFieldPtr on every assign !!!
+// //         // return mMarhall.Save(fieldSymbolId,value);
+// //
+// //         Value* shadow = &mShadows[fieldSymbolId];
+// //         if (!shadow) return false;
+// //         *shadow = value;
+// //         return true;
+// //     }
+// //
+// //     void Dump() override {
+// //         // Value val ;
+// //         // for (size_t i = 0;  i < mSymCount; i++){
+// //         //     mMarhall.Load(mSymList[i], val);
+// //         //     Tools::printf("%s => %s\n",SymbolTable::getName( mSymList[i]).c_str(), val.toString().c_str()) ;
+// //         // }
+// //         for (size_t i = 0;  i < mSymCount; i++){
+// //             const Value& val = mShadows[mSymList[i]];
+// //             Tools::printf("%s => %s\n",SymbolTable::getName( mSymList[i]).c_str(), val.toString().c_str()) ;
+// //         }
+// //     }
+// //
+// //     SDL_FRect* get() {
+// //         for (size_t i = 0;  i < mSymCount; i++){
+// //              mMarhall.Load(mSymList[i], mShadows[mSymList[i]]);
+// //         }
+// //         return &mRect;
+// //     }
+// //
+// //     static bool Construct(std::span<Value> args, Value& ret) {
+// //         auto obj = new SDL_FRect_Object();
+// //         ret =  Value(obj);
+// //         for (size_t i = 0; i < args.size() && i < mSymCount; i++){
+// //             // // obj->mMarhall.Save(obj->mSymList[i],args[i]);
+// //             obj->mShadows[obj->mSymList[i]] = args[i];
+// //         }
+// //         return true;
+// //     }
+// // };
+
+//FIXME mSymList should be static via RegisterSymbols! and i need to rework my "offset" marshall
+struct SDL_BaseObject: public ValueObject {
+    bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
+        Value* shadow = onGetFieldPtr(fieldSymbolId);
+        if (!shadow) return false;
+        ret = *shadow;
+        return true;
+    }
+
+
+    bool onSetField(uint32_t fieldSymbolId, const Value& value) override {
+        Value* shadow = onGetFieldPtr(fieldSymbolId);
+        if (!shadow) return false;
+        *shadow = value;
+        return true;
+    }
+protected:
+    SDL_BaseObject(int t): ValueObject(t) { }
+
+};
+
+struct SDL_FRect_Object: public SDL_BaseObject {
+    static constexpr uint32_t sSymCount = 4;
+    inline static uint32_t sSymList[4];
+
+    std::unordered_map<uint32_t, Value> mShadows;
+
+    SDL_FRect_Object() : SDL_BaseObject(TypeSDL_FRect) {
+        mAutoCreateDynamicFields = false;
+        for (int i = 0 ; i <  sSymCount; i++) {
+            mShadows[sSymList[i]] = Value(0.f);
+        }
+    }
+
+    Value* onGetFieldPtr(uint32_t fieldSymbolId) override{
+        return &mShadows[fieldSymbolId];
+    }
+
+    void Dump() override {
+        for (size_t i = 0;  i < sSymCount; i++){
+            const Value& val = mShadows[sSymList[i]];
+            Tools::printf("%s => %s\n",SymbolTable::getName( sSymList[i]).c_str(), val.toString().c_str()) ;
+        }
+    }
+
+    // here i would need my offset marshall !
+    void get(SDL_FRect& rect) {
+        rect.x = mShadows[sSymList[0]].getFloat();
+        rect.y = mShadows[sSymList[1]].getFloat();
+        rect.w = mShadows[sSymList[2]].getFloat();
+        rect.h = mShadows[sSymList[3]].getFloat();
+    }
+    void set(const SDL_FRect& rect) {
+        mShadows[sSymList[0]] = Value(rect.x);
+        mShadows[sSymList[1]] = Value(rect.y);
+        mShadows[sSymList[2]] = Value(rect.w);
+        mShadows[sSymList[3]] = Value(rect.h);
+    }
+
+    static void RegisterSymbols() {
+        std::string fieldnames[4] = {"x","y","w","h"};
+        for (int i = 0 ; i <  sSymCount; i++) {
+            sSymList[i] = SymbolTable::insert(fieldnames[i]);
+        }
+    }
+
+
+    static bool Construct(std::span<Value> args, Value& ret) {
+        auto obj = new SDL_FRect_Object();
+        ret =  Value(obj);
+        for (size_t i = 0; i < args.size() && i < sSymCount; i++){
+            obj->mShadows[obj->sSymList[i]] = args[i];
+        }
+        return true;
+    }
+};
+// -----------------------------------------------------------------------------
 VectorValueObject* GetVectorObject(const Value& value, size_t minSize ){
     if (!value.isPointer()
         || value.asPointerObject()->mType != TypeVectorObject)
@@ -54,25 +204,13 @@ bool MapVectorColor(const Value& value, SDL_Color& color) {
 
 // -----------------------------------------------------------------------------
 void RegisterBaseFluxFunctions(Environment& env) {
+    static bool mSymbolsLoaded = false; if (mSymbolsLoaded) return; mSymbolsLoaded = true;
 
-    // StructMarshaller<SDL_Point> SDL_PointMarshall;
-    // SDL_PointMarshall.registerField(&SDL_Point::x);
-    // SDL_PointMarshall.registerField(&SDL_Point::y);
 
-    // ValueMarshaller<BaseFlux::Settings> SettingsMarshall;
-    // SettingsMarshall.registerField(&BaseFlux::Settings);
-    // SettingsMarshall.registerField(&BaseFlux::Settings::EnableVSync)
-    // uint32_t smyId = SymbolTable::insert("flux::EnableVSync");
-    // Globals::Marshall->registerSymbol(smyId, &app.getSettings().EnableVSync);
-    // Globals::Va
-
-    // NOTE THIS ONLY WORKS WITH Interpreter!!
-    // VariableMarshaller SettingsMarshall;
-    // uint32_t symId = SymbolTable::insert("flux::EnableVSync");
-    // SettingsMarshall.registerSymbol(symId, &app.getSettings().EnableVSync);
-    // static Value valEnableVSync;
-    // Globals::MasterVariableFrame->setVariable(symId,Value(&valEnableVSync),true );
-    // SettingsMarshall.Load(symId, valEnableVSync);
+    SDL_FRect_Object::RegisterSymbols();
+    FunctionMap::RegisterFunction("flux::rect", [](std::span<Value> args, Value& ret) -> bool {
+        return SDL_FRect_Object::Construct(args,ret);
+    }, "return an new SDL_FRect");
 
     FunctionMap::RegisterFunction("flux::size", [](std::span<Value> args, Value& ret) -> bool {
         int logiX = 0;

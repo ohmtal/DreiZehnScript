@@ -24,6 +24,7 @@ namespace DreiZehn::FunctionMap {
     // symbolId, stringId
     using DescLookupMap = std::unordered_map<uint32_t, uint32_t>;
 
+
     // Functions
     inline FuncLookupMap RegisteredFunctions;
     inline DescLookupMap RegisteredFunctionsDesc;
@@ -250,6 +251,26 @@ namespace DreiZehn::FunctionMap {
             return false;
         }
     };
+
+    // -------------------------------------------------------------
+    // Events
+    // -------------------------------------------------------------
+
+
+    struct ScriptEvent {
+        Environment* envPtr = nullptr;
+        FunctionMap::ScriptFunction* sf = nullptr;
+        std::string desc = "";
+    };
+
+    inline std::vector<ScriptEvent*> ScriptEvents;
+
+
+    void RegisterScriptEvent( Environment* envPtr, ScriptEvent& event,
+                              const std::string& funcName, const std::vector<std::string>& parameters
+                              , const std::string& desc );
+    Value FireScriptEvent( ScriptEvent& event, std::vector<Value> arguments);
+
 
 } //namespace DreiZehn::FunctionMap
 

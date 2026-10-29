@@ -8,6 +8,7 @@ define SDLK_LEFT                   0x40000050
 define SDLK_DOWN                   0x40000051
 define SDLK_UP                     0x40000052
 
+define BLACK      Vector::new 0 0 0 255          # Black
 define LIGHTGRAY  Vector::new 200 200 200 255    # Light Gray
 define GRAY       Vector::new 130 130 130 255    # Gray
 define DARKGRAY   Vector::new 80 80 80 255       # Dark Gray
@@ -36,24 +37,25 @@ global Count = 250 # better for debug
 -- To set parameters before it open the window
 fn flux::Load
     print " *** Load"
+
 --     flux::maxfps 0
 end
 -- -----------------------------------------------------------------------------
+global WIDTH = 600
+global HEIGTH = 380
 fn flux::Init
     print " *** Init"
-    template = Array::new "point" => 0, "color" => 0, "fill" => 0
-    print " *** Init2"
-    Rects = Vector::new
-    print " *** Init3"
-    Rects->fill Count template
+    flux::size WIDTH HEIGTH WIDTH HEIGTH
 
-    print " *** Init4" Rects
+    template = Array::new "point" => 0, "color" => 0, "fill" => 0
+    Rects = Vector::new
+    Rects->fill Count template
     forEach item Rects
         item["point"] = Vector::new 0 0 0 0;
         item["point"][2] = 5 + math::randomf * 30
         item["point"][3] = 5 + math::randomf * 20
-        item["point"][0] = math::randomf * (800.0 - item["point"][2])
-        item["point"][1] = math::randomf * (450.0 - item["point"][3])
+        item["point"][0] = math::randomf * (WIDTH - item["point"][2])
+        item["point"][1] = math::randomf * (HEIGTH - item["point"][3])
 
         item["color"] = Vector::new 255 255 255 255
         item["color"][0] = math::random 50 200
@@ -71,7 +73,8 @@ fn flux::Render
         flux::DrawRect item["point"] item["color"] item["fill"]
     end
 
-    flux::DrawFPS 10.0 10.0 3.0
+    flux::Text 10 60 "BaseFlux13 Demo" 1.0 YELLOW true DARKGRAY
+    flux::DrawFPS 10.0 10.0 1.0
 end
 -- -----------------------------------------------------------------------------
 fn flux::ShutDown

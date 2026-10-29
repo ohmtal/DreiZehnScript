@@ -118,72 +118,69 @@ int argParser(int argc, char* argv[]) {
 }
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
-// HACK FEST HACK FEST HACK FEST HACK FEST HACK FEST HACK FEST HACK FEST HACK
-// ----------------------------------------------------------------------------
-// NOTE Experimental - move me to Functionmap or something!
-#include "bytecode/VM.h"
-struct ScriptEvent {
-    Environment* envPtr = nullptr;
-    FunctionMap::ScriptFunction* sf = nullptr;
-    // std::vector<Value> arguments;
-    // BytecodeChunk chunk;
-    // size_t chunkArguments = 0;
-
-    std::string desc = "";
-};
-void RegisterScriptEvent( Environment* envPtr, ScriptEvent& event,
-        const std::string& funcName, const std::vector<std::string>& parameters
-        , const std::string& desc
-    ) {
-    if (!envPtr) return;
-    event.envPtr = envPtr;
-    event.sf =  DreiZehn::FunctionMap::RegisterScriptFunctionStub(funcName,parameters);
-    event.desc = desc;
-}
-
-// NOTE USING LITERALS!
-Value FireScriptEvent( ScriptEvent& event, std::vector<Value> arguments) {
-    if (!event.sf || !event.envPtr) {
-        Tools::errorf("FireScriptEvent - Init first - function not found!");
-        return NumberNullValue;
-    }
-    if ( Globals::ByteCodeMode ) {
-        //Compile:
-        // if (chunk.mByteCodes.size() == 0 || chunkArguments != arguments.size()) {
-
-            // Copy ! :/
-            BytecodeChunk chunk =  DreiZehn::VM::Compiler::MasterChunk;
-            // // DreiZehn::VM::Compiler::prepare(*event.envPtr,chunk);
-
-            size_t chunkArguments = arguments.size();
-            uint32_t ip = chunk.tell();
-            // arguments
-            for (auto& arg: arguments) {
-                uint32_t constIdx = chunk.addConstant(arg);
-                chunk.addConstant(constIdx);
-                chunk.emit(OP_CONST);
-                chunk.emit(constIdx);
-            }
-
-            // main function
-            chunk.emit(OP_CALL_SF_FUNCTION);
-            chunk.emit((U32)chunkArguments);
-            chunk.emitPointer(event.sf);
-            // chunk.emit(OP_POP_STACK); //?? need the result
-            chunk.emit(OP_EXIT);
-
-            // attach and patch all functions
-            // NOT! DreiZehn::VM::Compiler::attachFunctions(*event.envPtr,chunk);
-
-            return VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount(), ip);
-        // }
-
-    } else {
-        return DreiZehn::FunctionMap::CallScriptFunction(*event.envPtr, event.sf, arguments);
-    }
-    return NumberNullValue;
-}
+//  NOTE: moved me to Functionmap or something!
+// #include "bytecode/VM.h"
+// struct ScriptEvent {
+//     Environment* envPtr = nullptr;
+//     FunctionMap::ScriptFunction* sf = nullptr;
+//     // std::vector<Value> arguments;
+//     // BytecodeChunk chunk;
+//     // size_t chunkArguments = 0;
+//
+//     std::string desc = "";
+// };
+// void RegisterScriptEvent( Environment* envPtr, ScriptEvent& event,
+//         const std::string& funcName, const std::vector<std::string>& parameters
+//         , const std::string& desc
+//     ) {
+//     if (!envPtr) return;
+//     event.envPtr = envPtr;
+//     event.sf =  DreiZehn::FunctionMap::RegisterScriptFunctionStub(funcName,parameters);
+//     event.desc = desc;
+// }
+//
+// // NOTE USING LITERALS!
+// Value FireScriptEvent( ScriptEvent& event, std::vector<Value> arguments) {
+//     if (!event.sf || !event.envPtr) {
+//         Tools::errorf("FireScriptEvent - Init first - function not found!");
+//         return NumberNullValue;
+//     }
+//     if ( Globals::ByteCodeMode ) {
+//         //Compile:
+//         // if (chunk.mByteCodes.size() == 0 || chunkArguments != arguments.size()) {
+//
+//             // Copy ! :/
+//             BytecodeChunk chunk =  DreiZehn::VM::Compiler::MasterChunk;
+//             // // DreiZehn::VM::Compiler::prepare(*event.envPtr,chunk);
+//
+//             size_t chunkArguments = arguments.size();
+//             uint32_t ip = chunk.tell();
+//             // arguments
+//             for (auto& arg: arguments) {
+//                 uint32_t constIdx = chunk.addConstant(arg);
+//                 chunk.addConstant(constIdx);
+//                 chunk.emit(OP_CONST);
+//                 chunk.emit(constIdx);
+//             }
+//
+//             // main function
+//             chunk.emit(OP_CALL_SF_FUNCTION);
+//             chunk.emit((U32)chunkArguments);
+//             chunk.emitPointer(event.sf);
+//             // chunk.emit(OP_POP_STACK); //?? need the result
+//             chunk.emit(OP_EXIT);
+//
+//             // attach and patch all functions
+//             // NOT! DreiZehn::VM::Compiler::attachFunctions(*event.envPtr,chunk);
+//
+//             return VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount(), ip);
+//         // }
+//
+//     } else {
+//         return DreiZehn::FunctionMap::CallScriptFunction(*event.envPtr, event.sf, arguments);
+//     }
+//     return NumberNullValue;
+// }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -199,13 +196,13 @@ int main(int argc, char* argv[]) {
     Tools::LogHandler = MyLogger; //FIXME add to init
     RegisterBaseFluxFunctions(env);
 
-    ScriptEvent evLoad, evInit, evRender, evShutDown, evOnKey, evOnMouse;
-    RegisterScriptEvent(&env, evLoad,"flux::Load",{},"When is start bevore sdl is initialited.");
-    RegisterScriptEvent(&env, evInit,"flux::Init",{},"When ready to load stuff");
-    RegisterScriptEvent(&env, evRender,"flux::Render",{},"When is rendered.");
-    RegisterScriptEvent(&env, evShutDown,"flux::ShutDown",{},"When it-s ShutDown.");
-    RegisterScriptEvent(&env, evOnKey,"flux::OnKey",{"keycode","isDown", "mod"},"When is is pressed or released.");
-    RegisterScriptEvent(&env, evOnMouse,"flux::OnMouse",{"x","y","button","isDown"},"mouse event.");
+    FunctionMap::ScriptEvent evLoad, evInit, evRender, evShutDown, evOnKey, evOnMouse;
+    FunctionMap::RegisterScriptEvent(&env, evLoad,"flux::Load",{},"When is start bevore sdl is initialited.");
+    FunctionMap::RegisterScriptEvent(&env, evInit,"flux::Init",{},"When ready to load stuff");
+    FunctionMap::RegisterScriptEvent(&env, evRender,"flux::Render",{},"When is rendered.");
+    FunctionMap::RegisterScriptEvent(&env, evShutDown,"flux::ShutDown",{},"When it-s ShutDown.");
+    FunctionMap::RegisterScriptEvent(&env, evOnKey,"flux::OnKey",{"keycode","isDown", "mod"},"When is is pressed or released.");
+    FunctionMap::RegisterScriptEvent(&env, evOnMouse,"flux::OnMouse",{"x","y","button","isDown"},"mouse event.");
 
     argParser(argc, argv);
 
@@ -238,7 +235,7 @@ int main(int argc, char* argv[]) {
     };
     // -------------------------------------------------------------------------
     // Core::Eval("flux::Load", env);
-    FireScriptEvent(evLoad,{});
+    FunctionMap::FireScriptEvent(evLoad,{});
     // -------------------------------------------------------------------------
 
     if ( !app.InitSDL() ) return 1;
@@ -249,7 +246,7 @@ int main(int argc, char* argv[]) {
 
     // -------------------------------------------------------------------------
     // Core::Eval("flux::Init", env);
-    FireScriptEvent(evInit,{});
+    FunctionMap::FireScriptEvent(evInit,{});
     // -------------------------------------------------------------------------
     app.OnLoopBegin = []() {
         // FIXME
@@ -258,7 +255,7 @@ int main(int argc, char* argv[]) {
     app.OnRender = [&](SDL_Renderer* renderer) {
 
         // Core::Eval("flux::Render", env);
-        FireScriptEvent(evRender,{});
+        FunctionMap::FireScriptEvent(evRender,{});
 
         if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent)) gShowConsole = !gShowConsole;
         gConsole.Draw("Console",&gShowConsole);
@@ -302,14 +299,9 @@ int main(int argc, char* argv[]) {
             case SDL_EVENT_KEY_UP:
             case SDL_EVENT_KEY_DOWN:
             {
-                // HACK THIS IS SHIT!
-                // std::string cmd = "flux::OnKey";
-                // cmd = cmd + " " + std::to_string(event.key.key);
-                // cmd = cmd + " " + ((event.type == SDL_EVENT_KEY_DOWN ) ? "1" : "0");
-                // cmd = cmd + " " + std::to_string(event.key.mod);
-                // Core::Eval(cmd, env);
 
-                FireScriptEvent(evOnKey, {
+
+                FunctionMap::FireScriptEvent(evOnKey, {
                                 Value(event.key.key)
                                 , Value(event.type == SDL_EVENT_KEY_DOWN )
                                 , Value (event.key.mod)
@@ -320,15 +312,9 @@ int main(int argc, char* argv[]) {
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
             case SDL_EVENT_MOUSE_BUTTON_UP:
             {
-                // HACK THIS IS SHIT!
-                // std::string cmd = "flux::OnMouse";
-                // cmd = cmd + " " + std::to_string(gMousePos.x);
-                // cmd = cmd + " " + std::to_string(gMousePos.y);
-                // cmd = cmd + " " + std::to_string(event.button.button);
-                // cmd = cmd + " " + ((event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ) ? "1" : "0");
-                // Core::Eval(cmd, env);
 
-                FireScriptEvent(evOnMouse, {
+
+                FunctionMap::FireScriptEvent(evOnMouse, {
                     Value(gMousePos.x), Value(gMousePos.y)
                     , Value( event.button.button)
                     , Value(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN )

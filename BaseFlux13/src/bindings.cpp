@@ -1,6 +1,6 @@
 #include <string>
 #include <format>
-
+#include <SDL3/SDL.h>
 #include "BaseFlux/Main.h"
 #include "BaseFlux/Draw.h"
 #include "BaseFlux/Collision.h"
@@ -74,6 +74,39 @@ void RegisterBaseFluxFunctions(Environment& env) {
     // Globals::MasterVariableFrame->setVariable(symId,Value(&valEnableVSync),true );
     // SettingsMarshall.Load(symId, valEnableVSync);
 
+    FunctionMap::RegisterFunction("flux::size", [](std::span<Value> args, Value& ret) -> bool {
+        int logiX = 0;
+        int logiY = 0;
+
+        if (args.size() >= 2) {
+            SDL_Point oldSize = app.getSettings().ScreenSize;
+            app.getSettings().ScreenSize.x = args[0].getInt();
+            app.getSettings().ScreenSize.y = args[1].getInt();
+            if (oldSize.x != app.getSettings().ScreenSize.x
+                || oldSize.y != app.getSettings().ScreenSize.y) {
+                SDL_SetWindowSize(app.getWindow(), app.getSettings().ScreenSize.x , app.getSettings().ScreenSize.y);
+            }
+
+            if (args.size() >= 4) {
+                logiX = args[2].getInt();
+                logiY = args[3].getInt();
+                SDL_SetRenderLogicalPresentation(app.getRenderer(), logiX, logiY ,
+                                                 SDL_LOGICAL_PRESENTATION_STRETCH);
+                                                 // SDL_LOGICAL_PRESENTATION_LETTERBOX);
+            }
+
+        }
+         SDL_RendererLogicalPresentation mode;
+        SDL_GetRenderLogicalPresentation(app.getRenderer(),&logiX, &logiY, &mode);
+        auto obj = new VectorValueObject();
+        obj->mElements.push_back(Value(app.getSettings().ScreenSize.x));
+        obj->mElements.push_back(Value(app.getSettings().ScreenSize.y));
+        obj->mElements.push_back(Value(logiX));
+        obj->mElements.push_back(Value(logiY));
+        ret = Value (obj);
+
+        return true;
+    }, "set / get the screen size and logical size");
     // ---------------------------------
     FunctionMap::RegisterFunction("flux::maxfps", [](std::span<Value> args, Value& ret) -> bool {
         DirectVariableAccessor vsyncer(&app.getSettings().FpsLimit);
@@ -87,6 +120,42 @@ void RegisterBaseFluxFunctions(Environment& env) {
     FunctionMap::RegisterFunction("flux::Close", [](std::span<Value> args, Value& ret) -> bool {
         app.TerminateApplication(); return true;
     }, "Close the Application");
+    // ---------------------------------
+//     void DrawDebugText( SDL_Renderer *renderer,
+//                         float x, float y, const char* text,
+//                         float scale = 1.f, const SDL_Color& color = {100,100,100,255},
+//                         bool doShadow = false, const SDL_Color& shadowColor = { 60,60,60,255});
+//
+    FunctionMap::RegisterFunction("flux::Text", [](std::span<Value> args, Value& ret) -> bool {
+        if (args.size() < 3 || !args[2].isString()) {
+            Tools::PrintRuntimeError("flux::Text: Missing Parameter");
+            return false;
+        }
+        float x = args[0].getFloat();
+        float y = args[1].getFloat();
+        const char* text = args[2].getStringChars();
+
+        float scale = 1.f;
+        SDL_Color color = {200,200,200,255};
+        bool doShadow = false;
+        SDL_Color shadowcolor = {60,60,60,255};
+
+        if (args.size() > 3)
+            scale = args[3].getFloat();
+
+        if (args.size() > 4)
+            MapVectorColor(args[4], color);
+
+        if (args.size() > 5)
+            doShadow = args[5].getBool();
+
+        if (args.size() > 6)
+            MapVectorColor(args[6], shadowcolor);
+
+        BaseFlux::DrawDebugText(app.getRenderer(),x,y,text, scale, color, doShadow, shadowcolor);
+
+        return true;
+    }, "Draw a Text on the Screen. x,y,text optional: scale,color,doShadow,shadowColor");
 
 
     // ---------------------------------

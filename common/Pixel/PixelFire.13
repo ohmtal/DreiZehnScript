@@ -36,7 +36,7 @@ end
 
 fn PixelFire::update this
     this->igniteBottomRow
-    forRange y (this.height-1)
+    forRange y  this.height - 1
         forRange x this.width
             belowIndex = (( y + 1 ) * this.width) + x
             randomWind = (math::random 0 2) - 1
@@ -51,6 +51,7 @@ fn PixelFire::update this
             end
             this.heatBuffer[targetIndex] = newHeat
 
+            -- print "targetIndex = " targetIndex "::" "newHeat = " newHeat
             color = this.colorPalette[newHeat]
             if newHeat == 0
                 color = 0

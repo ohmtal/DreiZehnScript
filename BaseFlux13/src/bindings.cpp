@@ -18,7 +18,7 @@ using namespace DreiZehn;
 typedef SDL_Color Color;
 
 // -----------------------------------------------------------------------------
-inline const int TypeSDL_FRect =  RegisterUserObjectType("SDL_FRect");
+
 
 // Marshall + onGetFieldPtr is much to compicated where !
 // but i may do it with the shadows and dont need the rect.
@@ -92,6 +92,7 @@ inline const int TypeSDL_FRect =  RegisterUserObjectType("SDL_FRect");
 // // };
 
 //FIXME mSymList should be static via RegisterSymbols! and i need to rework my "offset" marshall
+
 struct SDL_BaseObject: public ValueObject {
     bool onGetField(uint32_t fieldSymbolId, Value& ret) override {
         Value* shadow = onGetFieldPtr(fieldSymbolId);
@@ -111,7 +112,8 @@ protected:
     SDL_BaseObject(int t): ValueObject(t) { }
 
 };
-
+// ---------------------
+inline const int TypeSDL_FRect =  RegisterUserObjectType("SDL_FRect");
 struct SDL_FRect_Object: public SDL_BaseObject {
     static constexpr uint32_t sSymCount = 4;
     inline static uint32_t sSymList[4];
@@ -154,6 +156,8 @@ struct SDL_FRect_Object: public SDL_BaseObject {
         std::string fieldnames[4] = {"x","y","w","h"};
         for (int i = 0 ; i <  sSymCount; i++) {
             sSymList[i] = SymbolTable::insert(fieldnames[i]);
+            // only for help
+            ValueObjectProperty(fieldnames[i], "property " + fieldnames[i], TypeSDL_FRect);
         }
     }
 

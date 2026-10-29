@@ -4,7 +4,6 @@ import Core
 import Math
 import String
 import Fenster
-import Vector
 
 -- include filename noExec
 include "common/Pixel/PixelFire.13" true
@@ -119,7 +118,7 @@ while fenster->loop
 
    ticker++; if ticker >= tickCount; ticker = 0;;
 
-   if !core::breath; break;;
+--    if !core::breath; break;;
 end
 
 fenster->close

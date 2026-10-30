@@ -26,8 +26,7 @@ namespace DLS {
         String
     };
     //
-    // alignas(16)
-    struct Value {
+    struct alignas(16) Value {
         union {
             F64 d;
             S64 l;
@@ -36,7 +35,8 @@ namespace DLS {
 
         } ;
         ValueType type;
-        U8 padding[3];
+        U8 padding[3]; // 3 bytes padding for future use
+
         // ------------------
         Value() { type = ValueType::None; l = 0; }
         Value(F64 val) { type = ValueType::Double; d = val; }
@@ -45,9 +45,9 @@ namespace DLS {
         Value(S64 val) { type = ValueType::Long; l = val; }
         Value(std::string val) { type = ValueType::String; strId = StringTable::insert(val); }
         // ------------------
-        inline bool isPointer() {
-            return type == ValueType::Ptr;
-        }
+        inline bool isDouble() { return type == ValueType::Double; }
+        inline bool isLong() { return type == ValueType::Long; }
+        inline bool isPointer() { return type == ValueType::Ptr; }
         // ------------------
         inline F64 getDouble() {
             if (type == ValueType::Double) [[likely]] return d;

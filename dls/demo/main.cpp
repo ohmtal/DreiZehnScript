@@ -39,6 +39,9 @@ std::string Run(std::string code) {
 
 int main(int argc, char* argv[]) {
 
+    std::cout << "============= Dirty Little Script ===============\n";
+    std::cout << "Value size check:" << sizeof(Value) << "\n";
+
     RegisterMathFunctions();
 
     std::cout << "=============  TAPE TEST ===============\n";
@@ -54,8 +57,8 @@ int main(int argc, char* argv[]) {
     std::cout << "------------ COMMA (multi result) ---------------\n";
     mySrc = R"( 3 * (4 + 1), 5 + 5 )";
     std::cout << mySrc << " = " << Run(mySrc) << "\n";
-    std::cout << "------------ Math ---------------\n";
 
+    std::cout << "------------ C-Function Call ---------------\n";
     mySrc = R"( math::randomf )";
     std::cout << mySrc << " = " << Run(mySrc) << "\n";
     mySrc = R"( math::random 10 20 )";

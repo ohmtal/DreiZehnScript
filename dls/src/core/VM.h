@@ -175,22 +175,20 @@ namespace DLS {
                 Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
             }
             vm.PUSH_STACK(returnValue);
-        }
-        else {
-            //FIXME more than 12!
-        //     std::vector<Value> evaluatedArgs;
-        //     evaluatedArgs.reserve(numArgs);
-        //     for (auto& argExpr : arguments) {
-        //         if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
-        //     }
-        //
-        //     Value returnValue = NumberNullValue;
-        //     bool success = (*cb)(evaluatedArgs, returnValue); // bzw. std::span(evaluatedArgs)
-        //
-        //     if (!success) [[unlikely]] {
-        //         Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
-        //     }
-        //     return returnValue;
+        } else {
+            // --- more than 12 parameters fallback ---
+            std::vector<Value> evaluatedArgs;
+            evaluatedArgs.reserve(numArgs);
+            for (size_t i = 0; i < numArgs; ++i) {
+                evaluatedArgs.push_back(vm.POP_STACK());
+            }
+            Value returnValue = Value(0);
+            bool success = (*cb)(evaluatedArgs, returnValue);
+
+            if (!success) [[unlikely]] {
+                Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
+            }
+            vm.PUSH_STACK(returnValue);
         }
     }
 

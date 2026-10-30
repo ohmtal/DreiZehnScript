@@ -1,53 +1,19 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2026 Thomas Hühn (XXTH)
+// SPDX-License-Identifier: MIT
+//-----------------------------------------------------------------------------
+// VM Flat Tape
+//-----------------------------------------------------------------------------
 #pragma once
 
 #include <cstdint>
 #include <memory>
 #include <vector>
 #include "Types.h"
+#include "Value.h"
 
 namespace DLS {
 
-    // ------------------------------------------
-    // Value
-    // ------------------------------------------
-    enum class ValueType{
-        Double,
-        Long,
-        Ptr
-    };
-    //
-    // alignas(16)
-    struct Value {
-        union {
-            F64 d;
-            S64 l;
-            void* p;
-        } ;
-        ValueType type;
-        U8 padding[3];
-        // ------------------
-        Value(F64 val) {
-            type = ValueType::Double;
-            d = val;
-        }
-        Value(S64 val) {
-            type = ValueType::Long;
-            l = val;
-        }
-        // ------------------
-        // ------------------
-        F64 getDouble() {
-            if (type == ValueType::Double) [[likely]] return d;
-            else if (type == ValueType::Long) return static_cast<F64>(l);
-            else return 0.0;
-        }
-        // ------------------
-        S64 getLong() {
-            if (type == ValueType::Long) [[likely]] return l;
-            if (type == ValueType::Double)  return static_cast<S64>(d);
-            else return 0;
-        }
-    };
     // ------------------------------------------
     // FWD
     // ------------------------------------------
@@ -98,6 +64,15 @@ namespace DLS {
         size_t pc = 0;
         std::vector<Value> stack;
 
+        Value run() {
+            while (pc < tape.size()) {
+                tape[pc++].code(*this);
+            }
+            if (stack.size() > 0)
+                return stack.back();
+            return Value("");
+        }
+
         // std::vector<CallFrame> call_stack;
 
         // // Tracks all active open upvalues on the stack, sorted by stack index
@@ -129,6 +104,34 @@ namespace DLS {
         Value a = vm.stack.back(); vm.stack.pop_back();
 
         Value res = Value(a.getDouble() + b.getDouble());
+        vm.stack.push_back(res);
+    }
+
+    void op_sub(VM& vm) {
+        Value b = vm.stack.back(); vm.stack.pop_back();
+        Value a = vm.stack.back(); vm.stack.pop_back();
+
+        Value res = Value(a.getDouble() - b.getDouble());
+        vm.stack.push_back(res);
+    }
+
+    void op_mul(VM& vm) {
+        Value b = vm.stack.back(); vm.stack.pop_back();
+        Value a = vm.stack.back(); vm.stack.pop_back();
+
+        Value res = Value(a.getDouble() * b.getDouble());
+        vm.stack.push_back(res);
+    }
+
+    void op_div(VM& vm) {
+        Value b = vm.stack.back(); vm.stack.pop_back();
+        Value a = vm.stack.back(); vm.stack.pop_back();
+        double right = b.getDouble();
+        if (right == 0.0) [[unlikely]]  {
+            vm.stack.push_back(Value(0.0));
+            return ;
+        }
+        Value res = Value(a.getDouble() / right);
         vm.stack.push_back(res);
     }
     // ------------------------------------------

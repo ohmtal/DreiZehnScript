@@ -8,13 +8,14 @@
 #include <string>
 #include "core/VM.h"
 #include "core/Lexer.h"
+#include "core/Parser.h"
 using namespace DLS;
 
 int main(int argc, char* argv[]) {
 
 
     std::string mySrc = R"(
-       print ( 4.f + 5 );
+        4.f + 5 * 20
     )";
 
     Lexer lex(mySrc);
@@ -22,5 +23,10 @@ int main(int argc, char* argv[]) {
     for (auto& tok: token) {
         std::cout << tokenTypeToString(tok.mType) << "::" << tok.mValue << "\n";
     }
+    VM vm;
+    Parser parser(token,&vm);
+    parser.parse();
+
+    std::cout << "result: " << vm.run().toString() << "\n";
 
 }

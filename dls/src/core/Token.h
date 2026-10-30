@@ -206,15 +206,15 @@ namespace DLS{
         || op.mType == TokenType::SHL
         || op.mType == TokenType::SHR
         || op.mType == TokenType::Modulo
-        // || op.mType == TokenType::Not
-        || op.mType == TokenType::Question
-        || op.mType == TokenType::Dot
-        || op.mType == TokenType::Arrow
-        || op.mType == TokenType::KeyValue
-        || op.mType == TokenType::DotDot
-        || op.mType == TokenType::DotAssign
 
-        || op.mType == TokenType::Assign
+        // || op.mType == TokenType::Question
+        // || op.mType == TokenType::Dot
+        // || op.mType == TokenType::Arrow
+        // || op.mType == TokenType::KeyValue
+        // || op.mType == TokenType::DotDot
+        // || op.mType == TokenType::DotAssign
+
+        // || op.mType == TokenType::Assign
         || isInlineMathType(op.mType)
         || isMathAssignOperatorType(op.mType)
         ;

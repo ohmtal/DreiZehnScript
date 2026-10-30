@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Parser
+// Parser: Pratt (top-down operator precedence parser /Precedence Climbing Parser)
 //-----------------------------------------------------------------------------
 #pragma once
 
@@ -14,6 +14,7 @@
 #include "Token.h"
 #include "Lexer.h"
 #include "VM.h"
+#include "FunctionMap.h"
 
 namespace DLS{
 
@@ -88,31 +89,86 @@ private:
     // -------------------------------------------------------------------------
     void parsePrimary() {
         Token t = peek();
-        // ~~~~ Number ~~~~
-        if (peek().mType == TokenType::Number ) {
-            Token t = advance();
-            std::string rawValue = t.mValue;
-            Value evaluatedValue;
+        TokenType curType = peek().mType;
 
-            char* endptr = nullptr;
-            bool  haveDot = rawValue.find('.') != std::string::npos;
-            double resDouble = std::strtod(rawValue.c_str(), &endptr);
-            if (rawValue.empty() || *endptr != '\0') {
-                evaluatedValue = Value(0);
-            } else {
-                if (haveDot) evaluatedValue = Value(resDouble);
-                else evaluatedValue =  Value((S64)resDouble);
+        switch (curType) {
+            // ~~~~ Number ~~~~
+            case TokenType::Number: {
+                Token t = advance();
+                std::string rawValue = t.mValue;
+                Value evaluatedValue;
+
+                char* endptr = nullptr;
+                bool  haveDot = rawValue.find('.') != std::string::npos;
+                double resDouble = std::strtod(rawValue.c_str(), &endptr);
+                if (rawValue.empty() || *endptr != '\0') {
+                    evaluatedValue = Value(0);
+                } else {
+                    if (haveDot) evaluatedValue = Value(resDouble);
+                    else evaluatedValue =  Value((S64)resDouble);
+                }
+                mVM->tape.push_back({.code = op_literal});
+                mVM->tape.push_back({.value = evaluatedValue});
             }
-            mVM->tape.push_back({.code = op_literal});
-            mVM->tape.push_back({.value = evaluatedValue});
-        }
-        else
-        // ~~~~ String ~~~~
-        if (peek().mType == TokenType::StringLiteral) {
-             Token t = advance();
-             mVM->tape.push_back({.code = op_literal});
-             mVM->tape.push_back({.value = Value(t.mValue)});
-        }
+            break;
+
+            // ~~~~ String ~~~~
+            case TokenType::StringLiteral: {
+                Token t = advance();
+                mVM->tape.push_back({.code = op_literal});
+                mVM->tape.push_back({.value = Value(t.mValue)});
+            }
+            break;
+            // ~~~~ LParen/RParen () ~~~~
+            case TokenType::LParen: {
+                advance();
+
+                parseMath(0);
+
+                if (peek().mType == TokenType::RParen) {
+                    advance(); //  ')'
+                } else {
+                    PrintParseError("Error: Missing closing bracket");
+                }
+                // NOTE nothing else to do here ?!
+            }
+            break;
+            // ~~~~ Comma () ~~~~
+            case TokenType::Comma: {
+                advance();
+            }
+            break;
+            // ~~~~ Identifier ~~~~
+            case TokenType::Identifier: {
+                advance();
+                U32 symId = SymbolTable::insert(t.mValue);
+                if (FunctionMap::IsCFunction(symId)) {
+                    U32 argCount = 0;
+                    while (isContinueToken(peek())) {
+                        size_t lastPos = mPos;
+                        parseMath(0);
+                        argCount++;
+                        if (lastPos == mPos) {
+                            PrintParseError("CFUNC CALL parameter stuck!");
+                            break;
+                        }
+                    }
+                    mVM->tape.push_back({.code = op_literal});
+                    mVM->tape.push_back({.value = Value(symId)});
+                    mVM->tape.push_back({.code = op_literal});
+                    mVM->tape.push_back({.value = Value(argCount)});
+                    mVM->tape.push_back({.code = op_cfunc});
+                } else {
+                    PrintLexerError("Unhandled Identifier:", t.mValue);
+                }
+            }
+            break;
+            // ~~~~ Others ~~~~
+            default:
+                PrintParseError("Unkandled Token:", tokenTypeToString(curType));
+                break;
+        } //switch
+
     }
 
     // -------------------------------------------------------------------------
@@ -180,9 +236,9 @@ private:
 
 public:
     Parser(std::vector<Token> t, VM* vm) : mTokens(std::move(t)), mVM(vm) { }
-    void parse(){
+    bool parse(){
         while (peek().mType != TokenType::EOFToken) {
-            PrintParseInfo("TokenType: ", tokenTypeToString(peek().mType));
+            // PrintParseInfo("TokenType: ", tokenTypeToString(peek().mType));
 
             U32 startPos = mPos;
             //FIXME
@@ -190,9 +246,10 @@ public:
 
             if (mPos == startPos) {
                 PrintParseError("Failed to parse: reason stuck!");
-                return;
+                return false;
             }
         }
+        return true;
     }
 
     // std::vector<std::unique_ptr<ASTNode>> parseStatements();

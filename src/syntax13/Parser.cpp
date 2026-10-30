@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Precedence Climbing Parser
+// Parser: Pratt (top-down operator precedence parser /Precedence Climbing Parser)
 //-----------------------------------------------------------------------------
 #include "Parser.h"
 #include "core/FunctionMap.h"

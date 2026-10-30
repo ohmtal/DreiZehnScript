@@ -5,7 +5,9 @@ i take a look on a different attepmt:  using Flatten Tape
 
 This time it should be really small.
 
-- AST-Interpreter => Threaded Flat-Tree
+- Parser: 
+- VM: Flatten Tape
+
 
 # Features:
 - Identifer

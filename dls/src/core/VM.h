@@ -7,10 +7,13 @@
 #pragma once
 
 #include <cstdint>
+#include <cassert>
 #include <memory>
 #include <vector>
+#include <span>
 #include "Types.h"
 #include "Value.h"
+#include "FunctionMap.h"
 
 namespace DLS {
 
@@ -64,13 +67,10 @@ namespace DLS {
         size_t pc = 0;
         std::vector<Value> stack;
 
-        Value run() {
+        void run() {
             while (pc < tape.size()) {
                 tape[pc++].code(*this);
             }
-            if (stack.size() > 0)
-                return stack.back();
-            return Value("");
         }
 
         // std::vector<CallFrame> call_stack;
@@ -90,52 +90,110 @@ namespace DLS {
         //     open_upvalues.push_back(uv);
         //     return uv;
         // }
+        // ------------------------------------------
+        // Stack functions
+        // ------------------------------------------
+        Value POP_STACK() {
+            assert(stack.size() > 0 && "POP_STACK but stack empty!");
+            Value result = stack.back(); stack.pop_back();
+            return result;
+        }
+        void PUSH_STACK(Value val) {
+            stack.push_back(val);
+        }
     };
+    // =========================================================================
     // ------------------------------------------
-    // CallFrame
+    // OP functions
     // ------------------------------------------
     void op_literal(VM& vm) {
         Value val = vm.tape[vm.pc++].value;
-        vm.stack.push_back(val);
+        vm.PUSH_STACK(val);
     }
+    // ------------------------------------------
 
     void op_add(VM& vm) {
-        Value b = vm.stack.back(); vm.stack.pop_back();
-        Value a = vm.stack.back(); vm.stack.pop_back();
+        Value b = vm.POP_STACK();
+        Value a = vm.POP_STACK();
 
         Value res = Value(a.getDouble() + b.getDouble());
-        vm.stack.push_back(res);
+        vm.PUSH_STACK(res);
     }
 
     void op_sub(VM& vm) {
-        Value b = vm.stack.back(); vm.stack.pop_back();
-        Value a = vm.stack.back(); vm.stack.pop_back();
+        Value b = vm.POP_STACK();
+        Value a = vm.POP_STACK();
 
         Value res = Value(a.getDouble() - b.getDouble());
-        vm.stack.push_back(res);
+        vm.PUSH_STACK(res);
     }
 
     void op_mul(VM& vm) {
-        Value b = vm.stack.back(); vm.stack.pop_back();
-        Value a = vm.stack.back(); vm.stack.pop_back();
+        Value b = vm.POP_STACK();
+        Value a = vm.POP_STACK();
 
         Value res = Value(a.getDouble() * b.getDouble());
-        vm.stack.push_back(res);
+        vm.PUSH_STACK(res);
     }
 
     void op_div(VM& vm) {
-        Value b = vm.stack.back(); vm.stack.pop_back();
-        Value a = vm.stack.back(); vm.stack.pop_back();
+        Value b = vm.POP_STACK();
+        Value a = vm.POP_STACK();
         double right = b.getDouble();
         if (right == 0.0) [[unlikely]]  {
-            vm.stack.push_back(Value(0.0));
+            vm.PUSH_STACK(Value(0.0));
             return ;
         }
         Value res = Value(a.getDouble() / right);
-        vm.stack.push_back(res);
+        vm.PUSH_STACK(res);
     }
     // ------------------------------------------
-    //
+    void op_cfunc(VM& vm) {
+        // args count
+        U32 numArgs = vm.POP_STACK().getUInt();
+        U32 symid = vm.POP_STACK().getUInt();
+        const FunctionMap::CallBack* cb = FunctionMap::GetCFunction(symid);
+        if (!cb) [[unlikely]]{
+            for (size_t i = 0; i < numArgs; ++i) {
+                vm.POP_STACK();
+            }
+            //FIXME error!? or special push value
+            vm.PUSH_STACK(Value(0));
+            return;
+        }
+
+        if (numArgs <= 12) {
+            Value evaluatedArgsStack[12];
+
+            for (size_t i = 0; i < numArgs; ++i) {
+                evaluatedArgsStack[i] = vm.POP_STACK();
+            }
+            Value returnValue = Value(0);
+            bool success = (*cb)(std::span<Value>(evaluatedArgsStack, numArgs), returnValue);
+
+            if (!success) [[unlikely]] {
+                Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
+            }
+            vm.PUSH_STACK(returnValue);
+        }
+        else {
+            //FIXME more than 12!
+        //     std::vector<Value> evaluatedArgs;
+        //     evaluatedArgs.reserve(numArgs);
+        //     for (auto& argExpr : arguments) {
+        //         if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
+        //     }
+        //
+        //     Value returnValue = NumberNullValue;
+        //     bool success = (*cb)(evaluatedArgs, returnValue); // bzw. std::span(evaluatedArgs)
+        //
+        //     if (!success) [[unlikely]] {
+        //         Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
+        //     }
+        //     return returnValue;
+        }
+    }
+
     // ------------------------------------------
 }
 

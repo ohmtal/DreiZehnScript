@@ -26,13 +26,11 @@ namespace ParserFrame {
 
 void PrintParseError(const std::string& message
 , const std::string& p1 = "",const std::string& p2 = "",const std::string& p3 = "") {
-    //TODO tool printer
-    std::cout << "[Parser-ERROR] " << message << p1 << p2 << p3 << "\n";
+    Tools::errorf("[Parser-ERROR]: %s %s %s %s\n", message.c_str(),p1.c_str(),p2.c_str(),p3.c_str());
 }
 void PrintParseInfo(const std::string& message
 , const std::string& p1 = "",const std::string& p2 = "",const std::string& p3 = "") {
-    //TODO tool printer
-    std::cout << "[Parser-Info] " << message << p1 << p2 << p3 << "\n";
+    Tools::printf("[Parser-INFO]: %s %s %s %s\n", message.c_str(),p1.c_str(),p2.c_str(),p3.c_str());
 }
 
 
@@ -86,6 +84,8 @@ private:
         return -1;
     }
 
+
+
     // -------------------------------------------------------------------------
     // parsePrimary
     // -------------------------------------------------------------------------
@@ -125,7 +125,7 @@ private:
             case TokenType::LParen: {
                 advance();
 
-                if (!parseMath(0)) return false;
+                if (!getArg("inside Paren")) return false;
 
                 if (peek().mType == TokenType::RParen) {
                     advance(); //  ')'
@@ -160,16 +160,11 @@ private:
                             advance();
                             break;
                         }
-                        size_t lastPos = mPos;
                         requestParam++;
-                        if (!parseMath(0)) return false;
+                        if (!getArg( "c function parameters" )) return false;
                         requestParam--;
 
                         argCount++;
-                        if (lastPos == mPos) {
-                            PrintParseError("CFUNC CALL parameter stuck!");
-                            return false;
-                        }
                     }
                     vm->emitCode( op_cfunc );
                     vm->emitTapeChunk((size_t)symId);
@@ -178,12 +173,35 @@ private:
                     if (requestParam <= 0) vm->emitCode( op_pop_stack );
                 }
                 else
+                if (peek().mType == TokenType::LSquare) {
+                    advance(); //eat
+                    if (!getArg("Square Paren")) return false;
+                    if (peek().mType != TokenType::RSquare) {
+                        PrintParseError("right square paren missing");
+                        return false;
+                    }
+                    advance(); //RSquare
+                    if (peek().mType == TokenType::Assign) {
+                        advance(); //Assign
+                        requestParam++;
+                        if (!getArg("array assign")) return false;
+                        vm->emitCode(op_save_array);
+                        vm->emitTapeChunk(symId);
+                    } else {
+                        vm->emitCode(op_load_array);
+                        vm->emitTapeChunk(symId);
+                    }
+
+
+                }
+                else
                 if (peek().mType == TokenType::Assign) {
                     advance(); // eat Assign
                    // FIXME only globals at the moment
 
                     requestParam++;
-                    if (!parseMath(0)) return false;
+
+                    if (!getArg("Assign")) return false;
                     Variables.saveGlobal(symId, Value(0.0));
                     vm->emitCode(op_save_global);
                     vm->emitTapeChunk(symId);
@@ -208,12 +226,8 @@ private:
                 }
                 U32 varSymId = SymbolTable::insert(advance().mValue);
                 if (peek().mType == TokenType::Assign) advance(); //eat optional "="
-                size_t curPos = tell();
-                if (!parseMath(0)) return false;
-                if (tell() == curPos) {
-                    PrintParseError("Value after define expected");
-                    return false;
-                }
+
+                if (!getArg("Define")) return false;
                 // HACK fest
                 // I  push it directly !!!
                 //  - with this I cant save a tape!
@@ -280,6 +294,16 @@ private:
         } // while
         return true;
     }
+
+    bool getArg(const std::string& Where) {
+        size_t curPos = tell();
+        if (!parseMath(0)) return false;
+        if (tell() == curPos) {
+            PrintParseError("Value expected at:", Where);
+            return false;
+        }
+        return true;
+    }
     // -------------------------------------------------------------------------
     //  Statements sub: While
     // -------------------------------------------------------------------------
@@ -287,12 +311,7 @@ private:
         advance();
         size_t loop_start_slot = vm->tell();
 
-        size_t save_pos = tell();
-        if (!parseMath(0)) return false;// condition
-        if (save_pos == tell()) {
-            PrintParseError("While without condition!");
-            return false;
-        }
+        if (!getArg("While")) return false;
         vm->emitCode(op_jump_if_false);
         size_t false_jump_slot = vm->tell();
         vm->emitJumpOffset(0); // false placeholder
@@ -341,12 +360,8 @@ private:
 
         // save jumps for
         std::vector<size_t> end_jump_slots;
-        size_t save_pos = tell();
-        if (!parseMath(0)) return false;// condition
-        if (save_pos == tell()) {
-            PrintParseError("If without condition!");
-            return false;
-        }
+
+        if (!getArg("If condition")) return false;
 
         vm->emitCode(op_jump_if_false);
         size_t false_jump_slot = vm->tell();
@@ -370,13 +385,7 @@ private:
         while (peek().mType == TokenType::ElIf) {
             advance(); // eat 'elif'
 
-            save_pos = tell();
-            // elif-condition
-            if (!parseMath(0)) return false;
-            if (save_pos == tell()) {
-                PrintParseError("ElIf without condition!");
-                return false;
-            }
+            if (!getArg("elif condition")) return false;
             vm->emitCode(op_jump_if_false);
             false_jump_slot = vm->tell();
             vm->emitJumpOffset(0); // placeholder nect elif

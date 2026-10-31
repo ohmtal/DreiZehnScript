@@ -18,12 +18,14 @@ namespace DLS {
     // ------------------------------------------
     // Value
     // ------------------------------------------
-    enum class ValueType{
+    enum class ValueType: uint8_t {
         None,
         Double,
         Long,
         Ptr,
-        String
+        String,
+        Function,
+        Array
     };
     //
     struct alignas(16) Value {
@@ -34,11 +36,11 @@ namespace DLS {
             U32 strId;
 
         } ;
-        ValueType type;
-        U8 padding[3]; // 3 bytes padding for future use
+        ValueType type; // 1 byte
+        U8  padding[7]; // 7 bytes padding for future use
 
         // ------------------
-        Value() { type = ValueType::None; l = 0; }
+        Value() { type = ValueType::None;  }
         Value(F64 val) { type = ValueType::Double; d = val; }
         Value(S32 val) { type = ValueType::Long; l = (S64)val; }
         Value(U32 val) { type = ValueType::Long; l = (S64)val; }
@@ -48,6 +50,9 @@ namespace DLS {
         inline bool isDouble() { return type == ValueType::Double; }
         inline bool isLong() { return type == ValueType::Long; }
         inline bool isPointer() { return type == ValueType::Ptr; }
+        inline bool isString() { return type == ValueType::String; }
+        inline bool isFunction() { return type == ValueType::Function; }
+        inline bool isArray() { return type == ValueType::Array; }
         // ------------------
         inline F64 getDouble() {
             if (type == ValueType::Double) [[likely]] return d;
@@ -78,14 +83,14 @@ namespace DLS {
             else return 0;
         }
         // ------------------
-        inline const std::string& getString() {
+        inline const std::string& getString() const {
             if (type == ValueType::String) [[likely]] return StringTable::get(strId);
             static const std::string empty = "";
             return empty;
         }
 
         // ------------------
-        inline const std::string toString() {
+        inline const std::string toString() const {
             switch (type) {
                 case ValueType::Double: return std::to_string(d);
                 case ValueType::Long: return std::to_string(l);

@@ -17,12 +17,18 @@
 
 namespace DLS {
 
+    void PrintRuntimeError(const std::string& message
+    , const std::string& p1 = "",const std::string& p2 = "",const std::string& p3 = "") {
+        Tools::errorf("[Runtime-ERROR]: %s %s %s %s\n", message.c_str(),p1.c_str(),p2.c_str(),p3.c_str());
+    }
     // ------------------------------------------
     // Variables
     // ------------------------------------------
+    std::vector<std::vector<Value>> Arrays;
+
     struct VariableStorage {
         std::unordered_map<U32,Value> mGlobals;
-        std::vector<Value> mLocals; // FIXME locals with callframe offset and stack id's '
+        // std::vector<Value> mLocals; // FIXME locals with callframe offset and stack id's '
 
         bool isGlobal(U32 id) {
             return (mGlobals.find(id) != mGlobals.end());
@@ -32,20 +38,58 @@ namespace DLS {
             mGlobals[id] = value;
         }
 
-        Value getGlobal(U32 id, bool autoCreate = false) {
+        Value getGlobal(U32 id) {
 
             auto it = mGlobals.find(id);
             if (it != mGlobals.end()) [[likely]] {
                 return it->second;
             }
             Value v = Value(0.0);
-            if (autoCreate) {
-                return mGlobals[id] =  v;
-            }
+
 
             std::string varName = SymbolTable::getName(id);
             Tools::warnf("Variable not found: %s\n", varName.c_str());
             return v;
+        }
+        // --------------------------------------------------------------------
+        // FIXME bad code .. lazy today:
+        Value getArray(U32 id, U32 index) {
+            Value arrValue = getGlobal(id);
+            if (!arrValue.isArray()) [[unlikely]] {
+                PrintRuntimeError("This is not a array Value!");
+                return Value(0.0);
+            }
+            size_t masterIndex =arrValue.getUInt();
+            if (index >= Arrays[masterIndex].size()) {
+                Arrays[masterIndex].resize(index + 1);
+            }
+            return Arrays[masterIndex][index];
+
+        }
+        void saveArray(U32 id, U32 index, const Value& value) {
+            Value arrValue;
+            if (isGlobal(id)) {
+                arrValue = getGlobal(id);
+                if (!arrValue.isArray()) [[unlikely]] {
+                    PrintRuntimeError("This is not a array Value!");
+                    return;
+                }
+                size_t masterIndex =arrValue.getUInt();
+                if (index >= Arrays[masterIndex].size()) {
+                    Arrays[masterIndex].resize(index + 1);
+                }
+                Arrays[masterIndex][index] = value;
+            } else {
+                size_t masterIndex =Arrays.size();
+                Arrays.push_back({});
+                arrValue = Value((U32)masterIndex);
+                arrValue.type = ValueType::Array;
+                if (index >= Arrays[masterIndex].size()) {
+                    Arrays[masterIndex].resize(index + 1);
+                }
+                Arrays[masterIndex][index] = value;
+                saveGlobal(id,arrValue);
+            }
         }
 
     } Variables;
@@ -202,6 +246,31 @@ namespace DLS {
         vm.PUSH_STACK( Variables.getGlobal(symid) );
     }
 
+    // ------------------------------------------
+    // Array
+    // ------------------------------------------
+    void op_save_array(VM& vm) {
+        U32 symid = (U32)vm.advanceSlot().tapeChunk;
+
+        Value assignValue = vm.POP_STACK();
+        Value arrayIndexValue = vm.POP_STACK();
+        if (!arrayIndexValue.isLong() && !arrayIndexValue.isDouble()) [[unlikely]]{
+            PrintRuntimeError("Array index must be an number: ", arrayIndexValue.toString());
+            return;
+        }
+
+        Variables.saveArray(symid,arrayIndexValue.getUInt(), assignValue);
+    }
+
+    void op_load_array(VM& vm) {
+        U32 symid = (U32)vm.advanceSlot().tapeChunk;
+        Value arrayIndexValue = vm.POP_STACK();
+        if (!arrayIndexValue.isLong() && !arrayIndexValue.isDouble()) [[unlikely]]{
+            PrintRuntimeError("Array index must be an number: ", arrayIndexValue.toString());
+            return;
+        }
+        vm.PUSH_STACK(Variables.getArray(symid,arrayIndexValue.getUInt()));
+    }
 
     // void op_load_local(VM& vm) {
     //     size_t relative_var_offset = vm.advanceSlot().tapeChunk;

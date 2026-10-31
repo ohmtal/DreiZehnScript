@@ -77,6 +77,7 @@ int main(int argc, char* argv[]) {
     std::string mySrc = "";
     std::cout << "============= Dirty Little Script ===============\n";
 goto jump_to_test;
+
     std::cout << "Value size check:" << sizeof(Value) << "\n";
 
 
@@ -162,7 +163,6 @@ goto jump_to_test;
 
     std::cout << "---- While ----\n";
     mySrc = R"( itr = 0;while itr < 10; itr = itr + 1; print "iter=" itr;;  )"; Run(mySrc);
-jump_to_test:
     mySrc = R"(
 # a Comment!
         itr = 10
@@ -173,9 +173,7 @@ jump_to_test:
         end
     )"; Run(mySrc);
 
-            //
-// # if itr == 5
-// #            end
-
+jump_to_test:
+    mySrc = R"( foo[110] = 10; print foo[110] )"; Run(mySrc);
 
 }

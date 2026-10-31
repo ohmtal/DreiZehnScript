@@ -135,8 +135,9 @@ namespace DreiZehn::FunctionMap {
         else
             return nullptr;
     }
-    inline void RegisterConstants(const std::string& name, Value value) {
-        U32 symId = SymbolTable::insert( name );
+
+    inline void RegisterConstants(U32 symId, const Value& value) {
+
         Value* curConst = getConstants(symId);
         if (curConst && curConst->isPointer()) {
             curConst->asPointerObject()->setAssigned(false);
@@ -145,6 +146,10 @@ namespace DreiZehn::FunctionMap {
             value.asPointerObject()->setAssigned(true);
         }
         RegisteredConstants[symId] = value;
+    }
+    inline void RegisterConstants(const std::string& name, const Value& value) {
+        U32 symId = SymbolTable::insert( name );
+        RegisterConstants(symId, value);
     }
 
     #define REGISTER_CONST(constName) RegisterConstants(#constName, Value(constName))

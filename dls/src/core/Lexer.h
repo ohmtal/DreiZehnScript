@@ -43,6 +43,7 @@ public:
         std::vector<Token> tokens;
         while (peek() != '\0') {
             // // ----------------------------------------------------------------
+            if (peek() == '\n') { advance(); tokens.push_back({TokenType::EOLToken, "LINEBREAK"}); continue; }
             if (std::isspace(peek())) { advance(); continue; }
             // ----------------------------------------------------------------
             if (peek() == '.' && peekNext() == '.') { advance();advance(); tokens.push_back({TokenType::DotDot, ".."}); continue; }
@@ -305,8 +306,8 @@ public:
             if (peek() == '#') {
                 advance(); // eat '#'
                 while ( peek() != '\0') {
-                    if (peek() == '\\' && peekNext() == 'n' ) {
-                        advance();advance();
+                    if (peek() == '\n' ) {
+                        advance();
                         break; //end of line
                     }
                     if (peek() == '#') {
@@ -318,9 +319,10 @@ public:
                 continue;
             }
 
-
             if (peek() == ';' && peekNext() == ';') { advance(); tokens.push_back({TokenType::End, ";;"}); continue; }
             if (peek() == ';') { advance(); tokens.push_back({TokenType::Semicolon, ";"}); continue; }
+
+
 
             advance(); // skip unknown
         }

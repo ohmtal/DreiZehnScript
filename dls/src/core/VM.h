@@ -18,6 +18,39 @@
 namespace DLS {
 
     // ------------------------------------------
+    // Variables
+    // ------------------------------------------
+    struct VariableStorage {
+        std::unordered_map<U32,Value> mGlobals;
+        std::vector<Value> mLocals; // FIXME locals with callframe offset and stack id's '
+
+        bool isGlobal(U32 id) {
+            return (mGlobals.find(id) != mGlobals.end());
+        }
+
+        void saveGlobal(U32 id, const Value& value) {
+            mGlobals[id] = value;
+        }
+
+        Value getGlobal(U32 id, bool autoCreate = false) {
+
+            auto it = mGlobals.find(id);
+            if (it != mGlobals.end()) [[likely]] {
+                return it->second;
+            }
+            Value v = Value(0.0);
+            if (autoCreate) {
+                return mGlobals[id] =  v;
+            }
+
+            std::string varName = SymbolTable::getName(id);
+            Tools::warnf("Variable not found: %s\n", varName.c_str());
+            return v;
+        }
+
+    } Variables;
+
+    // ------------------------------------------
     // FWD
     // ------------------------------------------
     struct VM;
@@ -29,6 +62,7 @@ namespace DLS {
         OpFunc code;
         Value value;
         size_t jump_offset;
+        size_t tapeChunk;
     };
     // ------------------------------------------
     // Upvalue
@@ -41,23 +75,31 @@ namespace DLS {
     //
     //     Upvalue(uint64_t* slot, size_t index) : location(slot), closed_value(0), stack_slot(index) {}
     // };
-    // ------------------------------------------
-    // Closure
-    // ------------------------------------------
-    // The execution runtime representation of a function
+    // // ------------------------------------------
+    // // Closure
+    // // ------------------------------------------
+    // // The execution runtime representation of a function
     // struct Closure {
     //     size_t tape_address;
     //     std::vector<std::shared_ptr<Upvalue>> upvalues;
     // };
-
-    // ------------------------------------------
-    // CallFrame
-    // ------------------------------------------
+    //
+    // // ------------------------------------------
+    // // CallFrame
+    // // ------------------------------------------
     // struct CallFrame {
     //     std::shared_ptr<Closure> closure; // The closure being executed
     //     size_t return_address;
     //     size_t stack_base;
     // };
+
+    // ------------------------------------------
+    // Loops
+    // ------------------------------------------
+    struct LoopContext {
+        size_t continue_target;
+        std::vector<size_t> break_slots;
+    };
 
     // ------------------------------------------
     // VM
@@ -67,6 +109,8 @@ namespace DLS {
         size_t pc = 0;
         std::vector<Value> stack;
 
+        std::vector<LoopContext> mLoopStack;
+
         void run() {
             while (pc < tape.size()) {
                 tape[pc++].code(*this);
@@ -75,7 +119,7 @@ namespace DLS {
 
         // std::vector<CallFrame> call_stack;
 
-        // // Tracks all active open upvalues on the stack, sorted by stack index
+        // Tracks all active open upvalues on the stack, sorted by stack index
         // std::vector<std::shared_ptr<Upvalue>> open_upvalues;
         //
         // // Helper to find an existing upvalue or create a new one
@@ -91,11 +135,36 @@ namespace DLS {
         //     return uv;
         // }
         // ------------------------------------------
+        // Tape functions
+        // ------------------------------------------
+        void emitCode(const OpFunc& opcode ) { tape.push_back({.code = opcode}); }
+        void emitValue(const Value& value)   { tape.push_back({.value = value}); }
+        void emitTapeChunk(const size_t tapeChunk)   { tape.push_back({.tapeChunk = tapeChunk}); }
+
+        void emitJumpOffset(const size_t offset)   { tape.push_back({.jump_offset = offset}); }
+        void patchJumpOffset(const size_t tapePosition, const size_t offset)   { tape[tapePosition].jump_offset = offset; }
+
+        size_t tell() { return tape.size(); }
+
+        Slot& peekSlot(size_t reverseOffset) {
+            return tape[pc - reverseOffset];
+        }
+
+        Slot& advanceSlot() {
+            assert (pc < tape.size() && "TAPE OVERFLOW");
+            return tape[pc++];
+        }
+        // ------------------------------------------
         // Stack functions
         // ------------------------------------------
         Value POP_STACK() {
             assert(stack.size() > 0 && "POP_STACK but stack empty!");
             Value result = stack.back(); stack.pop_back();
+            return result;
+        }
+        Value PEEK_STACK() {
+            assert(stack.size() > 0 && "PEEK_STACK but stack empty!");
+            Value result = stack.back();
             return result;
         }
         void PUSH_STACK(Value val) {
@@ -104,14 +173,57 @@ namespace DLS {
     };
     // =========================================================================
     // ------------------------------------------
-    // OP functions
+    // Exit (last for jump offsets)
+    // ------------------------------------------
+    void op_exit(VM& vm) {}
+    // ------------------------------------------
+    // POP
+    // ------------------------------------------
+    void op_pop_stack(VM& vm) {
+        vm.POP_STACK();
+    }
+    void op_pop_stack_count(VM& vm) {
+        size_t count = vm.advanceSlot().tapeChunk;
+        for (size_t i = 0; i < count; i++) {
+            vm.POP_STACK();
+        }
+    }
+
+    // ------------------------------------------
+    // Variables
+    // ------------------------------------------
+    void op_save_global(VM& vm) {
+         U32 symid = (U32)vm.advanceSlot().tapeChunk;
+         Variables.saveGlobal(symid,vm.POP_STACK());
+    }
+
+    void op_load_global(VM& vm) {
+        U32 symid = (U32)vm.advanceSlot().tapeChunk;
+        vm.PUSH_STACK( Variables.getGlobal(symid) );
+    }
+
+
+    // void op_load_local(VM& vm) {
+    //     size_t relative_var_offset = vm.advanceSlot().tapeChunk;
+    //     size_t absolute_index = vm.call_stack.back().stack_base + relative_var_offset;
+    //     vm.stack.push_back(vm.stack[absolute_index]);
+    // }
+    //
+    // void op_save_local(VM& vm) {
+    //     size_t relative_var_offset = vm.advanceSlot().tapeChunk;
+    //     size_t absolute_index = vm.call_stack.back().stack_base + relative_var_offset;
+    //     vm.stack[absolute_index] = vm.stack.back();
+    // }
+    // ------------------------------------------
+    // Literal
     // ------------------------------------------
     void op_literal(VM& vm) {
         Value val = vm.tape[vm.pc++].value;
         vm.PUSH_STACK(val);
     }
     // ------------------------------------------
-
+    // Basic Math
+    // ------------------------------------------
     void op_add(VM& vm) {
         Value b = vm.POP_STACK();
         Value a = vm.POP_STACK();
@@ -148,10 +260,83 @@ namespace DLS {
         vm.PUSH_STACK(res);
     }
     // ------------------------------------------
+    // Comparison
+    // ------------------------------------------
+    void op_greater(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getDouble() > b.getDouble());
+        vm.PUSH_STACK(res);
+    }
+    void op_lower(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getDouble() < b.getDouble());
+        vm.PUSH_STACK(res);
+    }
+    void op_equal(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getDouble() == b.getDouble());
+        vm.PUSH_STACK(res);
+    }
+    void op_not_equal(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getDouble() != b.getDouble());
+        vm.PUSH_STACK(res);
+    }
+    void op_lower_equal(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getDouble() <= b.getDouble());
+        vm.PUSH_STACK(res);
+    }
+    void op_greater_equal(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getDouble() >= b.getDouble());
+        vm.PUSH_STACK(res);
+    }
+    // ------------------------------------------
+    // JUMP
+    // ------------------------------------------
+    void op_jump(VM& vm) {
+        size_t target = vm.advanceSlot().jump_offset;
+        vm.pc = target;
+    }
+
+    void op_jump_if_true(VM& vm) {
+        Value a = vm.POP_STACK();
+        size_t target = vm.advanceSlot().jump_offset;
+        if (a.getBool()) {
+            vm.pc = target;
+        }
+    }
+    void op_jump_if_false(VM& vm) {
+        Value a = vm.POP_STACK();
+        size_t target = vm.advanceSlot().jump_offset;
+        if (!a.getBool()) {
+            vm.pc = target;
+        }
+    }
+
+    void op_jump_if_true_no_pop(VM& vm) {
+        Value a = vm.PEEK_STACK();
+        size_t target = vm.advanceSlot().jump_offset;
+        if (a.getBool()) {
+            vm.pc = target;
+        }
+    }
+    void op_jump_if_false_no_pop(VM& vm) {
+        Value a = vm.PEEK_STACK();
+        size_t target = vm.advanceSlot().jump_offset;
+        if (!a.getBool()) {
+            vm.pc = target;
+        }
+    }
+    // ------------------------------------------
+    // C-Function call
+    // ------------------------------------------
     void op_cfunc(VM& vm) {
         // args count
-        U32 numArgs = vm.POP_STACK().getUInt();
-        U32 symid = vm.POP_STACK().getUInt();
+        U32 symid = (U32) vm.advanceSlot().tapeChunk;
+        U32 numArgs = (U32) vm.advanceSlot().tapeChunk;
+
         const FunctionMap::CallBack* cb = FunctionMap::GetCFunction(symid);
         if (!cb) [[unlikely]]{
             for (size_t i = 0; i < numArgs; ++i) {
@@ -161,12 +346,13 @@ namespace DLS {
             vm.PUSH_STACK(Value(0));
             return;
         }
+        // Tools::printf("CALL FUNC: %s [args:%f]\n", SymbolTable::getName(symid).c_str(), numArgs);
 
         if (numArgs <= 12) {
             Value evaluatedArgsStack[12];
 
-            for (size_t i = 0; i < numArgs; ++i) {
-                evaluatedArgsStack[i] = vm.POP_STACK();
+            for (S64 i = numArgs ; i > 0  ; i--) {
+                evaluatedArgsStack[i - 1] = vm.POP_STACK();
             }
             Value returnValue = Value(0);
             bool success = (*cb)(std::span<Value>(evaluatedArgsStack, numArgs), returnValue);
@@ -178,9 +364,9 @@ namespace DLS {
         } else {
             // --- more than 12 parameters fallback ---
             std::vector<Value> evaluatedArgs;
-            evaluatedArgs.reserve(numArgs);
-            for (size_t i = 0; i < numArgs; ++i) {
-                evaluatedArgs.push_back(vm.POP_STACK());
+            evaluatedArgs.resize(numArgs);
+            for (S64 i = numArgs ; i > 0  ; i--) {
+                evaluatedArgs[i - 1] = vm.POP_STACK();
             }
             Value returnValue = Value(0);
             bool success = (*cb)(evaluatedArgs, returnValue);

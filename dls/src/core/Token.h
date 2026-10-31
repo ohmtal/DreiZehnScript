@@ -69,6 +69,7 @@ namespace DLS{
         , KeyValue // =>
 
         , NoToken // for peekPrev pos < 1
+        , EOLToken
         , EOFToken
     };
 
@@ -157,6 +158,7 @@ namespace DLS{
             case TokenType::DotDot:         return "DotDot"; //String concat
             case TokenType::DotAssign:      return "DotAssign"; //String concat
 
+            case TokenType::EOLToken:       return "EOLToken";
             case TokenType::EOFToken:       return "EOFToken";
 
             default:                        return "UnknownToken";
@@ -231,6 +233,7 @@ namespace DLS{
         && op.mType != TokenType::ElIf
         && op.mType != TokenType::RSquare
         && op.mType != TokenType::RCurly
+        && op.mType != TokenType::EOLToken
         && !isMathType(op)
         ;
     }

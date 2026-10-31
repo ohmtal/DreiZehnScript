@@ -72,6 +72,11 @@ namespace DLS {
             if (type == ValueType::Double)  return static_cast<S32>(d);
             else return 0;
         }
+        inline bool getBool() {
+            if (type == ValueType::Long) [[likely]] return (l != 0);
+            if (type == ValueType::Double)  return (d != 0.0);
+            else return 0;
+        }
         // ------------------
         inline const std::string& getString() {
             if (type == ValueType::String) [[likely]] return StringTable::get(strId);
@@ -90,6 +95,7 @@ namespace DLS {
                     return empty;
             }
         }
+
 
     }; //Value
 

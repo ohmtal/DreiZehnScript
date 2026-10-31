@@ -74,17 +74,25 @@ namespace DLS::FunctionMap {
         else
             return nullptr;
     }
-    inline void RegisterConstants(const std::string& name, Value value) {
-        U32 symId = SymbolTable::insert( name );
-        Value* curConst = getConstants(symId);
 
-        // FIXME if i add also objects but not sure.
+    inline void RegisterConstants(U32 symId, const Value& value) {
+
+        // FIXME if i add also objects in DLS, but not sure.
+        // Value* curConst = getConstants(symId);
         // if (curConst && curConst->isPointer()) {
         //     curConst->asPointerObject()->setAssigned(false);
         // }
         // if (value.isPointer()) {
         //     value.asPointerObject()->setAssigned(true);
         // }
+
+        RegisteredConstants[symId] = value;
+    }
+
+    inline void RegisterConstants(const std::string& name, const Value& value) {
+        U32 symId = SymbolTable::insert( name );
+        RegisterConstants(symId, value);
+
         RegisteredConstants[symId] = value;
     }
 

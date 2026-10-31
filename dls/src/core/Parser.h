@@ -39,10 +39,12 @@ void PrintParseInfo(const std::string& message
 class Parser {
 private:
     std::vector<Token> mTokens;
-    VM* mVM;
+    VM* vm;
     size_t mPos = 0;
+    U32 requestParam = 0;
     // ------------------------------
     Token peek() { return mTokens[mPos]; }
+    size_t tell() { return mPos; }
     Token peekNext() { if (mPos + 1 < mTokens.size()) return mTokens[mPos+1]; else return Token(TokenType::EOFToken); }
     Token peekNextNext() { if (mPos + 2 < mTokens.size()) return mTokens[mPos+2]; else return Token(TokenType::EOFToken); }
     Token peekOffset(int32_t offset) {
@@ -87,7 +89,7 @@ private:
     // -------------------------------------------------------------------------
     // parsePrimary
     // -------------------------------------------------------------------------
-    void parsePrimary() {
+    bool parsePrimary() {
         Token t = peek();
         TokenType curType = peek().mType;
 
@@ -107,75 +109,145 @@ private:
                     if (haveDot) evaluatedValue = Value(resDouble);
                     else evaluatedValue =  Value((S64)resDouble);
                 }
-                mVM->tape.push_back({.code = op_literal});
-                mVM->tape.push_back({.value = evaluatedValue});
+                vm->emitCode(op_literal );
+                vm->emitValue( evaluatedValue );
             }
             break;
 
             // ~~~~ String ~~~~
             case TokenType::StringLiteral: {
                 Token t = advance();
-                mVM->tape.push_back({.code = op_literal});
-                mVM->tape.push_back({.value = Value(t.mValue)});
+                vm->emitCode(op_literal );
+                vm->emitValue( Value(t.mValue) );
             }
             break;
             // ~~~~ LParen/RParen () ~~~~
             case TokenType::LParen: {
                 advance();
 
-                parseMath(0);
+                if (!parseMath(0)) return false;
 
                 if (peek().mType == TokenType::RParen) {
                     advance(); //  ')'
                 } else {
                     PrintParseError("Error: Missing closing bracket");
+                    return false;
                 }
                 // NOTE nothing else to do here ?!
             }
             break;
-            // ~~~~ Comma () ~~~~
-            case TokenType::Comma: {
-                advance();
-            }
-            break;
+            // // ~~~~ Comma  ~~~~
+            // case TokenType::Comma: {
+            //     advance();
+            // }
+            // break;
             // ~~~~ Identifier ~~~~
             case TokenType::Identifier: {
-                advance();
+                advance(); // eat
+                // HACK fest - unable to save the tape when pushing the
+                //             symId which is not always the same!
                 U32 symId = SymbolTable::insert(t.mValue);
+                Value* constansPointer = FunctionMap::getConstants(symId);
+                if (constansPointer) {
+                    vm->emitCode(op_literal );
+                    vm->emitValue(*constansPointer);
+                }
+                else
                 if (FunctionMap::IsCFunction(symId)) {
                     U32 argCount = 0;
                     while (isContinueToken(peek())) {
+                        if (peek().mType == TokenType::Comma){
+                            advance();
+                            break;
+                        }
                         size_t lastPos = mPos;
-                        parseMath(0);
+                        requestParam++;
+                        if (!parseMath(0)) return false;
+                        requestParam--;
+
                         argCount++;
                         if (lastPos == mPos) {
                             PrintParseError("CFUNC CALL parameter stuck!");
-                            break;
+                            return false;
                         }
                     }
-                    mVM->tape.push_back({.code = op_literal});
-                    mVM->tape.push_back({.value = Value(symId)});
-                    mVM->tape.push_back({.code = op_literal});
-                    mVM->tape.push_back({.value = Value(argCount)});
-                    mVM->tape.push_back({.code = op_cfunc});
-                } else {
+                    vm->emitCode( op_cfunc );
+                    vm->emitTapeChunk((size_t)symId);
+                    vm->emitTapeChunk((size_t)argCount);
+
+                    if (requestParam <= 0) vm->emitCode( op_pop_stack );
+                }
+                else
+                if (peek().mType == TokenType::Assign) {
+                    advance(); // eat Assign
+                   // FIXME only globals at the moment
+
+                    requestParam++;
+                    if (!parseMath(0)) return false;
+                    Variables.saveGlobal(symId, Value(0.0));
+                    vm->emitCode(op_save_global);
+                    vm->emitTapeChunk(symId);
+                }
+                else
+                if (Variables.isGlobal(symId)) {
+                    vm->emitCode(op_load_global);
+                    vm->emitTapeChunk(symId);
+                }
+                else
+                {
                     PrintLexerError("Unhandled Identifier:", t.mValue);
+                    return false;
                 }
             }
             break;
+            case TokenType::Define: {
+                advance(); //eat define
+                if (peek().mType != TokenType::Identifier) {
+                    PrintParseError("variable name after define expected");
+                    return false;
+                }
+                U32 varSymId = SymbolTable::insert(advance().mValue);
+                if (peek().mType == TokenType::Assign) advance(); //eat optional "="
+                size_t curPos = tell();
+                if (!parseMath(0)) return false;
+                if (tell() == curPos) {
+                    PrintParseError("Value after define expected");
+                    return false;
+                }
+                // HACK fest
+                // I  push it directly !!!
+                //  - with this I cant save a tape!
+                //  - without i need to lookup the constants in op_code (slower)
+
+                size_t tapePos = vm->tape.size() - 1;
+                if (vm->tape[tapePos - 1 ].code == op_literal) {
+                    Value a = vm->tape.back().value; vm->tape.pop_back();
+                    vm->tape.pop_back();
+                    FunctionMap::RegisterConstants(varSymId,a);
+                } else {
+                    PrintParseError("sorry, define only allows literals");
+                    return false;
+                }
+
+            }
+            break;
+
+
+
             // ~~~~ Others ~~~~
             default:
                 PrintParseError("Unkandled Token:", tokenTypeToString(curType));
+                return false;
                 break;
         } //switch
-
+        return true;
     }
 
     // -------------------------------------------------------------------------
     // Math
     // -------------------------------------------------------------------------
-    void parseMath(int minPrecedence) {
-        parsePrimary();
+    bool parseMath(int minPrecedence) {
+        if (!parsePrimary()) return false;
 
         while (isMathType(peek())) {
             Token op = peek();
@@ -191,64 +263,230 @@ private:
             //     continue;
             // }
 
-            parseMath(precedence + 1);
+            if (!parseMath(precedence + 1)) return false;
 
-            if (op.mType == TokenType::Plus)  mVM->tape.push_back({ .code = op_add });
-            if (op.mType == TokenType::Minus) mVM->tape.push_back({ .code = op_sub });
-            if (op.mType == TokenType::Mul)   mVM->tape.push_back({ .code = op_mul });
-            if (op.mType == TokenType::Div)   mVM->tape.push_back({ .code = op_div });
+            if (op.mType == TokenType::Plus)  vm->emitCode(op_add);
+            if (op.mType == TokenType::Minus) vm->emitCode(op_sub );
+            if (op.mType == TokenType::Mul)   vm->emitCode( op_mul );
+            if (op.mType == TokenType::Div)   vm->emitCode( op_div );
+
+            if (op.mType == TokenType::Greater)      vm->emitCode( op_greater );
+            if (op.mType == TokenType::Less)         vm->emitCode( op_lower );
+            if (op.mType == TokenType::Equal)        vm->emitCode( op_equal );
+            if (op.mType == TokenType::NotEqual)     vm->emitCode( op_not_equal );
+            if (op.mType == TokenType::LowerEqual)   vm->emitCode( op_lower_equal );
+            if (op.mType == TokenType::GreaterEqual) vm->emitCode( op_greater_equal );
+
+        } // while
+        return true;
+    }
+    // -------------------------------------------------------------------------
+    //  Statements sub: While
+    // -------------------------------------------------------------------------
+    bool parseWhile() {
+        advance();
+        size_t loop_start_slot = vm->tell();
+
+        size_t save_pos = tell();
+        if (!parseMath(0)) return false;// condition
+        if (save_pos == tell()) {
+            PrintParseError("While without condition!");
+            return false;
         }
+        vm->emitCode(op_jump_if_false);
+        size_t false_jump_slot = vm->tell();
+        vm->emitJumpOffset(0); // false placeholder
+
+
+        // break continue
+        LoopContext context;
+        context.continue_target = loop_start_slot;
+        vm->mLoopStack.push_back(context);
+
+
+        // main loop:
+        while (peek().mType != TokenType::EOFToken &&
+            peek().mType != TokenType::End)
+        {
+            if (!parseStatements()) return false;
+        }
+        if (peek().mType != TokenType::End) {
+            PrintParseError("While missing end!");
+            return false;
+        }
+        advance(); //end
+
+        vm->emitCode(op_jump);
+        vm->emitJumpOffset(loop_start_slot);
+        vm->patchJumpOffset(false_jump_slot,vm->tell());
+
+
+        size_t loop_end_slot = vm->tell();
+
+        // handle breaks
+        for (size_t break_slot : vm->mLoopStack.back().break_slots) {
+            vm->patchJumpOffset(break_slot, loop_end_slot);
+        }
+        vm->mLoopStack.pop_back();
+
+        return true;
     }
 
 
+    // -------------------------------------------------------------------------
+    // Statements sub :  If ElIf Else
+    // -------------------------------------------------------------------------
+    bool parseIfElifElse() {
+        advance(); // eat 'if'
+
+        // save jumps for
+        std::vector<size_t> end_jump_slots;
+        size_t save_pos = tell();
+        if (!parseMath(0)) return false;// condition
+        if (save_pos == tell()) {
+            PrintParseError("If without condition!");
+            return false;
+        }
+
+        vm->emitCode(op_jump_if_false);
+        size_t false_jump_slot = vm->tell();
+        vm->emitJumpOffset(0); // false placeholder
+
+        // main loop:
+        while (peek().mType != TokenType::EOFToken &&
+            peek().mType != TokenType::End &&
+            peek().mType != TokenType::ElIf &&
+            peek().mType != TokenType::Else) {
+            if (!parseStatements()) return false;
+        }
+        vm->emitCode(op_jump);
+        end_jump_slots.push_back(vm->tell());
+        vm->emitJumpOffset(0); // end placeholder
+
+        // patch end jump
+        vm->patchJumpOffset(false_jump_slot, vm->tell());
+
+        // --- ELIF loop ---
+        while (peek().mType == TokenType::ElIf) {
+            advance(); // eat 'elif'
+
+            save_pos = tell();
+            // elif-condition
+            if (!parseMath(0)) return false;
+            if (save_pos == tell()) {
+                PrintParseError("ElIf without condition!");
+                return false;
+            }
+            vm->emitCode(op_jump_if_false);
+            false_jump_slot = vm->tell();
+            vm->emitJumpOffset(0); // placeholder nect elif
+
+            while (peek().mType != TokenType::EOFToken &&
+                peek().mType != TokenType::End &&
+                peek().mType != TokenType::ElIf &&
+                peek().mType != TokenType::Else) {
+                if (!parseStatements()) return false;;
+                }
+
+                // elif jump to end
+                vm->emitCode(op_jump);
+            end_jump_slots.push_back(vm->tell());
+            vm->emitJumpOffset(0);
+
+            // previous false-Jump patch
+            vm->patchJumpOffset(false_jump_slot, vm->tell());
+        }
+
+        // --- ELSE ---
+        if (peek().mType == TokenType::Else) {
+            advance(); // eat 'else'
+
+            while (peek().mType != TokenType::EOFToken &&
+                peek().mType != TokenType::End) {
+                if (!parseStatements()) return false;
+            }
+        }
+
+        // final end
+        if (peek().mType == TokenType::End) {
+            advance(); // eat 'end'
+        } else {
+            PrintParseError("Missing end!");
+            return false;
+        }
+
+        // --- FINAL JUMPS PATCH ---
+        size_t final_destination = vm->tell();
+        for (size_t slot : end_jump_slots) {
+            vm->patchJumpOffset(slot, final_destination);
+        }
+        return true;
+    }
 
     // -------------------------------------------------------------------------
-    // std::unique_ptr<Expression> parsePrimary();
-    //
+    // Statements
     // -------------------------------------------------------------------------
-    // //TEST
-    // inline bool checkCommaBreak(std::vector<std::unique_ptr<Expression>>& args) {
-    //     if (peek().mType == TokenType::Comma) {
-    //         advance();
-    //
-    //         // NOTE:
-    //         // i got it working with the nullptr args hack but if you cant use it to
-    //         // call a function with parameter inside a function call so you still need
-    //         // to encapsulate with ()
-    //         /*
-    //          a = 47; print core::date, a, "jiji"
-    //         */
-    //         if (args.empty()) return false; // never ?!
-    //         Expression* last = args.back().get();
-    //         if (!last) return true;
-    //     }
-    //     return false;
-    // }
-    //
-    // // -------------------------------------------------------------------------
-    // // 0.6 added short if/then
-    // std::unique_ptr<Expression> parseMath(int minPrecedence = 0);
-    //
-    // // -------------------------------------------------------------------------
-    // std::unique_ptr<Expression> parseComparison();
-    // // -------------------------------------------------------------------------
-    // std::unique_ptr<Expression> parseExpression();
+    bool parseStatements() {
+        TokenType tokenType = peek().mType;
+        // Tools::printf("PARSE STATEMENTS: %s\n", tokenTypeToString(tokenType));
+        switch (tokenType) {
+            case TokenType::EOLToken:
+            case TokenType::Semicolon: {
+                advance();
+                break;
+            }
+            // ----- If / ElIf / Else ----
+            case TokenType::If: {
+                if (!parseIfElifElse()) return false;
+            }
+            break;
+            case TokenType::While: {
+                if (!parseWhile()) return false;
+            }
+            break;
+            case TokenType::Continue: {
+                advance(); // eat 'continue'
+                if (vm->mLoopStack.empty()) {
+                    PrintParseError("'continue' found outside of a loop!");
+                    return false;
+                }
+                vm->emitCode(op_jump);
+                vm->emitJumpOffset(vm->mLoopStack.back().continue_target);
+            }
+            break;
+            case TokenType::Break: {
+                advance(); // eat 'break'
+
+                if (vm->mLoopStack.empty()) {
+                    PrintParseError("'break' found outside of a loop!");
+                    return false;
+                }
+                vm->emitCode(op_jump);
+                vm->mLoopStack.back().break_slots.push_back(vm->tell());
+                vm->emitJumpOffset(0); // placeholder patched in while
+            }
+            break;
+
+            // ----- default ----
+            default: if (!parseMath(0)) return false;; break;
+        } //switch
+        return true;
+    }
+    // -------------------------------------------------------------------------
 
 public:
-    Parser(std::vector<Token> t, VM* vm) : mTokens(std::move(t)), mVM(vm) { }
+    Parser(std::vector<Token> t, VM* vm) : mTokens(std::move(t)), vm(vm) { }
     bool parse(){
         while (peek().mType != TokenType::EOFToken) {
-            // PrintParseInfo("TokenType: ", tokenTypeToString(peek().mType));
+            U32 startPos = tell();
+            if (!parseStatements()) return false;
 
-            U32 startPos = mPos;
-            //FIXME
-            parseMath(0);
-
-            if (mPos == startPos) {
+            if (tell() == startPos) {
                 PrintParseError("Failed to parse: reason stuck!");
                 return false;
             }
         }
+        vm->emitCode(op_exit);
         return true;
     }
 

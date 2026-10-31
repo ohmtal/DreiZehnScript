@@ -1,7 +1,9 @@
-# Dirty Little Script 
+# Dirty Little Script (DLS)
 
 i take a look on a different attepmt:  using Flatten Tape
 
+*Note on Highlighting:* DLS does not have `--` for comments only `#` so here I use
+**TCSH** highlighter. 
 
 This time it should be really small.
 
@@ -87,4 +89,5 @@ This time it should be really small.
     
 So DreiZehn is much faster - i spend a lot of time to optimize it ;) The while 
 loop is simular to what i do in DreiZehn bytecode, so I'am  relative sure it's 
-the DreiZehn  Variable Pointer Cache. For first run ever 13,50 it's not so bad ;) 
+the DreiZehn  Variable Pointer Cache and only 8 byte for value instead of 16.
+For first run ever 13,50 it's not so bad - still beat python on that ;) 

@@ -111,6 +111,7 @@ private:
                 }
                 vm->emitCode(op_literal );
                 vm->emitValue( evaluatedValue );
+
             }
             break;
 
@@ -185,11 +186,13 @@ private:
                         advance(); //Assign
                         requestParam++;
                         if (!getArg("array assign")) return false;
+                        requestParam--;
                         vm->emitCode(op_save_array);
                         vm->emitTapeChunk(symId);
                     } else {
                         vm->emitCode(op_load_array);
                         vm->emitTapeChunk(symId);
+
                     }
 
 
@@ -200,8 +203,8 @@ private:
                    // FIXME only globals at the moment
 
                     requestParam++;
-
                     if (!getArg("Assign")) return false;
+                    requestParam--;
                     Variables.saveGlobal(symId, Value(0.0));
                     vm->emitCode(op_save_global);
                     vm->emitTapeChunk(symId);
@@ -210,6 +213,7 @@ private:
                 if (Variables.isGlobal(symId)) {
                     vm->emitCode(op_load_global);
                     vm->emitTapeChunk(symId);
+
                 }
                 else
                 {
@@ -246,8 +250,29 @@ private:
             }
             break;
 
+            // // case TokenType::Or: {
+            // //     advance();
+            // //     vm->emitCode(op_jump_if_true_no_pop);
+            // //     size_t jumpOffset = vm->tell();
+            // //     vm->emitJumpOffset(0); // placeholder
+            // //     vm->emitCode(op_pop_stack);
+            // //     if (!getArg("right or")) return false;
+            // //     vm->patchJumpOffset(jumpOffset , vm->tell());
+            // // }
+            // // break;
+            // // case TokenType::And: {
+            // //     advance();
+            // //     vm->emitCode(op_jump_if_false_no_pop);
+            // //     size_t jumpOffset = vm->tell();
+            // //     vm->emitJumpOffset(0); // placeholder
+            // //     vm->emitCode(op_pop_stack);
+            // //     if (!getArg("right or")) return false;
+            // //     vm->patchJumpOffset(jumpOffset , vm->tell());
+            // // }
+            // //  break;
 
-
+            // ~~~~ Functions ~~~~
+            case TokenType::Fn: parseFn(); break;
             // ~~~~ Others ~~~~
             default:
                 PrintParseError("Unkandled Token:", tokenTypeToString(curType));
@@ -272,24 +297,31 @@ private:
             }
             advance();
 
-            // if (op.mType == TokenType::Assign) {
-            //     parseAssignmentContext();
-            //     continue;
-            // }
-
             if (!parseMath(precedence + 1)) return false;
 
-            if (op.mType == TokenType::Plus)  vm->emitCode(op_add);
-            if (op.mType == TokenType::Minus) vm->emitCode(op_sub );
-            if (op.mType == TokenType::Mul)   vm->emitCode( op_mul );
-            if (op.mType == TokenType::Div)   vm->emitCode( op_div );
+            switch (op.mType) {
+                case TokenType::Plus:    vm->emitCode(op_add); break;
+                case TokenType::Minus:   vm->emitCode(op_sub); break;
+                case TokenType::Mul:     vm->emitCode(op_mul); break;
+                case TokenType::Div:     vm->emitCode(op_div); break;
+                case TokenType::Modulo:  vm->emitCode(op_modulo); break;
+                case TokenType::Greater: vm->emitCode(op_greater); break;
+                case TokenType::Less:    vm->emitCode(op_lower); break;
+                case TokenType::Equal:   vm->emitCode(op_equal); break;
+                case TokenType::NotEqual: vm->emitCode(op_not_equal); break;
+                case TokenType::LowerEqual: vm->emitCode(op_lower_equal); break;
+                case TokenType::GreaterEqual: vm->emitCode(op_greater_equal); break;
+                case TokenType::Or:      vm->emitCode(op_or); break;
+                case TokenType::And:     vm->emitCode(op_and); break;
+                case TokenType::BitOr:   vm->emitCode(op_bit_or); break;
+                case TokenType::BitXOr:  vm->emitCode(op_bit_xor); break;
+                case TokenType::BitAnd:  vm->emitCode(op_bit_and); break;
+                case TokenType::SHL:     vm->emitCode(op_bit_shl); break;
+                case TokenType::SHR:     vm->emitCode(op_bit_shr); break;
+                default: break;
+            }
 
-            if (op.mType == TokenType::Greater)      vm->emitCode( op_greater );
-            if (op.mType == TokenType::Less)         vm->emitCode( op_lower );
-            if (op.mType == TokenType::Equal)        vm->emitCode( op_equal );
-            if (op.mType == TokenType::NotEqual)     vm->emitCode( op_not_equal );
-            if (op.mType == TokenType::LowerEqual)   vm->emitCode( op_lower_equal );
-            if (op.mType == TokenType::GreaterEqual) vm->emitCode( op_greater_equal );
+
 
         } // while
         return true;
@@ -347,6 +379,44 @@ private:
             vm->patchJumpOffset(break_slot, loop_end_slot);
         }
         vm->mLoopStack.pop_back();
+
+        return true;
+    }
+
+    // -------------------------------------------------------------------------
+    //  Statements sub: fn
+    // -------------------------------------------------------------------------
+    bool parseFn() {
+        advance(); //advanceFN
+
+        // tape should jump over this function when playing
+        vm->emitCode(op_func_def);
+        size_t func_start_slot = vm->tell();
+        vm->emitJumpOffset(0); // start placeholder
+
+        vm->emitCode(op_jump);
+        size_t jump_over_slot = vm->tell();
+        vm->emitJumpOffset(0); // false placeholder
+
+        vm->patchJumpOffset(func_start_slot, vm->tell());
+
+        // main loop:
+        while (peek().mType != TokenType::EOFToken &&
+            peek().mType != TokenType::End)
+        {
+            if (!parseStatements()) return false;
+        }
+        if (peek().mType != TokenType::End) {
+            PrintParseError("While missing end!");
+            return false;
+        }
+        advance(); //end
+
+        vm->emitCode(op_return);
+        vm->patchJumpOffset(jump_over_slot,vm->tell());
+
+        // we supply function id
+        if (requestParam <= 0) vm->emitCode( op_pop_stack );
 
         return true;
     }
@@ -475,6 +545,9 @@ private:
                 vm->emitJumpOffset(0); // placeholder patched in while
             }
             break;
+
+            case TokenType::Return: {advance(); vm->emitCode(op_return);} break;
+
 
             // ----- default ----
             default: if (!parseMath(0)) return false;; break;

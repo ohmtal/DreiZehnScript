@@ -22,7 +22,7 @@ namespace DLS {
         None,
         Double,
         Long,
-        Ptr,
+        Pointer,
         String,
         Function,
         Array
@@ -48,8 +48,10 @@ namespace DLS {
         Value(std::string val) { type = ValueType::String; strId = StringTable::insert(val); }
         // ------------------
         inline bool isDouble() { return type == ValueType::Double; }
+        inline bool isFloat() { return type == ValueType::Double; }
         inline bool isLong() { return type == ValueType::Long; }
-        inline bool isPointer() { return type == ValueType::Ptr; }
+        inline bool isInt() { return type == ValueType::Long; }
+        inline bool isPointer() { return type == ValueType::Pointer; }
         inline bool isString() { return type == ValueType::String; }
         inline bool isFunction() { return type == ValueType::Function; }
         inline bool isArray() { return type == ValueType::Array; }
@@ -87,6 +89,11 @@ namespace DLS {
             if (type == ValueType::String) [[likely]] return StringTable::get(strId);
             static const std::string empty = "";
             return empty;
+        }
+        // ------------------
+        inline void * getPointer() const {
+            if (type == ValueType::Pointer) [[likely]] return p;
+            else return nullptr;
         }
 
         // ------------------

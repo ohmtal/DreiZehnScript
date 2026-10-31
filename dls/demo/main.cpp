@@ -9,14 +9,21 @@
 #include "core/VM.h"
 #include "core/Lexer.h"
 #include "core/Parser.h"
-#include "functions/MathFunctions.h"
 
 #include <fstream>
 #include <istream>
 
+
+
 using namespace DLS;
 
 bool DEBUG_TOKEN = false;
+
+namespace DLS {
+extern void RegisterMathFunctions();
+extern void RegisterStringFunctions();
+
+}
 
 std::string Run(std::string code) {
     Lexer lex(code);
@@ -56,6 +63,7 @@ std::string loadScript(const std::string& scriptPath) {
 
 int main(int argc, char* argv[]) {
     RegisterMathFunctions();
+    RegisterStringFunctions();
 
     FunctionMap::RegisterFunction("print", [](std::span<Value> args, Value& ret) -> bool {
         if (args.size() < 1 ) return false;
@@ -173,7 +181,32 @@ goto jump_to_test;
         end
     )"; Run(mySrc);
 
-jump_to_test:
-    mySrc = R"( foo[110] = 10; print foo[110] )"; Run(mySrc);
 
+   std::cout << "---- Array ----\n";
+    mySrc = R"( foo[110] = 10; print "10==" foo[110] )"; Run(mySrc);
+
+    std::cout << "------- Modulo --------\n";
+    mySrc = R"( i = 0; while i < 10; if i % 2; print "mod2!" i;; i = i + 1;; )"; Run(mySrc);
+
+    std::cout << "-------- And / Or --------\n";
+    mySrc = R"( print 0 || 1 )"; Run(mySrc);
+    mySrc = R"( i = 10 ; if i == 0 || i == 10; print "i is:" i;else print "not"; end  )"; Run(mySrc);
+    mySrc = R"( i = 10 ; if i > 9 && i < 20; print "i is " i; else print "not";;  )"; Run(mySrc);
+    mySrc = R"( i = 10 ; if i == 0 || i == 9; print "i is:" i;else print "not"; end  )"; Run(mySrc);
+    mySrc = R"( i = 10 ; if i > 11 && i < 20; print "i is " i; else print "not";;  )"; Run(mySrc);
+
+    mySrc = R"(
+        foo = fn ; print "bar";;
+        foo
+        return
+        print "still here ?"
+    )"; Run(mySrc);
+
+jump_to_test:
+    mySrc = R"(
+        foo = fn ; print str::strlen "HUHU";;
+        foo
+        return
+        print "still here ?"
+    )"; Run(mySrc);
 }

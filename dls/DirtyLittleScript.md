@@ -30,7 +30,7 @@ This time it should be really small.
 - Assign `=` 
     - [X] globals
 
-## Time run test_var.dls the first time (2026-10-31)
+### Time run test_var.dls the first time (2026-10-31)
 
 - using while 
 - using math like `a = a + 1` since i dont have inline assign like ++ or *=
@@ -91,3 +91,11 @@ So DreiZehn is much faster - i spend a lot of time to optimize it ;) The while
 loop is simular to what i do in DreiZehn bytecode, so I'am  relative sure it's 
 the DreiZehn  Variable Pointer Cache and only 8 byte for value instead of 16.
 For first run ever 13,50 it's not so bad - still beat python on that ;) 
+
+## Features continue:
+
+- [X] basic array 
+- [X] And / Or 
+- [X] bit: and, or, xor, shl, shr
+- [X] fn lamda like without name , parameters or return value *haha*
+- Done and ready for cleanup push?

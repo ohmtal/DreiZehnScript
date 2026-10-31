@@ -27,6 +27,8 @@ set (LINK_LIBS)
 set(PROJECT_SRC
 
     demo/main.cpp
+    src/functions/MathFunctions.cpp
+    src/functions/StringFunctions.cpp
 )
 
 

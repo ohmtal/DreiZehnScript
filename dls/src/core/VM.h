@@ -24,11 +24,12 @@ namespace DLS {
     // ------------------------------------------
     // Variables
     // ------------------------------------------
-    std::vector<std::vector<Value>> Arrays;
-
     struct VariableStorage {
         std::unordered_map<U32,Value> mGlobals;
-        // std::vector<Value> mLocals; // FIXME locals with callframe offset and stack id's '
+        std::vector<std::vector<Value>> mArrays;
+
+        std::vector<size_t> mFunctions;
+        std::vector<size_t> mReturnStack;
 
         bool isGlobal(U32 id) {
             return (mGlobals.find(id) != mGlobals.end());
@@ -60,10 +61,10 @@ namespace DLS {
                 return Value(0.0);
             }
             size_t masterIndex =arrValue.getUInt();
-            if (index >= Arrays[masterIndex].size()) {
-                Arrays[masterIndex].resize(index + 1);
+            if (index >= mArrays[masterIndex].size()) {
+                mArrays[masterIndex].resize(index + 1);
             }
-            return Arrays[masterIndex][index];
+            return mArrays[masterIndex][index];
 
         }
         void saveArray(U32 id, U32 index, const Value& value) {
@@ -75,19 +76,19 @@ namespace DLS {
                     return;
                 }
                 size_t masterIndex =arrValue.getUInt();
-                if (index >= Arrays[masterIndex].size()) {
-                    Arrays[masterIndex].resize(index + 1);
+                if (index >= mArrays[masterIndex].size()) {
+                    mArrays[masterIndex].resize(index + 1);
                 }
-                Arrays[masterIndex][index] = value;
+                mArrays[masterIndex][index] = value;
             } else {
-                size_t masterIndex =Arrays.size();
-                Arrays.push_back({});
+                size_t masterIndex =mArrays.size();
+                mArrays.push_back({});
                 arrValue = Value((U32)masterIndex);
                 arrValue.type = ValueType::Array;
-                if (index >= Arrays[masterIndex].size()) {
-                    Arrays[masterIndex].resize(index + 1);
+                if (index >= mArrays[masterIndex].size()) {
+                    mArrays[masterIndex].resize(index + 1);
                 }
-                Arrays[masterIndex][index] = value;
+                mArrays[masterIndex][index] = value;
                 saveGlobal(id,arrValue);
             }
         }
@@ -108,35 +109,6 @@ namespace DLS {
         size_t jump_offset;
         size_t tapeChunk;
     };
-    // ------------------------------------------
-    // Upvalue
-    // ------------------------------------------
-    // An Upvalue represents a captured variable
-    // struct Upvalue {
-    //     uint64_t* location;   // Points to the value stack OR to the internal closed_value
-    //     uint64_t closed_value; // Storage used once the variable leaves the stack
-    //     size_t stack_slot;    // Keeps track of its original stack index (for closing)
-    //
-    //     Upvalue(uint64_t* slot, size_t index) : location(slot), closed_value(0), stack_slot(index) {}
-    // };
-    // // ------------------------------------------
-    // // Closure
-    // // ------------------------------------------
-    // // The execution runtime representation of a function
-    // struct Closure {
-    //     size_t tape_address;
-    //     std::vector<std::shared_ptr<Upvalue>> upvalues;
-    // };
-    //
-    // // ------------------------------------------
-    // // CallFrame
-    // // ------------------------------------------
-    // struct CallFrame {
-    //     std::shared_ptr<Closure> closure; // The closure being executed
-    //     size_t return_address;
-    //     size_t stack_base;
-    // };
-
     // ------------------------------------------
     // Loops
     // ------------------------------------------
@@ -161,23 +133,6 @@ namespace DLS {
             }
         }
 
-        // std::vector<CallFrame> call_stack;
-
-        // Tracks all active open upvalues on the stack, sorted by stack index
-        // std::vector<std::shared_ptr<Upvalue>> open_upvalues;
-        //
-        // // Helper to find an existing upvalue or create a new one
-        // std::shared_ptr<Upvalue> capture_upvalue(size_t stack_index) {
-        //     // Look from back to front to see if we already captured this exact slot
-        //     for (auto it = open_upvalues.rbegin(); it != open_upvalues.rend(); ++it) {
-        //         if ((*it)->stack_slot == stack_index) return *it;
-        //     }
-        //
-        //     // Not captured yet, create a new open upvalue pointing to the stack slot
-        //     auto uv = std::make_shared<Upvalue>(&stack[stack_index], stack_index);
-        //     open_upvalues.push_back(uv);
-        //     return uv;
-        // }
         // ------------------------------------------
         // Tape functions
         // ------------------------------------------
@@ -243,7 +198,13 @@ namespace DLS {
 
     void op_load_global(VM& vm) {
         U32 symid = (U32)vm.advanceSlot().tapeChunk;
-        vm.PUSH_STACK( Variables.getGlobal(symid) );
+        Value var = Variables.getGlobal(symid);
+        if (var.type == ValueType::Function) {
+            Variables.mReturnStack.push_back(vm.tell());
+            vm.pc = Variables.mFunctions[(size_t)var.l];
+        } else {
+            vm.PUSH_STACK( var );
+        }
     }
 
     // ------------------------------------------
@@ -328,6 +289,59 @@ namespace DLS {
         Value res = Value(a.getDouble() / right);
         vm.PUSH_STACK(res);
     }
+
+    void op_modulo(VM& vm) {
+        Value b = vm.POP_STACK();
+        Value a = vm.POP_STACK();
+        S64 right = b.getLong();
+        if (right == 0.0) [[unlikely]]  {
+            vm.PUSH_STACK(Value(0.0));
+            return ;
+        }
+        Value res = Value(a.getLong() % right);
+        vm.PUSH_STACK(res);
+    }
+    // ------------------------------------------
+    // Bit's
+    // ------------------------------------------
+    void op_bit_or(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getUInt() | b.getUInt());
+        vm.PUSH_STACK(res);
+    }
+    void op_bit_xor(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getUInt() ^ b.getUInt());
+        vm.PUSH_STACK(res);
+    }
+    void op_bit_and(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getUInt() & b.getUInt());
+        vm.PUSH_STACK(res);
+    }
+    void op_bit_shl(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getUInt() << b.getUInt());
+        vm.PUSH_STACK(res);
+    }
+    void op_bit_shr(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getUInt() >> b.getUInt());
+        vm.PUSH_STACK(res);
+    }
+    // ------------------------------------------
+    // And/OR
+    // ------------------------------------------
+    void op_or(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getBool() || b.getBool());
+        vm.PUSH_STACK(res);
+    }
+    void op_and(VM& vm) {
+        Value b = vm.POP_STACK(); Value a = vm.POP_STACK();
+        Value res = Value(a.getBool() && b.getBool());
+        vm.PUSH_STACK(res);
+    }
     // ------------------------------------------
     // Comparison
     // ------------------------------------------
@@ -361,6 +375,8 @@ namespace DLS {
         Value res = Value(a.getDouble() >= b.getDouble());
         vm.PUSH_STACK(res);
     }
+
+
     // ------------------------------------------
     // JUMP
     // ------------------------------------------
@@ -447,6 +463,23 @@ namespace DLS {
         }
     }
 
+    // ------------------------------------------
+    // Script function def
+    // ------------------------------------------
+    void op_func_def(VM& vm) {
+        size_t startPosition =  vm.advanceSlot().jump_offset;
+        Variables.mFunctions.push_back(startPosition);
+        Value subValue = Value((S64)(Variables.mFunctions.size() - 1));
+        subValue.type = ValueType::Function;
+        vm.PUSH_STACK(subValue);
+    }
+    void op_return(VM& vm) {
+        if (Variables.mReturnStack.size() == 0) {
+            vm.pc = vm.tape.size() - 1;
+        }
+        vm.pc = Variables.mReturnStack.back();
+        Variables.mReturnStack.pop_back();
+    }
     // ------------------------------------------
 }
 

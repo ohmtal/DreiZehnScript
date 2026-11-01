@@ -173,7 +173,7 @@ struct SDL_FRect_Object: public SDL_BaseObject {
 };
 // -----------------------------------------------------------------------------
 VectorValueObject* GetVectorObject(const Value& value, size_t minSize ){
-    if (!value.isPointer()
+    if (!value.isObjectPointer()
         || value.asPointerObject()->mType != TypeVectorObject)
     return nullptr;
     VectorValueObject* result = static_cast<VectorValueObject*> (value.asPointerObject());
@@ -302,7 +302,7 @@ void RegisterBaseFluxFunctions(Environment& env) {
 
     // ---------------------------------
     FunctionMap::RegisterFunction("flux::DrawRect", [](std::span<Value> args, Value& ret) -> bool {
-        if (args.size() < 3 || !args[0].isPointer() || !args[1].isPointer()) {
+        if (args.size() < 3 || !args[0].isObjectPointer() || !args[1].isObjectPointer()) {
             Tools::PrintRuntimeError("flux::DrawRect: Missing Parameter");
             return false;
         }

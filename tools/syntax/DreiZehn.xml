@@ -102,26 +102,52 @@
       <item>error</item>
       <item>include</item>
       <item>printraw</item>
+      <item>getType</item>
+      <item>int::cast</item>
+      <item>float::cast</item>
+
 
       <!-- String Manipulation -->
+      <item>str::cast</item>
+      <item>str::chr</item>
+      <item>str::concat</item>
+      <item>str::format</item>
+      <item>str::ltrim</item>
+      <item>str::ord</item>
+      <item>str::removeword</item>
+      <item>str::replace</item>
+      <item>str::rtrim</item>
+      <item>str::setword</item>
+      <item>str::strlen</item>
+      <item>str::strpos</item>
+      <item>str::substr</item>
+      <item>str::toLower</item>
+      <item>str::toNumber</item>
+      <item>str::toUpper</item>
+      <item>str::trim</item>
+      <item>str::word</item>
+      <item>str::wordcount</item>
 
-      <!-- UTF-8 Support -->
-
-      <!-- Table Manipulation -->
 
       <!-- Mathematical Functions -->
       <item>math::abs</item>
       <item>math::ceil</item>
+      <item>math::clamp</item>
       <item>math::cos</item>
+      <item>math::deg</item>
       <item>math::floor</item>
       <item>math::fmod</item>
+      <item>math::lerp</item>
+      <item>math::max</item>
+      <item>math::min</item>
+      <item>math::pow</item>
+      <item>math::rad</item>
+      <item>math::rand</item>
       <item>math::random</item>
       <item>math::randomf</item>
-      <item>math::rand</item>
       <item>math::sin</item>
       <item>math::sqrt</item>
       <item>math::tan</item>
-
     </list>
 
     <list name="metamethod">

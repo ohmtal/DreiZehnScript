@@ -295,7 +295,7 @@ namespace DreiZehn::Raylib {
                 return false;
             }
 
-            if (! args[0].isPointer() ) return false;
+            if (! args[0].isObjectPointer() ) return false;
             ValueObject* obj_color = args[0].asPointerObject();
             if (!obj_color || obj_color->mType != TypeRaylibColor) {
                 Tools::errorf("Arg 0 must be of type Color");
@@ -318,7 +318,7 @@ namespace DreiZehn::Raylib {
             int arg_posX = (int)args[1].getDouble();
             int arg_posY = (int)args[2].getDouble();
             int arg_fontSize = (int)args[3].getDouble();
-            if (! args[4].isPointer() ) return false;
+            if (! args[4].isObjectPointer() ) return false;
             ValueObject* obj_color = args[4].asPointerObject();
             if (!obj_color || obj_color->mType != TypeRaylibColor) {
                 Tools::errorf("Arg 4 must be of type Color");

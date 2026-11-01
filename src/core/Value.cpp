@@ -20,6 +20,7 @@ std::string Value::toStringSlowPath() const {
     constexpr uint32_t ID_INT = 1;
     constexpr uint32_t ID_PTR = 2;
     constexpr uint32_t ID_VALUE_PTR = 3;
+    constexpr uint32_t ID_RAW_PTR = 5;
 
     switch (tag) {
         case ID_INT: {
@@ -41,6 +42,11 @@ std::string Value::toStringSlowPath() const {
         case ID_VALUE_PTR: {
             char buffer[32];
             snprintf(buffer, sizeof(buffer), "[%p]", asValuePointer());
+            return std::string(buffer);
+        }
+        case ID_RAW_PTR: {
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "[%p]", asRawPointer());
             return std::string(buffer);
         }
 
@@ -128,7 +134,7 @@ const std::string Value::getTypeName(){
        if (isInt()) return "int";
        else if (isDouble()) return "double";
        else if (isString()) return "string";
-       else if (isPointer()) return GetObjectTypeName(asPointerObject());
+       else if (isObjectPointer()) return GetObjectTypeName(asPointerObject());
        else if(isValuePointer()) return "ValuePointer";
        else return "unknown";
    }
@@ -137,7 +143,7 @@ const void Value::print(bool appendLineFeed){
        if (isInt()) Tools::printf("%d", asInt());
        else if (isDouble()) Tools::printf("%f", asDouble());
        else if (isString()) Tools::printf("%s", getStringRef().c_str());
-       else if (isPointer()) {
+       else if (isObjectPointer()) {
            ValueObject* obj = asPointerObject();
            Tools::printf("%s",  obj->toString().c_str());
        }

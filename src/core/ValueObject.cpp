@@ -63,7 +63,7 @@ namespace DreiZehn {
         if (!Globals::shutDownRUNNING)
         {
             for(auto& val: mDynamicFieldValues) {
-                if (val && val->isPointer()) val->asPointerObject()->setAssigned(false);
+                if (val && val->isObjectPointer()) val->asPointerObject()->setAssigned(false);
             }
         }
         mDynamicFieldValues.clear();
@@ -323,9 +323,9 @@ namespace DreiZehn {
             uint32_t fieldId = SymbolTable::insert(fieldName);
             Value* pre = getDynamicFieldPtr(fieldId);
             Value post = args[1];
-            if (pre && pre->isPointer())  pre->asPointerObject()->setAssigned(false);
+            if (pre && pre->isObjectPointer())  pre->asPointerObject()->setAssigned(false);
             if (onSetField(fieldId, post))  {
-                if (post.isPointer()) post.asPointerObject()->setAssigned(true);
+                if (post.isObjectPointer()) post.asPointerObject()->setAssigned(true);
                 ret = Value(post);
             } else {
                 ret = NumberNullValue;

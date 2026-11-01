@@ -377,7 +377,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         RegisterFunction("str::cast", [](std::span<Value> args, Value& ret) -> bool {
 
-            if (args.size() < 1 || args[0].isPointer()) {
+            if (args.size() < 1 || args[0].isObjectPointer()) {
                 ret = EmptyStringValue;
                 return true;
             }

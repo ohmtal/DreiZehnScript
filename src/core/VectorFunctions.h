@@ -34,7 +34,7 @@ namespace DreiZehn {
             {
                 for (auto e: mElements) {
                     // if (e.isPointer())  static_cast<ValueObject*>(e.asPointer())->setAssigned(false);
-                    if (e.isPointer())  e.asPointerObject()->setAssigned(false);
+                    if (e.isObjectPointer())  e.asPointerObject()->setAssigned(false);
                 }
             }
             mElements.clear();
@@ -123,7 +123,7 @@ namespace DreiZehn {
 
             if ( methodId == mPushProp.mSymbolId ) {
                 if (!mPushProp.ValidateArgs(args)) return false;
-                if (args[0].isPointer()) {
+                if (args[0].isObjectPointer()) {
                     if (args[0].asPointerObject() == this) {
                         Tools::PrintRuntimeError("Can NOT add myself to me!");
                         ret = NumberNullValue;
@@ -140,7 +140,7 @@ namespace DreiZehn {
                 if (!mPopProp.ValidateArgs(args)) return false;
                 if (mElements.size() > 0) {
                     ret = Value(mElements.back());
-                    if (ret.isPointer()) ret.asPointerObject()->setAssigned(false);
+                    if (ret.isObjectPointer()) ret.asPointerObject()->setAssigned(false);
                     mElements.pop_back();
                 } else {
                     ret= Value();
@@ -166,11 +166,11 @@ namespace DreiZehn {
                 if (!mSetProp.ValidateArgs(args)) return false;
                 // slowdown a bit but need it for GarbageCollection
                 Value pre = mElements[args[0].getInt()];
-                if (pre.isPointer()) pre.asPointerObject()->setAssigned(false);
+                if (pre.isObjectPointer()) pre.asPointerObject()->setAssigned(false);
                 mElements[args[0].getInt()] = args[1];
                 ret =  args[1];
 
-                if (ret.isPointer()) {
+                if (ret.isObjectPointer()) {
                     if (ret.asPointerObject() == this) {
                         Tools::PrintRuntimeError("Can NOT add myself to me!");
                         ret = NumberNullValue;
@@ -222,7 +222,7 @@ namespace DreiZehn {
                     return true;
                 }
                 ValueObject* cloneParent = nullptr;
-                if (args[1].isPointer()) {
+                if (args[1].isObjectPointer()) {
                     cloneParent = args[1].asPointerObject();
                     if (cloneParent == this) {
                         Tools::errorf("Sorry cant fill myself as a clone\n");
@@ -284,7 +284,7 @@ namespace DreiZehn {
 
             // add args!
             for (auto& arg: args) {
-                if (arg.isPointer()) {
+                if (arg.isObjectPointer()) {
                     arg.asPointerObject()->setAssigned(true);
                 }
                 arr->mElements.push_back(arg);

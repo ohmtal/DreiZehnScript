@@ -23,8 +23,10 @@ enum class ValueType : uint8_t {
     Int,
     ObjectPointer,
     ValuePointer,
-    RawPointer,
     StringId,
+    RawPointer,
+    DUMMY_6,
+    DUMMY_7,
     ANY,
     NONE
 };

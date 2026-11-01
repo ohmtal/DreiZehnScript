@@ -58,7 +58,7 @@ void Init(Environment& env, int argc, char* argv[]) {
 
     RegisterConstants("type::float",    (int32_t)ValueType::Double);
     RegisterConstants("type::integer",  (int32_t)ValueType::Int);
-    RegisterConstants("type::object",  (int32_t)ValueType::Pointer);
+    RegisterConstants("type::object",  (int32_t)ValueType::ObjectPointer);
     RegisterConstants("type::pointer",  (int32_t)ValueType::ValuePointer);
     RegisterConstants("type::string",  (int32_t)ValueType::StringId);
 

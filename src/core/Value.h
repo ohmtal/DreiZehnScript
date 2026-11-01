@@ -21,8 +21,9 @@ namespace DreiZehn{
 enum class ValueType : uint8_t {
     Double,
     Int,
-    Pointer,
+    ObjectPointer,
     ValuePointer,
+    RawPointer,
     StringId,
     ANY,
     NONE
@@ -33,11 +34,11 @@ enum class ValueType : uint8_t {
 
 constexpr uint64_t QNAN_MASK        = 0x7FF8000000000000ULL;
 constexpr uint64_t TAG_INT          = 0x0001000000000000ULL; // 1 (binary 001) =>  Integer
-constexpr uint64_t TAG_PTR          = 0x0002000000000000ULL; // 2 (binary 010) =>  Pointer
+constexpr uint64_t TAG_OBJ_PTR      = 0x0002000000000000ULL; // 2 (binary 010) =>  Pointer
 constexpr uint64_t TAG_VALUE_PTR    = 0x0003000000000000ULL; // 3 (binary 011) =>  Pointer to a Value - will be used in byte code
 constexpr uint64_t TAG_STRING_ID    = 0x0004000000000000ULL; // 4 (binary 100) =>  StringTable uint32_t Identifier
 
-constexpr uint64_t TAG_DUMMY_5       = 0x0005000000000000ULL; // 5 (binary 101)
+constexpr uint64_t TAG_RAW_PTR      = 0x0005000000000000ULL; // 5 (binary 101)
 constexpr uint64_t TAG_DUMMY_6       = 0x0006000000000000ULL; // 6 (binary 110)
 constexpr uint64_t TAG_DUMMY_7       = 0x0007000000000000ULL; // 7 (binary 111)
 // ----
@@ -95,22 +96,27 @@ public:
     // -------------------------------------------------------------------------
     Value(ValueObject* obj) {
         uint64_t ptrBits = std::bit_cast<uint64_t>(obj);
-        mBits = QNAN_MASK | TAG_PTR | (ptrBits & 0x0000FFFFFFFFFFFFULL);
+        mBits = QNAN_MASK | TAG_OBJ_PTR | (ptrBits & 0x0000FFFFFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
     Value(Value* valuePtr) {
         uint64_t ptrBits = std::bit_cast<uint64_t>(valuePtr);
         mBits = QNAN_MASK | TAG_VALUE_PTR| (ptrBits & 0x0000FFFFFFFFFFFFULL);
     }
-
+    // -------------------------------------------------------------------------
+    Value(void* ptr) {
+        uint64_t ptrBits = std::bit_cast<uint64_t>(ptr);
+        mBits = QNAN_MASK | TAG_RAW_PTR| (ptrBits & 0x0000FFFFFFFFFFFFULL);
+    }
 
     // -------------------------------------------------------------------------
     // --- Typ-Check ---
     // -------------------------------------------------------------------------
     inline bool isDouble()  const { return (mBits & QNAN_MASK) != QNAN_MASK; }
     inline bool isInt()     const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_INT); }
-    inline bool isPointer() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_PTR); }
+    inline bool isObjectPointer() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_OBJ_PTR); }
     inline bool isValuePointer() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_VALUE_PTR); }
+    inline bool isRawPointer() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_RAW_PTR); }
     inline bool isString() const { return (mBits & QNAN_AND_TAG_MASK) == (QNAN_MASK | TAG_STRING_ID); }
 
     inline ValueType getType() const {
@@ -121,7 +127,7 @@ public:
 
         switch (tag) {
             case TAG_INT:          return ValueType::Int;
-            case TAG_PTR:          return ValueType::Pointer;
+            case TAG_OBJ_PTR:          return ValueType::ObjectPointer;
             case TAG_VALUE_PTR:    return ValueType::ValuePointer;
             case TAG_STRING_ID:    return ValueType::StringId;
             default:
@@ -168,18 +174,23 @@ public:
     }
     // -------------------------------------------------------------------------
     inline void* asPointer() const {
-        assert(isPointer());
+        assert(isObjectPointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<void*>(ptrBits);
     }
 
     // -------------------------------------------------------------------------
     inline ValueObject* asPointerObject() const {
-        assert(isPointer());
+        assert(isObjectPointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<ValueObject*>(ptrBits);
     }
 
+    inline void* asRawPointer() const {
+        assert(isObjectPointer());
+        uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
+        return std::bit_cast<void*>(ptrBits);
+    }
 
     inline Value* asValuePointer() const {
         assert(isValuePointer());
@@ -196,7 +207,7 @@ public:
             return std::bit_cast<double>(mBits);
         }
         if (isInt())      return static_cast<double>(asFastInt());
-        if (isPointer())  return static_cast<double>(asPointer() != nullptr);
+        if (isObjectPointer())  return static_cast<double>(asPointer() != nullptr);
         if (isString())   return static_cast<double>(!getStringRef().empty());
         return 0.0;
     }
@@ -212,7 +223,7 @@ public:
             return static_cast<int64_t>(asFastInt());
         }
         if (isDouble())   return static_cast<int64_t>(asFastDouble());
-        if (isPointer())  return reinterpret_cast<int64_t>(asPointer());
+        if (isObjectPointer())  return reinterpret_cast<int64_t>(asPointer());
         if (isString())   return static_cast<int64_t>(!getStringRef().empty());
         return 0;
     }
@@ -223,7 +234,7 @@ public:
             return static_cast<int32_t>(mBits & 0xFFFFFFFFULL);
         }
         if (isDouble())   return static_cast<int32_t>(asFastDouble());
-        if (isPointer())  return static_cast<int32_t>(asPointer() != nullptr);
+        if (isObjectPointer())  return static_cast<int32_t>(asPointer() != nullptr);
         if (isString())   return static_cast<int32_t>(!getStringRef().empty());
         return 0;
     }
@@ -242,7 +253,7 @@ public:
             return (mBits & 0xFFFFFFFFULL) != 0;
         }
         if (isDouble())   return asFastDouble() != 0.0;
-        if (isPointer())  return asPointer() != nullptr;
+        if (isObjectPointer())  return asPointer() != nullptr;
         if (isString())   return !getStringRef().empty();
         return false;
     }
@@ -309,7 +320,7 @@ public:
 
     // -------------------------------------------------------------------------
     inline void* getPointer() const {
-        if (!isPointer()) return nullptr;
+        if (!isObjectPointer()) return nullptr;
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<void*>(ptrBits);
     }

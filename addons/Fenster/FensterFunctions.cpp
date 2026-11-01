@@ -337,7 +337,7 @@ namespace DreiZehn {
             }
             // ------- drawBufferProp
             if (drawBufferProp.matchMethod( methodId , args) == 1) {
-                if (!args[2].isPointer()) return false;
+                if (!args[2].isObjectPointer()) return false;
                 //FIXME check it's pixelbuffer and static_cast
                 PixelBufferObject* pb = dynamic_cast<PixelBufferObject*>(args[2].asPointerObject());
                 if (!pb) return false;

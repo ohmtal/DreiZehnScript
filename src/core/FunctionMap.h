@@ -139,10 +139,10 @@ namespace DreiZehn::FunctionMap {
     inline void RegisterConstants(U32 symId, const Value& value) {
 
         Value* curConst = getConstants(symId);
-        if (curConst && curConst->isPointer()) {
+        if (curConst && curConst->isObjectPointer()) {
             curConst->asPointerObject()->setAssigned(false);
         }
-        if (value.isPointer()) {
+        if (value.isObjectPointer()) {
             value.asPointerObject()->setAssigned(true);
         }
         RegisteredConstants[symId] = value;

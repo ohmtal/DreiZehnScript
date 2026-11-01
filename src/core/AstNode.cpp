@@ -314,12 +314,12 @@ namespace DreiZehn {
             }
 
             // only works on objects which support onGetArrayIndexPtr
-            if (!varValue.isPointer() ) {
+            if (!varValue.isObjectPointer() ) {
                 return NumberNullValue;
             }
             Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr(index);
             if (valPtr) return Value(*valPtr);
-        } else if (indexValue.isString() && varValue.isPointer()) {
+        } else if (indexValue.isString() && varValue.isObjectPointer()) {
             //FIXME SymbolTable?!
             Value* valPtr = varValue.asPointerObject()->onGetArrayByStringSymId(SymbolTable::insert( indexValue.getStringRef()));
             if (valPtr) return Value(*valPtr);
@@ -334,7 +334,7 @@ namespace DreiZehn {
             return nullptr;
         }
         Value varValue = mVarExpr->evaluate(env);
-        if (!varValue.isPointer() ) {
+        if (!varValue.isObjectPointer() ) {
             return nullptr;
         }
 
@@ -438,7 +438,7 @@ namespace DreiZehn {
         }
 
         Value varValue = mVarExpr->evaluate(env);
-        if (!varValue.isPointer()) {
+        if (!varValue.isObjectPointer()) {
             PrintASTError(this,"RunTime Error: Object %s not found.",varValue.toString());
             return returnValue;
         }
@@ -457,7 +457,7 @@ namespace DreiZehn {
             return nullptr;
         }
         Value varValue = mVarExpr->evaluate(env);
-        if (!varValue.isPointer()) {
+        if (!varValue.isObjectPointer()) {
             PrintASTError(this, "Object not found:",varValue.toString());
             return nullptr;
         }
@@ -489,7 +489,7 @@ namespace DreiZehn {
             return false;
         }
         // PUSH VAR
-        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
 
         chunk.emit(OP_LOAD_OBJECT_FIELD);
         // Field symid
@@ -512,7 +512,7 @@ namespace DreiZehn {
             return false;
         }
         // PUSH VAR
-        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
 
         chunk.emit(OP_PUSHPTR_OBJECT_FIELD);
         // Field symid
@@ -532,7 +532,7 @@ namespace DreiZehn {
             return false;
         }
         // PUSH VAR
-        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
 
         chunk.emit(OP_SAVE_OBJECT_FIELD);
         // Field symid
@@ -559,7 +559,7 @@ namespace DreiZehn {
 
         }
         Value objectPointer = mVarExpr->evaluate(env);
-        if (!objectPointer.isPointer()) {
+        if (!objectPointer.isObjectPointer()) {
             PrintASTError(this, "Object not found:", objectPointer.toString());
             return NumberNullValue;
         }
@@ -582,7 +582,7 @@ namespace DreiZehn {
     // ---------------------
     Value* MethodExpression::evaluatePtr(Environment& env) {
         Value objectPointer = mVarExpr->evaluate(env);
-        if (!objectPointer.isPointer()) {
+        if (!objectPointer.isObjectPointer()) {
            PrintASTError(this, "Object not found:", objectPointer.toString());
             return nullptr;
         }
@@ -612,7 +612,7 @@ namespace DreiZehn {
                 argCount++;
             }
         }
-        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
         chunk.emit(OP_CALL_OBJECT_METHOD);
         chunk.emit(mMethodNameSymbolId);
         chunk.emit(argCount);
@@ -638,7 +638,7 @@ namespace DreiZehn {
                 argCount++;
             }
         }
-        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
         chunk.emit(OP_PUSHPTR_OBJECT_METHOD);
         chunk.emit(mMethodNameSymbolId);
         chunk.emit(argCount);
@@ -659,7 +659,7 @@ namespace DreiZehn {
                 argCount++;
             }
         }
-        if (!mVarExpr->compile(env,chunk,scope,ValueType::Pointer)) return false;
+        if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
         chunk.emit(OP_SAVE_OBJECT_METHOD);
         chunk.emit(mMethodNameSymbolId);
         chunk.emit(argCount);
@@ -679,7 +679,7 @@ namespace DreiZehn {
             if (!argExpr) continue;
             auto arg = argExpr->evaluate(env);
 
-            if (arg.isPointer()) {
+            if (arg.isObjectPointer()) {
                 arg.asPointerObject()->setAssigned(true);
             }
             arr->mElements.push_back(arg);
@@ -1291,7 +1291,7 @@ namespace DreiZehn {
                 }
                 else [[unlikely]] {
 
-                    if (a.isPointer() && b.isPointer())  {
+                    if (a.isObjectPointer() && b.isObjectPointer())  {
                         return Value(a.asPointer() == b.asPointer() ? 1 : 0);
                     } else if (a.isString() && b.isString()) {
                         return Value(a.getStringRef() == b.getStringRef());
@@ -1309,7 +1309,7 @@ namespace DreiZehn {
                 }
                 else [[unlikely]] {
 
-                    if (a.isPointer() && b.isPointer())  {
+                    if (a.isObjectPointer() && b.isObjectPointer())  {
                         return Value(a.asPointer() == b.asPointer() ? 0 : 1);
                     } else if (a.isString() && b.isString()) {
                         return Value(a.getStringRef() != b.getStringRef());
@@ -1519,8 +1519,8 @@ namespace DreiZehn {
         // since i set it with pointer i need to check assignment here !!!!!!
         Value& pre = *valPtr;
         Value post = this->mRhs->evaluate(env);
-        if (pre.isPointer())  pre.asPointerObject()->setAssigned(false);
-        if (post.isPointer()) post.asPointerObject()->setAssigned(true);
+        if (pre.isObjectPointer())  pre.asPointerObject()->setAssigned(false);
+        if (post.isObjectPointer()) post.asPointerObject()->setAssigned(true);
 
         *valPtr = post;
 
@@ -2098,7 +2098,7 @@ namespace DreiZehn {
 
         Value varValue = this->mVarExpr->evaluate(env);
 
-        if (!varValue.isPointer()) {
+        if (!varValue.isObjectPointer()) {
             PrintASTError(this,"Runtime Error: foreach need a object!");
             return FlowStatus (FlowSignal::None)  ;
         }

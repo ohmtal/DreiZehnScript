@@ -70,7 +70,7 @@ namespace DreiZehn {
             uint32_t id = 0;
             std::string fieldName = "";
 
-            if (args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject )) {
+            if (args[i].isObjectPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject )) {
                 KeyValueObject* kv = static_cast<KeyValueObject*>(args[i].asPointerObject());
                 id = kv->mKeyId;
                 fieldName = SymbolTable::getName(id);
@@ -126,7 +126,7 @@ namespace DreiZehn {
             uint32_t id = 0;
             std::string fieldName = "";
 
-            if (args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject )) {
+            if (args[i].isObjectPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject )) {
                 KeyValueObject* kv = static_cast<KeyValueObject*>(args[i].asPointerObject());
                 id = kv->mKeyId;
                 fieldName = SymbolTable::getName(id);
@@ -155,7 +155,7 @@ namespace DreiZehn {
             SymbolIdByIndex(i, keyindex);
             const std::string key = SymbolTable::getName(keyindex);
             const Value* value = mDynamicFieldValues[i].get();
-            if (value->isPointer() && value->asPointerObject()->mType == TypeArrayObject) {
+            if (value->isObjectPointer() && value->asPointerObject()->mType == TypeArrayObject) {
                 for (int j = 0; j < depth; j++) Tools::printf("│  ");
                 Tools::printf("├──┬ %s\n", key.c_str());
                 static_cast<ArrayObject*>(value->asPointerObject())->PrintTree( depth + 1 );
@@ -245,7 +245,7 @@ namespace DreiZehn {
             }
 
             for(size_t i = 0; i < args.size(); i++) {
-                if (!args[i].isString() && !(args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
+                if (!args[i].isString() && !(args[i].isObjectPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
                     Tools::errorf("Usage Struct::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
                     return true;
                 }
@@ -260,7 +260,7 @@ namespace DreiZehn {
         ArrayObject::RegisterSymbols();
         RegisterFunction("Array::new", [](std::span<Value> args, Value& ret) -> bool {
             for(size_t i = 0; i < args.size(); i++) {
-                if (!args[i].isString() && !(args[i].isPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
+                if (!args[i].isString() && !(args[i].isObjectPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
                     Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
                     return true;
                 }
@@ -279,7 +279,7 @@ namespace DreiZehn {
                 Tools::errorf("Usage obj::isType var Type\n");
                 return true;
             }
-            if ( !args[0].isPointer()) {
+            if ( !args[0].isObjectPointer()) {
                 ret = Value(0);
                 return true;
             }

@@ -55,7 +55,7 @@ public:
     ~VariableFrame() {
         if (!Globals::shutDownRUNNING) {
             for(auto& [key,ptr]: mVariables) {
-                if (ptr && ptr->isPointer()) {
+                if (ptr && ptr->isObjectPointer()) {
                     ptr->asPointerObject()->setAssigned(false);
                 }
             }
@@ -67,8 +67,8 @@ public:
 
 private:
     void internalSetVariable(Value& pre, Value& post) {
-        if (pre.isPointer())  pre.asPointerObject()->setAssigned(false);
-        if (post.isPointer()) post.asPointerObject()->setAssigned(true);
+        if (pre.isObjectPointer())  pre.asPointerObject()->setAssigned(false);
+        if (post.isObjectPointer()) post.asPointerObject()->setAssigned(true);
         pre = post;
     }
 
@@ -103,7 +103,7 @@ public:
             return;
         }
         if (forceScope) {
-            if (val.isPointer()) val.asPointerObject()->setAssigned(true);
+            if (val.isObjectPointer()) val.asPointerObject()->setAssigned(true);
             mVariables[id] =  std::make_unique<Value>(val);
             // internalSetVariable( *mVariables[id] , val);
             return;

@@ -149,8 +149,8 @@ namespace DreiZehn::VM {
     #endif
 
    inline void _set_var_pointer_value(Value* pre, Value& post) {
-        if (pre->isPointer())  pre->asPointerObject()->setAssigned(false);
-        if (post.isPointer()) post.asPointerObject()->setAssigned(true);
+        if (pre->isObjectPointer())  pre->asPointerObject()->setAssigned(false);
+        if (post.isObjectPointer()) post.asPointerObject()->setAssigned(true);
         *pre = post;
     }
 
@@ -367,7 +367,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
             DISPATCH();
         }
 
-        if (lVal.isPointer() && rVal.isPointer()) {
+        if (lVal.isObjectPointer() && rVal.isObjectPointer()) {
             PUSH_STACK (Value(lVal.asPointer() == rVal.asPointer() ? 1 : 0));
             DISPATCH();
         }
@@ -396,7 +396,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
             DISPATCH();
         }
 
-        if (lVal.isPointer() && rVal.isPointer()) {
+        if (lVal.isObjectPointer() && rVal.isObjectPointer()) {
             PUSH_STACK (Value(lVal.asPointer() != rVal.asPointer()));
             DISPATCH();
         }
@@ -561,7 +561,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         void* rawFieldValuePtr =  advance_ptr(code,ip);
 
         Value objectValue = POP_STACK();
-        if (!objectValue.isPointer()) [[unlikely]] {
+        if (!objectValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_LOAD_OBJECT_FIELD,"Object not found:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
@@ -600,7 +600,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         SKIP_PTR();
 
         Value objectValue = POP_STACK();
-        if (!objectValue.isPointer()) [[unlikely]] {
+        if (!objectValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_LOAD_OBJECT_FIELD_GENERIC,"RunTime Error: Object not found:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
@@ -630,7 +630,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         void* rawFieldValuePtr =  advance_ptr(code,ip);
 
         Value objectValue = POP_STACK();
-        if (!objectValue.isPointer()) [[unlikely]] {
+        if (!objectValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_PUSHPTR_OBJECT_FIELD, "Object not found:",objectValue.toString());
             DISPATCH();
         }
@@ -671,7 +671,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         SKIP_PTR();
 
         Value objectValue = POP_STACK();
-        if (!objectValue.isPointer()) [[unlikely]] {
+        if (!objectValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_PUSHPTR_OBJECT_FIELD_GENERIC, "Object not found:",objectValue.toString());
             DISPATCH();
         }
@@ -702,7 +702,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         void* rawFieldValuePtr =  advance_ptr(code,ip);
 
         Value objectValue = POP_STACK();
-        if (!objectValue.isPointer()) [[unlikely]] {
+        if (!objectValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_SAVE_OBJECT_FIELD, "Object not found:",objectValue.toString());
             DISPATCH();
         }
@@ -742,7 +742,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         SKIP_PTR();
 
         Value objectValue = POP_STACK();
-        if (!objectValue.isPointer()) [[unlikely]] {
+        if (!objectValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_SAVE_OBJECT_FIELD_GENERIC, "Object not found:",objectValue.toString());
             DISPATCH();
         }
@@ -773,7 +773,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         U32 skipSF = ADVANCE_U32();
 
         Value objectValue = POP_STACK();
-        if (!objectValue.isPointer()) [[unlikely]] {
+        if (!objectValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_CALL_OBJECT_METHOD, "Object not found:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
@@ -826,7 +826,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         U32 argCount = ADVANCE_U32();
 
         Value objectValue = POP_STACK();
-        if (!objectValue.isPointer()) [[unlikely]] {
+        if (!objectValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_SAVE_OBJECT_METHOD, "Object not found:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
@@ -863,7 +863,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         U32 argCount = ADVANCE_U32();
 
         Value objectValue = POP_STACK();
-        if (!objectValue.isPointer()) [[unlikely]] {
+        if (!objectValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_SAVE_OBJECT_METHOD, "Object not found:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
@@ -901,7 +901,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         Value indexValue = POP_STACK();
         Value varValue = POP_STACK();
 
-        if (!varValue.isPointer()) {
+        if (!varValue.isObjectPointer()) {
            PrintVMError(OP_LOAD_ARRAY,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
@@ -920,7 +920,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         U32 index = ADVANCE_U32();
         Value varValue = POP_STACK();
 
-        if (!varValue.isPointer()) {
+        if (!varValue.isObjectPointer()) {
             PrintVMError(OP_LOAD_ARRAY,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
@@ -935,7 +935,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         U32 symId = ADVANCE_U32();
         Value varValue = POP_STACK();
 
-        if (!varValue.isPointer()) {
+        if (!varValue.isObjectPointer()) {
             PrintVMError(OP_LOAD_ARRAY,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
@@ -950,7 +950,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         U32 index = ADVANCE_U32();
         Value varValue = POP_STACK();
 
-        if (!varValue.isPointer()) [[unlikely]] {
+        if (!varValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_PUSHPTR_ARRAY_INDEX,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
@@ -965,7 +965,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         U32 symId = ADVANCE_U32();
         Value varValue = POP_STACK();
 
-        if (!varValue.isPointer()) [[unlikely]] {
+        if (!varValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_PUSHPTR_ARRAY_SYMID,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
@@ -980,7 +980,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         Value indexValue = POP_STACK();
         Value varValue = POP_STACK();
 
-        if (!varValue.isPointer()) [[unlikely]] {
+        if (!varValue.isObjectPointer()) [[unlikely]] {
             PrintVMError(OP_PUSHPTR_ARRAY,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
@@ -1000,7 +1000,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         Value varValue = POP_STACK();
         Value assignValue = PEEK_STACK(0);
 
-        if (!varValue.isPointer()) {
+        if (!varValue.isObjectPointer()) {
             PrintVMError(OP_SAVE_ARRAY,"Array is not an Object!");
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
@@ -1049,11 +1049,11 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
             val = &locals[slot];
         } else {
             val = &locals[slot];
-            if (val->isPointer()) val->asPointerObject()->setAssigned(false);
+            if (val->isObjectPointer()) val->asPointerObject()->setAssigned(false);
 
         }
         *val = PEEK_STACK(0);
-        if (val->isPointer()) val->asPointerObject()->setAssigned(true);
+        if (val->isObjectPointer()) val->asPointerObject()->setAssigned(true);
 
         DISPATCH();
     }
@@ -1537,7 +1537,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         U32 exitIP = ADVANCE_U32();
         U32 iterSlot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value objectValue = POP_STACK();
-        if (!objectValue.isPointer()) {
+        if (!objectValue.isObjectPointer()) {
             PrintVMError(OP_FOR_EACH_INIT,"forEach without a object");
             ip = exitIP;
             DISPATCH();
@@ -1600,7 +1600,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
         for (int i = (int)argCount - 1; i >= 0; i--) {
             Value arg = PEEK_STACK(i);
-            if (arg.isPointer()) {
+            if (arg.isObjectPointer()) {
                 arg.asPointerObject()->setAssigned(true);
             }
             arr->mElements.push_back(arg);
@@ -1678,7 +1678,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
             U32 endIdx = curFrame->mLocalsStartIndex + curFrame->mLocalsCount;
             for (U32 i = curFrame->mLocalsStartIndex; i < endIdx; ++i) {
                 auto& loc = locals[i];
-                if (loc.isPointer()) {
+                if (loc.isObjectPointer()) {
                     loc.asPointerObject()->setAssigned(false);
                 }
             }

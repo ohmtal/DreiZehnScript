@@ -273,9 +273,16 @@ private:
 
             // ~~~~ Functions ~~~~
             case TokenType::Fn: parseFn(); break;
+
+            // ~~~~ LineBreak ~~~~
+            case TokenType::EOLToken:
+            case TokenType::Semicolon: {
+                advance();
+                break;
+            }
             // ~~~~ Others ~~~~
             default:
-                PrintParseError("Unkandled Token:", tokenTypeToString(curType));
+                PrintParseError("Unhandled Token:", tokenTypeToString(curType));
                 return false;
                 break;
         } //switch
@@ -329,7 +336,9 @@ private:
 
     bool getArg(const std::string& Where) {
         size_t curPos = tell();
+        requestParam++;
         if (!parseMath(0)) return false;
+        requestParam--;
         if (tell() == curPos) {
             PrintParseError("Value expected at:", Where);
             return false;
@@ -507,7 +516,6 @@ private:
     // -------------------------------------------------------------------------
     bool parseStatements() {
         TokenType tokenType = peek().mType;
-        // Tools::printf("PARSE STATEMENTS: %s\n", tokenTypeToString(tokenType));
         switch (tokenType) {
             case TokenType::EOLToken:
             case TokenType::Semicolon: {

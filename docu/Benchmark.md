@@ -16,6 +16,7 @@ I used my Benchmark Script from ElfScript:
 - 🐢 DreiZehn(0.8a): 3.835u 0.005s 0:03.86 99.2%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7c): 5.393u 0.006s 0:05.42 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7f): 5.995u 0.001s 0:06.02 99.5%     0+0k 0+0io 0pf+0w
+- 🐏 Dirty Little Script 0.2: 6.659u 0.002s 0:06.69 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.6b: 8.300u 0.002s 0:08.33 99.6%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.6a: 11.218u 0.012s 0:11.28 99.4%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.4c: 12.478u 0.002s 0:12.52 99.6%    0+0k 0+0io 0pf+0w

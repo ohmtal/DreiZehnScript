@@ -61,6 +61,7 @@ namespace DLS {
                 return Value(0.0);
             }
             size_t masterIndex =arrValue.getUInt();
+
             if (index >= mArrays[masterIndex].size()) {
                 mArrays[masterIndex].resize(index + 1);
             }
@@ -90,6 +91,7 @@ namespace DLS {
                 }
                 mArrays[masterIndex][index] = value;
                 saveGlobal(id,arrValue);
+                // Tools::printf("id:%u, index:%u, masterIndex: %zu arrValue=%u\n", id,index, masterIndex, arrValue.getUInt());
             }
         }
 
@@ -476,6 +478,7 @@ namespace DLS {
     void op_return(VM& vm) {
         if (Variables.mReturnStack.size() == 0) {
             vm.pc = vm.tape.size() - 1;
+            return;
         }
         vm.pc = Variables.mReturnStack.back();
         Variables.mReturnStack.pop_back();

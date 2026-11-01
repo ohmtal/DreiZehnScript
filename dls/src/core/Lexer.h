@@ -202,6 +202,7 @@ public:
                 else if (id == "else") { tokens.push_back({TokenType::Else, "else"}); }
                 else if (id == "elif") { tokens.push_back({TokenType::ElIf, "elif"});  }
                 else if (id == "fn") { tokens.push_back({TokenType::Fn, "fn"});  }
+                else if (id == "function") { tokens.push_back({TokenType::Fn, "function"});  }
                 else if (id == "end") { tokens.push_back({TokenType::End, "end"}); }
                 else if (id == "for") { tokens.push_back({TokenType::For, "for"});  }
                 else if (id == "break") { tokens.push_back({TokenType::Break, "break"});  }

@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
-// Parser
+// DreiZehn Parser
 //-----------------------------------------------------------------------------
 #include "Parser.h"
 #include "core/FunctionMap.h"

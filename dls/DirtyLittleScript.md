@@ -1,3 +1,12 @@
+
+
+
+# MOVED TO : https://github.com/ohmtal/DirtyLittleScript
+
+
+
+
+
 # Dirty Little Script (DLS)
 
 i take a look on a different attepmt:  using Flatten Tape
@@ -98,4 +107,15 @@ For first run ever 13,50 it's not so bad - still beat python on that ;)
 - [X] And / Or 
 - [X] bit: and, or, xor, shl, shr
 - [X] fn lamda like without name , parameters or return value *haha*
-- Done and ready for cleanup push?
+- Done and ready for cleanup push? << NOT!
+
+## SDL Test Starfield:
+### Bugs
+- [X] CRIT: Array is not working !!!! POINT_X[1] = 1; POINT_Y[1] = 2; POINT_X[1] becomes 2?!
+- [X] fn NOT working! Test with function calls << it is! it did not find the variables!!!
+- [ ] inside "#" disable the code ! 
+
+### Todos:
+- fn parser multi line !
+
+

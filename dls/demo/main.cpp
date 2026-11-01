@@ -1,23 +1,19 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2012 Thomas Hühn (XXTH)
+// Copyright (c) 2026 Thomas Hühn (XXTH)
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // DLS Demo
 //-----------------------------------------------------------------------------
 #include <iostream>
 #include <string>
-#include "core/VM.h"
-#include "core/Lexer.h"
-#include "core/Parser.h"
 
-#include <fstream>
-#include <istream>
+#include "DirtyLittleScript.h"
 
 
 
 using namespace DLS;
 
-bool DEBUG_TOKEN = false;
+// bool DEBUG_TOKEN = false;
 
 namespace DLS {
 extern void RegisterMathFunctions();
@@ -25,56 +21,47 @@ extern void RegisterStringFunctions();
 
 }
 
-std::string Run(std::string code) {
-    Lexer lex(code);
-    std::vector<Token> token = lex.tokenize();
-    if (DEBUG_TOKEN) {
-        for (auto& tok: token) {
-            std::cout << tokenTypeToString(tok.mType) << "  ::  " << tok.mValue << "\n";
-        }
-    }
-
-    VM vm;
-    Parser parser(token,&vm);
-    if (!parser.parse()) {
-        return "ERROR!";
-    }
-    vm.run();
-    std::string result = "";
-    int iter = 0;
-    for (auto val: vm.stack) {
-        if (iter > 0) result = result  + ", ";
-        result = result + val.toString();
-        iter++;
-    }
-    return result;
-}
-
-std::string loadScript(const std::string& scriptPath) {
-    std::ifstream file(scriptPath, std::ios::in | std::ios::binary);
-    if (!file.is_open()) {
-        Tools::errorf("Script file cant be opened: %s\n", scriptPath.c_str());
-        return "";
-    }
-    return std::string((std::istreambuf_iterator<char>(file)),
-                       std::istreambuf_iterator<char>());
-}
+// std::string Run(std::string code) {
+//     Lexer lex(code);
+//     std::vector<Token> token = lex.tokenize();
+//     if (DEBUG_TOKEN) {
+//         for (auto& tok: token) {
+//             std::cout << tokenTypeToString(tok.mType) << "  ::  " << tok.mValue << "\n";
+//         }
+//     }
+//
+//     VM vm;
+//     Parser parser(token,&vm);
+//     if (!parser.parse()) {
+//         return "ERROR!";
+//     }
+//     vm.run();
+//     std::string result = "";
+//     int iter = 0;
+//     for (auto val: vm.stack) {
+//         if (iter > 0) result = result  + ", ";
+//         result = result + val.toString();
+//         iter++;
+//     }
+//     return result;
+// }
+//
+// std::string loadScript(const std::string& scriptPath) {
+//     std::ifstream file(scriptPath, std::ios::in | std::ios::binary);
+//     if (!file.is_open()) {
+//         Tools::errorf("Script file cant be opened: %s\n", scriptPath.c_str());
+//         return "";
+//     }
+//     return std::string((std::istreambuf_iterator<char>(file)),
+//                        std::istreambuf_iterator<char>());
+// }
 
 
 int main(int argc, char* argv[]) {
+
+    DLS::Init();
     RegisterMathFunctions();
     RegisterStringFunctions();
-
-    FunctionMap::RegisterFunction("print", [](std::span<Value> args, Value& ret) -> bool {
-        if (args.size() < 1 ) return false;
-        for (auto& arg: args) {
-            Tools::printf("%s ", arg.toString().c_str());
-        }
-        Tools::printf("\n");
-        return true;
-    }, "return a random float value.");
-
-
 
     int minargs = 1; // for more params
     if (argc > minargs) {
@@ -195,18 +182,35 @@ goto jump_to_test;
     mySrc = R"( i = 10 ; if i == 0 || i == 9; print "i is:" i;else print "not"; end  )"; Run(mySrc);
     mySrc = R"( i = 10 ; if i > 11 && i < 20; print "i is " i; else print "not";;  )"; Run(mySrc);
 
-    mySrc = R"(
-        foo = fn ; print "bar";;
-        foo
-        return
-        print "still here ?"
-    )"; Run(mySrc);
 
-jump_to_test:
+    std::cout << "-------- Lambda Fn --------\n";
     mySrc = R"(
         foo = fn ; print str::strlen "HUHU";;
         foo
         return
         print "still here ?"
     )"; Run(mySrc);
+
+jump_to_test:
+std::cout << "-------- Array again--------\n";
+mySrc = R"(
+i = 0
+minW = -200
+maxW = 200
+minH = -100
+maxH = 100
+while i < 1;
+    Points_X[i] =  math::random minW maxW
+    print i ":X:" Points_X[i]
+    Points_Y[i] =  math::random minH maxH
+    print i ":X Y:" Points_X[i] Points_Y[i]
+    Points_Z[i] =  math::randomf
+    print i ":Z:" Points_Z[i]
+    print i ":X Y Z:" Points_X[i] Points_Y[i] Points_Z[i]
+    i = i + 1
+end
+
+)"; Run(mySrc);
+
+
 }

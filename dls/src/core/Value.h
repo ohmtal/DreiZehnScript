@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <format>
 #include <vector>
 #include "Types.h"
 #include "toolbox/SymbolTable.h"
@@ -46,6 +47,7 @@ namespace DLS {
         Value(U32 val) { type = ValueType::Long; l = (S64)val; }
         Value(S64 val) { type = ValueType::Long; l = val; }
         Value(std::string val) { type = ValueType::String; strId = StringTable::insert(val); }
+        Value(void* val) { type = ValueType::Pointer; p = val; }
         // ------------------
         inline bool isDouble() { return type == ValueType::Double; }
         inline bool isFloat() { return type == ValueType::Double; }
@@ -59,31 +61,23 @@ namespace DLS {
         inline F64 getDouble() {
             if (type == ValueType::Double) [[likely]] return d;
             else if (type == ValueType::Long) return static_cast<F64>(l);
+            else if (type == ValueType::Array) return static_cast<F64>(l);
+            else if (type == ValueType::Pointer) return (p != nullptr) ? 1.0 : 0.0;
             else return 0.0;
         }
         // ------------------
        inline S64 getLong() {
             if (type == ValueType::Long) [[likely]] return l;
-            if (type == ValueType::Double)  return static_cast<S64>(d);
+            else if (type == ValueType::Array)  return l;
+            else if (type == ValueType::Double)  return static_cast<S64>(d);
+            else if (type == ValueType::Pointer) return (p != nullptr) ? 1 : 0;
             else return 0;
         }
         // ------------------
-        inline U32 getUInt() {
-            if (type == ValueType::Long) [[likely]] return static_cast<U32>(l);
-            if (type == ValueType::Double)  return static_cast<U32>(d);
-            else return 0;
-        }
-        // ------------------
-        inline S32 getInt() {
-            if (type == ValueType::Long) [[likely]] return static_cast<S32>(l);
-            if (type == ValueType::Double)  return static_cast<S32>(d);
-            else return 0;
-        }
-        inline bool getBool() {
-            if (type == ValueType::Long) [[likely]] return (l != 0);
-            if (type == ValueType::Double)  return (d != 0.0);
-            else return 0;
-        }
+        inline F32 getFloat() { return (F32) getDouble(); }
+        inline U32 getUInt()  { return (U32) getLong(); }
+        inline S32 getInt()   { return (S32) getLong(); }
+        inline bool getBool() { return  getLong() != 0; }
         // ------------------
         inline const std::string& getString() const {
             if (type == ValueType::String) [[likely]] return StringTable::get(strId);
@@ -102,6 +96,9 @@ namespace DLS {
                 case ValueType::Double: return std::to_string(d);
                 case ValueType::Long: return std::to_string(l);
                 case ValueType::String: return getString();
+                case ValueType::Pointer: return  std::format("{:p}", static_cast<void*>(p));
+                case ValueType::Array: return  "*Array*";
+                case ValueType::Function: return  "*Function*";
                 default:
                     static const std::string empty = "";
                     return empty;

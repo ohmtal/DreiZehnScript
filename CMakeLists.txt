@@ -80,12 +80,16 @@ endif()
 
 # ------------- FENSTER
 if (BUILD_WITH_FENSTER)
+
+
     if (WIN32)
         list(APPEND LINK_LIBS "gdi32;winmm")
     elseif (APPLE)
         list(APPEND LINK_LIBS "-framework Cocoa;-framework AudioToolbox")
-    else()
+    elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         list(APPEND LINK_LIBS "X11;asound")
+    else()
+       message(FATAL_ERROR "Sorry, Fenster does not support your OS: " ${CMAKE_SYSTEM_NAME})
     endif()
 
     list(APPEND PROJECT_SRC "addons/Fenster/FensterFunctions.cpp")

@@ -39,7 +39,7 @@ struct fenster_audio {
   WAVEHDR hdr[2];
   int16_t buf[2][FENSTER_AUDIO_BUFSZ];
 };
-#elif defined(__linux__)
+#elif defined(__linux__) or defined(__FreeBSD__)
 struct fenster_audio {
   void *pcm;
   float buf[FENSTER_AUDIO_BUFSZ];

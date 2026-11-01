@@ -6,6 +6,7 @@ Fenster /ˈfɛnstɐ/ -- a German word for "window".
 - I had to remove const int width and height in fenster.h!
 - added X11 wmDeleteMessage message so my prog does not crash when Window is closed.
 - changes marked with my tag: XXTH
+- NOTE: Fenster is not compatible with FreeBSD
 
 This library provides the most minimal and highly opinionated way to display a cross-platform 2D canvas. If you remember Borland BGI or drawing things in QBASIC or `INT 10h`- you know what I mean. As a nice bonus you also get cross-platform keyboard/mouse input and audio playback in only a few lines of code.
 

@@ -18,7 +18,8 @@ namespace DreiZehn::SysTools {
 
     ExecResult ExecCommand(const std::string& command) ;
 
-    std::future<ExecResult> ExecCommandAsync(const std::string& command);
+    // disabled i need to link Threads for that
+    // std::future<ExecResult> ExecCommandAsync(const std::string& command);
     /* example:
          std::future<ExecResult> async_result = php_exec_async(command);
 

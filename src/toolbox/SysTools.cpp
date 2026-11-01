@@ -65,9 +65,10 @@ namespace DreiZehn::SysTools{
         return { exit_code, output };
     }
     // ------------------------------------------------------------------
-    std::future<ExecResult> ExecCommandAsync(const std::string& command) {
-        return std::async(std::launch::async, ExecCommand, command);
-    }
+    // disabled i need to link Threads for that
+    // std::future<ExecResult> ExecCommandAsync(const std::string& command) {
+    //     return std::async(std::launch::async, ExecCommand, command);
+    // }
     // ------------------------------------------------------------------
 
 

@@ -478,6 +478,9 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - [X] Interpreter
     - [X] ByteCode
     
+- [X] comma not working here: `print math::rand, 12` yes! use ()! DLS have a different parser 
+    
+    
 - [ ] Marshall testing with BaseFlux Setting ... 
     mhh how to make the bridge?! onGetFieldPtr is a bit tricky since i do not have
     a Value pointer for setting a new Value .... is fast but not usable for 

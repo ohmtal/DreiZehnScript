@@ -51,7 +51,7 @@ private:
     // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parsePrimary();
 
-    //TEST
+    //TEST THIS SUCKS <<  to use ()!!
     inline bool checkCommaBreak(std::vector<std::unique_ptr<Expression>>& args) {
         if (peek().mType == TokenType::Comma) {
             advance();

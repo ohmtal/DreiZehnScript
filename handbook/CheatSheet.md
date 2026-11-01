@@ -4,12 +4,12 @@
 | --- | --- | 
 | `print "hello world" 12 3.13`| no paren, space separated |
 | `i=1; j=2`|semicolon only to separate multiple statement is on line else it's optional|
-| `print math::rand, 12`|comma only required after a nested function call|
+| `print (math::rand) 12`|encapsulate your nested function calls with paren|
 | `if foo == 1; print "it's one"; end`|if, while, function need a `end`|
 | `if foo == 1; print "it's one";;`| lazy alias for end is `;;` |
 | `# this is a comment` | '#' comment. it can be used for one line| 
 | `print "hello" # this is a comment` | also on the end| 
-| `print "hello" # this is a comment # print "there"` | or in the middle | 
+| `print "hello" # this is a comment # "there"` | or in the middle | 
 | math | |
 | `f = (10 * 5 + 2 ) / 4 - 1`| basic math - it respect the order|
 | `b = true && false` |  boolean and, or |

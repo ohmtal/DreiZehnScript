@@ -81,6 +81,12 @@
 
     <list name="startcontrol">
       <item>if</item>
+      <item>fn</item>
+      <item>function</item>
+      <item>while</item>
+      <item>for</item>
+      <item>forrange</item>
+      <item>forRange</item>
     </list>
 
     <list name="elsecontrol">

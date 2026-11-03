@@ -6,7 +6,6 @@ import Core
 import Math
 import String
 import SDL3
-import Vector
 
 print " StarField v6 @13 startup...."
 

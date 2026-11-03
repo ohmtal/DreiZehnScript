@@ -44,7 +44,7 @@ define WIDTH  600.0
 define HEIGTH  380.0
 define COUNT  500
 
-fn flux::Init
+function flux::Init
     print " *** Init"
     flux::size WIDTH HEIGTH WIDTH HEIGTH
 
@@ -71,7 +71,7 @@ fn flux::Init
 
 end
 -- -----------------------------------------------------------------------------
-fn flux::Render ft
+function flux::Render ft
     forEach item Rects
         flux::DrawRect item["point"] item["color"] item["fill"]
         item["point"][0] += item["vec"][0] # * ft
@@ -87,10 +87,10 @@ fn flux::Render ft
     flux::DrawFPS 10.0 10.0 1.0
 end
 -- -----------------------------------------------------------------------------
-fn flux::ShutDown
+function flux::ShutDown
 end
 -- -----------------------------------------------------------------------------
-fn flux::OnKey keycode isDown mod
+function flux::OnKey keycode isDown mod
     if isDown
         if keycode == SDLK_ESCAPE
             flux::Close
@@ -98,5 +98,5 @@ fn flux::OnKey keycode isDown mod
     end
 end
 -- -----------------------------------------------------------------------------
-fn flux::OnMouse x y button isDown
+function flux::OnMouse x y button isDown
 end

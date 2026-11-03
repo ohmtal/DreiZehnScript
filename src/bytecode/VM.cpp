@@ -167,7 +167,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     // alignas(64) constexpr void* dispatch_table[] = {
     // NOTE new X macro see also VMStructure
     #define X(name, args, comment) &&handle_##name,
-    alignas(64) constexpr void* dispatch_table[] = {
+    /*alignas(64)*/ constexpr void* dispatch_table[] = {
         OP_CODE_LIST
     };
     #undef X

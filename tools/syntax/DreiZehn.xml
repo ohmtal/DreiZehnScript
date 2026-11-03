@@ -3,13 +3,17 @@
 <!--
     DreiZehn placed in ~/.local/share/org.kde.syntax-highlighting/syntax
 
+    cp DreiZehn.xml ~/.local/share/org.kde.syntax-highlighting/syntax/
+
     based on LUA (www.lua.org) syntax highlighting for Kate
+
 
     CHANGES
 
     [ Version D.01 (2026-11-01) by XXTH ]
     - inital DreiZehn Syntax highlight
 
+    ****************************************************************************
     [ Version 1.05 (2019-06-03) by Jonathan Poelen ]
 
     - warn and coroutine.kill (Lua 5.4)
@@ -81,6 +85,7 @@
 
     <list name="startcontrol">
       <item>if</item>
+      <item>elifif</item>
       <item>fn</item>
       <item>function</item>
       <item>while</item>

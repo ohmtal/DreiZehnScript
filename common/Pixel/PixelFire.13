@@ -16,13 +16,16 @@ fn PixelFire::initializePalette this
     forRange i 256
         if i < 85
             -- 0 .. 84: black to red
-            this.colorPalette[i] = float::cast (0xFF << 24) | ((i * 3) << 16) | (0 << 8) | 0
+#             this.colorPalette[i] = float::cast (0xFF << 24) | ((i * 3) << 16) | (0 << 8) | 0
+            this.colorPalette[i] = (0xFF << 24) | ((i * 3) << 16) | (0 << 8) | 0
         elif i < 170
             -- 85 .. 169: full red, add green == Yellow
-            this.colorPalette[i] = float::cast (0xFF << 24) | (255 << 16) | (((i - 85) * 3) << 8) | 0
+#             this.colorPalette[i] = float::cast (0xFF << 24) | (255 << 16) | (((i - 85) * 3) << 8) | 0
+            this.colorPalette[i] = (0xFF << 24) | (255 << 16) | (((i - 85) * 3) << 8) | 0
         else
             -- 170 .. 255: full red and green (yellow) adding blue (white)
-            this.colorPalette[i] = float::cast (0xFF << 24) | (255 << 16) | (255 << 8) | ((i - 170) * 3)
+#             this.colorPalette[i] = float::cast (0xFF << 24) | (255 << 16) | (255 << 8) | ((i - 170) * 3)
+            this.colorPalette[i] = (0xFF << 24) | (255 << 16) | (255 << 8) | ((i - 170) * 3)
         end
     end
 end

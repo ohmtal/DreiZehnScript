@@ -483,18 +483,19 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     
 - [X] Better Error messages: Parser i added linenumber to base AST Node but it's not used anywhere !
     - most terrible error is missing end !! << need to backward check the start points 
-    
-- [ ] Marshall testing with BaseFlux Setting ... 
-    mhh how to make the bridge?! onGetFieldPtr is a bit tricky since i do not have
-    a Value pointer for setting a new Value .... is fast but not usable for 
-    that.
-    
-- [ ] Imgui (now i can use the pointer) 
 
+- [ ] change define to Preprocessor replace like in ElfScript and port this to DLS
+this is save for bytecode saving and is faster in execution ! 
+    
 - [ ] Array: compileAssignment still uses SymbolTable::insert!
 
-- [ ] ByteCode Stuff for call script function
-    
+- [ ] Objects
+    - [ ] mClassName is a String not a Symbol?! 
+    - [ ] need ->clone method on ValueObject
+
+- [ ] ByteCode Stuff for call script function 
+
+
 - [ ] Testing BaseFlux13
     - [ ] Tools::LogHandler should be added to Init
     - [ ] eval is a bad idea to call events like onRender
@@ -526,9 +527,7 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
                 - ONCE! patch pointer: pos + 10
                 
               
-    - [ ] Objects
-        - [ ] mClassName is a String not a Symbol?! 
-        - [ ] need ->clone method on ValueObject
+
 
 
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 
@@ -563,6 +562,7 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 
 ## still missing:
 - [ ] ByteCode: hot reload and run!
+- [ ] Imgui (now i can use the pointer) 
 - [ ] remove fenster audio and implement MiniAudio instead 
 - [ ] FileStream ->getError and test modi 
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works but depends on compiler! 
@@ -596,4 +596,7 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - [~] Value object method to support this 
     - [~] assign special handling 
         
-    
+- [ ] Marshall ===> my fast Pointer caching make this impossible! DLS would be able to use this.
+    mhh how to make the bridge?! onGetFieldPtr is a bit tricky since i do not have
+    a Value pointer for setting a new Value .... is fast but not usable for 
+    that.

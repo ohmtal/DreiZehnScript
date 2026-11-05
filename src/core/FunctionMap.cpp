@@ -65,9 +65,8 @@ namespace DreiZehn::FunctionMap {
         }
         if ( Globals::ByteCodeMode ) {
 
-            // Copy ! :/
-            BytecodeChunk chunk =  DreiZehn::VM::Compiler::MasterChunk;
-            // // DreiZehn::VM::Compiler::prepare(*event.envPtr,chunk);
+            BytecodeChunk& chunk =  DreiZehn::VM::Compiler::MasterChunk;
+            chunk.touchRollBack();
 
             size_t chunkArguments = arguments.size();
             uint32_t ip = chunk.tell();
@@ -82,12 +81,16 @@ namespace DreiZehn::FunctionMap {
             // main function
             chunk.emit(OP_CALL_SF_FUNCTION);
             chunk.emit((U32)chunkArguments);
-            chunk.emitPointer(event.sf);
-            // chunk.emit(OP_POP_STACK); //?? need the result
+            chunk.emit((U32)event.sf->bytecodeAddress);
+            chunk.emit((U32)event.sf->localVarCount);
+
+
             chunk.emit(OP_EXIT);
 
+            Value result = VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount(), ip);
 
-            return VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount(), ip);
+            chunk.rollBack();
+            return result;
 
         } else {
             return FunctionMap::CallScriptFunction(*event.envPtr, event.sf, arguments);

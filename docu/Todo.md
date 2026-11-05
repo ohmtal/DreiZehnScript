@@ -486,13 +486,31 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 
 - [X] change `#` should not be a block !    
     
-
+### ----------------- tagged 0.9 ----------------- 
 
 - [X] Objects
     - [.] mClassName is a String not a Symbol?!  << is cached! 
     - [X] need ->clone method on ValueObject
 
-- [ ] ByteCode codelet was not a good idea ! ..
+- [X] ByteCode i guess i broke it with codelet ? 
+    console does nothing on execute but chunk is filled!
+    functions attach and patch is stupid !! 
+    - rewrite to really add the functions when they are added in code.
+    - remove the attach stuff 
+    
+``` here:
+                    if (outerBlock.mType == BlockType::Function) {
+                        FunctionMap::RegisteredScriptFunctions[outerBlock.mFuncNameSymbolId].body.push_back(sharedLoop);
+
+                    } else
+```
+
+``` and here:
+                if (currentBlock.mType == BlockType::Function) {
+                    FunctionMap::RegisteredScriptFunctions[currentBlock.mFuncNameSymbolId].body.push_back(sharedAst);
+                } else {
+```
+
 
 
 - [ ] Testing BaseFlux13

@@ -32,14 +32,15 @@ namespace DreiZehn {
         CFuncPrt,
         ScriptFuncPtr
     };
-    struct FunctionPatch {
-        // FunctionMap::ScriptFunction* mFuncPtr = nullptr;
-        void* mFuncPtr = nullptr;
-        U32 mPatchByteCodePos = 0;
-        FuncPatchType mPatchType = FuncPatchType::None;
-    };
-
-    inline std::vector<FunctionPatch> mFunctionPatches;
+    // 0.91 obsolete!
+    // struct FunctionPatch {
+    //     // FunctionMap::ScriptFunction* mFuncPtr = nullptr;
+    //     void* mFuncPtr = nullptr;
+    //     U32 mPatchByteCodePos = 0;
+    //     FuncPatchType mPatchType = FuncPatchType::None;
+    // };
+    //
+    // inline std::vector<FunctionPatch> mFunctionPatches;
     // --------------------
 
     class CompilerScope {

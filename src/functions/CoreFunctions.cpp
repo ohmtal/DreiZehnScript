@@ -23,7 +23,7 @@ namespace DreiZehn {
             std::stringstream stream(command);
 
             if (DreiZehn::Globals::ByteCodeMode) {
-                return DreiZehn::RunScriptStreamByteCode(stream, env, true);
+                return DreiZehn::RunScriptStreamByteCode(stream, env);
             } else {
                 return Value(DreiZehn::RunScriptStream(stream, env));
             }
@@ -53,15 +53,6 @@ namespace DreiZehn {
                 return true;
             }
             ret = Core::Eval(args[0].getStringRef(), env);
-            // std::stringstream stream(args[0].getStringRef());
-            //
-            // if (DreiZehn::Globals::ByteCodeMode) {
-            //     ret = DreiZehn::RunScriptStreamByteCode(stream, env);
-            //
-            // } else {
-            //     ret = Value(DreiZehn::RunScriptStream(stream, env));
-            // }
-
             return true;
         }, "run a script embedded in a string");
         // ---------------------------------------------------------------------

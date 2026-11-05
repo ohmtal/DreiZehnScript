@@ -129,7 +129,7 @@ bool ConsoleCall(DreiZehn::Environment& env) {
 
         std::stringstream stream(line);
         if (DreiZehn::Globals::ByteCodeMode) {
-            DreiZehn::RunScriptStreamByteCode(stream, env);
+            DreiZehn::RunScriptStreamByteCode(stream, env, false);
 
         } else {
             DreiZehn::RunScriptStream(stream, env);

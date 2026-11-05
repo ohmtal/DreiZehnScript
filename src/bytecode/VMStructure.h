@@ -71,7 +71,7 @@ X(OP_PUSHPTR_ARRAY_SYMID,      1, "push array element pointer by symId") \
 X(OP_SAVE_ARRAY,               0, "save array element") \
 X(OP_CALL_C_FUNCTION,          0, "SPECIAL emittedCount variable") \
 /* ..... */ \
-X(OP_CALL_SF_FUNCTION,         1 + ( 2 /*sizeof(void*)*/),  "call script function") \
+X(OP_CALL_SF_FUNCTION,         3,  "call script function") \
 X(OP_INC_LOCAL,                2, "increment local variable") \
 X(OP_INC_PTR,                  1, "increment other variable") \
 X(OP_ADD_LOCAL,                1, "add to local variable") \
@@ -133,10 +133,40 @@ void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, 
 
 // -----------------------------------------------------------------------------
 
+struct RollBackMarker {
+    size_t byteCodeSize = 0;
+    size_t constantsSize = 0;
+    bool touched = false;
+};
+
 // the code chunk
 struct BytecodeChunk {
     std::vector<U32> mByteCodes;
     std::vector<Value> mConstants;
+
+    RollBackMarker mRollBackMarker = {0, 0, false};
+
+    void reset() {
+        mConstants.clear();
+        mByteCodes.clear();
+    }
+
+
+    void touchRollBack() {
+        mRollBackMarker.byteCodeSize = mByteCodes.size();
+        mRollBackMarker.constantsSize = mConstants.size();
+        mRollBackMarker.touched = true;
+    }
+    // for event calls we roll back the last codes
+    void rollBack() {
+        if (!mRollBackMarker.touched) [[unlikely]] {
+            return;
+        }
+        mRollBackMarker.touched = false;
+        mByteCodes.resize(mRollBackMarker.byteCodeSize);
+        mConstants.resize(mRollBackMarker.constantsSize);
+    }
+
 
     U32 addConstant(Value val) {
         mConstants.push_back(val);

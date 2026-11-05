@@ -7,15 +7,12 @@ namespace DreiZehn::VM {
     namespace Compiler {
         Value compileExec(Environment& env, ASTNode* node);
 
-        // without attaching functions again
-         Value compileCodeletExec(Environment& env, ASTNode* node);
-
         // when calling directly
         inline BytecodeChunk MasterChunk;
 
         bool Compile( ASTNode* node, Environment& env, BytecodeChunk& chunk, CompilerScope& scope);
-        void prepare(Environment& env, BytecodeChunk& chunk);
-        void attachFunctions(Environment& env, BytecodeChunk& chunk);
+        // void prepare(Environment& env, BytecodeChunk& chunk);
+        // void attachFunctions(Environment& env, BytecodeChunk& chunk);
     }
 
     Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset = 0);

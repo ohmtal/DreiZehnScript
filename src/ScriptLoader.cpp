@@ -86,8 +86,9 @@ namespace DreiZehn {
 
                 // --- fn ---
                 if (auto* startNode = dynamic_cast<FunctionDefineStartNode*>(ast.get())) {
-                    // parser.startFunc(startNode->mFnNameSymbolId);
                     blockStack.push_back({BlockType::Function, startNode->mFnNameSymbolId, nullptr, logicalLineStart, line});
+                    //TEST
+                    mainProgram->mBody.push_back(std::make_shared<FunctionDefineStartNode>(startNode->mFnNameSymbolId)) ;
                     continue;
                 }
 
@@ -168,8 +169,6 @@ namespace DreiZehn {
                     continue;
                 }
 
-
-
                 // ----------- CURRENT BLOCK -------------
                 auto& currentBlock = blockStack.back();
                 std::shared_ptr<ASTNode> sharedAst = std::move(ast);
@@ -218,23 +217,14 @@ namespace DreiZehn {
 
 
     // --------------------------------------------------------------------------------
-    Value RunScriptStreamByteCode(std::istream& stream, Environment& env, bool isCodelet ) {
+    Value RunScriptStreamByteCode(std::istream& stream, Environment& env, bool resetByteCode  ) {
 
         auto mainProgram = ParseScriptToAST(stream);
         if (!mainProgram) return false;
 
+        if (resetByteCode) VM::Compiler::MasterChunk.reset();
+        return VM::Compiler::compileExec(env, mainProgram.get());
 
-        Value res;
-        if (isCodelet)
-            VM::Compiler::compileCodeletExec(env, mainProgram.get());
-        else
-            VM::Compiler::compileExec(env, mainProgram.get());
-
-
-        // #ifdef DEBUG_TRACE_EXECUTION
-        // Tools::printf("RunScriptStreamByteCode VALUE IS: %s\n", res.toString().c_str());
-        // #endif
-        return res;
     }
 
     // --------------------------------------------------------------------------------

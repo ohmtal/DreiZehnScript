@@ -157,6 +157,8 @@ namespace DreiZehn::VM {
 // -----------------------------------------------------------------------------
 Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
+
+
     // TEST! register const uint8_t* pc __asm__("r14");
     if (Globals::ByteCodeRunning) {
         Tools::errorf("Sorry. use include to add code to the current byte code ... machine is running!");
@@ -192,6 +194,9 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     uint32_t* code = chunk.mByteCodes.data();
     size_t codeSize = chunk.mByteCodes.size();
 
+    #ifdef DEBUG_TRACE_EXECUTION
+        Tools::printf("----- Running chunk size: %zu, offset: %d ----- \n", codeSize, offset);
+    #endif
     // -----------------------
     std::vector<CallFrame> callFrame;
     callFrame.push_back({ip, 0, numLocals/*, 0*/});
@@ -793,10 +798,8 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
                     ip -= 4;
                     code[ ip ] = OP_CALL_SF_FUNCTION;
                     code[ ip + 1 ] = argCount + 1;
-                    // PATCH_PTR( ip + 2, sf);
-                    patch_ptr(code, ip + 2, sf);
-                    // code[ ip + 2 ] = sf->bytecodeAddress;
-                    // code[ ip + 3 ] = sf->localVarCount;
+                    code[ ip + 2 ] = sf->bytecodeAddress;
+                    code[ ip + 3 ] = sf->localVarCount;
                     PUSH_STACK(obj); //push this
                     DISPATCH();
                 }
@@ -1108,21 +1111,10 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     handle_OP_CALL_SF_FUNCTION: {
         U32 argCount = ADVANCE_U32();
 
-        // void* rawPtr = ADVANCE_PTR();
-        void* rawPtr =  advance_ptr(code,ip);
-        // should not happen but i prevent a crash here ..
 
-        if (!rawPtr) [[unlikely]] {
-            _STK -= argCount - 1; // keep one for the function result
-            DISPATCH();
-        }
-        FunctionMap::ScriptFunction* sf = static_cast<FunctionMap::ScriptFunction*>(rawPtr);
-        U32 targetIP = sf->bytecodeAddress;
-        U32 varCount = sf->localVarCount;
-        // S64 constantsOffset = sf->constantsOffset;
-
-        // U32 targetIP = ADVANCE_U32();
-        // U32 varCount = ADVANCE_U32();
+        // 0.91 back to emitted values instead of pointer!
+        U32 targetIP = ADVANCE_U32();
+        U32 varCount = ADVANCE_U32();
 
         // save current ip in curFrame
         curFrame->mIP = ip;

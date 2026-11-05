@@ -552,6 +552,10 @@ struct FunctionDefineStartNode : public ASTNode {
     FunctionDefineStartNode(uint32_t symId) : mFnNameSymbolId(symId) {
         mNodeType  = NodeType::FunctionDefineStartNode;
     }
+
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+
 };
 // end -------------------------------------------------------------------------
 struct FunctionDefineEndNode : public ASTNode {

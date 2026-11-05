@@ -46,7 +46,6 @@ private:
     Environment* mParentEnv = nullptr;
     VariableFrame* mVariableFrame = nullptr;
 public:
-    bool mIsByteCodeCodelet = false;
 
     Environment() : mParentEnv(nullptr) {
         Globals::gCurEnv = this;
@@ -105,11 +104,9 @@ public:
                 } else if (node->mFlags & NodeFlag_Flow) {
                     auto* flowStmt = static_cast<FlowBaseStatement*>(node);
                     return flowStmt->execute(currentEnv);
-
-                } else [[unlikely]] {
-
+                } /*I use it for functionstart node so no error! ==> else [[unlikely]] {
                     Tools::errorf("UNKNOWN Expression EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
-                }
+                }*/
         // }
 
         return FlowStatus(FlowSignal::None);

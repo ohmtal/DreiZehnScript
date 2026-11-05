@@ -774,7 +774,6 @@ namespace DreiZehn {
         return functionResult;
     }
 
-
     // -------------------------------------------------------------------------
     Value CallExpression::evaluate(Environment& env) {
 
@@ -806,12 +805,7 @@ namespace DreiZehn {
             chunk.emit(OP_CALL_C_FUNCTION);
             chunk.emit(mFuncSymbolId);
 
-            if (env.mIsByteCodeCodelet) {
-                chunk.emitPointer(cb); // we use a codelet patch in the pointer directly
-            } else {
-                mFunctionPatches.push_back({cb,chunk.tell(),FuncPatchType::CFuncPrt});
-                chunk.emitPointer(nullptr); //placeholder for cache
-            }
+            chunk.emitPointer(nullptr); //placeholder for cache
             chunk.emit(argCount);
 
 
@@ -834,19 +828,9 @@ namespace DreiZehn {
 
             chunk.emit(argCount);
 
-            // mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::Adress});
-            // chunk.emit(0);
-            // mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::VarCount});
-            // chunk.emit(0);
-
-            if (env.mIsByteCodeCodelet) {
-
-                chunk.emitPointer(sf);
-            } else {
-                //  0.9f changed to script pointer
-                mFunctionPatches.push_back({sf, chunk.tell(), FuncPatchType::ScriptFuncPtr});
-                chunk.emitPointer(nullptr);
-            }
+            // 0.91 back to adress!
+            chunk.emit(sf->bytecodeAddress);
+            chunk.emit(sf->localVarCount);
 
 
 
@@ -2373,4 +2357,49 @@ namespace DreiZehn {
         return true;
 
     }
+    // --------------------------------------------------------------------------------------------------
+    // add functions here !
+    // --------------------------------------------------------------------------------------------------
+    bool FunctionDefineStartNode::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+
+        FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFnNameSymbolId);
+
+        if (!sf) {
+              PrintASTError(this,"Function not found:", SymbolTable::getName(mFnNameSymbolId));
+              return false;
+        }
+
+        // when running jump over definition
+        chunk.emit(OP_JUMP);
+        U32 jumpOffset = chunk.tell();
+        chunk.emit(0); //placeholder
+
+        // here we start
+        sf->bytecodeAddress = chunk.tell();
+
+        CompilerScope funcScope;
+
+
+        for (const auto& paramName : sf->parameterNames) {
+            funcScope.insert(SymbolTable::insert(paramName));
+        }
+
+        for (auto& statement : sf->body) {
+            statement->compile(env, chunk, funcScope, ValueType::NONE);
+        }
+
+
+
+        chunk.emit(OP_PUSH_VALUE);
+        chunk.emitValue(NumberNullValue);
+        chunk.emit(OP_RETURN);
+
+        sf->localVarCount = funcScope.getLocalCount();
+
+
+        chunk.patch(jumpOffset, chunk.tell());
+
+        return true;
+    }
+
 }

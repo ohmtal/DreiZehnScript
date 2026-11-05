@@ -484,18 +484,15 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 - [X] Better Error messages: Parser i added linenumber to base AST Node but it's not used anywhere !
     - most terrible error is missing end !! << need to backward check the start points 
 
-- [ ] change `#` should not be a block !    
+- [X] change `#` should not be a block !    
     
-- [ ] change define to Preprocessor replace like in ElfScript and port this to DLS
-this is save for bytecode saving and is faster in execution ! 
-    
-- [ ] Array: compileAssignment still uses SymbolTable::insert!
 
-- [ ] Objects
-    - [ ] mClassName is a String not a Symbol?! 
-    - [ ] need ->clone method on ValueObject
 
-- [ ] ByteCode Stuff for call script function 
+- [X] Objects
+    - [.] mClassName is a String not a Symbol?!  << is cached! 
+    - [X] need ->clone method on ValueObject
+
+- [ ] ByteCode codelet was not a good idea ! ..
 
 
 - [ ] Testing BaseFlux13
@@ -570,6 +567,7 @@ this is save for bytecode saving and is faster in execution !
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works but depends on compiler! 
 
 ## maybe:
+-  Array: compileAssignment still uses SymbolTable::insert! - not sure how to change
 - [.] Handbook: CheatSheet for basic syntax and functions.
 - [ ] while `foo = "abc"; print foo[2]` is working foo[2] = "a" is not. 
       ok yes, it is only working with object which support it like Vector

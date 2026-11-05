@@ -40,9 +40,9 @@ fn flux::Load
 --     flux::maxfps 0
 end
 -- -----------------------------------------------------------------------------
-define WIDTH  600.0
+define WIDTH   600.0
 define HEIGTH  380.0
-define COUNT  500
+define COUNT   500
 
 function flux::Init
     print " *** Init"
@@ -52,7 +52,7 @@ function flux::Init
     Rects = Vector::new
     Rects->fill COUNT template
     forEach item Rects
-        item["point"] = Vector::new 0 0 0 0;
+        item["point"] = Vector::new 0 0 0 0
         item["point"][2] = 5 + math::randomf * 30
         item["point"][3] = 5 + math::randomf * 20
         item["point"][0] = math::randomf * (WIDTH - item["point"][2])

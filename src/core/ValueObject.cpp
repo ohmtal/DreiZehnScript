@@ -384,6 +384,15 @@ namespace DreiZehn {
             ret = Value(mAssigned);
             return true;
         }
+        // ----------- clone ---------------
+        else if (methodNameSymbolId == sClone) {
+            if (!mSupportClone) {
+                Tools::warnf("clone is not supported by class %s\n", mObjectTypeName.c_str());
+                return true;
+            }
+            ret = this->clone();
+            return true;
+        }
 
 
 

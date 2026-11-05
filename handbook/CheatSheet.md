@@ -9,7 +9,6 @@
 | `if foo == 1; print "it's one";;`| lazy alias for end is `;;` |
 | `# this is a comment` | '#' comment. it can be used for one line| 
 | `print "hello" # this is a comment` | also on the end| 
-| `print "hello" # this is a comment # "there"` | or in the middle | 
 | math | |
 | `f = (10 * 5 + 2 ) / 4 - 1`| basic math - it respect the order|
 | `b = true && false` |  boolean and, or |

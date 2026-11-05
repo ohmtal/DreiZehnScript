@@ -280,10 +280,11 @@ std::vector<Token> Lexer::tokenize() {
                     advance();advance();
                     break; //end of line
                 }
-                if (peek() == '#') {
-                    advance();
-                    break;
-                }
+                // NOT!
+                // if (peek() == '#') {
+                //     advance();
+                //     break;
+                // }
                 advance();
             }
             continue;

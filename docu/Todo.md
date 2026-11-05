@@ -484,6 +484,8 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 - [X] Better Error messages: Parser i added linenumber to base AST Node but it's not used anywhere !
     - most terrible error is missing end !! << need to backward check the start points 
 
+- [ ] change `#` should not be a block !    
+    
 - [ ] change define to Preprocessor replace like in ElfScript and port this to DLS
 this is save for bytecode saving and is faster in execution ! 
     

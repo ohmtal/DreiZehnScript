@@ -14,13 +14,14 @@ I used my Benchmark Script from ElfScript:
 - 🐢 DreiZehn(0.8b): 3.306u 0.006s 0:03.32 99.3%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8e): 3.417u 0.001s 0:03.42 99.7%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8a): 3.835u 0.005s 0:03.86 99.2%     0+0k 0+0io 0pf+0w
+- 🐏 DLS 0.5: 4.962u 0.002s 0:04.97 99.7%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7c): 5.393u 0.006s 0:05.42 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.7f): 5.995u 0.001s 0:06.02 99.5%     0+0k 0+0io 0pf+0w
-- 🐏 Dirty Little Script 0.2: 6.659u 0.002s 0:06.69 99.4%     0+0k 0+0io 0pf+0w
+- 🐏 DLS 0.2: 6.659u 0.002s 0:06.69 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.6b: 8.300u 0.002s 0:08.33 99.6%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.6a: 11.218u 0.012s 0:11.28 99.4%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.4c: 12.478u 0.002s 0:12.52 99.6%    0+0k 0+0io 0pf+0w
-- 🐏 Dirty Little Script 0.1: 12.961u 0.005s 0:13.01 99.6%    0+0k 0+0io 0pf+0w
+- 🐏 DLS 0.1: 12.961u 0.005s 0:13.01 99.6%    0+0k 0+0io 0pf+0w
 - python 3: 15.768u 0.005s 0:15.83 99.5%    0+0k 0+0io 0pf+0w. 
 - 🐢 DreiZehn 0.4a: 21.160u 0.002s 0:21.23 99.6%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn 0.3: 23.020u 0.002s 0:23.07 99.7%    0+0k 0+0io 0pf+0w
@@ -32,6 +33,8 @@ I used my Benchmark Script from ElfScript:
 👾 == bytecode in porting mode ....
 
 🚀 == bytecode in place 
+
+🐏 DLS == Dirty Little Script
 
 Note 0.8b is 0.8a but using -02 optimized instead of -03.
 
@@ -46,6 +49,7 @@ it can happen, that when i restart the prog that it's only peek 310 not 340
 - 👾 DreiZehn(0.9e): 5.391u 0.200s 0:05.82 96.0% (peek: 600FPS, low: 500FPS)
 - 🐢 DreiZehn(0.9f): 7.477u 0.230s 0:07.91 97.3% (peek: 440FPS, low: 425FPS)
 - 🐢 DreiZehn(0.9e): 8.672u 0.218s 0:09.16 96.9%(peek: 350 FPS, low: 325 FPS)
+- 🐏 DLS 0.5: 8.866u 0.224s 0:09.31 97.5%  (peek: 350 DPS, low: 320 FPS ) 
 - 👾 DreiZehn(0.9d): peek: 500 FPS, low: 400 FPS
 - 🐢 DreiZehn(0.9c): peek: 315 FPS, low: 280 FPS - bummer
 - 🐢 DreiZehn(0.8e): peek: 340 FPS, low: 325 FPS
@@ -142,6 +146,7 @@ print "Fib recursiv" num "=" (fib num)
 - 👾 DreiZehn(0.9d): 0.646u 0.004s 0:00.65 98.4%     0+0k 0+0io 0pf+0w
 - Python (3.14.7): 0.649u 0.006s 0:00.65 98.4%     0+0k 0+0io 0pf+0w
 - ElfScript 0.8a: 1.199u 0.001s 0:01.20 99.1%     0+0k 0+0io 0pf+0w
+- 🐏 DLS 0.5: 1.333u 0.005s 0:01.34 99.2%  (special globals with stack)
 - 🐢 DreiZehn(0.8e): 2.270u 0.002s 0:02.27 100.0%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.9c): 2.296u 0.003s 0:02.30 99.5%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8a): 2.396u 0.001s 0:02.40 99.5%     0+0k 0+0io 0pf+0w

@@ -513,9 +513,8 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 
 
 
-- [ ] Testing BaseFlux13
-    - [ ] Tools::LogHandler should be added to Init
-    - [ ] eval is a bad idea to call events like onRender
+- [X] Testing BaseFlux13
+    - [X] eval is a bad idea to call events like onRender
         - on Interpreter i can simply use => FunctionMap::CallScriptFunction
         - on Bytecode it's compiled in !
             - CallExpression::compile create the chunk with a placeholder for the 
@@ -545,6 +544,10 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
                 
               
 
+- [ ] Tools::LogHandler should be added to Init
+- [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
+On AST it als attach the new nodes so i need to attach it to bytecode also ?! but doing 
+this a lot of times i have a monster sized code then.
 
 
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 
@@ -585,6 +588,13 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works but depends on compiler! 
 
 ## maybe:
+-  ScriptFunction Lambda << would say NO.
+    - need to define FunctionDefineStartNode as expression 
+    - return the pointer in evalute and compile 
+    - but how to call ?! this would be at runtime bad idea for performance OR add it as
+      lambda token. 
+    
+    
 -  Array: compileAssignment still uses SymbolTable::insert! - not sure how to change
 - [.] Handbook: CheatSheet for basic syntax and functions.
 - [ ] while `foo = "abc"; print foo[2]` is working foo[2] = "a" is not. 
@@ -597,7 +607,6 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 - validate if there is a usable SDL3 auto bind script parser 
     - maybe https://github.com/TerensTare/SDL_parser
     - or https://deepwiki.com/ppy/SDL3-CS/2.1-c-binding-generation
-- UserFunction object to call them like a lambda from a list... 
 - switch / case
 - Objects: change the methodCall to Lambda !!!! so i can directly looked up
 

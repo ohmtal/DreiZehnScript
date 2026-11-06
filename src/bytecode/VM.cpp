@@ -161,7 +161,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
     // TEST! register const uint8_t* pc __asm__("r14");
     if (Globals::ByteCodeRunning) {
-        Tools::errorf("Sorry. use include to add code to the current byte code ... machine is running!");
+        Tools::errorf("------------ Sorry. use include to add code to the current byte code ... machine is running! \n ----------------");
         return NumberNullValue;
     }
     Globals::ByteCodeRunning = true;

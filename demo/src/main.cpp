@@ -6,7 +6,7 @@
 // demo and showcase how to add DreiZehn to you project.
 //-----------------------------------------------------------------------------
 #ifdef DREIZEHN_LINENOISE
-    #include "demo/cpp-linenoise/linenoise.hpp"
+    #include "cpp-linenoise/linenoise.hpp"
     #ifdef _WIN32
     #include <conio.h>
     #else

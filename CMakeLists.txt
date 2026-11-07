@@ -11,197 +11,27 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-set(WITHSDL3_DEFAULT ON)
-set(BUILD_WITH_SDL3 ${WITHSDL3_DEFAULT} CACHE BOOL "Build Application with SDL3 Demo")
-
-set(WITH_FENSTER_DEFAULT ON)
-set(BUILD_WITH_FENSTER ${WITH_FENSTER_DEFAULT} CACHE BOOL "Build Application with Fenster Demo")
-
-set(WITH_RAYLIB_DEFAULT ON)
-set(BUILD_WITH_RAYLIB ${WITH_RAYLIB_DEFAULT} CACHE BOOL "Build Application with Raylib Demo")
-
-set(WITH_MA_DEFAULT OFF)
-set(BUILD_WITH_MA ${WITH_MA_DEFAULT} CACHE BOOL "Build Application with MiniAudio")
-
-set(WITH_LINENOISE_DEFAULT ON)
-set(BUILD_WITH_LINENOISE ${WITH_LINENOISE_DEFAULT} CACHE BOOL "Enable interactice console support.")
-
-
-set(SANITIZE_DEFAULT OFF)
-set(BUILD_WITH_SANITIZE ${SANITIZE_DEFAULT} CACHE BOOL "Build Application with -fsanitize=address -g")
 
 set(LOADALL_DEFAULT ON)
 set(BUILD_WITH_LOADALL ${LOADALL_DEFAULT} CACHE BOOL "Build Application with load all available modules at start")
 
-set(PERF_DEFAULT OFF)
-set(BUILD_WITH_PERF ${PERF_DEFAULT} CACHE BOOL "Build Application with -O3 -g -fno-omit-frame-pointer")
-
-# GCC PGO - it generates gcda files in source folders: find . -name "*.gcda"
-# cleaning : find . -name "*.gcda" | xargs rm
-set(BUILD_WITH_PGO_MODE "OFF" CACHE STRING "PGO-Mode: OFF, GENERATE or USE")
-
-if(BUILD_WITH_PGO_MODE STREQUAL "GENERATE")
-    message(STATUS "PGO: Generate profiler data (-fprofile-generate)")
-    add_compile_options(-fprofile-generate)
-    add_link_options(-fprofile-generate)
-elseif(BUILD_WITH_PGO_MODE STREQUAL "USE")
-    message(STATUS "PGO: use generated profiler data (-fprofile-use)")
-    add_compile_options(-fprofile-use -Wno-missing-profile)
-    add_link_options(-fprofile-use)
-endif()
-
 # -----------------------------------------------------------------------------
-project(DreiZehn C CXX)
-
 include ("${CMAKE_CURRENT_LIST_DIR}/src/DreiZehn.cmake")
-
-
-
-set (LINK_LIBS)
-
-set(PROJECT_SRC
-
-    demo/main.cpp
-    demo/testObject.cpp
-)
-
-
-if (BUILD_WITH_LINENOISE)
-    add_compile_definitions(DREIZEHN_LINENOISE)
-endif()
-
-# ------------- SDL3
-if (BUILD_WITH_SDL3)
-    find_package(SDL3 REQUIRED)
-
-    list(APPEND LINK_LIBS SDL3::SDL3)
-    list(APPEND PROJECT_SRC "addons/SDL3/SDL3Functions.cpp")
-    add_compile_definitions(DREIZEHN_SDL3)
-endif()
-
-# ------------- FENSTER
-if (BUILD_WITH_FENSTER)
-
-
-    if (WIN32)
-        list(APPEND LINK_LIBS "gdi32;winmm")
-    elseif (APPLE)
-        list(APPEND LINK_LIBS "-framework Cocoa;-framework AudioToolbox")
-    elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        list(APPEND LINK_LIBS "X11;asound")
-    else()
-       message(FATAL_ERROR "Sorry, Fenster does not support your OS: " ${CMAKE_SYSTEM_NAME})
-    endif()
-
-    list(APPEND PROJECT_SRC "addons/Fenster/FensterFunctions.cpp")
-    list(APPEND PROJECT_SRC "addons/Fenster/FensterAudioFunctions.cpp")
-    add_compile_definitions(DREIZEHN_FENSTER)
-endif()
-
-# ------------- RayLib
-if (BUILD_WITH_RAYLIB)
-
-   if (MSVC AND BUILD_WITH_FENSTER)
-       message(FATAL_ERROR "Compilation failed: Raylib and Fenster cannot be enabled simultaneously on Windows due to API conflicts. Please disable one of them.")
-   endif()
-
-   set(RAYLIB_DIR "${CMAKE_CURRENT_LIST_DIR}/addons/Raylib/raylib-6.0/" CACHE PATH "Path to RayLib")
-    message( STATUS "\n Raylib directory is: " ${RAYLIB_DIR} )
-    set(BUILD_EXAMPLES OFF CACHE BOOL "Build raylib examples" FORCE)
-    set(BUILD_GAMES    OFF CACHE BOOL "Build raylib games"    FORCE)
-    set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
-    add_subdirectory("${RAYLIB_DIR}" "${CMAKE_BINARY_DIR}/raylib_build")
-
-    list(APPEND LINK_LIBS "raylib")
-
-    list(APPEND PROJECT_SRC "addons/Raylib/RaylibFunctions.cpp")
-    add_compile_definitions(DREIZEHN_RAYLIB)
-
-
-
-endif()
-
-# ------------- MiniAudio
-if (BUILD_WITH_MINIAUDIO)
-    set(MA_SRC
-        ${CMAKE_CURRENT_LIST_DIR}/addons/MiniAudio/miniaudio/miniaudio.c
-        ${CMAKE_CURRENT_LIST_DIR}/addons/MiniAudio/miniaudio/miniaudio.h
-    )
-    list(APPEND PROJECT_SRC ${MA_SRC})
-
-    if (WIN32)
-        # set(MA_LINKLIB "winmm")
-    elseif (APPLE)
-        list(APPEND LINK_LIBS "-framework CoreAudio" "-framework CoreFoundation" "-framework AudioToolbox")
-    else()
-        list(APPEND LINK_LIBS pthread m dl)
-    endif()
-
-    add_compile_definitions(DREIZEHN_MINIAUDIO)
-
-endif()
 
 if (BUILD_WITH_LOADALL)
     add_compile_definitions(DREIZEHN_LOADALL_MODULES)
 endif()
 
-# ------------- Main
-add_executable(${PROJECT_NAME}
-    ${PROJECT_SRC}
+add_library(DreiZehn
     ${DREIZEHN_SRC}
 )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-)
-
-
-
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(DreiZehn PRIVATE
      "${CMAKE_CURRENT_SOURCE_DIR}/"
      "${CMAKE_CURRENT_SOURCE_DIR}/src/"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${LINK_LIBS}
-)
-
-if (BUILD_WITH_SANITIZE)
-    target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address -g)
-    target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
-endif()
-
-if (BUILD_WITH_PERF)
-    target_compile_options(${PROJECT_NAME} PRIVATE -O3 -g -fno-omit-frame-pointer)
-    target_link_options(${PROJECT_NAME} PRIVATE -fno-omit-frame-pointer)
-endif()
 
 if(WIN32 AND MSVC)
-
-    # my SDL3 line:
-    # ===========
-    # cmake -B build -S . `
-    # -DCMAKE_TOOLCHAIN_FILE="C:/opt/vcpkg/scripts/buildsystems/vcpkg.cmake" `
-    # -DVCPKG_TARGET_TRIPLET=x64-windows `
-    # -A x64 -DBUILD_WITH_FENSTER=OFF -DBUILD_WITH_RAYLIB=OFF
-
-   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    target_compile_options(${PROJECT_NAME}  PRIVATE "/Zc:wchar_t-")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        NOMINMAX
-        UNICODE
-        _UNICODE
-    )
-
-    if (BUILD_WITH_RAYLIB)
-        target_compile_definitions(${PROJECT_NAME} PRIVATE NOGDI NOUSER)
-    endif()
-
     add_compile_options(/MP)
 endif()
-
-# Add debug flag
-# target_compile_definitions(${PROJECT_NAME} PRIVATE
-#     $<$<CONFIG:Debug>:DREIZEHN_DEBUG>
-# )
-

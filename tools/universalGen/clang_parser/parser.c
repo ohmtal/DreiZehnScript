@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+
 char* escape_json_string(const char* input) {
     if (!input) return NULL;
 
@@ -37,6 +38,41 @@ char* escape_json_string(const char* input) {
 }
 
 
+// // Helper to construct the full namespace/class qualifier path
+// void get_qualified_prefix(CXCursor cursor, char *buffer, size_t max_len) {
+//     buffer[0] = '\0';
+//
+//     CXCursor parent = clang_getCursorSemanticParent(cursor);
+//
+//     char parts[16][64];
+//     int part_count = 0;
+//
+//     while (!clang_Cursor_isNull(parent) && part_count < 16) {
+//         enum CXCursorKind kind = clang_getCursorKind(parent);
+//
+//         if (kind == CXCursor_TranslationUnit) {
+//             break;
+//         }
+//         if (kind == CXCursor_Namespace || kind == CXCursor_ClassDecl || kind == CXCursor_StructDecl) {
+//             CXString name = clang_getCursorSpelling(parent);
+//             const char *name_str = clang_getCString(name);
+//
+//             if (name_str && strlen(name_str) > 0) {
+//                 strncpy(parts[part_count++], name_str, 63);
+//             }
+//
+//             clang_disposeString(name);
+//         }
+//
+//         parent = clang_getCursorSemanticParent(parent);
+//     }
+//
+//     for (int i = part_count - 1; i >= 0; i--) {
+//         strncat(buffer, parts[i], max_len - strlen(buffer) - 1);
+//         strncat(buffer, "::", max_len - strlen(buffer) - 1);
+//     }
+// }
+
 static enum CXChildVisitResult visit(
     CXCursor cursor, CXCursor parent, CXClientData data)
 {
@@ -60,7 +96,7 @@ static enum CXChildVisitResult visit(
             CXString nameStr = clang_getCursorSpelling(cursor);
             const char *name = clang_getCString(nameStr);
 
-            // ** functions **
+             // ** functions **
             if (kind == CXCursor_FunctionDecl) {
                 CXType funcType = clang_getCursorType(cursor);
                 CXType returnType = clang_getResultType(funcType);
@@ -68,8 +104,43 @@ static enum CXChildVisitResult visit(
 
                 int num_args = clang_Cursor_getNumArguments(cursor);
 
-                printf("{\"file\":\"%s\",\"kind\":\"function\",\"name\":\"%s\",\"return_type\":\"%s\",\"params\":[",
-                       short_filename, name, clang_getCString(retTypeStr));
+                // --- 1. Start JSON output and basic metadata ---
+                printf("{\"file\":\"%s\",\"kind\":\"function\",\"name\":\"%s\",", short_filename, name);
+
+                // --- 2. Extract and print namespaces as a JSON array ---
+                printf("\"namespaces\":[");
+
+                // Temporary storage to hold parent names up to 16 levels deep
+                CXString namespace_strings[16];
+                int ns_count = 0;
+
+                CXCursor parent = clang_getCursorSemanticParent(cursor);
+                while (!clang_Cursor_isNull(parent) && ns_count < 16) {
+                    enum CXCursorKind parentKind = clang_getCursorKind(parent);
+
+                    if (parentKind == CXCursor_TranslationUnit) {
+                        break;
+                    }
+
+                    if (parentKind == CXCursor_Namespace) {
+                        namespace_strings[ns_count++] = clang_getCursorSpelling(parent);
+                    }
+
+                    parent = clang_getCursorSemanticParent(parent);
+                }
+
+                // Print names in reverse order (outermost namespace first)
+                for (int i = ns_count - 1; i >= 0; i--) {
+                    printf("\"%s\"", clang_getCString(namespace_strings[i]));
+                    if (i > 0) {
+                        printf(",");
+                    }
+                    clang_disposeString(namespace_strings[i]); // Clean up Clang string memory
+                }
+                printf("],");
+
+                // --- 3. Continue with return type and params ---
+                printf("\"return_type\":\"%s\",\"params\":[", clang_getCString(retTypeStr));
 
                 for (int i = 0; i < num_args; i++) {
                     CXCursor param_cursor = clang_Cursor_getArgument(cursor, i);
@@ -91,6 +162,37 @@ static enum CXChildVisitResult visit(
 
                 clang_disposeString(retTypeStr);
             }
+
+            //  if (kind == CXCursor_FunctionDecl) {
+            //     CXType funcType = clang_getCursorType(cursor);
+            //     CXType returnType = clang_getResultType(funcType);
+            //     CXString retTypeStr = clang_getTypeSpelling(returnType);
+            //
+            //     int num_args = clang_Cursor_getNumArguments(cursor);
+            //
+            //     printf("{\"file\":\"%s\",\"kind\":\"function\",\"name\":\"%s\",\"return_type\":\"%s\",\"params\":[",
+            //            short_filename, name, clang_getCString(retTypeStr));
+            //
+            //     for (int i = 0; i < num_args; i++) {
+            //         CXCursor param_cursor = clang_Cursor_getArgument(cursor, i);
+            //         CXString param_name_str = clang_getCursorSpelling(param_cursor);
+            //         CXString param_type_str = clang_getTypeSpelling(clang_getCursorType(param_cursor));
+            //
+            //         printf("{\"name\":\"%s\",\"type\":\"%s\"}",
+            //                clang_getCString(param_name_str), clang_getCString(param_type_str));
+            //
+            //         if (i < num_args - 1) {
+            //             printf(",");
+            //         }
+            //
+            //         clang_disposeString(param_name_str);
+            //         clang_disposeString(param_type_str);
+            //     }
+            //
+            //     printf("]}\n");
+            //
+            //     clang_disposeString(retTypeStr);
+            // }
 
 
             // ** function params **
@@ -119,37 +221,6 @@ static enum CXChildVisitResult visit(
                 clang_disposeString(parentNameStr);
                 clang_disposeString(fieldTypeStr);
             }
-
-            // *** enum / const ***
-            // else if (kind == CXCursor_EnumDecl && clang_isCursorDefinition(cursor)) {
-            //     printf("{\"file\":\"%s\",\"kind\":\"enum\",\"name\":\"%s\"}\n", short_filename, name);
-            // }
-            // else if (kind == CXCursor_EnumConstantDecl && parentKind == CXCursor_EnumDecl) {
-            //     long long enumValue = clang_getEnumConstantDeclValue(cursor);
-            //
-            //     CXString parentNameStr = clang_getCursorSpelling(parent);
-            //     const char *enumName = clang_getCString(parentNameStr);
-            //
-            //     char typedefName[256] = "";
-            //     if (enumName == NULL || enumName[0] == '\0') {
-            //         CXType parentType = clang_getCursorType(parent);
-            //         CXString typeNameStr = clang_getTypeSpelling(parentType);
-            //
-            //         const char* rawTypeName = clang_getCString(typeNameStr);
-            //         if (rawTypeName && strncmp(rawTypeName, "enum ", 5) != 0) {
-            //             snprintf(typedefName, sizeof(typedefName), "%s", rawTypeName);
-            //             enumName = typedefName;
-            //         } else {
-            //             enumName = "anonymous";
-            //         }
-            //         clang_disposeString(typeNameStr);
-            //     }
-            //
-            //     printf("{\"file\":\"%s\",\"kind\":\"enum_constant\",\"enum\":\"%s\",\"name\":\"%s\",\"value\":\"%lld\"}\n",
-            //            short_filename, enumName, name, enumValue);
-            //
-            //     clang_disposeString(parentNameStr);
-            // }
 
 
             else if (kind == CXCursor_EnumConstantDecl && parentKind == CXCursor_EnumDecl) {
@@ -225,7 +296,6 @@ static enum CXChildVisitResult visit(
 int main(int argc, char *argv[])
 {
 
-
     if (argc < 3) {
         fprintf(stderr, "Usage: %s header_name.h /include/path \n", argv[0]);
         return 1;
@@ -236,14 +306,23 @@ int main(int argc, char *argv[])
     char include_path[256] ;
     snprintf(include_path, sizeof(include_path), "-I%s", argv[2]);
 
+    // const char *args[] = {
+    //     "-x", "c",
+    //     "-std=c11",
+    //     include_path
+    // };
+
+    // for namespace:
     const char *args[] = {
-        "-x", "c",
-        "-std=c11",
+        "-x", "c++",
+        "-std=c++17",
         include_path
     };
 
     char source_code[256];
-    snprintf(source_code, sizeof(source_code), "#include <%s>\n", header_to_include);
+    snprintf(source_code, sizeof(source_code), "#include <%s>;\n", header_to_include);
+
+    //DEBUG printf("\nCODE: %s\n", source_code);return 0;
 
     CXIndex index = clang_createIndex(0, 0);
 

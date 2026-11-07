@@ -12,13 +12,19 @@ A lightweight, modular scripting language built from scratch in C++.
 
 [Benchmark Results](docu/Benchmark.md)
 
-
-
 ### Why is it called DreiZehn Script ? 
 Dreizehn is the number 13 in german. I also work on ElfScript (Elf == 11 in german) and so i count up. 
 I did not want to use the Umlaut "ö" in Zwölf (==12) so i stepped up to 13 which is DreiZehn.
 Dreizehn is also a prime number, happy number, Fibonacci number, a lucky number and much more.
 
+
+## Build the Demo:
+
+```
+cd demo
+cmake -S . -B build
+cmake --build build
+```
 
 ## Basic SDL3 implementation 
 

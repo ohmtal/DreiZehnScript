@@ -106,7 +106,7 @@ void Init(Environment& env, int argc, char* argv[]) {
     // ---------------------------------------------------------------------
     RegisterFunction("run", [&env](std::span<Value> args, Value& ret) -> bool {
         if (Globals::ByteCodeMode) {
-            Tools::errorf("Sorry cant run injected bytecode at the moment!");
+            Tools::errorf("Sorry cant run injected bytecode at the moment!\n");
             return false;
         }
 

@@ -52,24 +52,43 @@ endif()
 
 # -----------------------------------------------------------------------------
 project(DreiZehnDemo C CXX)
+set (LINK_LIBS)
 
-#  --- DreiZehnLib from Directory ---
-set(DREIZEHN_DIR "../" CACHE PATH "Path to DreiZehn")
-if(NOT EXISTS "${DREIZEHN_DIR}/CMakeLists.txt")
-  FetchContent_Declare(
-    DreiZehn
-    GIT_REPOSITORY https://github.com/ohmtal/DreiZehnScript.git
-    GIT_TAG        main
-  )
-  FetchContent_MakeAvailable(DreiZehn)
-  set(DREIZEHN_DIR "${DreiZehn_SOURCE_DIR}")
+# using lib works :) but i need better access to the code here
+# #  --- DreiZehnLib from Directory ---
+# set(DREIZEHN_DIR "../" CACHE PATH "Path to DreiZehn")
+# if(NOT EXISTS "${DREIZEHN_DIR}/CMakeLists.txt")
+#   FetchContent_Declare(
+#     DreiZehn
+#     GIT_REPOSITORY https://github.com/ohmtal/DreiZehnScript.git
+#     GIT_TAG        main
+#   )
+#   FetchContent_MakeAvailable(DreiZehn)
+#   set(DREIZEHN_DIR "${DreiZehn_SOURCE_DIR}")
+# else()
+#   add_subdirectory("${DREIZEHN_DIR}" "${CMAKE_BINARY_DIR}/DREIZEHN_build")
+# endif()
+#
+# set (LINK_LIBS
+#     DreiZehn
+# )
+# =============== DreiZehn >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+set(DREIZEHN_DIR "../" CACHE PATH "Path to DreiZehn Script")
+set(DREIZEHN_CMAKE ${DREIZEHN_DIR}/src/DreiZehn.cmake)
+
+if(NOT EXISTS ${DREIZEHN_CMAKE})
+    message(FATAL_ERROR
+        "\n DreiZehnScript path is not set or invalid: ${DREIZEHN_DIR} "
+        "\n Please provide the path using: "
+        "\n cmake -B build -DDREIZEHN_PATH=/path/to/DreiZehnScript"
+    )
 else()
-  add_subdirectory("${DREIZEHN_DIR}" "${CMAKE_BINARY_DIR}/DREIZEHN_build")
+ include(${DREIZEHN_CMAKE})
+ list(APPEND PROJECT_INCLUDES "${DREIZEHN_DIR}/src/")
 endif()
 
-set (LINK_LIBS
-    DreiZehn
-)
+
+
 
 set(PROJECT_SRC
 

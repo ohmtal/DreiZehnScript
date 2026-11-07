@@ -130,6 +130,7 @@ struct UserObjectDefintion {
 inline int gLastValueObjectType = 0;
 inline std::unordered_map <int,UserObjectDefintion> gUserObjectTypes;
 
+using MethodCallBack = std::function< bool ( ValueObject* object,std::span<Value>, Value& )>;
 
 struct ValueObjectProperty {
     uint32_t mSymbolId = 0;
@@ -138,16 +139,20 @@ struct ValueObjectProperty {
     std::string mHelp;
     uint32_t mMinParams = 0;
     uint32_t mMaxParams = 0;
+    MethodCallBack mCallback = 0;
 
     /// Static
     ValueObjectProperty(){}
 
     // Method
-    ValueObjectProperty(std::string name,  uint32_t minParams, uint32_t maxParams, std::string help, int valueObjectTypeId )
+    ValueObjectProperty(std::string name,  uint32_t minParams, uint32_t maxParams
+        , std::string help, int valueObjectTypeId, MethodCallBack cb = 0 )
     : mIsMethod(true),mName(name),  mHelp(help), mMinParams(minParams), mMaxParams(maxParams) {
         mSymbolId = SymbolTable::insert(name);
         if (valueObjectTypeId > 0) RegisterAtType(valueObjectTypeId);
+        mCallback = cb;
     }
+
     // Field
     ValueObjectProperty(std::string name,  std::string help , int valueObjectTypeId )
     : mIsMethod(false),mName(name),  mHelp(help), mMinParams(0), mMaxParams(0) {
@@ -177,6 +182,14 @@ struct ValueObjectProperty {
         if (this->mSymbolId != symbolId) return false;
         return true;
     }
+
+    // return values:
+    // -0 symbolId does not match
+    // -1 args size does not match
+    // -2 no callback set
+    // -3 callback returned false
+    //  1 success
+    int callMethod(ValueObject* object,uint32_t symbolId, std::span<Value> args, Value& ret);
 
 };
 

@@ -46,6 +46,21 @@ namespace DreiZehn {
         }
         return true;
     }
+
+    int ValueObjectProperty::callMethod(ValueObject* object,
+                        uint32_t symbolId, std::span<Value> args, Value& ret) {
+        if (this->mSymbolId != symbolId) return 0;
+        if ( !ValidateArgs(args) ) return -1;
+
+        if (this->mCallback == 0 ) return -2;
+        bool success = (mCallback)(object, args, ret);
+        if (!success) [[unlikely]] {
+            Tools::errorf("Runtime Error in method: %s\n", SymbolTable::getName(symbolId).c_str());
+            return -3;
+        }
+
+        return 1;
+    }
     // -------------------------------------------------------------------------
     // ------------------ ValueObject
     // -------------------------------------------------------------------------

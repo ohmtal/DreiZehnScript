@@ -36,6 +36,7 @@
 #include "addons/Raylib/RaylibFunctions.h"
 #endif
 
+extern void RegisterTest();
 
 
 #ifdef DREIZEHN_LINENOISE
@@ -178,6 +179,8 @@ int main(int argc, char* argv[]) {
     #else
     FunctionMap::ModuleRegistry::Load("Core", env);
     #endif
+
+    RegisterTest();
 
 
     OnBreath = [&env]() -> bool {

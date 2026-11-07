@@ -62,6 +62,7 @@ set (LINK_LIBS)
 set(PROJECT_SRC
 
     demo/main.cpp
+    demo/testObject.cpp
 )
 
 

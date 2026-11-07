@@ -1,0 +1,26 @@
+# Build directories
+build/
+Debug/
+Release/
+
+# Compiled objects and executables
+*.o
+*.obj
+*.exe
+*.out
+*.app
+*.dSYM
+
+# Editors
+*.swp
+xcuserdata
+*.xcworkspace
+
+# Unicode Character Database download cache (scripts/gen_unicode_tables.py)
+.ucd-cache/
+
+# Upstream scratch checkout
+.upstream/
+
+# Example artifacts
+history.txt

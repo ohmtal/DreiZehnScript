@@ -19,10 +19,14 @@ jsonFilename = str::concat "json/" (sys::args->value 2)  ".json"
 print "** loading " jsonFilename
 fileTool = FileTool::new jsonFilename
 fileTool->load
-if fileTool.content == ""; error "Failed to load " jsonFilename end
+if fileTool.content == ""; error "Failed to load " jsonFilename; return; end
+# print "*** CONTENT:" fileTool.content; return;
 -- -----------------------------------------------------------------------------
--- not last boolean is debug flag
+--  last boolean is debug flag
+print "** start json parser ....."
 parser = Parser::new fileTool.content false
+parser->dump
+print "** start tokens ....."
 tokenWorker  = Tokens::new parser true
 
 -- -----------------------------------------------------------------------------

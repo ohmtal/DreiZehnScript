@@ -34,7 +34,7 @@ I used my Benchmark Script from ElfScript:
 
 🚀 == bytecode in place 
 
-🐏 DLS == Dirty Little Script
+🐏 DLS == Dirty Little Script (RelWithDeb)
 
 Note 0.8b is 0.8a but using -02 optimized instead of -03.
 
@@ -177,6 +177,7 @@ stupid iterator test ;)
 - PHP (8.5.8): 3.644u 0.019s 0:03.66 99.7% 0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.4a): 8.512u 0.000s 0:08.54 99.6%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.3): 14.335u 0.002s 0:14.36 99.7%    0+0k 0+0io 0pf+0w
+- 🐏 DLS 0.5: 25.109u 0.000s 0:25.15 99.8%    0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.1): 29.409u 0.001s 0:29.48 99.7%    0+0k 0+0io 0pf+0w
 - Python 3 (3.14.6): 40.648u 0.006s 0:40.71 99.8% 0+0k 0+0io 0pf+0w
 - ruby 3.4.10: 55.675u 0.023s 0:55.79 99.8% 0+0k 0+0io 0pf+0w

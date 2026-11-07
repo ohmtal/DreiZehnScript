@@ -175,6 +175,7 @@ public:
         return static_cast<uint32_t>(mBits & 0xFFFFFFFFULL);
     }
     // -------------------------------------------------------------------------
+    //NOTE also used ObjectPointer!
     inline void* asPointer() const {
         assert(isObjectPointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
@@ -189,7 +190,7 @@ public:
     }
 
     inline void* asRawPointer() const {
-        assert(isObjectPointer());
+        assert(isRawPointer());
         uint64_t ptrBits = mBits & 0x0000FFFFFFFFFFFFULL;
         return std::bit_cast<void*>(ptrBits);
     }

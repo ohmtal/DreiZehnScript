@@ -2,15 +2,15 @@
 --  Copyright (c) 2026 Thomas Hühn (XXTH)
 --  SPDX-License-Identifier: MIT
 -- -----------------------------------------------------------------------------
---  JSON Parser written in DreiZehn
+--  DreiZehn FileTool
 -- -----------------------------------------------------------------------------
 import File
 import String
 -- -----------------------------------------------------------------------------
 fn FileTool::load this
-    if this.filename == ""; return 0;;
+    if this.filename == ""; return "";;
     fs = FileStream::open this.filename "r"
-    if (!fs); return 0;;
+    if (!fs); return "";;
     this.content = "";
     while true
         buff =  fs->read 1024
@@ -36,6 +36,7 @@ fn FileTool::new filename
     result = Object::new
     result->setClassName "FileTool"
     result.filename = filename
+    result.content = ""
     return result
 end
 

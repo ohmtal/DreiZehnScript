@@ -180,7 +180,7 @@ struct BytecodeChunk {
     //     std::memcpy(&mByteCodes[startIp], &val, sizeof(Value));
     //     return startIp;
     // }
-    U32 emitValue(Value val) {
+    U32 emitValue(const Value& val) {
         static_assert(sizeof(Value) <= 2 * sizeof(U32), "Value size missmatch! Only 8 bytes allowed.");
 
         U32 startIp = (U32)mByteCodes.size();

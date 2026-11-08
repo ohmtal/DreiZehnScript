@@ -211,9 +211,6 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
     // -------------------------------
     handle_OP_CONST: {
-        // FIXME this was for loading cached function but it's not working in near future!
-        // S64 index = ADVANCE_U32() + curFrame->mConstansOffset;
-        // PUSH_STACK(chunk.mConstants[ADVANCE_U32() + curFrame->mConstansOffset]);
         PUSH_STACK(chunk.mConstants[ADVANCE_U32()]);
         DISPATCH();
     }
@@ -540,18 +537,17 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
         if (rawPtr) {
             valuePtr = static_cast<Value*>(rawPtr);
-            if (valuePtr->isObjectPointer()) valuePtr->asPointerObject()->setAssigned(false);
-            *valuePtr = PEEK_STACK(0);
-            if (valuePtr->isObjectPointer()) valuePtr->asPointerObject()->setAssigned(true);
+
+            _set_var_pointer_value(valuePtr, PEEK_STACK(0));
+
             DISPATCH();
         }
         VariableFrame* frame = Globals::MasterVariableFrame;
         valuePtr = frame->getVariablePtr(symID, true);
         // PATCH_PTR(ptrPOS,valuePtr);
         patch_ptr(code, ptrPOS, valuePtr);
-        if (valuePtr->isObjectPointer()) valuePtr->asPointerObject()->setAssigned(false);
-        *valuePtr = PEEK_STACK(0);
-        if (valuePtr->isObjectPointer()) valuePtr->asPointerObject()->setAssigned(true);
+
+        _set_var_pointer_value(valuePtr, PEEK_STACK(0));
 
 
         DISPATCH();

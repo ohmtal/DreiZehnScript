@@ -44,8 +44,8 @@ public:
     inline static size_t size() {
         return get().getGarbageSize();
     }
-    inline static void print() {
-        return get().listGarbageObjects();
+    inline static void print(bool onlyNotAssigned) {
+        return get().listGarbageObjects(onlyNotAssigned);
     }
 
     inline static void lock() {
@@ -73,7 +73,7 @@ protected:
     void addToGarbageCollection(ValueObject* obj);
     void removeFromGarbageCollection(ValueObject* obj);
     size_t getGarbageSize();
-    void listGarbageObjects();
+    void listGarbageObjects(bool onlyNotAssigned);
 
 private:
 

@@ -540,14 +540,18 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
         if (rawPtr) {
             valuePtr = static_cast<Value*>(rawPtr);
+            if (valuePtr->isObjectPointer()) valuePtr->asPointerObject()->setAssigned(false);
             *valuePtr = PEEK_STACK(0);
+            if (valuePtr->isObjectPointer()) valuePtr->asPointerObject()->setAssigned(true);
             DISPATCH();
         }
         VariableFrame* frame = Globals::MasterVariableFrame;
         valuePtr = frame->getVariablePtr(symID, true);
         // PATCH_PTR(ptrPOS,valuePtr);
         patch_ptr(code, ptrPOS, valuePtr);
+        if (valuePtr->isObjectPointer()) valuePtr->asPointerObject()->setAssigned(false);
         *valuePtr = PEEK_STACK(0);
+        if (valuePtr->isObjectPointer()) valuePtr->asPointerObject()->setAssigned(true);
 
 
         DISPATCH();
@@ -944,8 +948,14 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
             DISPATCH();
         }
         const Value* resultPtr = nullptr;
-        resultPtr =varValue.asPointerObject()->onGetArrayByStringSymId(symId);
-        PUSH_STACK(resultPtr ? *resultPtr : NumberNullValue);
+        ValueObject* obj = varValue.asPointerObject();
+        resultPtr = obj->onGetArrayByStringSymId(symId);
+        if (resultPtr) [[likely]] {
+            PUSH_STACK(*resultPtr);
+            obj->setAssigned(true);
+        } else  {
+            PUSH_STACK(NumberNullValue);
+        }
         DISPATCH();
     }
     // ---------------------

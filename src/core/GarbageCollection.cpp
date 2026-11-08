@@ -53,12 +53,13 @@ size_t GarbageCollection::getGarbageSize() {
     return mGarbageCollection.size();
 }
 // ------------------------------------------------------------------------
-void GarbageCollection::listGarbageObjects() {
+void GarbageCollection::listGarbageObjects(bool onlyNotAssigned) {
     Tools::printf("---------------- Garbage Collection ------------------\n");
     size_t countNotAssigned = 0;
     int i = 0;
     uint64_t curTime = Tools::time_since_start_milliseconds();
     for (auto* obj : mGarbageCollection) {
+        if (onlyNotAssigned && obj->mAssigned > 0) continue;
         int objtype = obj->mType;
         Tools::printf("#%05d [%p] assigned: %d type:%d %s age:%" PRIu64 "\n"
         , i, (void*)obj, obj->mAssigned

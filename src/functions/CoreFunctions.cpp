@@ -141,9 +141,10 @@ namespace DreiZehn {
         }, "Run the GarbageCollection manually");
 
         RegisterFunction("core::printgc", [](std::span<Value> args, Value& ret) -> bool {
-            GarbageCollection::print();
+            bool onlyNotAssigned = args.size() > 0 && args[0].getBool();
+            GarbageCollection::print(onlyNotAssigned);
             return true;
-        }, "Print the current GarbageCollection objects");
+        }, "Print the current GarbageCollection objects, call it with param 1 to show only the not assigned");
         // ---------------------------------------------------------------------
         RegisterFunction("core::printGlob", [](std::span<Value> args, Value& ret) -> bool {
             Tools::printf("---------------- Globals ------------------\n");

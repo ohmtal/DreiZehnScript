@@ -488,6 +488,8 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     
 ### ----------------- tagged 0.9 ----------------- 
 
+# 0.91
+
 - [X] Objects
     - [.] mClassName is a String not a Symbol?!  << is cached! 
     - [X] need ->clone method on ValueObject
@@ -543,7 +545,11 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
                 - ONCE! patch pointer: pos + 10
                 
               
-
+- [X] adjusted garbage collection again.
+- [X] ByteCode: fixed object assign for GarbageCollection on forEach iter var and global var
+- [ ] VariableFrame: 
+    - [ ] globals should use register like in DLS
+    - [ ] Interpreter: locals should have a offset and not spawn a new Variable frame
 - [ ] Tools::LogHandler should be added to Init
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it als attach the new nodes so i need to attach it to bytecode also ?! but doing 

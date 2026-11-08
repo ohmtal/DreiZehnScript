@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
     app.OnRender = [&](SDL_Renderer* renderer) {
 
         // Core::Eval("flux::Render", env);
-        FunctionMap::FireScriptEvent(evRender,{Value(BaseFlux::getFrameTime())});
+        FunctionMap::FireScriptEvent(evRender,{Value(BaseFlux::getFrameTime() * 100.f)});
 
         if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent)) gShowConsole = !gShowConsole;
         gConsole.Draw("Console",&gShowConsole);

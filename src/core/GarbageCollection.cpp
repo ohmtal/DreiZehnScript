@@ -6,14 +6,14 @@
 //-----------------------------------------------------------------------------
 #include <unordered_map>
 #include <cassert>
-#include <cassert>
+#include <cinttypes>
 #include <algorithm>
 #include "GarbageCollection.h"
 #include "Value.h"
 #include "ValueObject.h"
 
 #ifndef DREIZEHN_GARBAGE_AGE_MSSEC_BORDER
-#define DREIZEHN_GARBAGE_AGE_MSSEC_BORDER 250
+#define DREIZEHN_GARBAGE_AGE_MSSEC_BORDER 50
 #endif
 
 namespace DreiZehn {
@@ -36,8 +36,9 @@ void GarbageCollection::addToGarbageCollection(ValueObject* obj) {
         size_t newCapacity = gcVector.capacity() * 2;
         gcVector.reserve(newCapacity);
         garbage_chech_border = size_t( newCapacity / 2);
-        if (garbage_chech_border > 65536)
-            garbage_chech_border = 65536;
+        // this should be high enough!
+        // if (garbage_chech_border > 262144)
+        //     garbage_chech_border = 262144;
     }
 
     gcVector.push_back(obj);
@@ -56,16 +57,22 @@ void GarbageCollection::listGarbageObjects() {
     Tools::printf("---------------- Garbage Collection ------------------\n");
     size_t countNotAssigned = 0;
     int i = 0;
+    uint64_t curTime = Tools::time_since_start_milliseconds();
     for (auto* obj : mGarbageCollection) {
         int objtype = obj->mType;
-        Tools::printf("#%d [%p] assigned: %d type:%d %s\n"
+        Tools::printf("#%05d [%p] assigned: %d type:%d %s age:%" PRIu64 "\n"
         , i, (void*)obj, obj->mAssigned
-        , objtype, GetObjectTypeName(obj));
+        , objtype
+        , GetObjectTypeName(obj)
+        , (curTime - obj->mCreationTime)
+
+        );
 
         if (obj->mAssigned == 0) countNotAssigned++;
         i++;
     }
-    Tools::printf("*** count is: %zu, not assigned: %zu ***\n", GarbageCollection::size(), countNotAssigned);
+    Tools::printf("*** count is: %zu, not assigned: %zu  ***\n"
+            , GarbageCollection::size(), countNotAssigned);
     if (mLocked) Tools::warnf("\n ---- GarbageCollection is locked!!! ----\n");
     Tools::printf("------------------------------------------------------\n");
 }
@@ -83,7 +90,7 @@ void GarbageCollection::doGarbageCollection(bool isShutDown) {
     } else {
 
 
-        uint64_t curTime = Tools::time_milliseconds();
+        uint64_t curTime = Tools::time_since_start_milliseconds();
         for (int i = 0; i < 3; i++) {
             size_t startcount = mGarbageCollection.size();
             std::vector<ValueObject*> byebye;

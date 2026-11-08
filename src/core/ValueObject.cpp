@@ -66,7 +66,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     ValueObject::ValueObject(int t) : mType(t) {
         GarbageCollection::insert(this);
-        mCreationTime = Tools::time_milliseconds();
+        mCreationTime = Tools::time_since_start_milliseconds();
         mObjectTypeName = GetObjectTypeName(this);
 
         // this make is slower !!

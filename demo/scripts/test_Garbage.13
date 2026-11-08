@@ -21,7 +21,7 @@ end
 print "calling RunCrazy"
 RunCrazy
 print "... let settle and call gc ..."
-core::sleep 750
+core::sleep 100
 core::gc; core::printgc;
 
 -- print "vec:" vec ", field:" field ", newVec" newVec

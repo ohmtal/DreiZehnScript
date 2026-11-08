@@ -111,6 +111,15 @@ namespace DreiZehn::Tools{
         return std::chrono::duration_cast<std::chrono::seconds>(duration).count();
     }
 
+
+    uint64_t time_since_start_milliseconds() {
+        static const auto start_time = std::chrono::steady_clock::now();
+        auto now = std::chrono::steady_clock::now();
+        auto duration = now - start_time;
+        return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    }
+
+
     uint64_t time_milliseconds() {
         auto now = std::chrono::system_clock::now();
         auto duration = now.time_since_epoch();

@@ -44,6 +44,7 @@ namespace DreiZehn::Tools{
      double time();
      uint64_t time_seconds();
      uint64_t time_milliseconds();
+     uint64_t time_since_start_milliseconds();
 
 
     // -------------------------------------------------------------------------

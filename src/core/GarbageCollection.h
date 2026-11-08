@@ -12,16 +12,10 @@
 #include <vector>
 
 #ifndef DREIZEHN_INITIAL_GARBAGE_SIZE
-#define DREIZEHN_INITIAL_GARBAGE_SIZE 256
+#define DREIZEHN_INITIAL_GARBAGE_SIZE 4096
 #endif
 
-#ifndef DREIZEHN_GARBAGE_CHECK_BORDER
-#define DREIZEHN_GARBAGE_CHECK_BORDER 128
-#endif
 
-#ifndef DREIZEHN_GARBAGE_AGE_SEC_BORDER
-#define DREIZEHN_GARBAGE_AGE_SEC_BORDER 2
-#endif
 
 namespace DreiZehn {
 
@@ -34,6 +28,8 @@ class GarbageCollection {
     std::vector<ValueObject*> mGarbageCollection;
     bool mLocked = false;
     size_t mInsertCounter = 0;
+
+    size_t garbage_chech_border = size_t( DREIZEHN_INITIAL_GARBAGE_SIZE / 2);
 
 public:
 

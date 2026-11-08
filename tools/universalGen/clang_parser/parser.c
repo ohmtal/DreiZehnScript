@@ -196,16 +196,17 @@ static enum CXChildVisitResult visit(
 
 
             // ** function params **
-            else if (kind == CXCursor_ParmDecl && parentKind == CXCursor_FunctionDecl) {
-                CXString parentNameStr = clang_getCursorSpelling(parent);
-                CXString paramTypeStr = clang_getTypeSpelling(clang_getCursorType(cursor));
-
-                printf("{\"file\":\"%s\",\"kind\":\"param\",\"function\":\"%s\",\"name\":\"%s\",\"type\":\"%s\"}\n",
-                       short_filename, clang_getCString(parentNameStr), name, clang_getCString(paramTypeStr));
-
-                clang_disposeString(parentNameStr);
-                clang_disposeString(paramTypeStr);
-            }
+            // TEST i do not need them ?!
+            // else if (kind == CXCursor_ParmDecl && parentKind == CXCursor_FunctionDecl) {
+            //     CXString parentNameStr = clang_getCursorSpelling(parent);
+            //     CXString paramTypeStr = clang_getTypeSpelling(clang_getCursorType(cursor));
+            //
+            //     printf("{\"file\":\"%s\",\"kind\":\"param\",\"function\":\"%s\",\"name\":\"%s\",\"type\":\"%s\"}\n",
+            //            short_filename, clang_getCString(parentNameStr), name, clang_getCString(paramTypeStr));
+            //
+            //     clang_disposeString(parentNameStr);
+            //     clang_disposeString(paramTypeStr);
+            // }
 
             // ** struct fields **
             else if (kind == CXCursor_StructDecl && clang_isCursorDefinition(cursor)) {
@@ -297,14 +298,14 @@ int main(int argc, char *argv[])
 {
 
     if (argc < 3) {
-        fprintf(stderr, "Usage: %s header_name.h /include/path \n", argv[0]);
+        fprintf(stderr, "Usage: %s /include/path header_name.h \n", argv[0]);
         return 1;
     }
 
-    const char *header_to_include = argv[1];
+    const char *header_to_include = argv[2];
 
     char include_path[256] ;
-    snprintf(include_path, sizeof(include_path), "-I%s", argv[2]);
+    snprintf(include_path, sizeof(include_path), "-I%s", argv[1]);
 
     // const char *args[] = {
     //     "-x", "c",

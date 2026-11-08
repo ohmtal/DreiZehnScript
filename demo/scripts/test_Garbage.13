@@ -20,8 +20,10 @@ end
 
 print "calling RunCrazy"
 RunCrazy
+print "... let settle and call gc ..."
+core::sleep 750
 core::gc; core::printgc;
 
 -- print "vec:" vec ", field:" field ", newVec" newVec
 
--- while core::breath; core::sleep 16 ;;
+# while core::breath; core::sleep 16 ;;

@@ -12,6 +12,9 @@
 #include "Value.h"
 #include "ValueObject.h"
 
+#ifndef DREIZEHN_GARBAGE_AGE_MSSEC_BORDER
+#define DREIZEHN_GARBAGE_AGE_MSSEC_BORDER 250
+#endif
 
 namespace DreiZehn {
 
@@ -23,7 +26,7 @@ void GarbageCollection::addToGarbageCollection(ValueObject* obj) {
 
     // garbage collection border check before new object !!
     mInsertCounter++;
-    if (!mLocked && (mInsertCounter > DREIZEHN_GARBAGE_CHECK_BORDER)) {
+    if (!mLocked && (mInsertCounter > garbage_chech_border)) {
         mInsertCounter = 0;
         doGarbageCollection(false);
     }
@@ -32,6 +35,9 @@ void GarbageCollection::addToGarbageCollection(ValueObject* obj) {
     if (gcVector.size() >= gcVector.capacity()) {
         size_t newCapacity = gcVector.capacity() * 2;
         gcVector.reserve(newCapacity);
+        garbage_chech_border = size_t( newCapacity / 2);
+        if (garbage_chech_border > 65536)
+            garbage_chech_border = 65536;
     }
 
     gcVector.push_back(obj);
@@ -77,14 +83,14 @@ void GarbageCollection::doGarbageCollection(bool isShutDown) {
     } else {
 
 
-        uint64_t curTime = Tools::time_seconds();
+        uint64_t curTime = Tools::time_milliseconds();
         for (int i = 0; i < 3; i++) {
             size_t startcount = mGarbageCollection.size();
             std::vector<ValueObject*> byebye;
             std::vector<ValueObject*> muststay;
 
             for (auto* obj : mGarbageCollection) {
-                if (obj->mAssigned < 1 && (curTime -  obj->mCreationTime) > DREIZEHN_GARBAGE_AGE_SEC_BORDER ) {
+                if (obj->mAssigned < 1 && (curTime -  obj->mCreationTime) > DREIZEHN_GARBAGE_AGE_MSSEC_BORDER ) {
                     byebye.push_back(obj);
                 } else {
                     muststay.push_back(obj);

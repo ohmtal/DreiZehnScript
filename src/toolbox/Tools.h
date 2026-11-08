@@ -43,6 +43,7 @@ namespace DreiZehn::Tools{
     // time in UTC
      double time();
      uint64_t time_seconds();
+     uint64_t time_milliseconds();
 
 
     // -------------------------------------------------------------------------

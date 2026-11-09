@@ -196,8 +196,8 @@ int main(int argc, char* argv[]) {
     Tools::LogHandler = MyLogger; //FIXME add to init
     RegisterBaseFluxFunctions(env);
 
-    FunctionMap::ScriptEvent evLoad, evInit, evRender, evShutDown, evOnKey, evOnMouse;
-    FunctionMap::RegisterScriptEvent(&env, evLoad,"flux::Load",{},"When is start bevore sdl is initialited.");
+    FunctionMap::ScriptEvent evSetup, evInit, evRender, evShutDown, evOnKey, evOnMouse;
+    FunctionMap::RegisterScriptEvent(&env, evSetup,"flux::Setup",{},"When is start bevore sdl is initialited.");
     FunctionMap::RegisterScriptEvent(&env, evInit,"flux::Init",{},"When ready to load stuff");
     FunctionMap::RegisterScriptEvent(&env, evRender,"flux::Render",{"ft"},"When is rendered.");
     FunctionMap::RegisterScriptEvent(&env, evShutDown,"flux::ShutDown",{},"When it-s ShutDown.");
@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     };
     // -------------------------------------------------------------------------
     // Core::Eval("flux::Load", env);
-    FunctionMap::FireScriptEvent(evLoad,{});
+    FunctionMap::FireScriptEvent(evSetup,{});
     // -------------------------------------------------------------------------
 
     if ( !app.InitSDL() ) return 1;

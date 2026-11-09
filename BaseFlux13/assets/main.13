@@ -34,7 +34,7 @@ define DARKBROWN  Vector::new 76 63 47 255       # Dark Brown
 global Rects = 0
 -- -----------------------------------------------------------------------------
 -- To set parameters before it open the window
-fn flux::Load
+fn flux::Setup
     print " *** Load"
 
 --     flux::maxfps 0

@@ -9,6 +9,7 @@ I used my Benchmark Script from ElfScript:
 - Elfscript 0.7c: 1.354u 0.002s 0:01.36 99.2%     0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.9a): 1.410u 0.005s 0:01.42 99.2%     0+0k 0+0io 0pf+0w 
 - 👾 DreiZehn(0.9b ?!): 1.873u 0.004s 0:01.88 99.4%     0+0k 0+0io 0pf+0w
+- 🐏 DLS 0.61: 2.054u 0.004s 0:02.07 99.0%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.9e): 2.594u 0.006s 0:02.61 99.2%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.9d): 3.463u 0.004s 0:03.48 99.4%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8b): 3.306u 0.006s 0:03.32 99.3%     0+0k 0+0io 0pf+0w
@@ -48,6 +49,7 @@ i need to write a better Benchmark here but for now its only a info for me.
 it can happen, that when i restart the prog that it's only peek 310 not 340
 - 👾 DreiZehn(0.9f): 4.938u 0.208s 0:05.37 95.5% (peek: 680FPS, low: 610FPS)
 - 👾 DreiZehn(0.9e): 5.391u 0.200s 0:05.82 96.0% (peek: 600FPS, low: 500FPS)
+- 🐏 DLS 0.61: 5.934u 0.222s 0:06.35 96.8%     0+0k 0+0io 0pf+0w
 - 🐏 DLS 0.6: 6.391u 0.212s 0:06.83 96.6%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.9f): 7.477u 0.230s 0:07.91 97.3% (peek: 440FPS, low: 425FPS)
 - 🐢 DreiZehn(0.9e): 8.672u 0.218s 0:09.16 96.9%(peek: 350 FPS, low: 325 FPS)
@@ -147,6 +149,7 @@ print "Fib recursiv" num "=" (fib num)
 - ruby (3.4.10): 0.447u 0.013s 0:00.48 93.7%     0+0k 3392+0io 67pf+0w
 - 👾 DreiZehn(0.9d): 0.646u 0.004s 0:00.65 98.4%     0+0k 0+0io 0pf+0w
 - Python (3.14.7): 0.649u 0.006s 0:00.65 98.4%     0+0k 0+0io 0pf+0w
+- 🐏 DLS 0.61: 0.796u 0.001s 0:00.80 98.7%   (special globals with stack)
 - 🐏 DLS 0.6: 0.998u 0.002s 0:01.00 99.0%   (special globals with stack)
 - ElfScript 0.8a: 1.199u 0.001s 0:01.20 99.1%     0+0k 0+0io 0pf+0w
 - 🐏 DLS 0.5: 1.333u 0.005s 0:01.34 99.2%  (special globals with stack)
@@ -178,6 +181,7 @@ stupid iterator test ;)
 - 👾 DreiZehn(0.9d): 3.258u 0.007s 0:03.27 99.3%     0+0k 0+0io 0pf+0w
 - Lua (5.5.0): 3.504u 0.003s 0:03.52 99.4% 0+0k 0+0io 0pf+0w
 - PHP (8.5.8): 3.644u 0.019s 0:03.66 99.7% 0+0k 0+0io 0pf+0w
+- 🐏 DLS 0.61: 4.934u 0.005s 0:04.95 99.5%     0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.4a): 8.512u 0.000s 0:08.54 99.6%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.3): 14.335u 0.002s 0:14.36 99.7%    0+0k 0+0io 0pf+0w
 - 🐏 DLS 0.6: 16.721u 0.003s 0:16.76 99.7%    0+0k 8+0io 0pf+0w

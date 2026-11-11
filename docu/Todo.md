@@ -547,16 +547,21 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
               
 - [X] adjusted garbage collection again.
 - [X] ByteCode: fixed object assign for GarbageCollection on forEach iter var and global var
+
+- [X] Tools::LogHandler should be added to Init
+
+
 - [ ] VariableFrame: 
     - the key is: guessGlobalVarAndInsertLocalIfNot - here i could resolve the index 
-    - bytecode: but whats about the redundant CompilerScope ?
+    - bytecode: but whats about the redundant CompilerScope ? i guess this is obsolete then ?! 
+    - save varcount then in AST Node! 
+    - NOTE: i started but restored again .. must think about it more.
     - [ ] globals should use register like in DLS
     - [ ] Interpreter: locals should have a offset and not spawn a new Variable frame
     
     
-- [ ] Tools::LogHandler should be added to Init
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
-On AST it als attach the new nodes so i need to attach it to bytecode also ?! but doing 
+On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 
 this a lot of times i have a monster sized code then.
 
 

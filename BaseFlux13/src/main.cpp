@@ -191,9 +191,8 @@ int argParser(int argc, char* argv[]) {
 int main(int argc, char* argv[]) {
 
     DreiZehn::Environment env;
-    DreiZehn::Init(env, argc, argv);
+    DreiZehn::Init(env, argc, argv, MyLogger);
     FunctionMap::ModuleRegistry::LoadAll(env);
-    Tools::LogHandler = MyLogger; //FIXME add to init
     RegisterBaseFluxFunctions(env);
 
     FunctionMap::ScriptEvent evSetup, evInit, evRender, evShutDown, evOnKey, evOnMouse;

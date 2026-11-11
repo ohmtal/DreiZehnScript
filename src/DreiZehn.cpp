@@ -18,9 +18,10 @@
 namespace DreiZehn {
 
     // VariableMarshaller gMarshall;
-
-void Init(Environment& env, int argc, char* argv[]) {
+void Init(Environment& env, int argc, char* argv[], Tools::LogCallback customLogHandler ) {
     static bool registered = false; if (registered) return; registered = true;
+
+    if (customLogHandler) Tools::LogHandler = customLogHandler;
 
     RegisterBaseObject(env);
     RegisterVectorFunctions(env);

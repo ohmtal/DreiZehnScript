@@ -28,7 +28,8 @@ namespace DreiZehn {
     void RegisterSysFunctions(Environment& env);
 
 
-    void Init(Environment& env, int argc, char* argv[]);
+    // void Init(Environment& env, int argc, char* argv[]);
+    void Init(Environment& env, int argc, char* argv[], Tools::LogCallback customLogHandler = nullptr);
 
     namespace Core {
         Value Eval(const std::string& command, Environment& env);

@@ -1,5 +1,7 @@
 -- -----------------------------------------------------------------------------
 -- BaseFlux13 Main
+-- Testing Array with String index
+--   if you want performace dont use string/arrays for loops
 -- -----------------------------------------------------------------------------
 define SDLK_ESCAPE 0x0000001b
 define SDLK_PAGEDOWN               0x4000004e
@@ -72,6 +74,7 @@ function flux::Init
 end
 -- -----------------------------------------------------------------------------
 function flux::Render ft
+
     forEach item Rects
         flux::DrawRect item["point"] item["color"] item["fill"]
         item["point"][0] += item["vec"][0] * ft

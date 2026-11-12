@@ -314,13 +314,13 @@ namespace DreiZehn {
             }
 
             // only works on objects which support onGetArrayIndexPtr
-            if (!varValue.isObjectPointer() ) {
+            if (!varValue.isObjectPointer() ) [[unlikely]] {
                 return NumberNullValue;
             }
             Value* valPtr = varValue.asPointerObject()->onGetArrayIndexPtr(index);
             if (valPtr) return Value(*valPtr);
         } else if (indexValue.isString() && varValue.isObjectPointer()) {
-            //FIXME SymbolTable?!
+            //FIXME SymbolTable every time .. shouldnt i map the name to index ?
             Value* valPtr = varValue.asPointerObject()->onGetArrayByStringSymId(SymbolTable::insert( indexValue.getStringRef()));
             if (valPtr) return Value(*valPtr);
         }
@@ -357,7 +357,7 @@ namespace DreiZehn {
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
 
         if (mIndexExpr->mNodeType == NodeType::LiteralExpression) {
-            Value val = mIndexExpr->evaluate(env);
+            Value val = mIndexExpr->evaluate(env); //NOTE good idea?
             if (val.isNumber()) {
                 chunk.emit(OP_LOAD_ARRAY_INDEX);
                 chunk.emit(val.getUInt());
@@ -392,7 +392,7 @@ namespace DreiZehn {
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
 
        if (mIndexExpr->mNodeType == NodeType::LiteralExpression) {
-            Value val = mIndexExpr->evaluate(env);
+            Value val = mIndexExpr->evaluate(env); //NOTE: good idea ?
             if (val.isNumber()) {
                 chunk.emit(OP_PUSHPTR_ARRAY_INDEX);
                 chunk.emit(val.getUInt());

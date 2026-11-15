@@ -15,9 +15,9 @@
 #include "core/AstNode.h"
 
 namespace DreiZehn{
-
+struct Environment;
 namespace ParserFrame {
-    bool guessGlobalVarAndInsertLocalIfNot(uint32_t symId);
+    bool guessGlobalVarAndInsertLocalIfNot(Environment& env, uint32_t symId);
     void startFunc(uint32_t funcSymId);
     void endFunc(uint32_t funcSymId);
 } //namespace

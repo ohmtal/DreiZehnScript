@@ -40,6 +40,8 @@ private:
 
     static inline uint32_t gFrameCounter = 0;
     uint32_t mFrameId = 0;
+
+
 public:
 
     VariableFrame( VariableFrame* parentFrame ) {
@@ -141,7 +143,7 @@ public:
             return it->second.get();
         }
 
-        if (this != Globals::MasterVariableFrame &&  Globals::isGlobalVar(id)) {
+        if (this != Globals::MasterVariableFrame &&  isGlobalVar(id)) {
             return Globals::MasterVariableFrame->getVariablePtr(id,isAssignVar);
         }
 
@@ -156,6 +158,22 @@ public:
 
     }
 
+    // -------------------------------------------------------------------------
+    // as sorted list for fast binary_search
+    std::vector<uint32_t> mGlobalsVarList;
+
+    inline bool isGlobalVar(uint32_t id) {
+        return std::binary_search(mGlobalsVarList.begin(), mGlobalsVarList.end(), id);
+    }
+    inline bool insertGlobalVar(uint32_t id) {
+        if (isGlobalVar(id)) return false;
+        mGlobalsVarList.push_back(id);
+
+        // should be done once but i want to be sure it's done!
+        std::sort(mGlobalsVarList.begin(), mGlobalsVarList.end());
+
+        return true;
+    }
 
 };
 

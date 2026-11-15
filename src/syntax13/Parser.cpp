@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------------
 #include "Parser.h"
 #include "core/FunctionMap.h"
+#include "core/VariableFrame.h"
 #include <ScriptLoader.h>
 
 namespace DreiZehn {
@@ -39,8 +40,8 @@ namespace DreiZehn {
                 mFunctionVariables.push_back(symId);
         }
 
-        bool guessGlobalVarAndInsertLocalIfNot(uint32_t symId) {
-            bool foundAGlobal = Globals::isGlobalVar(symId);
+        bool guessGlobalVarAndInsertLocalIfNot(Environment& env, uint32_t symId) {
+            bool foundAGlobal = Globals::MasterVariableFrame->isGlobalVar(symId);
             bool foundFunctionVar = isFunctionVar(symId);
             // Tools::printf(" ** VAR %s check foundAGlobal:%d foundFunc:%d {block:%d}\n",
             //               SymbolTable::getName(symId).c_str(), foundAGlobal,foundFunctionVar,
@@ -160,9 +161,9 @@ namespace DreiZehn {
             } else {
                 // we got a variable
                 bool isGlobal = peekOffset(-2).mType == TokenType::Global;
-                if (isGlobal) Globals::insertGlobalVar(nameTokenSymbolId);
+                if (isGlobal) Globals::MasterVariableFrame->insertGlobalVar(nameTokenSymbolId);
                 else {
-                    isGlobal = ParserFrame::guessGlobalVarAndInsertLocalIfNot(nameTokenSymbolId);
+                    isGlobal = ParserFrame::guessGlobalVarAndInsertLocalIfNot(*mEnvPtr,nameTokenSymbolId);
                 }
                 currentExpression = std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
             }
@@ -559,9 +560,9 @@ namespace DreiZehn {
             }
 
             bool isGlobal = peekOffset(-2).mType == TokenType::Global;
-            if (isGlobal) Globals::insertGlobalVar(nameTokenSymbolId);
+            if (isGlobal) Globals::MasterVariableFrame->insertGlobalVar(nameTokenSymbolId);
             else {
-                isGlobal = ParserFrame::guessGlobalVarAndInsertLocalIfNot(nameTokenSymbolId);
+                isGlobal = ParserFrame::guessGlobalVarAndInsertLocalIfNot(*mEnvPtr,nameTokenSymbolId);
             }
             return std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
         }

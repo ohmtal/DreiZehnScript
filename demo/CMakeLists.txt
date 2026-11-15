@@ -73,7 +73,7 @@ set (LINK_LIBS)
 #     DreiZehn
 # )
 # =============== DreiZehn >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-set(DREIZEHN_DIR "../" CACHE PATH "Path to DreiZehn Script")
+set(DREIZEHN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../" CACHE PATH "Path to DreiZehn Script")
 set(DREIZEHN_CMAKE ${DREIZEHN_DIR}/src/DreiZehn.cmake)
 
 if(NOT EXISTS ${DREIZEHN_CMAKE})

@@ -572,8 +572,8 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - [X] Globals::gCurEnv / gMainEnv
         - onMethodCall(uint32_t => onMethodCall(Environment& env, uint32_t
         -> ValueObject::onMethodCall(methodId, => ValueObject::onMethodCall(env, methodId,
-    - [ ] GlobalVarList to Enviroment
-    - [ ] PrintRuntimeError
+    - [X] PrintRuntimeError
+    - [X] GlobalVarList to Enviroment now using Globals::MasterVariableFrame-> , i fix this later
     - [ ] OnBreath ?!
         
 - [ ] VariableFrame: 
@@ -583,7 +583,7 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - NOTE: i started but restored again .. must think about it more.
     - [ ] globals should use register like in DLS
     - [ ] Interpreter: locals should have a offset and not spawn a new Variable frame
-    - [ ] add env to VM and get rid of : Globals::MasterVariableFrame 
+    - [ ] IMPORTANT!  get rid of : Globals::MasterVariableFrame 
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 

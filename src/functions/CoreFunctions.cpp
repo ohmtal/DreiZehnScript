@@ -146,9 +146,9 @@ namespace DreiZehn {
             return true;
         }, "Print the current GarbageCollection objects, call it with param 1 to show only the not assigned");
         // ---------------------------------------------------------------------
-        RegisterFunction("core::printGlob", [](ValueSpan args, Value& ret) -> bool {
+        RegisterFunction("core::printGlob", [&env](ValueSpan args, Value& ret) -> bool {
             Tools::printf("---------------- Globals ------------------\n");
-            for (auto & id: Globals::GlobalVarList) {
+            for (auto & id: Globals::MasterVariableFrame->mGlobalsVarList) {
                 Value* valPtr = Globals::MasterVariableFrame->getVariablePtr(id);
                 Tools::printf("[%zu] %s = %s\n "
                     , id, SymbolTable::getName(id).c_str()

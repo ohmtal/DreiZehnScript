@@ -45,6 +45,9 @@ private:
 
     Environment* mParentEnv = nullptr;
     VariableFrame* mVariableFrame = nullptr;
+
+
+
 public:
 
     Environment() : mParentEnv(nullptr) {

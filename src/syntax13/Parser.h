@@ -15,12 +15,19 @@
 #include "core/AstNode.h"
 
 namespace DreiZehn{
-struct Environment;
-namespace ParserFrame {
+
+struct ParserFrame {
+    // -- Function Vars ---------------
+    std::vector<uint32_t> mFunctionVariables;
+    bool mBlockInFunction = false;
+    std::vector<TokenType> mBlockOpenTypes;
+    // -------------------------------------------------------------------------
+    bool isFunctionVar(uint32_t symId);
+    void insertFunctionVar(uint32_t symId);
     bool guessGlobalVarAndInsertLocalIfNot(Environment& env, uint32_t symId);
     void startFunc(uint32_t funcSymId);
     void endFunc(uint32_t funcSymId);
-} //namespace
+}; // ParserFrame
 
 
 class Parser {
@@ -29,6 +36,7 @@ private:
     size_t mPos = 0;
     Environment* mEnvPtr;
 
+    ParserFrame parserFrame;
 
     // ------------------------------
 

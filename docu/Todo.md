@@ -583,7 +583,7 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
             - this not: `a = print \`
             - isContinueToken check isMathType and it is 
     
-- [ ] ParserFrame is also global !
+- [X] ParserFrame is also global !
     
 - [ ] ByteCode
     - encapsulate VM with chunk in a class/struct 

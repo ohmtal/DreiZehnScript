@@ -576,11 +576,12 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - [X] GlobalVarList to Enviroment now using Globals::MasterVariableFrame-> , i fix this later
     - [ ] OnBreath ?!
         
-- [ ] VariableFrame: 
+- [ ] VariableFrame:
     - the key is: guessGlobalVarAndInsertLocalIfNot - here i could resolve the index 
     - bytecode: but whats about the redundant CompilerScope ? i guess this is obsolete then ?! 
     - save varcount then in AST Node! 
     - NOTE: i started but restored again .. must think about it more.
+    - [ ] VariableFrame stuff can be added directly to Enviroment
     - [ ] globals should use register like in DLS
     - [ ] Interpreter: locals should have a offset and not spawn a new Variable frame
     - [ ] IMPORTANT!  get rid of : Globals::MasterVariableFrame 

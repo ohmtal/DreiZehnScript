@@ -269,7 +269,7 @@ namespace DreiZehn::FunctionMap {
     void RegisterScriptEvent( Environment* envPtr, ScriptEvent& event,
                               const std::string& funcName, const std::vector<std::string>& parameters
                               , const std::string& desc );
-    Value FireScriptEvent( ScriptEvent& event, ValueVector arguments);
+    Value FireScriptEvent( Environment& env, ScriptEvent& event, ValueVector arguments);
 
 
 } //namespace DreiZehn::FunctionMap

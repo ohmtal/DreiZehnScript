@@ -234,7 +234,7 @@ int main(int argc, char* argv[]) {
     };
     // -------------------------------------------------------------------------
     // Core::Eval("flux::Load", env);
-    FunctionMap::FireScriptEvent(evSetup,{});
+    FunctionMap::FireScriptEvent(env,evSetup,{});
     // -------------------------------------------------------------------------
 
     if ( !app.InitSDL() ) return 1;
@@ -245,29 +245,29 @@ int main(int argc, char* argv[]) {
 
     // -------------------------------------------------------------------------
     // Core::Eval("flux::Init", env);
-    FunctionMap::FireScriptEvent(evInit,{});
+    FunctionMap::FireScriptEvent(env,evInit,{});
     // -------------------------------------------------------------------------
     app.OnLoopBegin = []() {
         // FIXME
         // ElfSDL3::ClearInputFrameTicks();
     };
-    app.OnRender = [&](SDL_Renderer* renderer) {
+    app.OnRender = [&env, &evRender](SDL_Renderer* renderer) {
 
         // Core::Eval("flux::Render", env);
-        FunctionMap::FireScriptEvent(evRender,{Value(BaseFlux::getFrameTime() * 100.f)});
+        FunctionMap::FireScriptEvent(env,evRender,{Value(BaseFlux::getFrameTime() * 100.f)});
 
         if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent)) gShowConsole = !gShowConsole;
         gConsole.Draw("Console",&gShowConsole);
     };
 
     // -------------------------------------------------------------------------
-    app.OnUpdate = [&](const float dt) {
+    app.OnUpdate = [](const float dt) {
         //FIXME
         // if (gDoUpdateCall)Con::executef("OnUpdate", dt);
         // engineGlue::process((SimTime)(dt * 1000.f));
     };
     // -------------------------------------------------------------------------
-    app.OnEvent = [&](const SDL_Event& event) {
+    app.OnEvent = [&env,&evOnKey, &evOnMouse](const SDL_Event& event) {
         if (app.getImGuiIO())  {
             if (app.getImGuiIO()->WantTextInput) {
             if (event.type == SDL_EVENT_KEY_DOWN ||
@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
             {
 
 
-                FunctionMap::FireScriptEvent(evOnKey, {
+                FunctionMap::FireScriptEvent(env,evOnKey, {
                                 Value(event.key.key)
                                 , Value(event.type == SDL_EVENT_KEY_DOWN )
                                 , Value (event.key.mod)
@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
             {
 
 
-                FunctionMap::FireScriptEvent(evOnMouse, {
+                FunctionMap::FireScriptEvent(env,evOnMouse, {
                     Value(gMousePos.x), Value(gMousePos.y)
                     , Value( event.button.button)
                     , Value(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN )
@@ -325,9 +325,9 @@ int main(int argc, char* argv[]) {
 
     };
 
-    app.OnShutDown = [&]() {
+    app.OnShutDown = [&env,&evShutDown]() {
         // Core::Eval("flux::ShutDown", env);
-        FireScriptEvent(evShutDown,{});
+        FireScriptEvent(env,evShutDown,{});
     };
 
     app.Execute();

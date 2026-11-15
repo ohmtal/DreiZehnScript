@@ -123,12 +123,9 @@ enum NodeFlags {
 
 struct ASTNode {
     NodeType mNodeType = NodeType::BaseNode;
+    // linenumber is set in Parser.
     uint32_t mLineNumber = 0;
     uint32_t mFlags = 0; //node flags
-
-    ASTNode () {
-      //FIXME   mLineNumber =  Globals::currentScriptLineNumber;
-    }
 
     virtual ~ASTNode() = default;
 

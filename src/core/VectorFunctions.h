@@ -16,6 +16,7 @@
 #include "core/ValueObject.h"
 #include "core/FunctionMap.h"
 #include "core/GarbageCollection.h"
+#include "Environment.h"
 
 namespace DreiZehn {
 

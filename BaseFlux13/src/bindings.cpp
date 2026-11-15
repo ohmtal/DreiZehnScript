@@ -268,9 +268,9 @@ void RegisterBaseFluxFunctions(Environment& env) {
 //                         float scale = 1.f, const SDL_Color& color = {100,100,100,255},
 //                         bool doShadow = false, const SDL_Color& shadowColor = { 60,60,60,255});
 //
-    FunctionMap::RegisterFunction("flux::Text", [](std::span<Value> args, Value& ret) -> bool {
+    FunctionMap::RegisterFunction("flux::Text", [&env](std::span<Value> args, Value& ret) -> bool {
         if (args.size() < 3 || !args[2].isString()) {
-            Tools::PrintRuntimeError("flux::Text: Missing Parameter");
+            env.PrintRuntimeError("flux::Text: Missing Parameter");
             return false;
         }
         float x = args[0].getFloat();
@@ -301,9 +301,9 @@ void RegisterBaseFluxFunctions(Environment& env) {
 
 
     // ---------------------------------
-    FunctionMap::RegisterFunction("flux::DrawRect", [](std::span<Value> args, Value& ret) -> bool {
+    FunctionMap::RegisterFunction("flux::DrawRect", [&env](std::span<Value> args, Value& ret) -> bool {
         if (args.size() < 3 || !args[0].isObjectPointer() || !args[1].isObjectPointer()) {
-            Tools::PrintRuntimeError("flux::DrawRect: Missing Parameter");
+            env.PrintRuntimeError("flux::DrawRect: Missing Parameter");
             return false;
         }
         SDL_FRect rect;

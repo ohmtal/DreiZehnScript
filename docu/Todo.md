@@ -552,7 +552,7 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 
 ### <<<<< internal 0.90 ----- 0.91 >>>>>>>
 
-- [ ] work on parser
+- [X] work on parser
     - [X] renamed parseStatements to parse and parseLine to parseStatements
     - [X] parseStatements changed to switch/case and added eol/semicolon here
     - [X] ParseIdenifier separated in it's own function 
@@ -565,16 +565,31 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - [X] runtime error current line is missing after i removed the globals
     - NOTE: ParseScriptToAST is nearly empty now !! 
     - [X] getLine on end check fail - linenumber is wrong in block ! -- fetch the linenumber from nodes :)
-    - [ ] some more ?! .. 
     
 - [X] added types from DLS and put it into core/Types.h
-- [ ] continue with Globals cleanup! 
+- [X] continue with Globals cleanup! 
     - [X] Globals::gCurEnv / gMainEnv
         - onMethodCall(uint32_t => onMethodCall(Environment& env, uint32_t
         -> ValueObject::onMethodCall(methodId, => ValueObject::onMethodCall(env, methodId,
     - [X] PrintRuntimeError
     - [X] GlobalVarList to Enviroment now using Globals::MasterVariableFrame-> , i fix this later
-    - [ ] OnBreath ?!
+    - [~] OnBreath ?!
+        
+- [ ] new created issues
+    - [X] Variable NOT found! => i guess it's the GlobalVarList 
+    - [X] Backslash not working correctly look at scripts/fenster.13 
+        - its not working when in parameter scan when it's directly after function call
+            - this works: `a = print 0\`
+            - this not: `a = print \`
+            - isContinueToken check isMathType and it is 
+    
+- [ ] ParserFrame is also global !
+    
+- [ ] ByteCode
+    - encapsulate VM with chunk in a class/struct 
+        - MasterChunk
+        - CompilerScope scope
+        - ValueVector locals
         
 - [ ] VariableFrame:
     - the key is: guessGlobalVarAndInsertLocalIfNot - here i could resolve the index 

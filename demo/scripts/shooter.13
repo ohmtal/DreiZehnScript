@@ -3,7 +3,6 @@ import Core
 import Math
 import String
 import Fenster
-import Vector
 
 WIDTH = 320
 HEIGHT = 240

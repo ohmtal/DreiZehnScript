@@ -148,7 +148,7 @@ bool isMathType(const Token& op) {
     || op.mType == TokenType::DotDot
     || op.mType == TokenType::DotAssign
     || op.mType == TokenType::Assign
-    || op.mType == TokenType::BackSlash
+    // NOT! || op.mType == TokenType::BackSlash
     || isInlineMathType(op.mType)
     || isMathAssignOperatorType(op.mType)
     ;

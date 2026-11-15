@@ -143,7 +143,7 @@ public:
             return it->second.get();
         }
 
-        if (this != Globals::MasterVariableFrame &&  isGlobalVar(id)) {
+        if (this != Globals::MasterVariableFrame &&  Globals::MasterVariableFrame->isGlobalVar(id)) {
             return Globals::MasterVariableFrame->getVariablePtr(id,isAssignVar);
         }
 

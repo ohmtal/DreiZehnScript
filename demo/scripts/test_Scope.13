@@ -4,10 +4,19 @@ import Core
 global GlobalObject = 0
 global globalVar = 0
 
+# function mhh p1
+#     print "p1:" p1 "globalVar:" globalVar
+# end
+# mhh 10
+#
+# return
+
+
 
 
 while globalVar < 10; globalVar++; printraw globalVar " ";  end;
 printraw "\n"
+
 
 fn init
     GlobalObject = Object::new

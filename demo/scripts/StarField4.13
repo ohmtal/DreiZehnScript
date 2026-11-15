@@ -6,7 +6,6 @@ import Core
 import Math
 import String
 import SDL3
-import Vector
 
 print " StarField IV (like 2 but local vars) @13 startup...."
 

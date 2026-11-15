@@ -25,71 +25,33 @@
 #endif
 
 namespace DreiZehn {
-    class Environment;
     class VariableFrame;
-    // class VariableMarshaller;
 
     // ------------------------------------------
-    // const double EPSILON = 1e-9;
-
-
     inline std::function<bool()> OnBreath = nullptr;
-    // bool BaseBreath();
-
-
-
     inline bool BaseBreath() {
         if (OnBreath) {
             return OnBreath();
         }
         return true;
     }
-
-
+    // ------------------------------------------
 
 namespace Globals {
     inline bool ByteCodeMode = false;
     inline bool ByteCodeRunning = false;
 
-    // inline int currentScriptLineNumber = 0;
-    // inline std::string currentScriptLine =  "";
-    // ------
-    // inline VariableMarshaller* Marshall;
     // ------
     inline bool shutDownRUNNING = false;
     // ------
-    // i want to track the current Env!
-    // // inline Environment* gCurEnv = nullptr;
-    // // inline Environment* gMainEnv = nullptr;
 
     inline VariableFrame* MasterVariableFrame = nullptr;
 
-    // // as sorted list for fast binary_search
-    // inline std::vector<uint32_t> GlobalVarList;
-    // inline bool isGlobalVar(uint32_t id) {
-    //       return std::binary_search(GlobalVarList.begin(), GlobalVarList.end(), id);
-    // }
-    // inline bool insertGlobalVar(uint32_t id) {
-    //     if (isGlobalVar(id)) return false;
-    //     GlobalVarList.push_back(id);
-    //
-    //     // should be done once but i want to be sure it's done!
-    //     std::sort(GlobalVarList.begin(), GlobalVarList.end());
-    //
-    //     return true;
-    // }
-    // ------
-    // ------
 #ifdef DREIZEHN_DEBUG
     inline  bool gDumpStateNodes = false; //Debug
     inline  bool gShowVariableDebug = false; //Debug
 #endif
 }
-
-// // namespace Tools {
-// //     // void PrintParseError(const std::string& message , const std::string& p2 = "", const std::string& p3 = "");
-// //     // void PrintRuntimeError(const std::string& message, const std::string& p2 = "", const std::string& p3 = "");
-// // }
 
 
 } //namespace DreiZehn

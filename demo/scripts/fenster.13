@@ -6,7 +6,7 @@ import String
 import Fenster
 
 -- include filename noExec
-include "common/Pixel/PixelFire.13" true
+include "../common/Pixel/PixelFire.13" true
 
 define WINDOW_W = 160
 define WINDOW_H 100

@@ -1702,7 +1702,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // UnaryMinusExpression
     // -------------------------------------------------------------------------
-    inline Value UnaryMinusExpression::evaluate(Environment& env) {
+    Value UnaryMinusExpression::evaluate(Environment& env) {
         if (!mExpr) return NumberNullValue;
         Value v = mExpr->evaluate(env);
         if (v.isInt()) return Value(v.asFastInt() * -1);

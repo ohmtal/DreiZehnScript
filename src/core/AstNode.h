@@ -127,7 +127,7 @@ struct ASTNode {
     uint32_t mFlags = 0; //node flags
 
     ASTNode () {
-        mLineNumber =  Globals::currentScriptLineNumber;
+      //FIXME   mLineNumber =  Globals::currentScriptLineNumber;
     }
 
     virtual ~ASTNode() = default;

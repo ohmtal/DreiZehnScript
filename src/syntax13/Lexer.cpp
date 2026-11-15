@@ -12,8 +12,37 @@ namespace DreiZehn {
 std::vector<Token> Lexer::tokenize() {
     std::vector<Token> tokens;
     while (peek() != '\0') {
-        // // ----------------------------------------------------------------
+        // ----------------------------------------------------------------
+        if (peek() == '\\') {
+            advance();
+            while (peek() != '\n') advance(); //everything until line break
+            advance(); // not the linebreak
+            tokens.push_back({TokenType::BackSlash, "Backslash"});
+        }
+
+        if (peek() == '\n') { advance(); tokens.push_back({TokenType::EOLToken, "LINEBREAK"}); continue; }
+
+
         if (std::isspace(peek())) { advance(); continue; }
+        // ----------------------------------------------------------------
+        // ---------- Comment ---------------
+        if (tokens.size() > 0  && tokens.back().mType == TokenType::EOLToken) {
+            if (
+                (peek() == '-' && peekNext() == '-' ) ||
+                (peek() == '/' && peekNext() == '/' )
+            ) {
+                advance();advance(); //eat 2
+                while ( peek() != '\0') {
+                    if (peek() == '\n' ) {
+                        advance();
+                        tokens.push_back({TokenType::EOLToken, "\n"});
+                        break; //end of line
+                    }
+                    advance();
+                }
+                continue;
+            }
+        }
         // ----------------------------------------------------------------
         if (peek() == '.' && peekNext() == '.') { advance();advance(); tokens.push_back({TokenType::DotDot, ".."}); continue; }
         if (peek() == '.' && peekNext() == '=') { advance();advance(); tokens.push_back({TokenType::DotAssign, ".="}); continue; }
@@ -276,15 +305,11 @@ std::vector<Token> Lexer::tokenize() {
         if (peek() == '#') {
             advance(); // eat '#'
             while ( peek() != '\0') {
-                if (peek() == '\\' && peekNext() == 'n' ) {
-                    advance();advance();
+                if (peek() == '\n' ) {
+                    advance();
+                    tokens.push_back({TokenType::EOLToken, "\n"});
                     break; //end of line
                 }
-                // NOT!
-                // if (peek() == '#') {
-                //     advance();
-                //     break;
-                // }
                 advance();
             }
             continue;

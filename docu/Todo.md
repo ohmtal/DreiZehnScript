@@ -550,6 +550,19 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 
 - [X] Tools::LogHandler should be added to Init
 
+### -- internal 0.91 -----
+
+- [ ] work on parser
+    - [X] renamed parseStatements to parse and parseLine to parseStatements
+    - [X] parseStatements changed to switch/case and added eol/semicolon here
+    - [X] ParseIdenifier separated in it's own function 
+    - [X] get rid of globals currentline !! used in AST Node !!
+    - [X] full code instead of line by line  !!
+    - [X] Blockstack not longer working !!! 
+    - [X] Backslash
+    - [X] EOL 
+    - [X] '--' and '//' comments 
+    - [X] runtime error current line is missing after i removed the globals
 
 - [ ] VariableFrame: 
     - the key is: guessGlobalVarAndInsertLocalIfNot - here i could resolve the index 
@@ -558,11 +571,14 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - NOTE: i started but restored again .. must think about it more.
     - [ ] globals should use register like in DLS
     - [ ] Interpreter: locals should have a offset and not spawn a new Variable frame
-    
+    - [ ] add env to VM and get rid of : Globals::MasterVariableFrame 
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 
 this a lot of times i have a monster sized code then.
+
+
+
 
 
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 

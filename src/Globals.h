@@ -56,8 +56,8 @@ namespace Globals {
     inline bool ByteCodeMode = false;
     inline bool ByteCodeRunning = false;
 
-    inline int currentScriptLineNumber = 0;
-    inline std::string currentScriptLine =  "";
+    // inline int currentScriptLineNumber = 0;
+    // inline std::string currentScriptLine =  "";
     // ------
     // inline VariableMarshaller* Marshall;
     // ------

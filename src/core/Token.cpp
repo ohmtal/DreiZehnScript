@@ -88,6 +88,9 @@ const char* tokenTypeToString(TokenType type) {
         case TokenType::DotDot:         return "DotDot"; //String concat
         case TokenType::DotAssign:      return "DotAssign"; //String concat
 
+        case TokenType::BackSlash:      return "BackSlash";
+        case TokenType::EOLToken:       return "End of Line";
+
         case TokenType::EOFToken:       return "EOFToken";
 
         default:                        return "UnknownToken";
@@ -144,8 +147,8 @@ bool isMathType(const Token& op) {
     || op.mType == TokenType::KeyValue
     || op.mType == TokenType::DotDot
     || op.mType == TokenType::DotAssign
-
     || op.mType == TokenType::Assign
+    || op.mType == TokenType::BackSlash
     || isInlineMathType(op.mType)
     || isMathAssignOperatorType(op.mType)
     ;
@@ -162,6 +165,7 @@ bool isContinueToken(const Token& op) {
     && op.mType != TokenType::ElIf
     && op.mType != TokenType::RSquare
     && op.mType != TokenType::RCurly
+    && op.mType != TokenType::EOLToken
     && !isMathType(op)
     ;
 }

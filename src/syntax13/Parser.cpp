@@ -10,6 +10,16 @@
 
 namespace DreiZehn {
 
+    enum class BlockType { Function, ForLoop, WhileLoop, IfBlock };
+
+    struct OpenBlock {
+        BlockType mType;
+        uint32_t mFuncNameSymbolId;
+        BlockStatement* mBlockNodePointer;
+        U32 mLineNumber;
+    };
+
+
     namespace ParserFrame {
         // -- Function Vars ---------------
         std::vector<uint32_t> mFunctionVariables;
@@ -57,6 +67,42 @@ namespace DreiZehn {
 
 
     // ----------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // for error message:
+    std::string Parser::getLine(int byLine) {
+        if (byLine < 1) byLine = (int)lineNumber;
+        if (byLine == 0 || !currentCodeStream) {
+            return "";
+        }
+        currentCodeStream->clear();
+        currentCodeStream->seekg(0, std::ios::beg);
+
+        for (std::size_t currentLine = 1; currentLine < byLine; ++currentLine) {
+            currentCodeStream->ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            if (!currentCodeStream) {
+                return "";
+            }
+        }
+        std::string line;
+        if (std::getline(*currentCodeStream, line)) {
+            return line;
+        }
+        return "";
+    }
+
+    void Parser::PrintParseError(const std::string& message
+    , const std::string& p1 ,const std::string& p2 ,const std::string& p3 ) {
+        Tools::errorf("[Parser-ERROR LINE:%d]: %s %s %s %s\n%s\n",lineNumber
+            , message.c_str(),p1.c_str(),p2.c_str(),p3.c_str()
+            , getLine().c_str());
+    }
+    void Parser::PrintParseInfo(const std::string& message
+    , const std::string& p1 ,const std::string& p2 ,const std::string& p3 ) {
+        Tools::printf("[Parser-INFO LINE:%d]: %s %s %s %s\n%s\n",lineNumber
+            , message.c_str(),p1.c_str(),p2.c_str(),p3.c_str()
+            , getLine().c_str());
+    }
+
     // ----------------------------------------------------------------------------
     int Parser::getPrecedence(TokenType type) {
         if (isInlineMathType(type)) return 100;
@@ -89,95 +135,15 @@ namespace DreiZehn {
     }
 
     // ----------------------------------------------------------------------------
-    std::unique_ptr< DreiZehn::Expression > Parser::parsePrimary() {
-
-
-        if (peek().mType == TokenType::Minus) {
-            advance(); // eat '-'
-            auto expr = parseMath(9);
-            return std::make_unique<UnaryMinusExpression>(std::move(expr));
-
-        }
-        else if (peek().mType == TokenType::LParen) {
-            advance();
-
-            auto expr = parseMath();
-
-            if (peek().mType == TokenType::RParen) {
-                advance(); //  ')'
-            } else {
-                Tools::PrintParseError("Error: Missing closing bracket");
-            }
-            return expr;
-        }
-        else if (peek().mType == TokenType::LCurly) {
-            advance();
-
-            // while (peek().mType != TokenType::RCurly || peek().mType == TokenType::EOFToken)
-            // {
-            // }
-            std::vector<std::unique_ptr<Expression>> args;
-            while (isContinueToken(peek())) {
-                size_t lastPos = mPos;
-                args.push_back(parseMath());
-                if (checkCommaBreak(args)) break; //TEST
-                if (lastPos == mPos) {
-                    Tools::PrintParseError("In Curly Brackets:");
-                    break;
-                }
-            }
-            if (peek().mType == TokenType::RCurly) {
-                advance();
-
-                return std::make_unique<ListExpression>(std::move(args));
-            } else {
-                Tools::PrintParseError("Error: Missing closing curly bracket\n");
-            }
-            return nullptr;
-        }
-        else if (peek().mType == TokenType::Not) {
-            advance(); //eat Not
-            auto expr = parseMath();
-            return std::make_unique<BinarySingleRightOpExpression>( TokenType::Not, std::move(expr));
-        }
-        else if (peek().mType == TokenType::Number || peek().mType == TokenType::StringLiteral) {
-            Token t = advance();
-            return std::make_unique<LiteralExpression>(t.mType, t.mValue);
-        }
-        else if (peek().mType == TokenType::BitAnd ) {
-            Token t = advance();
-            auto expr = parseMath();
-            if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
-                expr.get()->mNodeType != NodeType::ObjectFieldExpression)
-            ) {
-                Tools::PrintParseError("Get by Reference (&) need a Variable!");
-                return nullptr;
-            }
-
-            return std::make_unique<VariableReferenceExpression>(std::move(expr));
+    std::unique_ptr<Expression> Parser::parseIdentifier() {
+        std::unique_ptr<Expression> currentExpression = nullptr;
+        Token nameToken = advance();
+        uint32_t nameTokenSymbolId = SymbolTable::insert( nameToken.mValue);
+        Value* constansPointer = FunctionMap::getConstants(nameTokenSymbolId);
+        if (constansPointer != nullptr) {
+            return std::make_unique<ValueExpression>((*constansPointer));
         } else
-        if (peek().mType == TokenType::Mul ) {
-            Token t = advance();
-            auto expr = parseExpression();
-            if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
-                expr.get()->mNodeType != NodeType::ObjectFieldExpression)
-            ) {
-                Tools::PrintParseError("Get by Reference (&) need a Variable!");
-                return nullptr;
-            }
-
-            return std::make_unique<VariablePointerExpression>(std::move(expr));
-        }
-        else
-        if (peek().mType == TokenType::Identifier) {
-            std::unique_ptr<Expression> currentExpression = nullptr;
-            Token nameToken = advance();
-            uint32_t nameTokenSymbolId = SymbolTable::insert( nameToken.mValue);
-            Value* constansPointer = FunctionMap::getConstants(nameTokenSymbolId);
-            if (constansPointer != nullptr) {
-                return std::make_unique<ValueExpression>((*constansPointer));
-            }
-            else if (FunctionMap::IsFunction(nameTokenSymbolId)) {
+            if (FunctionMap::IsFunction(nameTokenSymbolId)) {
                 std::vector<std::unique_ptr<Expression>> args;
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
@@ -186,7 +152,7 @@ namespace DreiZehn {
                     if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
-                        Tools::PrintParseError("In function call:");
+                        PrintParseError("In function call:");
                         break;
                     }
                 }
@@ -222,33 +188,33 @@ namespace DreiZehn {
                         if (checkCommaBreak(args)) break; //TEST
 
                         if (lastPos == mPos) {
-                            Tools::PrintParseError("In method call:");
+                            PrintParseError("In method call:");
                             break;
                         }
                     }
                     currentExpression = std::make_unique<MethodExpression>(std::move(currentExpression), methodSymbolId, std::move(args));
                 }
                 else if (peek().mType == TokenType::Dot) {
-                    Tools::PrintParseError("Field expected after  '.'");
+                    PrintParseError("Field expected after  '.'");
                     advance();
                     break;
                 }
                 else if (peek().mType == TokenType::Arrow) {
-                    Tools::PrintParseError("Method expected after '->'");
+                    PrintParseError("Method expected after '->'");
                     advance(); // eat '->'
                     break;
                 }
                 else if (peek().mType == TokenType::LSquare) {
-                      advance(); // eat '['
-                     std::unique_ptr<Expression> indexExpr = parseMath();
+                    advance(); // eat '['
+                    std::unique_ptr<Expression> indexExpr = parseMath();
 
-                     if (peek().mType != TokenType::RSquare) {
-                         Tools::PrintParseError("expected ']' after array index!");
-                         break;
-                     }
-                     advance(); // eat ']'
-                     currentExpression = std::make_unique<ArrayVariableExpression>(
-                         std::move(currentExpression), std::move(indexExpr));
+                    if (peek().mType != TokenType::RSquare) {
+                        PrintParseError("expected ']' after array index!");
+                        break;
+                    }
+                    advance(); // eat ']'
+                    currentExpression = std::make_unique<ArrayVariableExpression>(
+                        std::move(currentExpression), std::move(indexExpr));
 
                 }
                 else {
@@ -257,7 +223,103 @@ namespace DreiZehn {
             }
             return currentExpression;
 
-        } // TokenType::Identifier
+    }
+    // ----------------------------------------------------------------------------
+    std::unique_ptr< DreiZehn::Expression > Parser::parsePrimary() {
+        Token t = peek();
+        TokenType curType = peek().mType;
+
+        switch (curType) {
+            // ~~~~ LineBreak ~~~~
+            case TokenType::EOLToken:
+                lineNumber++;
+            case TokenType::Semicolon: {
+                advance();
+                break;
+            }
+            // ~~~~ UnaryMinusExpression ~~~~
+            case TokenType::Minus: {
+                advance(); // eat '-'
+                auto expr = parseMath(9);
+                return std::make_unique<UnaryMinusExpression>(std::move(expr));
+                break;
+            }
+            // ~~~~ LParen ~~~~~~
+            case TokenType::LParen: {
+                advance();
+                auto expr = parseMath();
+                if (peek().mType == TokenType::RParen) {
+                    advance(); //  ')'
+                } else {
+                    PrintParseError("Error: Missing closing bracket");
+                }
+                return expr;
+            }
+
+            case TokenType::LCurly: {
+                advance();
+                std::vector<std::unique_ptr<Expression>> args;
+                while (isContinueToken(peek())) {
+                    size_t lastPos = mPos;
+                    args.push_back(parseMath());
+                    if (checkCommaBreak(args)) break; //TEST
+                    if (lastPos == mPos) {
+                        PrintParseError("In Curly Brackets:");
+                        break;
+                    }
+                }
+                if (peek().mType == TokenType::RCurly) {
+                    advance();
+
+                    return std::make_unique<ListExpression>(std::move(args));
+                } else {
+                    PrintParseError("Error: Missing closing curly bracket\n");
+                }
+                return nullptr;
+            }
+
+            case TokenType::Not: {
+                advance(); //eat Not
+                auto expr = parseMath();
+                return std::make_unique<BinarySingleRightOpExpression>( TokenType::Not, std::move(expr));
+            }
+            case TokenType::Number:
+            case TokenType::StringLiteral: {
+                Token t = advance();
+                return std::make_unique<LiteralExpression>(t.mType, t.mValue);
+            }
+            case TokenType::BitAnd:  {
+                Token t = advance();
+                auto expr = parseMath();
+                if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
+                    expr.get()->mNodeType != NodeType::ObjectFieldExpression)
+                ) {
+                    PrintParseError("Get by Reference (&) need a Variable!");
+                    return nullptr;
+                }
+
+                return std::make_unique<VariableReferenceExpression>(std::move(expr));
+            }
+            case TokenType::Mul: {
+                Token t = advance();
+                auto expr = parseExpression();
+                if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
+                    expr.get()->mNodeType != NodeType::ObjectFieldExpression)
+                ) {
+                    PrintParseError("Get by Reference (&) need a Variable!");
+                    return nullptr;
+                }
+
+                return std::make_unique<VariablePointerExpression>(std::move(expr));
+            }
+            case  TokenType::Identifier: {
+                return parseIdentifier();
+            } // TokenType::Identifier
+            default:
+                //not! PrintParseError("parsePrimary :: Unhandled Token:", tokenTypeToString(curType));
+                return nullptr;
+            break;
+        } //switch
 
 
         return nullptr;
@@ -265,10 +327,25 @@ namespace DreiZehn {
 
     // ----------------------------------------------------------------------------
     std::unique_ptr< DreiZehn::Expression > Parser::parseMath(int minPrecedence) {
+
+        if (peek().mType ==  TokenType::BackSlash) {
+            lineNumber++;
+            advance();
+        }
+
+
         auto left = parsePrimary();
 
         while (isMathType(peek())) {
             Token op = peek();
+
+            if (op.mType ==  TokenType::BackSlash) {
+                lineNumber++;
+                advance();
+                continue;
+            }
+
+
             int precedence = getPrecedence(op.mType);
 
             if (precedence < minPrecedence) {
@@ -278,12 +355,12 @@ namespace DreiZehn {
 
             if (op.mType == TokenType::Assign) {
                 if (!left) {
-                    Tools::PrintParseError("Assignment but no Variable Expression!");
+                    PrintParseError("Assignment but no Variable Expression!");
                     return nullptr;
                 }
                 auto rhs = parseMath(0);
                 if (!rhs) {
-                    Tools::PrintParseError("Assignment but no Assign Expression!");
+                    PrintParseError("Assignment but no Assign Expression!");
                     return nullptr;
                 }
                 left = std::make_unique<AssignStatement>(
@@ -293,12 +370,12 @@ namespace DreiZehn {
             }
             else  if (isMathAssignOperatorType(op.mType)) {
                 if (!left) {
-                    Tools::PrintParseError("OP Assignment but no Expression!");
+                    PrintParseError("OP Assignment but no Expression!");
                     return nullptr;
                 }
                 auto rhs = parseMath(0);
                 if (!rhs) {
-                    Tools::PrintParseError("OP Assignment but no Assign Expression!");
+                    PrintParseError("OP Assignment but no Assign Expression!");
                     return nullptr;
                 }
                 left = std::make_unique<AssignOPStatement>(
@@ -310,7 +387,7 @@ namespace DreiZehn {
                 auto trueBranch = parseMath(0);
 
                 if (peek().mType != TokenType::Colon) {
-                    Tools::PrintParseError("Expect ':' after '?'");
+                    PrintParseError("Expect ':' after '?'");
                     return nullptr;
                 }
                 advance();
@@ -322,7 +399,7 @@ namespace DreiZehn {
             }
             else if (isInlineMathType(op.mType)) {
                 if (!left) {
-                    Tools::PrintParseError("Inline OP but no Expression!");
+                    PrintParseError("Inline OP but no Expression!");
                     return nullptr;
                 }
                 left = std::make_unique<BinaryInlineExpression>(
@@ -349,7 +426,7 @@ namespace DreiZehn {
                     if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
-                        Tools::PrintParseError("In method call:");
+                        PrintParseError("In method call:");
                         break;
                     }
                 }
@@ -357,12 +434,12 @@ namespace DreiZehn {
             } else
             if (op.mType == TokenType::KeyValue) {
                 if (!left) {
-                    Tools::PrintParseError("Key Value Assignment but no Key Expression!");
+                    PrintParseError("Key Value Assignment but no Key Expression!");
                     return nullptr;
                 }
                 auto rhs = parseMath(0);
                 if (!rhs) {
-                    Tools::PrintParseError("Key Value Assignment but no Value Expression!");
+                    PrintParseError("Key Value Assignment but no Value Expression!");
                     return nullptr;
                 }
 
@@ -374,12 +451,12 @@ namespace DreiZehn {
             else
             if (op.mType == TokenType::DotDot) {
                 if (!left) {
-                    Tools::PrintParseError("String Concat Dot Dot but no left!");
+                    PrintParseError("String Concat Dot Dot but no left!");
                     return nullptr;
                 }
                 auto rhs = parseMath(0);
                 if (!rhs) {
-                    Tools::PrintParseError("String Concat Dot Dot but no right!");
+                    PrintParseError("String Concat Dot Dot but no right!");
                     return nullptr;
                 }
 
@@ -391,12 +468,12 @@ namespace DreiZehn {
             else
                 if (op.mType == TokenType::DotAssign) {
                     if (!left) {
-                        Tools::PrintParseError("String Concat Dot Assign but no left!");
+                        PrintParseError("String Concat Dot Assign but no left!");
                         return nullptr;
                     }
                     auto rhs = parseMath(0);
                     if (!rhs) {
-                        Tools::PrintParseError("String Concat Dot Assign bu no right!");
+                        PrintParseError("String Concat Dot Assign bu no right!");
                         return nullptr;
                     }
 
@@ -447,7 +524,7 @@ namespace DreiZehn {
             if (peek().mType == TokenType::RParen) {
                 advance(); // skip ')'
             } else {
-                Tools::PrintParseError("Error: Missing closing brackets");
+                PrintParseError("Error: Missing closing brackets");
             }
             return expr;
         }
@@ -474,7 +551,7 @@ namespace DreiZehn {
                     if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
-                        Tools::PrintParseError("In function call:");
+                        PrintParseError("In function call:");
                         break;
                     }
                 }
@@ -492,48 +569,8 @@ namespace DreiZehn {
         return nullptr;
     }
     // ----------------------------------------------------------------------------
-    std::vector< std::unique_ptr< DreiZehn::ASTNode > > Parser::parseStatements() {
-        std::vector<std::unique_ptr<ASTNode>> statements;
-        while (peek().mType != TokenType::EOFToken) {
-            if (peek().mType == TokenType::Semicolon) {
-                advance();
-                continue;
-            }
-
-            #ifdef DREIZEHN_DEBUG
-            if (Globals::gDumpStateNodes) {
-                Tools::printf("---------- new statement ------ Pos:%d \n", (int)mPos);
-                for(size_t i = mPos; i < mTokens.size() ; i++) {
-                    Tools::printf("Token %d: %d :: %s\n", i, (int)mTokens[i].mType, tokenTypeToString(mTokens[i].mType));
-                }
-            }
-            #endif
-            size_t startIndex = mPos;
-            auto stmt = parseLine();
-            #ifdef DREIZEHN_DEBUG
-            if (Globals::gDumpStateNodes) {
-                Tools::printf("---------- LINE parsed ------ Pos:%d next:%d :: %s\n", (int)mPos, (int)mTokens[mPos].mType, tokenTypeToString(mTokens[mPos].mType));
-            }
-            #endif
-            if (stmt) {
-                statements.push_back(std::move(stmt));
-            }
-            if (peek().mType == TokenType::Semicolon) {
-                advance();
-            }
-
-
-            else if (mPos == startIndex) {
-                Tools::errorf("Syntax-Error: Unexpected token '%s' (%s:%d)\n"
-                , tokenTypeToString(mTokens[mPos].mType),Globals::currentScriptLine.c_str()
-                , Globals::currentScriptLineNumber );
-                advance();
-            }
-        }
-        return statements;
-    }
     // ----------------------------------------------------------------------------
-    std::unique_ptr< DreiZehn::ASTNode > Parser::parseLine() {
+    std::unique_ptr< DreiZehn::ASTNode > Parser::parseStatement() {
 
 
         TokenType tokenType = peek().mType;
@@ -543,7 +580,7 @@ namespace DreiZehn {
 
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::PrintParseError("function name required after fn\n");
+                    PrintParseError("function name required after fn\n");
                     return nullptr;
                 }
 
@@ -569,14 +606,14 @@ namespace DreiZehn {
                 advance(); //eat range
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::PrintParseError("Variable name after range expected");
+                    PrintParseError("Variable name after range expected");
                     return nullptr;
                 }
                 std::string varName = advance().mValue;
 
                 auto countExpr = parseMath();
                 if (!countExpr) {
-                    Tools::PrintParseError("forRange invalid count expresssion.");
+                    PrintParseError("forRange invalid count expresssion.");
                     return nullptr;
                 }
                 ParserFrame::mBlockOpenTypes.push_back(tokenType);
@@ -590,13 +627,13 @@ namespace DreiZehn {
                 advance(); //eat
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::PrintParseError("variable name after range expected");
+                    PrintParseError("variable name after range expected");
                     return nullptr;
                 }
                 std::string varName = advance().mValue;
                 auto varExpr = parseMath();
                 if (!varExpr) {
-                    Tools::PrintParseError("Invalid variable expression");
+                    PrintParseError("Invalid variable expression");
                     return nullptr;
                 }
                 ParserFrame::mBlockOpenTypes.push_back(tokenType);
@@ -609,7 +646,7 @@ namespace DreiZehn {
                 advance();
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::PrintParseError("Variable name after for expected");
+                    PrintParseError("Variable name after for expected");
                     return nullptr;
                 }
                 std::string varName = advance().mValue;
@@ -619,7 +656,7 @@ namespace DreiZehn {
                 auto step= parseMath();
 
                 if (!start || !end ){
-                    Tools::PrintParseError("for invalid  borders:");
+                    PrintParseError("for invalid  borders:");
                     return nullptr;
                 }
 
@@ -711,7 +748,7 @@ namespace DreiZehn {
                 advance(); //eat define
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::PrintParseError("variable name after define expected");
+                    PrintParseError("variable name after define expected");
                     return nullptr;
                 }
                 std::string varName = advance().mValue;
@@ -721,12 +758,12 @@ namespace DreiZehn {
                 auto expr = parseMath();
 
                 if (!expr) {
-                    Tools::PrintParseError("Value after define expected");
+                    PrintParseError("Value after define expected");
                     return nullptr;
                 }
 
                 if (!Globals::gCurEnv) {
-                    Tools::PrintParseError("Current enviroment not set!");
+                    PrintParseError("Current enviroment not set!");
                     return nullptr;
                 }
 
@@ -742,17 +779,17 @@ namespace DreiZehn {
                 advance();
 
                 if (peek().mType != TokenType::Identifier) {
-                    Tools::PrintParseError("Variable name after import expected");
+                    PrintParseError("Variable name after import expected");
                     return nullptr;
                 }
                 std::string modname = advance().mValue;
 
                 if (!Globals::gCurEnv) {
-                    Tools::PrintParseError("Import: current enviroment not set!");
+                    PrintParseError("Import: current enviroment not set!");
                     return nullptr;
                 }
                 if (modname.empty()) {
-                    Tools::PrintParseError("Import: module name empty.");
+                    PrintParseError("Import: module name empty.");
                     return nullptr;
                 }
                 // direct import
@@ -760,7 +797,7 @@ namespace DreiZehn {
                     FunctionMap::ModuleRegistry::LoadAll(*Globals::gCurEnv);
                 } else {
                     if (!FunctionMap::ModuleRegistry::Load(modname, *Globals::gCurEnv)) {
-                        Tools::PrintParseError(("Failed to load Module: " + modname).c_str());
+                        PrintParseError(("Failed to load Module: " + modname).c_str());
                     }
                 }
 
@@ -773,13 +810,13 @@ namespace DreiZehn {
                 advance();
 
                 if (peek().mType != TokenType::StringLiteral) {
-                    Tools::PrintParseError("Filename after include expected");
+                    PrintParseError("Filename after include expected");
                     return nullptr;
                 }
                 std::string filename = advance().mValue;
 
                 if (filename.empty()) {
-                    Tools::PrintParseError("Include: filename empty.");
+                    PrintParseError("Include: filename empty.");
                     return nullptr;
                 }
                 auto noExecCond = parseMath();
@@ -798,6 +835,13 @@ namespace DreiZehn {
             }
             break;
             // -----------------------------------------------------------------
+            case TokenType::EOLToken:
+                lineNumber++;
+            case TokenType::Semicolon: {
+                advance();
+                break;
+            }
+            // -----------------------------------------------------------------
 
 
             default: {
@@ -809,6 +853,179 @@ namespace DreiZehn {
 
         return parseComparison();
     }
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // std::vector< std::unique_ptr< DreiZehn::ASTNode > > Parser::parse() {
+    std::shared_ptr<BlockStatement> Parser::parse() {
+        std::vector<std::unique_ptr<ASTNode>> statements;
+
+        std::vector<OpenBlock> blockStack;
+        auto mainProgram = std::make_shared<BlockStatement>();
+        size_t statment_peek = 0;
+        blockStack.push_back({BlockType::IfBlock, 0, mainProgram.get(), 0});
+
+
+        lineNumber = 1;
+        while (peek().mType != TokenType::EOFToken) {
+
+            #ifdef DREIZEHN_DEBUG
+            if (Globals::gDumpStateNodes) {
+                Tools::printf("---------- new statement ------ Pos:%d \n", (int)mPos);
+                for(size_t i = mPos; i < mTokens.size() ; i++) {
+                    Tools::printf("Token %d: %d :: %s\n", i, (int)mTokens[i].mType, tokenTypeToString(mTokens[i].mType));
+                }
+            }
+            #endif
+
+            size_t startIndex = mPos;
+            auto stmt = parseStatement();
+
+
+            #ifdef DREIZEHN_DEBUG
+            if (Globals::gDumpStateNodes) {
+                Tools::printf("---------- LINE parsed ------ Pos:%d next:%d :: %s\n", (int)mPos, (int)mTokens[mPos].mType, tokenTypeToString(mTokens[mPos].mType));
+            }
+            #endif
+            if (stmt) {
+                stmt->mLineNumber = lineNumber;
+                statements.push_back(std::move(stmt));
+            }
+
+            if (mPos == startIndex) {
+                Tools::errorf("Syntax-Error: Unexpected token '%s' (%s:%d)\n"
+                , tokenTypeToString(mTokens[mPos].mType),getLine().c_str()
+                , lineNumber );
+                advance();
+            }
+            //------------------------------------------------------------------
+            // Blocks
+            //------------------------------------------------------------------
+            if (peekPrev().mType == TokenType::EOLToken) {
+                for (size_t iter = statment_peek; iter < statements.size(); iter++) {
+                    auto& ast = statements[iter];
+                    if (!ast) return nullptr;
+
+                    // --- fn ---
+                    if (auto* startNode = dynamic_cast<FunctionDefineStartNode*>(ast.get())) {
+                        blockStack.push_back({BlockType::Function, startNode->mFnNameSymbolId, nullptr, lineNumber});
+                        mainProgram->mBody.push_back(std::make_shared<FunctionDefineStartNode>(startNode->mFnNameSymbolId)) ;
+                        continue;
+                    }
+
+
+                    bool isIf    = ast->mNodeType == NodeType::IfStatement;
+                    bool isFor   = ast->mNodeType == NodeType::ForStatement
+                    || ast->mNodeType == NodeType::RangeStatement
+                    || ast->mNodeType == NodeType::ForEachStatement;
+                    bool isWhile = ast->mNodeType == NodeType::WhileStatement;
+
+
+                    if (isFor || isWhile || isIf ) {
+                        std::shared_ptr<ASTNode> sharedBase = std::move(ast);
+                        std::shared_ptr<BlockStatement> sharedLoop = std::static_pointer_cast<BlockStatement>(sharedBase);
+
+                        BlockType bType = isIf ? BlockType::IfBlock : (isFor ? BlockType::ForLoop : BlockType::WhileLoop);
+                        BlockStatement* blockPtr = sharedLoop.get();
+
+                        auto& outerBlock = blockStack.back();
+                        if (outerBlock.mType == BlockType::Function) {
+                            FunctionMap::RegisteredScriptFunctions[outerBlock.mFuncNameSymbolId].body.push_back(sharedLoop);
+
+                        } else
+                            // ifBlock
+                            if (outerBlock.mType == BlockType::IfBlock) {
+                                auto* parentIf = dynamic_cast<IfStatement*>(outerBlock.mBlockNodePointer);
+                                if (parentIf && parentIf->mElseBranch != nullptr) {
+                                    parentIf->mElseBranch->mBody.push_back(sharedLoop);
+                                } else {
+                                    outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
+                                }
+                            } else
+                                // ForLoop / WhileLoop
+                                if (outerBlock.mType == BlockType::ForLoop
+                                    || outerBlock.mType == BlockType::WhileLoop
+                                ) {
+                                    outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
+                                }
+
+                                blockStack.push_back({bType, 0, blockPtr, lineNumber});
+                            continue;
+                    }
+                    // ---- end -----
+                    else if (ast->mNodeType == NodeType::EndNode) {
+                        if (blockStack.size() <= 1) {
+                            PrintParseError("Syntax-Error: 'end' without starting statement.");
+                            return nullptr;
+                        }
+
+                        blockStack.pop_back();
+
+                        continue;
+                    }
+                    else if (ast->mNodeType == NodeType::ElseMarkerNode) {
+                        if (blockStack.empty() || blockStack.back().mType != BlockType::IfBlock) {
+                            PrintParseError("Syntax-Error: 'else' without matching 'if'.");
+                            return nullptr;
+                        }
+                        auto* actualIf = dynamic_cast<IfStatement*>(blockStack.back().mBlockNodePointer);
+                        if (actualIf) {
+                            auto elseBlock = std::make_shared<BlockStatement>();
+                            actualIf->mElseBranch = elseBlock;
+                        }
+                        continue;
+                    }
+                    else if (ast->mNodeType == NodeType::ElIfStatement) {
+                        if (blockStack.empty() || blockStack.back().mType != BlockType::IfBlock) {
+                            PrintParseError("Syntax-Error: 'elif' without matching 'if'.");
+                            return nullptr;
+                        }
+
+                        auto* parentIf = dynamic_cast<IfStatement*>(blockStack.back().mBlockNodePointer);
+
+
+                        std::shared_ptr<ElIfStatement> elifNode = std::shared_ptr<ElIfStatement>(static_cast<ElIfStatement*>(ast.release()));
+                        parentIf->mElseBranch = elifNode;
+                        blockStack.back().mBlockNodePointer = elifNode.get();
+                        continue;
+                    }
+
+                    // ----------- CURRENT BLOCK -------------
+                    auto& currentBlock = blockStack.back();
+                    std::shared_ptr<ASTNode> sharedAst = std::move(ast);
+
+                    if (currentBlock.mType == BlockType::Function) {
+                        FunctionMap::RegisteredScriptFunctions[currentBlock.mFuncNameSymbolId].body.push_back(sharedAst);
+                    } else {
+                        auto* actualIf = dynamic_cast<IfStatement*>(currentBlock.mBlockNodePointer);
+                        if (currentBlock.mType == BlockType::IfBlock && actualIf && actualIf->mElseBranch != nullptr) {
+                            actualIf->mElseBranch->mBody.push_back(sharedAst);
+                        } else {
+                            currentBlock.mBlockNodePointer->mBody.push_back(sharedAst);
+                        }
+                    }
+                } // for statements
+                statment_peek = statements.size();
+            }
+            //------------------------------------------------------------------
+        }
+
+
+        if (blockStack.size() > 1) {
+            Tools::errorf("Syntax-Error: One or more END statements are missing!\n");
+            Tools::printf(" │─────────────────────────────────────────────────────────────────────\n");
+            Tools::printf(" │ %d open nodes \n", (int)blockStack.size() - 1);
+            Tools::printf(" │─────────────────────────────────────────────────────────────────────\n");
+            for (size_t i = 1; i < blockStack.size() ; i++) {
+                auto& block = blockStack[i];
+                Tools::printf(" │ %04d ├─ %s\n", block.mLineNumber,  getLine().c_str());
+            }
+            Tools::printf(" │\n");
+            return nullptr;
+        }
+
+        return mainProgram;
+    }
+
 } // namespace DreiZehn {
 
 

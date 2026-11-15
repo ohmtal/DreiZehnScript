@@ -68,6 +68,9 @@ namespace DreiZehn{
 
         , KeyValue // =>
 
+        , BackSlash
+        , EOLToken
+
         , NoToken // for peekPrev pos < 1
         , EOFToken
     };

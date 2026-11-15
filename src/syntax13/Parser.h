@@ -29,8 +29,6 @@ private:
     size_t mPos = 0;
 
 
-
-
     // ------------------------------
 
     Token peek() { return mTokens[mPos]; }
@@ -74,16 +72,28 @@ private:
     // 0.6 added short if/then
     std::unique_ptr<Expression> parseMath(int minPrecedence = 0);
 
-    // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parseComparison();
-    // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parseExpression();
+    std::unique_ptr<Expression> parseIdentifier();
 
+
+    std::istream* currentCodeStream;
 public:
-    Parser(std::vector<Token> t) : mTokens(std::move(t)) { }
+    U32 lineNumber = 0;
 
-    std::vector<std::unique_ptr<ASTNode>> parseStatements();
-    std::unique_ptr<ASTNode> parseLine();
+    Parser(std::vector<Token> t, std::istream* in) : mTokens(std::move(t)) {
+        currentCodeStream = in;
+    }
 
+    // std::vector<std::unique_ptr<ASTNode>> parse();
+    std::shared_ptr<BlockStatement> parse();
+    std::unique_ptr<ASTNode> parseStatement();
+
+
+    std::string getLine(int byLine = -1);
+    void PrintParseError(const std::string& message
+    , const std::string& p1 = "",const std::string& p2 = "",const std::string& p3 = "");
+    void PrintParseInfo(const std::string& message
+    , const std::string& p1 = "",const std::string& p2 = "",const std::string& p3 = "");
 };
 } //namespace

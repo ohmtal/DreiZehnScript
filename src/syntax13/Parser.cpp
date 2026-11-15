@@ -10,7 +10,7 @@
 
 namespace DreiZehn {
 
-    enum class BlockType { Function, ForLoop, WhileLoop, IfBlock };
+    enum class BlockType : U8 { Function, ForLoop, WhileLoop, IfBlock, MainBlock };
 
     struct OpenBlock {
         BlockType mType;
@@ -71,20 +71,20 @@ namespace DreiZehn {
     // for error message:
     std::string Parser::getLine(int byLine) {
         if (byLine < 1) byLine = (int)lineNumber;
-        if (byLine == 0 || !currentCodeStream) {
+        if (byLine == 0 || !mCurrentCodeStream) {
             return "";
         }
-        currentCodeStream->clear();
-        currentCodeStream->seekg(0, std::ios::beg);
+        mCurrentCodeStream->clear();
+        mCurrentCodeStream->seekg(0, std::ios::beg);
 
         for (std::size_t currentLine = 1; currentLine < byLine; ++currentLine) {
-            currentCodeStream->ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            if (!currentCodeStream) {
+            mCurrentCodeStream->ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            if (!mCurrentCodeStream) {
                 return "";
             }
         }
         std::string line;
-        if (std::getline(*currentCodeStream, line)) {
+        if (std::getline(*mCurrentCodeStream, line)) {
             return line;
         }
         return "";
@@ -762,13 +762,13 @@ namespace DreiZehn {
                     return nullptr;
                 }
 
-                if (!Globals::gCurEnv) {
+                if (!mEnvPtr) {
                     PrintParseError("Current enviroment not set!");
                     return nullptr;
                 }
 
                 // direct register no token
-                Value value = expr->evaluate(*Globals::gCurEnv);
+                Value value = expr->evaluate(*mEnvPtr);
                 FunctionMap::RegisterConstants(varName, value);
 
                 return nullptr;
@@ -784,7 +784,7 @@ namespace DreiZehn {
                 }
                 std::string modname = advance().mValue;
 
-                if (!Globals::gCurEnv) {
+                if (!mEnvPtr) {
                     PrintParseError("Import: current enviroment not set!");
                     return nullptr;
                 }
@@ -794,9 +794,9 @@ namespace DreiZehn {
                 }
                 // direct import
                 if ( modname == "All") {
-                    FunctionMap::ModuleRegistry::LoadAll(*Globals::gCurEnv);
+                    FunctionMap::ModuleRegistry::LoadAll(*mEnvPtr);
                 } else {
-                    if (!FunctionMap::ModuleRegistry::Load(modname, *Globals::gCurEnv)) {
+                    if (!FunctionMap::ModuleRegistry::Load(modname, *mEnvPtr)) {
                         PrintParseError(("Failed to load Module: " + modname).c_str());
                     }
                 }
@@ -821,7 +821,7 @@ namespace DreiZehn {
                 }
                 auto noExecCond = parseMath();
 
-                auto script = IncludeScriptFile(filename);
+                auto script = IncludeScriptFile(*mEnvPtr, filename);
                 if (!script) return nullptr;
 
                 return std::make_unique<IncludeStatement>(std::move(script), std::move(noExecCond));
@@ -907,7 +907,7 @@ namespace DreiZehn {
 
                     // --- fn ---
                     if (auto* startNode = dynamic_cast<FunctionDefineStartNode*>(ast.get())) {
-                        blockStack.push_back({BlockType::Function, startNode->mFnNameSymbolId, nullptr, lineNumber});
+                        blockStack.push_back({BlockType::Function, startNode->mFnNameSymbolId, nullptr, startNode->mLineNumber});
                         mainProgram->mBody.push_back(std::make_shared<FunctionDefineStartNode>(startNode->mFnNameSymbolId)) ;
                         continue;
                     }
@@ -948,7 +948,7 @@ namespace DreiZehn {
                                     outerBlock.mBlockNodePointer->mBody.push_back(sharedLoop);
                                 }
 
-                                blockStack.push_back({bType, 0, blockPtr, lineNumber});
+                                blockStack.push_back({bType, 0, blockPtr, sharedLoop->mLineNumber});
                             continue;
                     }
                     // ---- end -----
@@ -1017,7 +1017,7 @@ namespace DreiZehn {
             Tools::printf(" │─────────────────────────────────────────────────────────────────────\n");
             for (size_t i = 1; i < blockStack.size() ; i++) {
                 auto& block = blockStack[i];
-                Tools::printf(" │ %04d ├─ %s\n", block.mLineNumber,  getLine().c_str());
+                Tools::printf(" │ %04d ├─ %s\n", block.mLineNumber,  getLine(block.mLineNumber).c_str());
             }
             Tools::printf(" │\n");
             return nullptr;

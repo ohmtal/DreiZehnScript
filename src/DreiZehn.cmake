@@ -38,6 +38,7 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/core/VariableFrame.h
 
     ${CMAKE_CURRENT_LIST_DIR}/core/VectorFunctions.h
+    ${CMAKE_CURRENT_LIST_DIR}/core/Types.h
 
     ${CMAKE_CURRENT_LIST_DIR}/Environment.h
 

@@ -9,8 +9,8 @@
 namespace DreiZehn {
 
 // =============================================================================
-std::vector<Token> Lexer::tokenize() {
-    std::vector<Token> tokens;
+TokenVector Lexer::tokenize() {
+    TokenVector tokens;
     while (peek() != '\0') {
         // ----------------------------------------------------------------
         if (peek() == '\\') {
@@ -25,8 +25,8 @@ std::vector<Token> Lexer::tokenize() {
 
         if (std::isspace(peek())) { advance(); continue; }
         // ----------------------------------------------------------------
-        // ---------- Comment ---------------
-        if (tokens.size() > 0  && tokens.back().mType == TokenType::EOLToken) {
+        // ---------- Comment --------------- !isContinueToken ?! ---------
+        if (tokens.size() == 0  ||  !isContinueToken(tokens.back()) ) {
             if (
                 (peek() == '-' && peekNext() == '-' ) ||
                 (peek() == '/' && peekNext() == '/' )

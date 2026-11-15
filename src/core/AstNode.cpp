@@ -568,14 +568,14 @@ namespace DreiZehn {
             PrintASTError(this, "Invalid Object:", objectPointer.toString());
             return NumberNullValue;
         }
-        std::vector<Value> evaluatedArgs;
+        ValueVector evaluatedArgs;
         for (auto& argExpr : mArguments) {
             if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
         }
 
         Value returnValue = NumberNullValue;
 
-        obj->onMethodCall(mMethodNameSymbolId, evaluatedArgs, returnValue);
+        obj->onMethodCall(env, mMethodNameSymbolId, evaluatedArgs, returnValue);
         return returnValue;
 
     }
@@ -591,7 +591,7 @@ namespace DreiZehn {
             PrintASTError(this, "Object not invalid:", objectPointer.toString());
             return nullptr;
         }
-        std::vector<Value> evaluatedArgs;
+        ValueVector evaluatedArgs;
         for (auto& argExpr : mArguments) {
             if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
         }
@@ -723,7 +723,7 @@ namespace DreiZehn {
                 }
             }
             Value returnValue = NumberNullValue;
-            bool success = (*cb)(std::span<Value>(evaluatedArgsStack, numArgs), returnValue);
+            bool success = (*cb)(ValueSpan(evaluatedArgsStack, numArgs), returnValue);
 
             if (!success) [[unlikely]] {
                 Tools::errorf("Runtime Error in function: %s\n", SymbolTable::getName(symid).c_str());
@@ -731,7 +731,7 @@ namespace DreiZehn {
             return returnValue;
         }
         else {
-            std::vector<Value> evaluatedArgs;
+            ValueVector evaluatedArgs;
             evaluatedArgs.reserve(numArgs);
             for (auto& argExpr : arguments) {
                 if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
@@ -1700,6 +1700,16 @@ namespace DreiZehn {
         return true;
     }
     // -------------------------------------------------------------------------
+    // UnaryMinusExpression
+    // -------------------------------------------------------------------------
+    inline Value UnaryMinusExpression::evaluate(Environment& env) {
+        if (!mExpr) return NumberNullValue;
+        Value v = mExpr->evaluate(env);
+        if (v.isInt()) return Value(v.asFastInt() * -1);
+        if (v.isDouble()) return Value(v.asFastDouble() * -1);
+        env.PrintRuntimeError( "Pointer Minus Operation not allowed!");
+        return v;
+    }
     bool UnaryMinusExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
             PrintASTError(this,"Minus Expression without a request!");

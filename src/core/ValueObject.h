@@ -11,16 +11,18 @@
 #include <functional>
 #include "toolbox/Tools.h"
 #include "toolbox/SymbolTable.h"
+#include "core/Types.h"
 
 namespace DreiZehn{
 class Value;
-namespace FunctionMap{ struct  ScriptFunction; using CallBack = std::function< bool ( std::span<Value>, Value& )>; }
+namespace FunctionMap{ struct  ScriptFunction; using CallBack = std::function< bool ( ValueSpan, Value& )>; }
 
 
 // =============================================================================
 // --- RegisterUserObjectType ---
 // =============================================================================
 struct ValueObject;
+struct Environment;
 int RegisterUserObjectType(std::string typeName);
 const char* GetObjectTypeName(ValueObject* object);
 
@@ -76,8 +78,8 @@ struct ValueObject {
     // this does not check for insert allowed!
     bool addDynamicField(const std::string & fieldName, const Value& value);
 
-    virtual bool onMethodCall(uint32_t methodNameSymbolId,  std::span<Value> args, Value& ret);
-    virtual Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::span<Value> args);
+    virtual bool onMethodCall(Environment& env, uint32_t methodNameSymbolId,  ValueSpan args, Value& ret);
+    virtual Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  ValueSpan args);
 
     virtual inline size_t onGetArraySize() {
         return 0;
@@ -130,7 +132,7 @@ struct UserObjectDefintion {
 inline int gLastValueObjectType = 0;
 inline std::unordered_map <int,UserObjectDefintion> gUserObjectTypes;
 
-using MethodCallBack = std::function< bool ( ValueObject* object,std::span<Value>, Value& )>;
+using MethodCallBack = std::function< bool ( ValueObject* object,ValueSpan, Value& )>;
 
 struct ValueObjectProperty {
     uint32_t mSymbolId = 0;
@@ -169,11 +171,11 @@ struct ValueObjectProperty {
     }
 
 
-    bool ValidateArgs( std::span<Value> args);
+    bool ValidateArgs( ValueSpan args);
     // -------------------------------------------------------------------------
     // like ValidateArgs but also check the symbolId
     // NOTE return 1 on success 0 = no match = -1 == param error
-    inline int matchMethod(uint32_t symbolId, std::span<Value> args) {
+    inline int matchMethod(uint32_t symbolId, ValueSpan args) {
         if (this->mSymbolId != symbolId) return 0;
         if ( !ValidateArgs(args) ) return -1;
         return 1;
@@ -189,7 +191,7 @@ struct ValueObjectProperty {
     // -2 no callback set
     // -3 callback returned false
     //  1 success
-    int callMethod(ValueObject* object,uint32_t symbolId, std::span<Value> args, Value& ret);
+    int callMethod(ValueObject* object,uint32_t symbolId, ValueSpan args, Value& ret);
 
 };
 

@@ -25,8 +25,9 @@ namespace ParserFrame {
 
 class Parser {
 private:
-    std::vector<Token> mTokens;
+    TokenVector mTokens;
     size_t mPos = 0;
+    Environment* mEnvPtr;
 
 
     // ------------------------------
@@ -77,12 +78,13 @@ private:
     std::unique_ptr<Expression> parseIdentifier();
 
 
-    std::istream* currentCodeStream;
+    std::istream* mCurrentCodeStream;
 public:
     U32 lineNumber = 0;
 
-    Parser(std::vector<Token> t, std::istream* in) : mTokens(std::move(t)) {
-        currentCodeStream = in;
+    Parser(Environment& env, TokenVector t, std::istream* in) : mTokens(std::move(t)) {
+        mCurrentCodeStream = in;
+        mEnvPtr = &env;
     }
 
     // std::vector<std::unique_ptr<ASTNode>> parse();

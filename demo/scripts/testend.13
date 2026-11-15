@@ -1,4 +1,3 @@
--- test error  message on missing end
 
 fn bar; print "BAR"
 
@@ -9,3 +8,5 @@ if foo == 1
 
 fn foo
 end
+
+-- test error  message on missing end

@@ -90,7 +90,7 @@ namespace DreiZehn {
             mSymbolsLoaded = true;
         }
         // -------------------------------------------------------------------------
-         bool onMethodCall(uint32_t methodId, std::span<Value> args, Value& ret) override {
+         bool onMethodCall(Environment& env,uint32_t methodId, std::span<Value> args, Value& ret) override {
 
             if (mClosed) {
                 ret = NumberNullValue;
@@ -157,7 +157,7 @@ namespace DreiZehn {
                 return true;
             }
 
-             return ValueObject::onMethodCall(methodId, args, ret);
+             return ValueObject::onMethodCall(env,methodId, args, ret);
         }
         // -------------------------------------------------------------------------
     }; //  struct FensterAudioObject

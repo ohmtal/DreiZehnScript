@@ -8,7 +8,7 @@
 //
 // At the moment i use it for lazy translate. Example:
 //
-// // FunctionMap::RegisterFunction("flux::maxfps", [](std::span<Value> args, Value& ret) -> bool {
+// // FunctionMap::RegisterFunction("flux::maxfps", [](ValueSpan args, Value& ret) -> bool {
 // //     DirectVariableAccessor vsyncer(&app.getSettings().FpsLimit);
 // //     if (args.size() == 1) {
 // //         vsyncer.toCpp(args[0]);
@@ -265,14 +265,14 @@ namespace DreiZehn {
     //         fields.push_back(std::move(impl));
     //     }
     //
-    //     void marshalAll(const T& cppStruct, std::vector<Value>& destVector) const {
+    //     void marshalAll(const T& cppStruct, ValueVector& destVector) const {
     //         if (destVector.size() < fields.size()) destVector.resize(fields.size());
     //         for (size_t i = 0; i < fields.size(); ++i) {
     //             fields[i]->toScript(&cppStruct, destVector[i]);
     //         }
     //     }
     //
-    //     void unmarshalAll(const std::vector<Value>& srcVector, T& cppStruct) const {
+    //     void unmarshalAll(const ValueVector& srcVector, T& cppStruct) const {
     //         for (size_t i = 0; i < fields.size() && i < srcVector.size(); ++i) {
     //             fields[i]->toCpp(srcVector[i], &cppStruct);
     //         }

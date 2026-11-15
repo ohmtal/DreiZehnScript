@@ -39,7 +39,7 @@ namespace DreiZehn {
     }
 
     // -------------------------------------------------------------------------
-    bool ValueObjectProperty::ValidateArgs( std::span<Value> args) {
+    bool ValueObjectProperty::ValidateArgs( ValueSpan args) {
         if (args.size() < mMinParams || args.size() > mMaxParams) {
             Tools::errorf("Method %s parameter error. min:%d max:%d\n%s\n", mName.c_str(),mMinParams, mMaxParams, mHelp.c_str());
             return false;
@@ -48,7 +48,7 @@ namespace DreiZehn {
     }
 
     int ValueObjectProperty::callMethod(ValueObject* object,
-                        uint32_t symbolId, std::span<Value> args, Value& ret) {
+                        uint32_t symbolId, ValueSpan args, Value& ret) {
         if (this->mSymbolId != symbolId) return 0;
         if ( !ValidateArgs(args) ) return -1;
 
@@ -223,7 +223,7 @@ namespace DreiZehn {
         }
     }
     // -------------------------------------------------------------------------
-    Value* ValueObject::onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::span<Value> args) {
+    Value* ValueObject::onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  ValueSpan args) {
         if (methodNameSymbolId == sGetFieldId) {
             if (args.size() != 1   ) {
                 Tools::errorf("get a field value by fieldname Usage: \"fieldname\" OR index of dynamic field\n");
@@ -240,13 +240,14 @@ namespace DreiZehn {
         return nullptr;
     }
     // -------------------------------------------------------------------------
-    bool ValueObject::onMethodCall(uint32_t methodNameSymbolId,  std::span<Value> args, Value& ret) {
+    bool ValueObject::onMethodCall(Environment& env, uint32_t methodNameSymbolId,  ValueSpan args, Value& ret) {
 
         // ----- User defined methods first ----
         //FIXME bytecode THIS IS A AST-INTERPRETER CALL!!!!!!
         if (! Globals::ByteCodeRunning ) {
             FunctionMap::ScriptFunction* sf;
-            if (Globals::gCurEnv) {
+            // // if (Globals::gCurEnv)
+            {
                 sf = getScriptMethod(methodNameSymbolId);
                 if (sf) {
 
@@ -257,15 +258,15 @@ namespace DreiZehn {
                         for (size_t i = 0; i < args.size(); ++i) {
                             newArgsStack[i + 1] = args[i];
                         }
-                        ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, std::span<Value>(newArgsStack, totalArgs));
+                        ret = FunctionMap::CallScriptFunction(env, sf, ValueSpan(newArgsStack, totalArgs));
                     }
                     else {
-                        std::vector<Value> fallbackArgs;
+                        ValueVector fallbackArgs;
                         fallbackArgs.reserve(totalArgs);
                         fallbackArgs.push_back(Value(this));
                         fallbackArgs.insert(fallbackArgs.end(), args.begin(), args.end());
 
-                        ret = FunctionMap::CallScriptFunction(*Globals::gCurEnv, sf, fallbackArgs);
+                        ret = FunctionMap::CallScriptFunction(env, sf, fallbackArgs);
                     }
 
                     return true;

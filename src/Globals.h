@@ -8,6 +8,7 @@
 
 #include "toolbox/Tools.h"
 #include <vector>
+#include <span>
 #include <algorithm>
 #include <functional>
 #include <cstdint>
@@ -28,14 +29,8 @@ namespace DreiZehn {
     class VariableFrame;
     // class VariableMarshaller;
 
-    // dont want to break my fingers every time
-    typedef uint32_t U32;
-    typedef int32_t  S32;
-    typedef float    F32;
-    typedef int64_t  S64;
-    typedef double   F64;
-
-    const double EPSILON = 1e-9;
+    // ------------------------------------------
+    // const double EPSILON = 1e-9;
 
 
     inline std::function<bool()> OnBreath = nullptr;
@@ -64,8 +59,8 @@ namespace Globals {
     inline bool shutDownRUNNING = false;
     // ------
     // i want to track the current Env!
-    inline Environment* gCurEnv = nullptr;
-    inline Environment* gMainEnv = nullptr;
+    // // inline Environment* gCurEnv = nullptr;
+    // // inline Environment* gMainEnv = nullptr;
 
     inline VariableFrame* MasterVariableFrame = nullptr;
 
@@ -91,10 +86,10 @@ namespace Globals {
 #endif
 }
 
-namespace Tools {
-    void PrintParseError(const std::string& message , const std::string& p2 = "", const std::string& p3 = "");
-    void PrintRuntimeError(const std::string& message, const std::string& p2 = "", const std::string& p3 = "");
-}
+// // namespace Tools {
+// //     // void PrintParseError(const std::string& message , const std::string& p2 = "", const std::string& p3 = "");
+// //     // void PrintRuntimeError(const std::string& message, const std::string& p2 = "", const std::string& p3 = "");
+// // }
 
 
 } //namespace DreiZehn

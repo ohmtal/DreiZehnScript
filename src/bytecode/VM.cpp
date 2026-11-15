@@ -60,7 +60,7 @@ namespace DreiZehn::VM {
     #define PUSH_STACK(val) \
     do { \
         if (_STK >= MAX_BC_STACK_SIZE) { \
-            Tools::PrintRuntimeError("VM Stack Overflow!"); \
+            env.PrintRuntimeError("VM Stack Overflow!"); \
             exit(1); \
         } \
         vmStack[_STK++] = (val); \
@@ -71,7 +71,7 @@ namespace DreiZehn::VM {
 
     #ifdef DREIZEHN_DEBUG
     #define POP_STACK() \
-    ((_STK < 1) ? (Tools::PrintRuntimeError("VM Stack Underflow!\n"), exit(1), vmStack[0]) : vmStack[--_STK])
+    ((_STK < 1) ? (env.PrintRuntimeError("VM Stack Underflow!\n"), exit(1), vmStack[0]) : vmStack[--_STK])
     #else
     #define POP_STACK() (vmStack[--_STK])
     #endif
@@ -155,7 +155,7 @@ namespace DreiZehn::VM {
     }
 
 // -----------------------------------------------------------------------------
-Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
+Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
 
 
@@ -182,7 +182,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     // stack register
     S32 _STK = 0;
     // // // Value vmStack[MAX_BC_STACK_SIZE] = {0};
-    std::vector<Value>vmStack;
+    ValueVector vmStack;
     vmStack.resize(MAX_BC_STACK_SIZE);
 
     // Benchmark optimize
@@ -202,7 +202,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     callFrame.push_back({ip, 0, numLocals/*, 0*/});
     CallFrame* curFrame = &callFrame.back();
 
-    // std::vector<Value>locals;
+    // ValueVectorlocals;
     if (locals.size() == 0) locals.resize(INITIAL_BC_LOCALS_SIZE);
 
     // -----------------------
@@ -807,13 +807,13 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
                 *sfLoopUpPtr = 1;
             }
 
-            std::vector<Value> evaluatedArgs(argCount);
+            ValueVector evaluatedArgs(argCount);
             for (int i = (int)argCount - 1; i >= 0; i--) {
                 evaluatedArgs[i] = POP_STACK();
             }
 
             Value returnValue = NumberNullValue;
-            bool success = obj->onMethodCall(symID, evaluatedArgs, returnValue);
+            bool success = obj->onMethodCall(env, symID, evaluatedArgs, returnValue);
             if (!success) {
                 PrintVMError(OP_CALL_OBJECT_METHOD,"Runtime Error in native function call\n");
             }
@@ -843,7 +843,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
         Value* destPrt = nullptr;
         {
-            std::vector<Value> evaluatedArgs(argCount);
+            ValueVector evaluatedArgs(argCount);
             for (int i = (int)argCount - 1; i >= 0; i--) {
                 evaluatedArgs[i] = POP_STACK();
             }
@@ -880,7 +880,7 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
         Value* destPrt = nullptr;
         {
-            std::vector<Value> evaluatedArgs(argCount);
+            ValueVector evaluatedArgs(argCount);
             for (int i = (int)argCount - 1; i >= 0; i--) {
                 evaluatedArgs[i] = POP_STACK();
             }
@@ -1093,10 +1093,10 @@ Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset) {
                 for (int i = (int)numArgs - 1; i >= 0; i--) {
                     evaluatedArgsStack[i] = POP_STACK();
                 }
-                success = (*callPtr)(std::span<Value>(evaluatedArgsStack, numArgs), returnValue);
+                success = (*callPtr)(ValueSpan(evaluatedArgsStack, numArgs), returnValue);
             }
             else {
-                std::vector<Value> evaluatedArgs(numArgs);
+                ValueVector evaluatedArgs(numArgs);
                 for (int i = (int)numArgs - 1; i >= 0; i--) {
                     evaluatedArgs[i] = POP_STACK();
                 }

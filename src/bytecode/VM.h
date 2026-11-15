@@ -15,13 +15,13 @@ namespace DreiZehn::VM {
         // void attachFunctions(Environment& env, BytecodeChunk& chunk);
     }
 
-    Value runDirectThreadedVM(BytecodeChunk& chunk, U32 numLocals, U32 offset = 0);
+    Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset = 0);
 
     // ------------------------------
     // bytecode scope and locals
     // ------------------------------
     inline CompilerScope scope;
-    inline std::vector<Value>locals;
+    inline ValueVector locals;
     // ------------------------------
 
     inline Value advance_value(const U32* code, U32& ip) {

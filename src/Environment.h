@@ -48,17 +48,17 @@ private:
 public:
 
     Environment() : mParentEnv(nullptr) {
-        Globals::gCurEnv = this;
-        Globals::gMainEnv = this;
+        // // Globals::gCurEnv = this;
+        // // Globals::gMainEnv = this;
         mVariableFrame = new VariableFrame(nullptr);
     }
     Environment(Environment* parentEnv) : mParentEnv(parentEnv) {
-        Globals::gCurEnv = this;
+        // // Globals::gCurEnv = this;
         mVariableFrame = new VariableFrame(parentEnv->mVariableFrame);
     }
     ~Environment() {
-        if (mParentEnv) Globals::gCurEnv = mParentEnv;
-        else Globals::gCurEnv = nullptr;
+        // // if (mParentEnv) Globals::gCurEnv = mParentEnv;
+        // // else Globals::gCurEnv = nullptr;
 
         if (mVariableFrame) {
             delete(mVariableFrame);
@@ -70,6 +70,11 @@ public:
         // assert(mVariableFrame && "FATAL ERROR: Enviroment require a VariableFrame!");
         return mVariableFrame;
     }
+
+    inline void PrintRuntimeError(const std::string& message, const std::string& p2 = "", const std::string& p3 = ""){
+        Tools::errorf("RunTime Error [ENV:%p]: %s %s %s", (void*) this, message.c_str(), p2.c_str(),p3.c_str());
+    }
+
 
     // -------------------------------------------------------------------------
     // EXECUTE :D - currentEnv for function calls

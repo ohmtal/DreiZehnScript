@@ -20,13 +20,13 @@ struct TestObject: public ValueObject {
 
   TestObject(): ValueObject(TypeTestObject) {}
 
-  bool onMethodCall(uint32_t methodId, std::span<Value> args, Value& ret) override {
+  bool onMethodCall(Environment& env,uint32_t methodId, std::span<Value> args, Value& ret) override {
     for (auto& m: methods) {
       if (m.mIsMethod && m.mSymbolId == methodId) {
         return m.callMethod(this, methodId, args, ret) == 1;
       }
     }
-    return ValueObject::onMethodCall(methodId,args,ret);
+    return ValueObject::onMethodCall(env,methodId,args,ret);
   }
 
   static void RegisterSymbols() {

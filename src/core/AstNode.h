@@ -505,14 +505,7 @@ struct UnaryMinusExpression : public Expression {
 
     UnaryMinusExpression( std::unique_ptr<Expression> expr) : mExpr(std::move(expr)) { }
 
-    inline Value evaluate(Environment& env) override {
-        if (!mExpr) return NumberNullValue;
-        Value v = mExpr->evaluate(env);
-        if (v.isInt()) return Value(v.asFastInt() * -1);
-        if (v.isDouble()) return Value(v.asFastDouble() * -1);
-        Tools::PrintRuntimeError( "Pointer Minus Operation not allowed!");
-        return v;
-    }
+    Value evaluate(Environment& env) override;
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 

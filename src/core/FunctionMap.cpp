@@ -15,7 +15,7 @@
 
 namespace DreiZehn::FunctionMap {
     // -------------------------------------------------------------------------
-    Value CallScriptFunction(Environment& env,const ScriptFunction* sf, std::span<Value> args)
+    Value CallScriptFunction(Environment& env,const ScriptFunction* sf, ValueSpan args)
     {
         if (sf) {
             auto& func = *(sf);
@@ -58,7 +58,7 @@ namespace DreiZehn::FunctionMap {
     }
 
     // -------------------------------------------------------------------------
-    Value FireScriptEvent( ScriptEvent& event, std::vector<Value> arguments) {
+    Value FireScriptEvent( Environment& env,ScriptEvent& event, ValueVector arguments) {
         if (!event.sf || !event.envPtr) {
             Tools::errorf("FireScriptEvent - Init first - function not found!");
             return NumberNullValue;
@@ -87,7 +87,7 @@ namespace DreiZehn::FunctionMap {
 
             chunk.emit(OP_EXIT);
 
-            Value result = VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount(), ip);
+            Value result = VM::runVM(env, chunk, VM::scope.getLocalCount(), ip);
 
             chunk.rollBack();
             return result;

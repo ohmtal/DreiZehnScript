@@ -213,7 +213,7 @@ namespace DreiZehn {
             mSymbolsLoaded = true;
         }
         // -------------------------------------------------------------------------
-        bool onMethodCall(uint32_t methodId, std::span<Value> args, Value& ret) override {
+        bool onMethodCall(Environment& env,uint32_t methodId, std::span<Value> args, Value& ret) override {
             if (!mFenster.buf || !mBuffer.buffer ) {
                 Tools::errorf("Fenster Object is closed! Method: %s ignored.\n", SymbolTable::getName(methodId).c_str());
                 return true; // return false says method not found!
@@ -391,7 +391,7 @@ namespace DreiZehn {
             }
 
 
-            return ValueObject::onMethodCall(methodId, args, ret);
+            return ValueObject::onMethodCall(env,methodId, args, ret);
         }
         // -------------------------------------------------------------------------
     }; //  struct FensterObject

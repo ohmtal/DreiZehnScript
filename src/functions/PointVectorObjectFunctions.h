@@ -120,7 +120,7 @@ namespace DreiZehn {
         }
 
         // -------------------------------------------------------------------------
-        inline bool onMethodCall(uint32_t methodId,  std::span<Value> args, Value& ret) override {
+        inline bool onMethodCall(Environment& env, uint32_t methodId,  ValueSpan args, Value& ret) override {
 
             if (mToStringProp.matchMethod( methodId , args) == 1) {
                 ret = Value(toString());
@@ -134,7 +134,7 @@ namespace DreiZehn {
                 return true;
             }
 
-            return ValueObject::onMethodCall(methodId, args, ret);
+            return ValueObject::onMethodCall(env,methodId, args, ret);
 
         }
     };
@@ -188,7 +188,7 @@ namespace DreiZehn {
             return  ValueObject::onGetFieldPtr(fieldSymbolId);
         }
         // -------------------------------------------------------------------------
-        inline bool onMethodCall(uint32_t methodId,  std::span<Value> args, Value& ret) override {
+        inline bool onMethodCall(Environment& env, uint32_t methodId,  ValueSpan args, Value& ret) override {
 
             if (mToStringProp.matchMethod( methodId , args) == 1) {
                 ret = Value(toString());
@@ -201,7 +201,7 @@ namespace DreiZehn {
                 return true;
             }
 
-            return ValueObject::onMethodCall(methodId, args, ret);
+            return ValueObject::onMethodCall(env, methodId, args, ret);
 
         }
     };
@@ -264,7 +264,7 @@ namespace DreiZehn {
             return  ValueObject::onGetFieldPtr(fieldSymbolId);
         }
         // -------------------------------------------------------------------------
-        inline bool onMethodCall(uint32_t methodId,  std::span<Value> args, Value& ret) override {
+        inline bool onMethodCall(Environment& env, uint32_t methodId,  ValueSpan args, Value& ret) override {
 
             if (mToStringProp.matchMethod( methodId , args) == 1) {
                 ret = Value(toString());
@@ -279,7 +279,7 @@ namespace DreiZehn {
                 return true;
             }
 
-            return ValueObject::onMethodCall(methodId, args, ret);
+            return ValueObject::onMethodCall(env,methodId, args, ret);
 
         }
     };
@@ -294,7 +294,7 @@ namespace DreiZehn {
         Vector2Object::RegisterSymbols();
         Vector4Object::RegisterSymbols();
 
-        RegisterFunction("Vector3::new", [](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("Vector3::new", [](ValueSpan args, Value& ret) -> bool {
             Vector3Object* v = new Vector3Object();
             if (args.size() > 0 ) v->mVec.x = args[0].getDouble();
             if (args.size() > 1 ) v->mVec.y = args[1].getDouble();
@@ -303,7 +303,7 @@ namespace DreiZehn {
             return true;
         }, "Return a new Vector3 (3D floating point) Object. Optional x,y,z");
 
-        RegisterFunction("Vector2::new", [](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("Vector2::new", [](ValueSpan args, Value& ret) -> bool {
             Vector2Object* v = new Vector2Object();
             if (args.size() > 0 ) v->mVec.x = args[0].getDouble();
             if (args.size() > 1 ) v->mVec.y = args[1].getDouble();
@@ -311,7 +311,7 @@ namespace DreiZehn {
             return true;
         }, "Return a new Vector2 (2D floating point) Object. Optional x,y");
 
-        RegisterFunction("Vector4::new", [](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("Vector4::new", [](ValueSpan args, Value& ret) -> bool {
             Vector4Object* v = new Vector4Object();
             if (args.size() > 0 ) v->mVec.x = args[0].getDouble();
             if (args.size() > 1 ) v->mVec.y = args[1].getDouble();

@@ -12,6 +12,7 @@
 #include <cctype>
 #include "toolbox/Tools.h"
 #include "core/Token.h"
+#include "core/Types.h"
 
 namespace DreiZehn {
 
@@ -33,7 +34,7 @@ private:
 public:
     Lexer(std::string source) : mSrc(std::move(source)) {}
 
-    std::vector<Token> tokenize();
+    TokenVector tokenize();
 
 
 };

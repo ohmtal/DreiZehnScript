@@ -35,7 +35,7 @@ namespace DreiZehn {
         std::string  toString() override;
         // -------------------------------------------------------------------------
         static void RegisterSymbols();
-        // bool onMethodCall(uint32_t methodId,  std::span<Value> args, Value& ret) override;
+        // bool onMethodCall(Environment& env, uint32_t methodId,  ValueSpan args, Value& ret) override;
         // -------------------------------------------------------------------------
         void Dump() override;
     };
@@ -61,7 +61,7 @@ namespace DreiZehn {
             mAutoCreateDynamicFields = false;
         }
 
-        StructObject(std::span<Value> args) ;
+        StructObject(ValueSpan args) ;
         // -------------------------------------------------------------------------
          ValueObject* clone() override {
             StructObject* clone = new StructObject();
@@ -86,7 +86,7 @@ namespace DreiZehn {
 
         static void RegisterSymbols();
         // -------------------------------------------------------------------------
-        bool onMethodCall(uint32_t methodId,  std::span<Value> args, Value& ret) override;
+        bool onMethodCall(Environment& env, uint32_t methodId,  ValueSpan args, Value& ret) override;
 
     };
     // -------------------------------------------------------------------------
@@ -99,7 +99,7 @@ namespace DreiZehn {
             mValidateFieldName = false;
         }
 
-        ArrayObject(std::span<Value> args);
+        ArrayObject(ValueSpan args);
         // -------------------------------------------------------------------------
          ValueObject* clone() override;
         // -------------------------------------------------------------------------
@@ -133,7 +133,7 @@ namespace DreiZehn {
        // -------------------------------------------------------------------------
         static void RegisterSymbols();
         // -------------------------------------------------------------------------
-        bool onMethodCall(uint32_t methodId,  std::span<Value> args, Value& ret) override;
+        bool onMethodCall(Environment& env, uint32_t methodId,  ValueSpan args, Value& ret) override;
         // -------------------------------------------------------------------------
     };
 // ============================ RegisterBaseObject ==================================

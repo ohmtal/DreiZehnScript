@@ -28,7 +28,7 @@ namespace DreiZehn {
 
 
 
-    std::shared_ptr<BlockStatement> ParseScriptToAST(std::istream& stream) {
+    std::shared_ptr<BlockStatement> ParseScriptToAST(Environment& env,std::istream& stream) {
         // std::string line;
         // int lineCount = 0;
 
@@ -84,7 +84,7 @@ namespace DreiZehn {
             auto tokens = lexer.tokenize();
             if (tokens.size() == 0) return nullptr;
 
-            Parser parser(tokens, &stream);
+            Parser parser(env,tokens, &stream);
             // parser.lineNumber = logicalLineStart;
             // auto statements = parser.parse();
             return  parser.parse();
@@ -214,7 +214,7 @@ namespace DreiZehn {
     // --------------------------------------------------------------------------------
     bool RunScriptStream(std::istream& stream, Environment& env) {
 
-        auto mainProgram = ParseScriptToAST(stream);
+        auto mainProgram = ParseScriptToAST(env,stream);
         if (!mainProgram) return false;
 
         env.execute(mainProgram.get());
@@ -226,7 +226,7 @@ namespace DreiZehn {
     // --------------------------------------------------------------------------------
     Value RunScriptStreamByteCode(std::istream& stream, Environment& env, bool resetByteCode  ) {
 
-        auto mainProgram = ParseScriptToAST(stream);
+        auto mainProgram = ParseScriptToAST(env,stream);
         if (!mainProgram) return false;
 
         if (resetByteCode) VM::Compiler::MasterChunk.reset();
@@ -235,14 +235,14 @@ namespace DreiZehn {
     }
 
     // --------------------------------------------------------------------------------
-    std::shared_ptr<BlockStatement> IncludeScriptFile(const std::string& filename)
+    std::shared_ptr<BlockStatement> IncludeScriptFile(Environment& env,const std::string& filename)
     {
         std::ifstream file(filename);
         if (!file.is_open()) {
             Tools::errorf("Script file cant be opened: %s\n", filename.c_str());
             return nullptr;
         }
-        return ParseScriptToAST(file);
+        return ParseScriptToAST(env,file);
     }
     // --------------------------------------------------------------------------------
     bool RunScriptFile(const std::string& filename, Environment& env, bool useByteCode) {

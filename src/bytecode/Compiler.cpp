@@ -107,7 +107,7 @@ namespace DreiZehn::VM::Compiler {
         // after Compile we patch :)
         // moved to attachFunctions==> Patch(chunk);
 
-        Value res = VM::runDirectThreadedVM(chunk, VM::scope.getLocalCount(), offset);
+        Value res = VM::runVM(env, chunk, VM::scope.getLocalCount(), offset);
         #ifdef DEBUG_TRACE_EXECUTION
         Tools::printf("*** CompileExec VALUE IS: %s\n", res.toString().c_str());
         #endif

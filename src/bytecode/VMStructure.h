@@ -142,7 +142,7 @@ struct RollBackMarker {
 // the code chunk
 struct BytecodeChunk {
     std::vector<U32> mByteCodes;
-    std::vector<Value> mConstants;
+    ValueVector mConstants;
 
     RollBackMarker mRollBackMarker = {0, 0, false};
 

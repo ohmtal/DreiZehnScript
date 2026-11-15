@@ -18,7 +18,7 @@
 
 namespace DreiZehn { class Environment; }
 namespace DreiZehn::FunctionMap {
-    using CallBack =  std::function< bool ( std::span<Value>, Value& )>;
+    using CallBack =  std::function< bool ( ValueSpan, Value& )>;
     using FuncLookupMap = std::unordered_map<uint32_t, CallBack>;
 
     // symbolId, stringId
@@ -60,7 +60,7 @@ namespace DreiZehn::FunctionMap {
 
 
     // ---------------------------------------------------------------------
-    inline bool ArgsCheckString( const char* command,std::span<Value> args, uint32_t count) {
+    inline bool ArgsCheckString( const char* command,ValueSpan args, uint32_t count) {
         if (args.size() < count ) {
             Tools::errorf("Usage: %s  [string value] %d times",command, count);
             return false;
@@ -110,7 +110,7 @@ namespace DreiZehn::FunctionMap {
         return &RegisteredScriptFunctions[symId];
     }
 
-    Value CallScriptFunction(Environment& env, const ScriptFunction* sf,std::span<Value> args );
+    Value CallScriptFunction(Environment& env, const ScriptFunction* sf,ValueSpan args );
 
     // -------------------------------------------------------------
     // combined for parser
@@ -269,7 +269,7 @@ namespace DreiZehn::FunctionMap {
     void RegisterScriptEvent( Environment* envPtr, ScriptEvent& event,
                               const std::string& funcName, const std::vector<std::string>& parameters
                               , const std::string& desc );
-    Value FireScriptEvent( ScriptEvent& event, std::vector<Value> arguments);
+    Value FireScriptEvent( ScriptEvent& event, ValueVector arguments);
 
 
 } //namespace DreiZehn::FunctionMap

@@ -153,7 +153,7 @@ namespace DreiZehn {
             return ValueObject::onSetField(fieldSymbolId, value);
         }
         // -------------------------------------------------------------------------
-        inline bool onMethodCall(uint32_t methodId, std::span<Value> args, Value& ret) override {
+        inline bool onMethodCall(Environment& env, uint32_t methodId, ValueSpan args, Value& ret) override {
             if (!mBuffer.buffer ) {
                 return true;
             }
@@ -312,11 +312,11 @@ namespace DreiZehn {
                 return true;
 
 
-                return ValueObject::onMethodCall(methodId, args, ret);
+                return ValueObject::onMethodCall(env,methodId, args, ret);
             }
 
 
-            return ValueObject::onMethodCall(methodId, args, ret);
+            return ValueObject::onMethodCall(env,methodId, args, ret);
         }
 
     };
@@ -329,7 +329,7 @@ namespace DreiZehn {
 
          // ======================= PIXEL BUFFER ==============================
          PixelBufferObject::RegisterSymbols();
-         RegisterFunction("PixelBuffer::new", [](std::span<Value> args, Value& ret) -> bool {
+         RegisterFunction("PixelBuffer::new", [](ValueSpan args, Value& ret) -> bool {
 
              if (args.size() !=2 || !args[0].isInt() || !args[1].isInt()) {
                  Tools::errorf("Usage: PixelBuffer:new  width height\n");

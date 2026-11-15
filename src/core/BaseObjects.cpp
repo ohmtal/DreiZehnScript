@@ -47,7 +47,7 @@ namespace DreiZehn {
          mSymbolsLoaded = true;
 
     }
-    // // bool KeyValueObject::onMethodCall(uint32_t methodId, std::span<Value> args, Value& ret) {
+    // // bool KeyValueObject::onMethodCall(Environment& env, uint32_t methodId, ValueSpan args, Value& ret) {
     // //     if (mFirstProp.matchMethod(methodId, args) == 1) {
     // //         ret = Value(SymbolTable::getName(mKeyId));
     // //         return true;
@@ -57,10 +57,10 @@ namespace DreiZehn {
     // //         ret = Value(SymbolTable::getName(mKeyId));
     // //         return true;
     // //     }
-    // //     return ValueObject::onMethodCall(methodId, args, ret);
+    // //     return ValueObject::onMethodCall(env, methodId, args, ret);
     // // }
      // ============================ StructObject ==================================
-    StructObject::StructObject(std::span<Value> args) : ValueObject(TypeStructObject){
+    StructObject::StructObject(ValueSpan args) : ValueObject(TypeStructObject){
         mSupportClone = true;
         mAutoCreateDynamicFields = false;
 
@@ -100,7 +100,7 @@ namespace DreiZehn {
         mSymbolsLoaded = true;
     }
 
-    bool StructObject::onMethodCall(uint32_t methodId, std::span<Value> args, Value& ret) {
+    bool StructObject::onMethodCall(Environment& env, uint32_t methodId, ValueSpan args, Value& ret) {
         if (mSetProp.matchMethod(methodId, args) == 1) {
             size_t count = std::min(args.size(), mDynamicFieldValues.size());
 
@@ -112,11 +112,11 @@ namespace DreiZehn {
             return true;
         }
 
-        return ValueObject::onMethodCall(methodId, args, ret);
+        return ValueObject::onMethodCall(env,methodId, args, ret);
     }
 
     // ============================ ArrayObject ==================================
-    ArrayObject::ArrayObject(std::span<Value> args)  : ValueObject(TypeArrayObject){
+    ArrayObject::ArrayObject(ValueSpan args)  : ValueObject(TypeArrayObject){
         mSupportClone = true;
         mValidateFieldName = false;
 
@@ -178,7 +178,7 @@ namespace DreiZehn {
         mSymbolsLoaded = true;
     }
 
-    bool ArrayObject::onMethodCall(uint32_t methodId, std::span<Value> args, Value& ret){
+    bool ArrayObject::onMethodCall(Environment& env, uint32_t methodId, ValueSpan args, Value& ret){
         if (mCountProp.matchMethod(methodId, args) == 1) {
             ret =  Value((uint32_t)mDynamicFieldValues.size());
             return true;
@@ -203,7 +203,7 @@ namespace DreiZehn {
             else ret =  NumberNullValue;
             return true;
         } else
-        return ValueObject::onMethodCall(methodId, args, ret);
+        return ValueObject::onMethodCall(env,methodId, args, ret);
     }
 
     // ============================ RegisterBaseObject ==================================
@@ -215,7 +215,7 @@ namespace DreiZehn {
         // Base Objects
         // ---------------------------------------------------------------------
         KeyValueObject::RegisterSymbols();
-        RegisterFunction("KeyValue::new", [&env](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("KeyValue::new", [&env](ValueSpan args, Value& ret) -> bool {
             if(args.size() != 2 || !args[0].isString()) {
                 Tools::errorf("Usage KeyValue::new [string key] Value\n");
                 return true;
@@ -230,7 +230,7 @@ namespace DreiZehn {
         // Base Objects
         // ---------------------------------------------------------------------
 
-        RegisterFunction("Object::new", [](std::span<Value> args, Value& ret ) -> bool {
+        RegisterFunction("Object::new", [](ValueSpan args, Value& ret ) -> bool {
             BaseValueObject* obj = new BaseValueObject();
             ret = Value(obj);
             return true;
@@ -238,7 +238,7 @@ namespace DreiZehn {
 
         // ---------------------------------------------------------------------
         StructObject::RegisterSymbols();
-        RegisterFunction("Struct::new", [](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("Struct::new", [](ValueSpan args, Value& ret) -> bool {
             if(args.size() == 0) {
                 Tools::errorf("Usage Struct::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
                 return true;
@@ -258,7 +258,7 @@ namespace DreiZehn {
         },"Constructor of Struct. return a Struct, @params [string fieldname] or [KeyValue ] ....");
         // ---------------------------------------------------------------------
         ArrayObject::RegisterSymbols();
-        RegisterFunction("Array::new", [](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("Array::new", [](ValueSpan args, Value& ret) -> bool {
             for(size_t i = 0; i < args.size(); i++) {
                 if (!args[i].isString() && !(args[i].isObjectPointer() && (args[i].asPointerObject()->mType == TypeKeyValueObject ))) {
                     Tools::errorf("Usage Array::new [string field || KeyValue] [ string field || KeyValue ] ...\n");
@@ -274,7 +274,7 @@ namespace DreiZehn {
         // ---------------------------------------------------------------------
         // Helper
         // ---------------------------------------------------------------------
-        RegisterFunction("obj::isType", [](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("obj::isType", [](ValueSpan args, Value& ret) -> bool {
             if(args.size() != 2  || !args[1].isNumber()) {
                 Tools::errorf("Usage obj::isType var Type\n");
                 return true;

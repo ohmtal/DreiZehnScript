@@ -63,7 +63,7 @@ void Init(Environment& env, int argc, char* argv[], Tools::LogCallback customLog
     RegisterConstants("type::pointer",  (int32_t)ValueType::ValuePointer);
     RegisterConstants("type::string",  (int32_t)ValueType::StringId);
 
-    RegisterFunction("getType", [&env](std::span<Value> args, Value& ret ) -> bool {
+    RegisterFunction("getType", [&env](ValueSpan args, Value& ret ) -> bool {
         if (args.size() != 1) {
             Tools::errorf("Usage: getType value. return the type id of the expression. (Example: Type::float)");
             ret =  Value(-1);
@@ -78,7 +78,7 @@ void Init(Environment& env, int argc, char* argv[], Tools::LogCallback customLog
     // ---------------------------------------------------------------------
     // -------- print --------------
     // ---------------------------------------------------------------------
-    RegisterFunction("print", [](std::span<Value> args, Value& ret) -> bool {
+    RegisterFunction("print", [](ValueSpan args, Value& ret) -> bool {
         std::string line = "";
         for ( auto& value : args) {
             line = line + value.toString() + " ";
@@ -87,14 +87,14 @@ void Init(Environment& env, int argc, char* argv[], Tools::LogCallback customLog
         return true;
     }, "Print a line to console. @param value value value ...");
 
-    RegisterFunction("printraw", [](std::span<Value> args, Value& ret) -> bool {
+    RegisterFunction("printraw", [](ValueSpan args, Value& ret) -> bool {
         for ( auto& value : args) {
             value.print();
         }
         return true;
     }, "Print a line without linefeed to console. @param value value value ...");
 
-    RegisterFunction("error", [](std::span<Value> args, Value& ret) -> bool {
+    RegisterFunction("error", [](ValueSpan args, Value& ret) -> bool {
         std::string line = "";
         for ( auto& value : args) {
             line = line + value.toString() + " ";
@@ -105,7 +105,7 @@ void Init(Environment& env, int argc, char* argv[], Tools::LogCallback customLog
     // ---------------------------------------------------------------------
     // run
     // ---------------------------------------------------------------------
-    RegisterFunction("run", [&env](std::span<Value> args, Value& ret) -> bool {
+    RegisterFunction("run", [&env](ValueSpan args, Value& ret) -> bool {
         if (Globals::ByteCodeMode) {
             Tools::errorf("Sorry cant run injected bytecode at the moment!\n");
             return false;
@@ -132,7 +132,7 @@ void Init(Environment& env, int argc, char* argv[], Tools::LogCallback customLog
         return true;
     }, "Run a script file. @param filename");
 
-    RegisterFunction("runbc", [&env](std::span<Value> args, Value& ret) -> bool {
+    RegisterFunction("runbc", [&env](ValueSpan args, Value& ret) -> bool {
         if (Globals::ByteCodeRunning) {
             Tools::errorf("Sorry cant run recursive injected bytecode at the moment!");
             return false;
@@ -162,25 +162,25 @@ void Init(Environment& env, int argc, char* argv[], Tools::LogCallback customLog
     // ---------------------------------------------------------------------
     // list modules
     // ---------------------------------------------------------------------
-    RegisterFunction("modules", [&env](std::span<Value> args, Value& ret) -> bool {
+    RegisterFunction("modules", [&env](ValueSpan args, Value& ret) -> bool {
         ModuleRegistry::Print();
         return true;
     }, "List all available modules which can be used by import");
     // ---------------------------------------------------------------------
     // int
     // ---------------------------------------------------------------------
-    RegisterFunction("int::cast", [](std::span<Value> args, Value& ret) -> bool {
+    RegisterFunction("int::cast", [&env](ValueSpan args, Value& ret) -> bool {
         if (args.size() != 1) {
             Tools::errorf("Usage: int::cast value\n");
             return false;
         }
         if (args[0].isInt()) ret =  args[0];
         else
-            if (args[0].isDouble()) ret = Value(args[0].getInt());
-            else
-                if (args[0].isString()) ret = Value( std::atoi( args[0].getStringRef().c_str()));
-                else
-                    Tools::PrintRuntimeError("Cant cast pointer to integer!\n");
+        if (args[0].isDouble()) ret = Value(args[0].getInt());
+        else
+        if (args[0].isString()) ret = Value( std::atoi( args[0].getStringRef().c_str()));
+        else
+        env.PrintRuntimeError("Cant cast pointer to integer!\n");
 
         return true;
     }, "cast any type to integer.");
@@ -189,18 +189,18 @@ void Init(Environment& env, int argc, char* argv[], Tools::LogCallback customLog
     // ---------------------------------------------------------------------
     // float
     // ---------------------------------------------------------------------
-    RegisterFunction("float::cast", [](std::span<Value> args, Value& ret) -> bool {
+    RegisterFunction("float::cast", [&env](ValueSpan args, Value& ret) -> bool {
         if (args.size() != 1) {
             Tools::errorf("Usage: float::cast value\n");
             return false;
         }
         if (args[0].isDouble()) ret =  args[0];
         else
-            if (args[0].isInt()) ret = Value(args[0].getDouble());
-            else
-                if (args[0].isString()) ret = Value( std::atof( args[0].getStringRef().c_str()));
-                else
-                    Tools::PrintRuntimeError("Cant cast pointer to float!\n");
+        if (args[0].isInt()) ret = Value(args[0].getDouble());
+        else
+        if (args[0].isString()) ret = Value( std::atof( args[0].getStringRef().c_str()));
+        else
+        env.PrintRuntimeError("Cant cast pointer to float!\n");
 
         return true;
     }, "cast any type to float");

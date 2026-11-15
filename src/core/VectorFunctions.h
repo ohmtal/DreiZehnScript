@@ -23,7 +23,7 @@ namespace DreiZehn {
     inline const int TypeVectorObject =  RegisterUserObjectType("Vector");
 
     struct VectorValueObject : public ValueObject {
-        std::vector<Value> mElements;
+        ValueVector mElements;
 
         VectorValueObject() : ValueObject(TypeVectorObject) {
              mSupportClone = true;
@@ -89,7 +89,7 @@ namespace DreiZehn {
             Tools::printf("\n");
         }
         // -------------------------------------------------------------------------
-        Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  std::span<Value> args) override{
+        Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  ValueSpan args) override{
 
             if (mAtProp.matchMethod(methodNameSymbolId, args) == 1) {
                 if (mElements.size() > args[0].getInt()) {
@@ -118,14 +118,14 @@ namespace DreiZehn {
             return nullptr;
         }
         // -------------------------------------------------------------------------
-        inline bool onMethodCall(uint32_t methodId,  std::span<Value> args, Value& ret) override {
+        inline bool onMethodCall(Environment& env, uint32_t methodId,  ValueSpan args, Value& ret) override {
 
 
             if ( methodId == mPushProp.mSymbolId ) {
                 if (!mPushProp.ValidateArgs(args)) return false;
                 if (args[0].isObjectPointer()) {
                     if (args[0].asPointerObject() == this) {
-                        Tools::PrintRuntimeError("Can NOT add myself to me!");
+                        env.PrintRuntimeError("Can NOT add myself to me!");
                         ret = NumberNullValue;
                         return false;
                     }
@@ -172,7 +172,7 @@ namespace DreiZehn {
 
                 if (ret.isObjectPointer()) {
                     if (ret.asPointerObject() == this) {
-                        Tools::PrintRuntimeError("Can NOT add myself to me!");
+                        env.PrintRuntimeError("Can NOT add myself to me!");
                         ret = NumberNullValue;
                         return false;
                     }
@@ -266,7 +266,7 @@ namespace DreiZehn {
             }
 
 
-            return ValueObject::onMethodCall(methodId, args, ret);
+            return ValueObject::onMethodCall(env, methodId, args, ret);
         }
     };
     // -------------------------------------------------------------------------
@@ -278,7 +278,7 @@ namespace DreiZehn {
         VectorValueObject::RegisterSymbols();
 
         using namespace FunctionMap;
-        RegisterFunction("Vector::new", [](std::span<Value> args, Value& ret) -> bool {
+        RegisterFunction("Vector::new", [](ValueSpan args, Value& ret) -> bool {
             VectorValueObject* arr = new VectorValueObject();
             ret = Value(arr);
 

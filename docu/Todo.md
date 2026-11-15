@@ -550,7 +550,7 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
 
 - [X] Tools::LogHandler should be added to Init
 
-### -- internal 0.91 -----
+### <<<<< internal 0.90 ----- 0.91 >>>>>>>
 
 - [ ] work on parser
     - [X] renamed parseStatements to parse and parseLine to parseStatements
@@ -563,7 +563,19 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - [X] EOL 
     - [X] '--' and '//' comments 
     - [X] runtime error current line is missing after i removed the globals
-
+    - NOTE: ParseScriptToAST is nearly empty now !! 
+    - [X] getLine on end check fail - linenumber is wrong in block ! -- fetch the linenumber from nodes :)
+    - [ ] some more ?! .. 
+    
+- [X] added types from DLS and put it into core/Types.h
+- [ ] continue with Globals cleanup! 
+    - [X] Globals::gCurEnv / gMainEnv
+        - onMethodCall(uint32_t => onMethodCall(Environment& env, uint32_t
+        -> ValueObject::onMethodCall(methodId, => ValueObject::onMethodCall(env, methodId,
+    - [ ] GlobalVarList to Enviroment
+    - [ ] PrintRuntimeError
+    - [ ] OnBreath ?!
+        
 - [ ] VariableFrame: 
     - the key is: guessGlobalVarAndInsertLocalIfNot - here i could resolve the index 
     - bytecode: but whats about the redundant CompilerScope ? i guess this is obsolete then ?! 

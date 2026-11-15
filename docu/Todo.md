@@ -590,6 +590,11 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
         - MasterChunk
         - CompilerScope scope
         - ValueVector locals
+    - [X] inital 
+    - TOBAD: !!bytecode became slower!! test_var lost about 100-200 ms higher branch-misses! 
+    - [ ] but i dont like it so much since enviroment can have a mParentEnv ..
+         maybe it should somewhere else ... doing Interpreter and Bytecode paralell
+         cause some headache ;)
         
 - [ ] VariableFrame:
     - the key is: guessGlobalVarAndInsertLocalIfNot - here i could resolve the index 

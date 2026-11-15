@@ -9,68 +9,14 @@
 #include "bytecode/VMStructure.h"
 
 
-namespace DreiZehn::VM::Compiler {
+namespace DreiZehn {
 
-    // obsolete 0.91
-   // void patch(BytecodeChunk& chunk) {
-   //      // Apply function patches - what a HACK fest
-   //      // Love this part :D
-   //      for (auto& patch: mFunctionPatches) {
-   //          if (patch.mPatchType == FuncPatchType::Adress)
-   //              chunk.patch(patch.mPatchByteCodePos, static_cast<FunctionMap::ScriptFunction*>(patch.mFuncPtr)->bytecodeAddress);
-   //          else if (patch.mPatchType == FuncPatchType::VarCount)
-   //              chunk.patch(patch.mPatchByteCodePos, static_cast<FunctionMap::ScriptFunction*>(patch.mFuncPtr)->localVarCount);
-   //          else
-   //          // new 0.9f
-   //          if (patch.mPatchType == FuncPatchType::ScriptFuncPtr)
-   //              chunk.patchPtr(patch.mPatchByteCodePos, patch.mFuncPtr);
-   //          else if (patch.mPatchType == FuncPatchType::CFuncPrt)
-   //              chunk.patchPtr(patch.mPatchByteCodePos, patch.mFuncPtr);
-   //          else
-   //              assert(true && "FunctionPatches unknown PathType!!!");
-   //      }
-   //      mFunctionPatches.clear();
-   //  }
-
+    // bool Compile( ASTNode* node, Environment& env, BytecodeChunk& chunk, CompilerScope& scope);
     // -------------------------------------------------------------------------
-       // obsolete 0.91
-    // void attachFunctions(Environment& env, BytecodeChunk& chunk) {
-    //     // ----------------- ATTACH FUNCTIONS ----------------------------
-    //     for (auto& [symbolId, func] : FunctionMap::RegisteredScriptFunctions) {
-    //         func.bytecodeAddress = chunk.tell();
-    //
-    //         CompilerScope funcScope;
-    //
-    //
-    //         for (const auto& paramName : func.parameterNames) {
-    //             funcScope.insert(SymbolTable::insert(paramName));
-    //         }
-    //
-    //         for (auto& statement : func.body) {
-    //             statement->compile(env, chunk, funcScope, ValueType::NONE);
-    //         }
-    //
-    //
-    //
-    //         chunk.emit(OP_PUSH_VALUE);
-    //         chunk.emitValue(NumberNullValue);
-    //         chunk.emit(OP_RETURN);
-    //
-    //         func.localVarCount = funcScope.getLocalCount();
-    //     }
-    //     patch(chunk);
-    // }
-    // -------------------------------------------------------------------------
-    void prepare(Environment& env, BytecodeChunk& chunk) {
-
-        // obsolete 0.91  mFunctionPatches.clear();
-    }
-    // -------------------------------------------------------------------------
-    bool Compile( ASTNode* node, Environment& env, BytecodeChunk& chunk, CompilerScope& scope, bool AttachFunctions)
+    bool VM::Compile( ASTNode* node, Environment& env
+        , BytecodeChunk& chunk, CompilerScope& scope)
     {
         if (!node) return false;
-
-        prepare(env,chunk);
 
         switch(node->mNodeType) {
             case NodeType::BlockStatement:
@@ -88,26 +34,26 @@ namespace DreiZehn::VM::Compiler {
 
         chunk.emit(OP_EXIT);
 
-        // obsolete if (AttachFunctions) attachFunctions(env,chunk);
 
         return true;
     }
     // -------------------------------------------------------------------------
-    Value compileExec(Environment& env, ASTNode* node) {
+    Value VM::compileExec(Environment& env, ASTNode* node) {
         if (!node) return NumberNullValue;
 
-        BytecodeChunk& chunk = MasterChunk;
+        BytecodeChunk& chunk = mChunk;
         U32 offset = chunk.tell();
 
         // CompilerScope scope;
-        if (!Compile(node, env, chunk, VM::scope, true)) {
+        if (!Compile(node, env, chunk, mCompilerScope)) {
             Tools::errorf("Failed to compile code!\n");
             return NumberNullValue;
         }
         // after Compile we patch :)
         // moved to attachFunctions==> Patch(chunk);
 
-        Value res = VM::runVM(env, chunk, VM::scope.getLocalCount(), offset);
+        // Value res = VM::runVM(env, chunk,mCompilerScope.getLocalCount(), offset);
+        Value res = runVM(env, chunk,mCompilerScope.getLocalCount(), offset);
         #ifdef DEBUG_TRACE_EXECUTION
         Tools::printf("*** CompileExec VALUE IS: %s\n", res.toString().c_str());
         #endif

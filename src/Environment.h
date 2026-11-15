@@ -28,7 +28,7 @@
 
 #include "toolbox/SymbolTable.h"
 #include "toolbox/Tools.h"
-
+#include "bytecode/VM.h"
 
 
 // Byte Code
@@ -46,6 +46,8 @@ private:
     Environment* mParentEnv = nullptr;
     VariableFrame* mVariableFrame = nullptr;
 
+    // bad idea here ?!
+    VM mVM;
 
 
 public:
@@ -77,6 +79,8 @@ public:
     inline void PrintRuntimeError(const std::string& message, const std::string& p2 = "", const std::string& p3 = ""){
         Tools::errorf("RunTime Error [ENV:%p]: %s %s %s", (void*) this, message.c_str(), p2.c_str(),p3.c_str());
     }
+
+    inline VM& getVM() { return mVM; } //const ?! ..
 
 
     // -------------------------------------------------------------------------

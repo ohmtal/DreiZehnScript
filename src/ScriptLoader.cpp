@@ -229,8 +229,8 @@ namespace DreiZehn {
         auto mainProgram = ParseScriptToAST(env,stream);
         if (!mainProgram) return false;
 
-        if (resetByteCode) VM::Compiler::MasterChunk.reset();
-        return VM::Compiler::compileExec(env, mainProgram.get());
+        if (resetByteCode) env.getVM().resetChunk();
+        return env.getVM().compileExec(env, mainProgram.get());
 
     }
 

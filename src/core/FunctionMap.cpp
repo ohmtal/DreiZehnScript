@@ -65,7 +65,7 @@ namespace DreiZehn::FunctionMap {
         }
         if ( Globals::ByteCodeMode ) {
 
-            BytecodeChunk& chunk =  DreiZehn::VM::Compiler::MasterChunk;
+            BytecodeChunk& chunk =  env.getVM().getChunk();
             chunk.touchRollBack();
 
             size_t chunkArguments = arguments.size();
@@ -87,7 +87,7 @@ namespace DreiZehn::FunctionMap {
 
             chunk.emit(OP_EXIT);
 
-            Value result = VM::runVM(env, chunk, VM::scope.getLocalCount(), ip);
+            Value result = env.getVM().runVM(env, chunk, env.getVM().getScope().getLocalCount(), ip);
 
             chunk.rollBack();
             return result;

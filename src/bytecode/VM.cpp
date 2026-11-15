@@ -28,7 +28,7 @@
 #include "VM.h"
 #include <core/VectorFunctions.h>
 
-namespace DreiZehn::VM {
+namespace DreiZehn {
     //-----------------------------------------------------------------------------
     void PrintVMError(const U32 opcode,  const std::string& p1,
                        const std::string& p2 = "", const std::string& p3 = ""){
@@ -87,27 +87,6 @@ namespace DreiZehn::VM {
     #define PEEK_S32() static_cast<S32>(code[ip])
     #define PEEK_F32() static_cast<F32>(code[ip])
 
-
-    // inline Value advance_value(const U32* code, U32& ip) {
-    //     Value val;
-    //     std::memcpy(&val, &code[ip], sizeof(Value));
-    //     ip += 2;
-    //     return val;
-    // }
-    //
-    //
-    // inline void* advance_ptr(const U32* code, U32& ip) {
-    //     void* ptr;
-    //     std::memcpy(&ptr, &code[ip], sizeof(void*));
-    //     ip += 2;
-    //     return ptr;
-    // }
-    //
-    // inline void patch_ptr(U32* code, U32 pos, void* ptr) {
-    //     code[pos] = 0;
-    //     code[pos + 1] = 0;
-    //     std::memcpy(&code[pos], &ptr, sizeof(void*));
-    // }
     #define SKIP_PTR() (ip += 2)
 
 
@@ -148,16 +127,9 @@ namespace DreiZehn::VM {
 
     #endif
 
-   inline void _set_var_pointer_value(Value* pre, Value& post) {
-        if (pre->isObjectPointer())  pre->asPointerObject()->setAssigned(false);
-        if (post.isObjectPointer()) post.asPointerObject()->setAssigned(true);
-        *pre = post;
-    }
 
 // -----------------------------------------------------------------------------
-Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
-
-
+Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
     // TEST! register const uint8_t* pc __asm__("r14");
     if (Globals::ByteCodeRunning) {
@@ -203,7 +175,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     CallFrame* curFrame = &callFrame.back();
 
     // ValueVectorlocals;
-    if (locals.size() == 0) locals.resize(INITIAL_BC_LOCALS_SIZE);
+    if (mLocals.size() == 0) mLocals.resize(INITIAL_BC_LOCALS_SIZE);
 
     // -----------------------
 
@@ -1037,14 +1009,14 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     handle_OP_GET_LOCAL: {
         // frame pointer for call stack
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex ;
-        PUSH_STACK(locals[slot]);
+        PUSH_STACK(mLocals[slot]);
         DISPATCH();
     }
     // -------------------------------
     //NOTE NEW
     handle_OP_PUSHPRT_LOCAL: {
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex ;
-        PUSH_STACK(&locals[slot]);
+        PUSH_STACK(&mLocals[slot]);
         DISPATCH();
     }
     // -------------------------------
@@ -1054,10 +1026,10 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
         if (slot >= curFrame->mLocalsCount) {
             curFrame->mLocalsCount++;
-            if (slot  >= locals.size()) locals.resize(locals.size() * 2);
-            val = &locals[slot];
+            if (slot  >= mLocals.size()) mLocals.resize(mLocals.size() * 2);
+            val = &mLocals[slot];
         } else {
-            val = &locals[slot];
+            val = &mLocals[slot];
             if (val->isObjectPointer()) val->asPointerObject()->setAssigned(false);
 
         }
@@ -1131,13 +1103,13 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         // update curFrame
         curFrame = &callFrame.back();
 
-        if (argCount + curFrame->mLocalsStartIndex  >= locals.size()) locals.resize(locals.size() * 2);
+        if (argCount + curFrame->mLocalsStartIndex  >= mLocals.size()) mLocals.resize(mLocals.size() * 2);
 
 
         for (int i = (int)argCount - 1; i >= 0; i--) {
             Value param = POP_STACK();
             U32 slot =  i + curFrame->mLocalsStartIndex;
-            locals[slot] = param;
+            mLocals[slot] = param;
         }
         ip = targetIP;
         DISPATCH();
@@ -1147,7 +1119,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         S32 inc = ADVANCE_S32();
 
-        Value& val = locals[slot];
+        Value& val = mLocals[slot];
 
         if (val.isInt()) [[likely]] {
             val = Value(val.asFastInt() + inc);
@@ -1186,7 +1158,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     handle_OP_ADD_LOCAL: {
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
-        Value& val = locals[slot];
+        Value& val = mLocals[slot];
         if (val.isDouble() && b.isDouble()) [[likely]] {
             val = Value(val.asFastDouble() + b.asFastDouble());
             PUSH_STACK(val);
@@ -1232,7 +1204,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     handle_OP_SUB_LOCAL: {
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
-        Value& val = locals[slot];
+        Value& val = mLocals[slot];
         if (val.isDouble() && b.isDouble()) [[likely]] {
             val = Value(val.asFastDouble() - b.asFastDouble());
             PUSH_STACK(val);
@@ -1266,7 +1238,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     handle_OP_MUL_LOCAL: {
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
-        Value& val = locals[slot];
+        Value& val = mLocals[slot];
         if (val.isDouble() && b.isDouble()) [[likely]] {
             val = Value(val.asFastDouble() * b.asFastDouble());
             PUSH_STACK(val);
@@ -1300,7 +1272,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
     handle_OP_DIV_LOCAL: {
         U32 slot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value b = POP_STACK();
-        Value& val = locals[slot];
+        Value& val = mLocals[slot];
         // FIXME division by zero
         if (val.isDouble() && b.isDouble()) [[likely]] {
             val = Value(val.asFastDouble() / b.asFastDouble());
@@ -1476,7 +1448,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         PUSH_STACK(Value(0));     // current value
 
 
-        locals[iterSlot] = 0;
+        mLocals[iterSlot] = 0;
         DISPATCH();
     }
     // -------------------------------
@@ -1499,7 +1471,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         PUSH_STACK(Value(end));
         PUSH_STACK(Value(start));
 
-        locals[iterSlot] = start;
+        mLocals[iterSlot] = start;
 
         // patch increment
         code[incrementCodePos] = (U32)increment;
@@ -1521,7 +1493,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
         if (loopContinues) {
             PEEK_STACK(0) = Value(current); // set new value to stack
-            locals[iterSlot] = current;    // update iter var
+            mLocals[iterSlot] = current;    // update iter var
 
             ip = targetIP;
         } else {
@@ -1550,7 +1522,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         PUSH_STACK(Value((S32) count)); // count
         PUSH_STACK(Value(0));    // current iter value
 
-        locals[iterSlot] =  *objectValue.asPointerObject()->onGetArrayIndexPtr(0);
+        mLocals[iterSlot] =  *objectValue.asPointerObject()->onGetArrayIndexPtr(0);
         DISPATCH(); //jump to body
     }
     // -------------------------------
@@ -1564,7 +1536,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         currentIter++;
         if (currentIter < count) {
              PEEK_STACK(0) = Value(currentIter);
-             locals[iterSlot] =  *obj->onGetArrayIndexPtr(currentIter);
+             mLocals[iterSlot] =  *obj->onGetArrayIndexPtr(currentIter);
              ip = targetIP;
         } else {
             (void) POP_STACK(); // pop object
@@ -1675,7 +1647,7 @@ Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
         if (!Globals::shutDownRUNNING) {
             U32 endIdx = curFrame->mLocalsStartIndex + curFrame->mLocalsCount;
             for (U32 i = curFrame->mLocalsStartIndex; i < endIdx; ++i) {
-                auto& loc = locals[i];
+                auto& loc = mLocals[i];
                 if (loc.isObjectPointer()) {
                     loc.asPointerObject()->setAssigned(false);
                 }

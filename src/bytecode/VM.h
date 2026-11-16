@@ -17,8 +17,12 @@ namespace DreiZehn {
 
         BytecodeChunk mChunk;
         CompilerScope mCompilerScope;
-        ValueVector mLocals;
 
+        // NOTE:
+        // moving the locals to class cause slower test_var/test_struct !
+        // and it's even slower when i add them to runVM but outside inline
+        // is not a option
+        ValueVector mLocals;
 
     public:
         Value compileExec(Environment& env, ASTNode* node);

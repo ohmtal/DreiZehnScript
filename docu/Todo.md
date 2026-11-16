@@ -591,7 +591,7 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
         - CompilerScope scope
         - ValueVector locals
     - [X] inital 
-    - TOBAD: !!bytecode became slower!! test_var lost about 100-200 ms higher branch-misses! 
+    - TOBAD: !!bytecode became slower!! test_var is about 100-200 ms slower. it's the mLocalVar! 
     - [ ] but i dont like it so much since enviroment can have a mParentEnv ..
          maybe it should somewhere else ... doing Interpreter and Bytecode paralell
          cause some headache ;)

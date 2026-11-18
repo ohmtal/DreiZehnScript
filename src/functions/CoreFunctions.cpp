@@ -14,6 +14,7 @@
 #include "ScriptLoader.h"
 #include "core/GarbageCollection.h"
 #include <core/VariableFrame.h>
+#include "Environment.h"
 
 
 namespace DreiZehn {
@@ -146,19 +147,30 @@ namespace DreiZehn {
             return true;
         }, "Print the current GarbageCollection objects, call it with param 1 to show only the not assigned");
         // ---------------------------------------------------------------------
+        // RegisterFunction("core::printGlob", [&env](ValueSpan args, Value& ret) -> bool {
+        //     Tools::printf("---------------- Globals ------------------\n");
+        //     for (auto & id: Globals::MasterVariableFrame->mGlobalsVarList) {
+        //         Value* valPtr = Globals::MasterVariableFrame->getVariablePtr(id);
+        //         Tools::printf("[%zu] %s = %s\n "
+        //             , id, SymbolTable::getName(id).c_str()
+        //             , valPtr ? valPtr->toString().c_str() : "NOT FOUND!!!"
+        //         );
+        //     }
+        //     Tools::printf("------------------------------------------------------\n");
+        //     return true;
+        // }, "Print all global variables.");
+
         RegisterFunction("core::printGlob", [&env](ValueSpan args, Value& ret) -> bool {
             Tools::printf("---------------- Globals ------------------\n");
-            for (auto & id: Globals::MasterVariableFrame->mGlobalsVarList) {
-                Value* valPtr = Globals::MasterVariableFrame->getVariablePtr(id);
-                Tools::printf("[%zu] %s = %s\n "
-                    , id, SymbolTable::getName(id).c_str()
-                    , valPtr ? valPtr->toString().c_str() : "NOT FOUND!!!"
-                );
+            for (auto & globs: env.mGlobalsLookUp) {
+                Value& val = env.getGlobal(globs.second);
+                Tools::printf("%s = %s\n "
+                ,  SymbolTable::getName(globs.first).c_str()
+                , val.toString().c_str());
             }
             Tools::printf("------------------------------------------------------\n");
             return true;
         }, "Print all global variables.");
-
 
         // ---------------------------------------------------------------------
         // Help

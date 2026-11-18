@@ -98,48 +98,88 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // VariableExpression
     // -------------------------------------------------------------------------
-    Value VariableExpression::evaluate(Environment& env) {
-        Value* valPtr = this->evaluatePtr(env);
-        if (valPtr) [[likely]] return *valPtr;
-        else  {
-            std::string varName = SymbolTable::getName(mVariableNameSymbolId);
-            PrintASTError(this,"Variable not found!",varName);
-            return NumberNullValue;
-        }
+    // Value VariableExpression::evaluate(Environment& env) {
+    //     Value* valPtr = this->evaluatePtr(env);
+    //     if (valPtr) [[likely]] return *valPtr;
+    //     else  {
+    //         std::string varName = SymbolTable::getName(mVariableNameSymbolId);
+    //         PrintASTError(this,"Variable not found!",varName);
+    //         return NumberNullValue;
+    //     }
+    //
+    //     // return env.getVariableFrame()->getVariablePtr(mVariableNameSymbolId);
+    // }
 
-        // return env.getVariableFrame()->getVariablePtr(mVariableNameSymbolId);
+    Value VariableExpression::evaluate(Environment& env) {
+        //FIXME what is if the variable does not exists?!
+        return this->evaluatePtr(env);
     }
 
     Value* VariableExpression::evaluatePtr(Environment& env) {
+        //FIXME what is if the variable does not exists?!
 
-        VariableFrame* frame = env.getVariableFrame();
-        uint32_t frameID = frame->getFrameId();
+        if (mGlobalVariable) {
+            if (mCacheValue) return mCacheValue;
+            mCacheValue = &env.getGlobal(mVariableRegister);
+            return mCacheValue;
+        }
+
+        uint32_t frameID = env.getLocalsFrameId();
         if (mCacheValue && mCacheFrameID == frameID) {
             return mCacheValue;
         }
 
         mCacheFrameID = frameID;
-        mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
+        mCacheValue = &env.getLocal(mVariableRegister);
         return mCacheValue;
     }
 
+
+    // Value* VariableExpression::evaluatePtr(Environment& env) {
+    //
+    //     VariableFrame* frame = env.getVariableFrame();
+    //     uint32_t frameID = frame->getFrameId();
+    //     if (mCacheValue && mCacheFrameID == frameID) {
+    //         return mCacheValue;
+    //     }
+    //
+    //     mCacheFrameID = frameID;
+    //     mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
+    //     return mCacheValue;
+    // }
+
     bool VariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+
         if (mGlobalVariable) {
             chunk.emit(OP_LOAD_VAR);
-            chunk.emit(mVariableNameSymbolId);
-            chunk.emitPointer(nullptr); //space for cached ptr!
+            chunk.emit(mVariableRegister);
+            chunk.emitPointer(nullptr); //space for cache ptr
         } else {
-            S32 localSlot = scope.resolve(mVariableNameSymbolId);
-            if (localSlot < 0 ) {
-                std::string varName = SymbolTable::getName(mVariableNameSymbolId);
-                PrintASTError(this,"Variable not found in local scope", varName);
-                return false; // do  stop!
-            }
+            U32 localSlot = scope.insert(mVariableRegister);
             chunk.emit(OP_GET_LOCAL);
             chunk.emit(localSlot);
         }
         return true;
     }
+
+
+    // bool VariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+    //     if (mGlobalVariable) {
+    //         chunk.emit(OP_LOAD_VAR);
+    //         chunk.emit(mVariableNameSymbolId);
+    //         chunk.emitPointer(nullptr); //space for cached ptr!
+    //     } else {
+    //         S32 localSlot = scope.resolve(mVariableNameSymbolId);
+    //         if (localSlot < 0 ) {
+    //             std::string varName = SymbolTable::getName(mVariableNameSymbolId);
+    //             PrintASTError(this,"Variable not found in local scope", varName);
+    //             return false; // do  stop!
+    //         }
+    //         chunk.emit(OP_GET_LOCAL);
+    //         chunk.emit(localSlot);
+    //     }
+    //     return true;
+    // }
 
     bool VariableExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
@@ -148,27 +188,26 @@ namespace DreiZehn {
         }
         if (mGlobalVariable) {
             chunk.emit(OP_PUSHPTR_VAR);
-            chunk.emit(mVariableNameSymbolId);
+            chunk.emit(mVariableRegister);
             chunk.emitPointer(nullptr); //space for cache ptr
         } else {
-            U32 localSlot = scope.insert(mVariableNameSymbolId);
+            U32 localSlot = scope.insert(mVariableRegister);
             chunk.emit(OP_PUSHPRT_LOCAL);
-            chunk.emit(static_cast<U32>(localSlot));
+            chunk.emit(localSlot);
         }
 
 
         return true;
     }
 
-
     bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         // save var
         if (mGlobalVariable) {
             chunk.emit(OP_SAVE_VAR);
-            chunk.emit(mVariableNameSymbolId);
+            chunk.emit(mVariableRegister);
             chunk.emitPointer(nullptr); //space for cache ptr
         } else {
-            U32 localSlot = scope.insert(mVariableNameSymbolId);
+            U32 localSlot = scope.insert(mVariableRegister);
             chunk.emit(OP_SET_LOCAL);
             chunk.emit(static_cast<U32>(localSlot));
         }
@@ -180,6 +219,25 @@ namespace DreiZehn {
         return true;
 
     }
+    // bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+    //     // save var
+    //     if (mGlobalVariable) {
+    //         chunk.emit(OP_SAVE_VAR);
+    //         chunk.emit(mVariableNameSymbolId);
+    //         chunk.emitPointer(nullptr); //space for cache ptr
+    //     } else {
+    //         U32 localSlot = scope.insert(mVariableNameSymbolId);
+    //         chunk.emit(OP_SET_LOCAL);
+    //         chunk.emit(static_cast<U32>(localSlot));
+    //     }
+    //
+    //     if (requestType == ValueType::NONE) {
+    //         chunk.emit(OP_POP_STACK);
+    //     }
+    //
+    //     return true;
+    //
+    // }
 
     // -------------------------------------------------------------------------
     // VariableReferenceExpression
@@ -746,33 +804,58 @@ namespace DreiZehn {
             return returnValue;
         }
     }
-
-
+    // -------------------------------------------------------------------------
     Value CallScriptFunc(Environment& env, const FunctionMap::ScriptFunction* sf
     , std::vector<std::unique_ptr<Expression>>& arguments) {
         auto& func = *(sf);
-        Environment localEnv(&env);
+        env.pushLocalStack(sf->localVarCount);
 
         for (size_t i = 0; i < func.parameterNames.size(); ++i) {
             if (i < arguments.size()) {
                 Value evaluatedArg = arguments[i]->evaluate(env);
-                localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), evaluatedArg, true);
+                env.getLocal(i) = evaluatedArg;
             } else {
-                // 0.8d fill up arguments with 0
-                localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), NumberNullValue, true);
+                env.getLocal(i) = 0;
             }
         }
         Value functionResult = NumberNullValue;
         for (auto& statement : func.body) {
-            FlowStatus status = env.execute(statement.get(), localEnv);
+            FlowStatus status = env.execute(statement.get(), env);
 
             if (status.signal == FlowSignal::Return) {
+                env.popLocalStack();
                 return status.returnValue;
             }
         }
-
+        env.popLocalStack();
         return functionResult;
     }
+
+    // Value CallScriptFunc(Environment& env, const FunctionMap::ScriptFunction* sf
+    // , std::vector<std::unique_ptr<Expression>>& arguments) {
+    //     auto& func = *(sf);
+    //     Environment localEnv(&env);
+    //
+    //     for (size_t i = 0; i < func.parameterNames.size(); ++i) {
+    //         if (i < arguments.size()) {
+    //             Value evaluatedArg = arguments[i]->evaluate(env);
+    //             localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), evaluatedArg, true);
+    //         } else {
+    //             // 0.8d fill up arguments with 0
+    //             localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), NumberNullValue, true);
+    //         }
+    //     }
+    //     Value functionResult = NumberNullValue;
+    //     for (auto& statement : func.body) {
+    //         FlowStatus status = env.execute(statement.get(), localEnv);
+    //
+    //         if (status.signal == FlowSignal::Return) {
+    //             return status.returnValue;
+    //         }
+    //     }
+    //
+    //     return functionResult;
+    // }
 
     // -------------------------------------------------------------------------
     Value CallExpression::evaluate(Environment& env) {
@@ -1079,10 +1162,10 @@ namespace DreiZehn {
             VariableExpression* vExpr = static_cast<VariableExpression*>(mExpr.get());
             if (!vExpr) return false;
             if (!vExpr->mGlobalVariable) {
-                S32 localSlot = scope.resolve(vExpr->mVariableNameSymbolId);
+                S32 localSlot = scope.resolve(vExpr->mVariableRegister);
                 if (localSlot < 0 ) {
-                    std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
-                    PrintASTError(this, "Variable not found in local scope:", varName);
+                    // std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
+                    PrintASTError(this, "Variable not found in local scope.");
                     return true; // do not stop!
                 }
 
@@ -1614,9 +1697,9 @@ namespace DreiZehn {
             VariableExpression* vExpr = static_cast<VariableExpression*>(mVarExpr.get());
             if (!vExpr->mGlobalVariable) {
                 if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
-                S32 localSlot = scope.resolve(vExpr->mVariableNameSymbolId);
+                S32 localSlot = scope.resolve(vExpr->mVariableRegister);
                 if (localSlot < 0 ) {
-                    std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
+                    std::string varName = SymbolTable::getName(vExpr->mVariableRegister);
                     PrintASTError(this,"Variable not found :", varName);
                     return true; // do not stop!
                 }
@@ -1728,9 +1811,9 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     FlowStatus ReturnStatement::execute(Environment& env) {
         // getVariableFrame is gone when it return !!
-        VariableFrame* frame = env.getVariableFrame()->getParentFrame();
-        if (!frame) frame = env.getVariableFrame();
-        if (!frame)  return FlowStatus (FlowSignal::Return);
+        // // // // VariableFrame* frame = env.getVariableFrame()->getParentFrame();
+        // // // // if (!frame) frame = env.getVariableFrame();
+        // // // // if (!frame)  return FlowStatus (FlowSignal::Return);
 
 
         FlowStatus flowResult = {FlowSignal::Return};
@@ -1827,7 +1910,8 @@ namespace DreiZehn {
             return FlowStatus (FlowSignal::None);
         }
         // Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
-        Value* iterValPtr = env.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
+        // Value* iterValPtr = env.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
+        Value* iterValPtr = &env.getLocal(mIteratorRegister);
         for (int i = 0; i < count; i++) {
             *iterValPtr = Value(i);
 
@@ -1852,7 +1936,7 @@ namespace DreiZehn {
             return false;
         }
         // add iter values to registers
-        U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
+        U32 iteratorSlot = scope.insert(mIteratorRegister);
 
         // set the limit (count)
         if (!this->mCountExpr->compile(env,chunk,scope,ValueType::Int)) return false;
@@ -1913,7 +1997,8 @@ namespace DreiZehn {
 
         // Environment loopEnv(&env);
         // Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
-        Value* iterValPtr = env.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
+        // Value* iterValPtr = env.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
+        Value* iterValPtr = &env.getLocal(mIteratorRegister);
         if (start > end ) {
             // for (int i = start; i >= end; --i) {
             for (int i = start; i >= end; i -= step) {
@@ -1960,7 +2045,7 @@ namespace DreiZehn {
             return false;
         }
 
-        U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
+        U32 iteratorSlot = scope.insert(mIteratorRegister);
 
         // push start, end, increment
         if (!mStartExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
@@ -2109,8 +2194,9 @@ namespace DreiZehn {
             return FlowStatus (FlowSignal::None)  ;
         }
 
-        // Value* iterValPtr = loopEnv.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
-        Value* iterValPtr = env.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
+        // Value* iterValPtr = env.getVariableFrame()->getVariablePtr(this->mIteratorVarNameSymbolId, true);
+
+        Value* iterValPtr = &env.getLocal( mIteratorRegister );
         for (size_t itr = 0; itr < count; itr++) {
             Value* curValue = obj->onGetArrayIndexPtr(itr);
             *iterValPtr = *curValue;
@@ -2143,7 +2229,7 @@ namespace DreiZehn {
             return false;
         }
         // add iter values to registers
-        U32 iteratorSlot = scope.insert(mIteratorVarNameSymbolId);
+        U32 iteratorSlot = scope.insert(mIteratorRegister);
 
         // compile object var expression
         if (!this->mVarExpr->compile(env,chunk,scope,ValueType::Int)) return false;

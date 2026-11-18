@@ -594,10 +594,20 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - TOBAD: !!bytecode became slower!! test_var is about 100-200 ms slower. it's the mLocalVar! 
     - [X] some expression linenumbers was not set 
         
+        
+        
+    --- USING BRANCH EXPERIMENTAL ---
 - [ ] VariableFrame:
     - LocalVariable enviroment is done:
         - AstNodes.cpp CallScriptFunc :: arguments as expression 
         - Functionmap CallScriptFunction :: arguments as ValueSpan
+    
+    - symId
+        - [X/X] VariableExpression
+        - [X] ForStatement
+        - [X] ForRangeStatement
+        - [X] ForEachStatement
+        - 
     
     - _____________________________
     - the key is: guessGlobalVarAndInsertLocalIfNot - here i could resolve the index 

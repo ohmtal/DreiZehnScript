@@ -462,7 +462,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     // Global variable
     // -------------------------------------------------------------------------
     handle_OP_LOAD_VAR:{
-        U32 symID = ADVANCE_U32();
+        U32 varRegister = ADVANCE_U32();
         U32 ptrPOS = ip;
         // void* rawPtr = ADVANCE_PTR();
         void* rawPtr = advance_ptr(code,ip);
@@ -473,9 +473,10 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             PUSH_STACK(*valuePtr);
             DISPATCH();
         }
-        VariableFrame* frame = Globals::MasterVariableFrame;
-        valuePtr = frame->getVariablePtr(symID);
-        // PATCH_PTR(ptrPOS,valuePtr);
+        // VariableFrame* frame = Globals::MasterVariableFrame;
+        // valuePtr = frame->getVariablePtr(symID);
+        valuePtr = &env.getGlobal(varRegister);
+
         patch_ptr(code, ptrPOS, valuePtr);
         PUSH_STACK(*valuePtr);
 
@@ -484,7 +485,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     // -------------------------------
     //NOTE NEW
     handle_OP_PUSHPTR_VAR: {
-        U32 symID = ADVANCE_U32();
+        U32 varRegister = ADVANCE_U32();
         U32 ptrPOS = ip;
         void* rawPtr = advance_ptr(code,ip);
         Value* valuePtr = nullptr;
@@ -494,8 +495,11 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             PUSH_STACK(valuePtr);
             DISPATCH();
         }
-        VariableFrame* frame = Globals::MasterVariableFrame;
-        valuePtr = frame->getVariablePtr(symID, true);
+        // VariableFrame* frame = Globals::MasterVariableFrame;
+        // valuePtr = frame->getVariablePtr(symID, true);
+
+        valuePtr = &env.getGlobal(varRegister);
+
         patch_ptr(code, ptrPOS, valuePtr);
         PUSH_STACK(valuePtr);
 
@@ -503,7 +507,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     }
     // -------------------------------
     handle_OP_SAVE_VAR:{
-        U32 symID = ADVANCE_U32();
+        U32 varRegister = ADVANCE_U32();
         U32 ptrPOS = ip;
         // void* rawPtr = ADVANCE_PTR();
         void* rawPtr =  advance_ptr(code,ip);
@@ -516,8 +520,12 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
             DISPATCH();
         }
-        VariableFrame* frame = Globals::MasterVariableFrame;
-        valuePtr = frame->getVariablePtr(symID, true);
+        // VariableFrame* frame = Globals::MasterVariableFrame;
+        // valuePtr = frame->getVariablePtr(symID, true);
+
+        valuePtr = &env.getGlobal(varRegister);
+
+
         // PATCH_PTR(ptrPOS,valuePtr);
         patch_ptr(code, ptrPOS, valuePtr);
 

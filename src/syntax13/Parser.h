@@ -18,13 +18,13 @@ namespace DreiZehn{
 
 struct ParserFrame {
     // -- Function Vars ---------------
-    std::vector<uint32_t> mFunctionVariables;
+    std::vector<std::vector<uint32_t>> mLocalVariables;
     bool mBlockInFunction = false;
     std::vector<TokenType> mBlockOpenTypes;
     // -------------------------------------------------------------------------
-    bool isFunctionVar(uint32_t symId);
-    void insertFunctionVar(uint32_t symId);
-    bool guessGlobalVarAndInsertLocalIfNot(Environment& env, uint32_t symId);
+    int64_t findLocalVar(uint32_t symId) const;
+    U32 insertLocalVar(uint32_t symId);
+    bool guessGlobalVar(Environment& env, uint32_t symId);
     void startFunc(uint32_t funcSymId);
     void endFunc(uint32_t funcSymId);
 }; // ParserFrame

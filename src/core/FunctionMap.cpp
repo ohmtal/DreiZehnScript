@@ -19,31 +19,60 @@ namespace DreiZehn::FunctionMap {
     {
         if (sf) {
             auto& func = *(sf);
-            Environment localEnv(&env);
+             env.pushLocalStack(sf->localVarCount);
 
             for (size_t i = 0; i < func.parameterNames.size(); ++i) {
                 if (i < args.size()) {
-                    localEnv.getVariableFrame()->setVariable(
-                        SymbolTable::insert(func.parameterNames[i])
-                        , args[i]
-                        , true);
+                    // parameters are setup first so it must be the first register!
+                    // hopefully ;)
+                    env.getLocal(i) = args[i];
                 } else {
-                    // 0.8d fill up arguments with 0
-                    localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), NumberNullValue, true);
+                    env.getLocal(i) = 0;
                 }
             }
 
             for (auto& statement : func.body) {
-                FlowStatus status= env.execute(statement.get(), localEnv);
+                FlowStatus status= env.execute(statement.get(), env);
 
                 if (status.signal == FlowSignal::Return) {
+                    env.popLocalStack();
                     return status.returnValue;
                 }
             }
+            env.popLocalStack();
             return NumberNullValue;
         }
         return NumberNullValue;
     }
+//     Value CallScriptFunction(Environment& env,const ScriptFunction* sf, ValueSpan args)
+//     {
+//         if (sf) {
+//             auto& func = *(sf);
+//             Environment localEnv(&env);
+//
+//             for (size_t i = 0; i < func.parameterNames.size(); ++i) {
+//                 if (i < args.size()) {
+//                     localEnv.getVariableFrame()->setVariable(
+//                         SymbolTable::insert(func.parameterNames[i])
+//                         , args[i]
+//                         , true);
+//                 } else {
+//                     // 0.8d fill up arguments with 0
+//                     localEnv.getVariableFrame()->setVariable(SymbolTable::insert(func.parameterNames[i]), NumberNullValue, true);
+//                 }
+//             }
+//
+//             for (auto& statement : func.body) {
+//                 FlowStatus status= env.execute(statement.get(), localEnv);
+//
+//                 if (status.signal == FlowSignal::Return) {
+//                     return status.returnValue;
+//                 }
+//             }
+//             return NumberNullValue;
+//         }
+//         return NumberNullValue;
+//     }
     // -------------------------------------------------------------------------
     // Events
     // -------------------------------------------------------------------------

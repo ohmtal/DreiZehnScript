@@ -8,6 +8,7 @@
 #include "core/FunctionMap.h"
 #include "core/VariableFrame.h"
 #include <ScriptLoader.h>
+#include <Environment.h>
 
 namespace DreiZehn {
 
@@ -24,40 +25,47 @@ namespace DreiZehn {
     // ----------------------------------------------------------------------------
     //                  ------ ParserFrame ------
     // ----------------------------------------------------------------------------
-    bool ParserFrame::isFunctionVar(uint32_t symId) {
-        return std::find(mFunctionVariables.begin(), mFunctionVariables.end(), symId) != mFunctionVariables.end();
+    int64_t ParserFrame::findLocalVar(uint32_t symId) const {
+        auto it = std::find(mLocalVariables.back().begin(), mLocalVariables.back().end(), symId);
+        if (it != mLocalVariables.back().end()) {
+            return static_cast<int64_t>(std::distance(mLocalVariables.back().begin(), it));
+        }
+        return -1;
     }
-    void ParserFrame::insertFunctionVar(uint32_t symId) {
+
+
+    U32 ParserFrame::insertLocalVar(uint32_t symId) {
         // Tools::printf(" ** VAR %s insertFunctionVar {block:%d}\n",
         //               SymbolTable::getName(symId).c_str(),
         //               mBlockInFunction);
-
-        if (!mBlockInFunction) return;
-        if (!isFunctionVar(symId))
-            mFunctionVariables.push_back(symId);
+        S64 foundIndex = findLocalVar(symId);
+        if (foundIndex >= 0) {
+            return static_cast<U32>(foundIndex);
+        }
+        mLocalVariables.back().push_back(symId);
+        return static_cast<U32>(mLocalVariables.size() - 1);
     }
 
-    bool ParserFrame::guessGlobalVarAndInsertLocalIfNot(Environment& env, uint32_t symId) {
-        bool foundAGlobal = Globals::MasterVariableFrame->isGlobalVar(symId);
-        bool foundFunctionVar = isFunctionVar(symId);
+    bool ParserFrame::guessGlobalVar(Environment& env, uint32_t symId) {
+        bool foundAGlobal = env.getGlobalRegister(symId) >= 0;
+        bool foundFunctionVar = findLocalVar(symId) >= 0;
         // Tools::printf(" ** VAR %s check foundAGlobal:%d foundFunc:%d {block:%d}\n",
         //               SymbolTable::getName(symId).c_str(), foundAGlobal,foundFunctionVar,
         //               mBlockInFunction);
         if (!mBlockInFunction) return foundAGlobal;
         if (!foundFunctionVar && foundAGlobal) return true;
-        insertFunctionVar(symId);
         return false;
     }
 
     void ParserFrame::startFunc(uint32_t funcSymId) {
         // Tools::printf("StartFunc %s ......\n", SymbolTable::getName(funcSymId).c_str());
-        mFunctionVariables.clear();
+        mLocalVariables.push_back({});
         mBlockInFunction = true;
     }
     void ParserFrame::endFunc(uint32_t funcSymId) {
         // Tools::printf("..... EndFunc %s {block:%d} \n"
         //     , SymbolTable::getName(funcSymId).c_str(), mBlockInFunction);
-        mFunctionVariables.clear();
+        mLocalVariables.pop_back();
         mBlockInFunction = false;
     }
 
@@ -158,13 +166,26 @@ namespace DreiZehn {
                 }
                 return std::make_unique<CallExpression>(nameTokenSymbolId, std::move(args));
             } else {
-                // we got a variable
+
                 bool isGlobal = peekOffset(-2).mType == TokenType::Global;
-                if (isGlobal) Globals::MasterVariableFrame->insertGlobalVar(nameTokenSymbolId);
-                else {
-                    isGlobal = parserFrame.guessGlobalVarAndInsertLocalIfNot(*mEnvPtr,nameTokenSymbolId);
+                if (!isGlobal) isGlobal = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
+
+                size_t varRegister = 0;
+                if (isGlobal) {
+                    varRegister = mEnvPtr->reserveGlobal(nameTokenSymbolId);
+                } else {
+                    varRegister = parserFrame.insertLocalVar(nameTokenSymbolId);
                 }
-                currentExpression = std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
+                currentExpression = std::make_unique<VariableExpression>(varRegister, isGlobal);
+
+
+                // we got a variable
+                // bool isGlobal = peekOffset(-2).mType == TokenType::Global;
+                // if (isGlobal) Globals::MasterVariableFrame->insertGlobalVar(nameTokenSymbolId);
+                // else {
+                //     isGlobal = parserFrame.guessGlobalVarAndInsertLocalIfNot(*mEnvPtr,nameTokenSymbolId);
+                // }
+                // currentExpression = std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
             }
 
             while (true) {
@@ -566,12 +587,25 @@ namespace DreiZehn {
                 return std::make_unique<CallExpression>(nameTokenSymbolId, std::move(args));
             }
 
+            // ------ insert variable -------
             bool isGlobal = peekOffset(-2).mType == TokenType::Global;
-            if (isGlobal) Globals::MasterVariableFrame->insertGlobalVar(nameTokenSymbolId);
-            else {
-                isGlobal = parserFrame.guessGlobalVarAndInsertLocalIfNot(*mEnvPtr,nameTokenSymbolId);
+            if (!isGlobal) isGlobal = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
+
+            size_t varRegister = 0;
+            if (isGlobal) {
+                varRegister = mEnvPtr->reserveGlobal(nameTokenSymbolId);
+            } else {
+                varRegister = parserFrame.insertLocalVar(nameTokenSymbolId);
             }
-            return std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
+            return std::make_unique<VariableExpression>(varRegister, isGlobal);
+
+
+            // bool isGlobal = peekOffset(-2).mType == TokenType::Global;
+            // if (isGlobal) Globals::MasterVariableFrame->insertGlobalVar(nameTokenSymbolId);
+            // else {
+            //     isGlobal = parserFrame.guessGlobalVarAndInsertLocalIfNot(*mEnvPtr,nameTokenSymbolId);
+            // }
+            // return std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
         }
 
         return nullptr;
@@ -600,7 +634,7 @@ namespace DreiZehn {
 
                 while (peek().mType == TokenType::Identifier) {
                     std::string varName = advance().mValue;
-                    parserFrame.insertFunctionVar(SymbolTable::insert(varName));
+                    parserFrame.insertLocalVar(SymbolTable::insert(varName));
 
                     params.push_back(varName);
                 }
@@ -626,8 +660,9 @@ namespace DreiZehn {
                 }
                 parserFrame.mBlockOpenTypes.push_back(tokenType);
 
-                return std::make_unique<ForRangeStatement>(SymbolTable::insert(varName)
-                , std::move(countExpr));
+
+                size_t varRegister = parserFrame.insertLocalVar(SymbolTable::insert(varName));
+                return std::make_unique<ForRangeStatement>(varRegister, std::move(countExpr));
             }
             break;
 
@@ -645,8 +680,8 @@ namespace DreiZehn {
                     return nullptr;
                 }
                 parserFrame.mBlockOpenTypes.push_back(tokenType);
-                return std::make_unique<ForEachStatement>(SymbolTable::insert(varName)
-                , std::move(varExpr));
+                size_t varRegister = parserFrame.insertLocalVar(SymbolTable::insert(varName));
+                return std::make_unique<ForEachStatement>(varRegister,std::move(varExpr));
             }
             break;
 
@@ -671,7 +706,9 @@ namespace DreiZehn {
 
                 parserFrame.mBlockOpenTypes.push_back(tokenType);
 
-                return std::make_unique<ForStatement>(SymbolTable::insert(varName),
+                size_t varRegister = parserFrame.insertLocalVar(SymbolTable::insert(varName));
+
+                return std::make_unique<ForStatement>(varRegister,
                             std::move(start),
                             std::move(end),
                             std::move(step)
@@ -865,6 +902,8 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // std::vector< std::unique_ptr< DreiZehn::ASTNode > > Parser::parse() {
     std::shared_ptr<BlockStatement> Parser::parse() {
+        parserFrame.mLocalVariables.push_back({}); //init base path
+
         std::vector<std::unique_ptr<ASTNode>> statements;
 
         std::vector<OpenBlock> blockStack;
@@ -1031,6 +1070,7 @@ namespace DreiZehn {
             return nullptr;
         }
 
+        parserFrame.mLocalVariables.clear();
         return mainProgram;
     }
 

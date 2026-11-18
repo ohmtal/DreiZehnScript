@@ -216,13 +216,15 @@ struct ValueExpression : public Expression {
 
 struct VariableExpression : public Expression {
 
-    uint32_t mVariableNameSymbolId = 0;
+    // uint32_t mVariableNameSymbolId = 0;
+
+    size_t mVariableRegister = 0;
     bool mGlobalVariable = false;
 
     uint32_t mCacheFrameID = 0;
     Value* mCacheValue = nullptr;
 
-    VariableExpression(uint32_t id, bool isGlobal) : mVariableNameSymbolId(id),mGlobalVariable(isGlobal)  {
+    VariableExpression(size_t varRegister , bool isGlobal) : mVariableRegister(varRegister),mGlobalVariable(isGlobal)  {
         mNodeType  = NodeType::VariableExpression;
     }
     Value evaluate(Environment& env) override;
@@ -555,17 +557,18 @@ struct FunctionDefineEndNode : public ASTNode {
 };
 // for -------------------------------------------------------------------------
 struct ForStatement : public BlockStatement {
-    uint32_t mIteratorVarNameSymbolId = 0;
+    // uint32_t mIteratorVarNameSymbolId = 0;
+    size_t mIteratorRegister = 0;
     std::unique_ptr<Expression> mStartExpr;
     std::unique_ptr<Expression> mEndExpr;
 
     std::unique_ptr<Expression> mStepExpr;
 
 
-    ForStatement(uint32_t nameSymId, std::unique_ptr<Expression> start,
+    ForStatement(size_t varRegister, std::unique_ptr<Expression> start,
                     std::unique_ptr<Expression> end,
                     std::unique_ptr<Expression> step)
-    : mIteratorVarNameSymbolId(nameSymId)
+    : mIteratorRegister(varRegister)
     , mStartExpr(std::move(start))
     , mEndExpr(std::move(end))
     , mStepExpr(std::move(step))
@@ -580,11 +583,12 @@ struct ForStatement : public BlockStatement {
 };
 // forRange -------------------------------------------------------------------------
 struct ForRangeStatement : public BlockStatement {
-    uint32_t mIteratorVarNameSymbolId = 0;
+    // uint32_t mIteratorVarNameSymbolId = 0;
+    size_t mIteratorRegister = 0;
     std::unique_ptr<Expression> mCountExpr;
 
-    ForRangeStatement(uint32_t nameSymId, std::unique_ptr<Expression> count)
-    : mIteratorVarNameSymbolId(nameSymId), mCountExpr(std::move(count)) {
+    ForRangeStatement(size_t varRegister, std::unique_ptr<Expression> count)
+    : mIteratorRegister(varRegister), mCountExpr(std::move(count)) {
         mNodeType  = NodeType::RangeStatement;
     }
 
@@ -596,11 +600,12 @@ struct ForRangeStatement : public BlockStatement {
 
 // forEach -------------------------------------------------------------------------
 struct ForEachStatement : public BlockStatement {
-    uint32_t mIteratorVarNameSymbolId = 0;
+    // uint32_t mIteratorVarNameSymbolId = 0;
+    size_t mIteratorRegister = 0;
     std::unique_ptr<Expression> mVarExpr;
 
-    ForEachStatement(uint32_t nameSymId, std::unique_ptr<Expression> varExpr)
-    : mIteratorVarNameSymbolId(nameSymId), mVarExpr(std::move(varExpr)) {
+    ForEachStatement(size_t varRegister, std::unique_ptr<Expression> varExpr)
+    : mIteratorRegister(varRegister), mVarExpr(std::move(varExpr)) {
         mNodeType  = NodeType::ForEachStatement;
     }
 

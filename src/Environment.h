@@ -42,12 +42,10 @@ private:
     Environment* mParentEnv = nullptr;
     VariableFrame* mVariableFrame = nullptr;
 
-    // -----
-    std::unordered_map<uint32_t, size_t> mGlobalsLookUp;
-    ValueVector mGlobalsRegister;
 
     // -- Ast only locals Register --
     std::vector<size_t> mLocalVarCount;
+    U32 mLocalsFrameId = 0;
     size_t mLocalOffset = 0;
     ValueVector mLocalsRegister;
 
@@ -57,25 +55,28 @@ private:
 
 
 public:
+    // -----
+    std::unordered_map<uint32_t, size_t> mGlobalsLookUp;
+    ValueVector mGlobalsRegister;
+    // -----
 
     Environment() : mParentEnv(nullptr) {
-        mVariableFrame = new VariableFrame(nullptr);
+        // mVariableFrame = new VariableFrame(nullptr);
     }
     Environment(Environment* parentEnv) : mParentEnv(parentEnv) {
-        // // Globals::gCurEnv = this;
-        mVariableFrame = new VariableFrame(parentEnv->mVariableFrame);
+        // mVariableFrame = new VariableFrame(parentEnv->mVariableFrame);
     }
     ~Environment() {
-        if (mVariableFrame) {
-            delete(mVariableFrame);
-            mVariableFrame = nullptr;
-        }
+        // if (mVariableFrame) {
+        //     delete(mVariableFrame);
+        //     mVariableFrame = nullptr;
+        // }
     }
 
-    inline VariableFrame* getVariableFrame() {
-        // assert(mVariableFrame && "FATAL ERROR: Enviroment require a VariableFrame!");
-        return mVariableFrame;
-    }
+    // inline VariableFrame* getVariableFrame() {
+    //     // assert(mVariableFrame && "FATAL ERROR: Enviroment require a VariableFrame!");
+    //     return mVariableFrame;
+    // }
 
     inline void PrintRuntimeError(const std::string& message, const std::string& p2 = "", const std::string& p3 = ""){
         Tools::errorf("RunTime Error [ENV:%p]: %s %s %s", (void*) this, message.c_str(), p2.c_str(),p3.c_str());
@@ -128,13 +129,14 @@ public:
     // -------------------------------------------------------------------------
     // LocalRegister
     // -------------------------------------------------------------------------
+    inline U32 getLocalsFrameId() {return  mLocalsFrameId;}
     inline void pushLocalStack(size_t varCount) {
         mLocalVarCount.push_back(varCount);
         mLocalOffset = mLocalsRegister.size();
         mLocalsRegister.resize(mLocalOffset  + varCount);
+        mLocalsFrameId++;
     }
     inline void popLocalStack() {
-
         size_t newSize = mLocalsRegister.size() - mLocalVarCount.back();
         mLocalVarCount.pop_back();
         mLocalsRegister.resize(newSize);

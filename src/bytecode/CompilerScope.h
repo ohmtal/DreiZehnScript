@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <cassert>
+#include <algorithm>
 
 namespace DreiZehn {
 
@@ -45,49 +46,67 @@ namespace DreiZehn {
 
     class CompilerScope {
     private:
-        std::unordered_map<uint32_t, int> mSymbolIdToSlot;
-        std::vector<uint32_t> mSlotToSymbolId;
-        int mNextSlotIndex = 0;
+        // std::unordered_map<uint32_t, int> mSymbolIdToSlot;
+        // std::vector<uint32_t> mSlotToSymbolId;
+
+        std::vector<U32> mSlots;
+        U32 mNextSlotIndex = 0;
+
 
 
     public:
         std::vector<LoopInfo> mLoopStack;
 
-        uint32_t insert(uint32_t symbolId) {
-            auto it = mSymbolIdToSlot.find(symbolId);
-            if (it != mSymbolIdToSlot.end()) {
-                return it->second;
-            }
-
-            uint32_t assignedSlot = mNextSlotIndex++;
-            mSymbolIdToSlot[symbolId] = assignedSlot;
-            mSlotToSymbolId.push_back(symbolId);
-            return assignedSlot;
+        U32 insert(U32 varRegister) {
+            auto it = std::find(mSlots.begin(),mSlots.end(),varRegister);
+            if (it != mSlots.end()) return varRegister;
+            mSlots.push_back(varRegister);
+            mNextSlotIndex++;
+            return varRegister;
         }
 
-        uint32_t allocateTemporarySlot() {
-            return mNextSlotIndex++;
-        }
-
-        void freeTemporarySlot() {
-            assert(mNextSlotIndex > 0 && "Compile ERROR too many slots released!!!!");
-            mNextSlotIndex--;
-        }
-        // --------------------------------------
-        int resolve(S32 symbolId) const {
-            auto it = mSymbolIdToSlot.find(symbolId);
-            if (it != mSymbolIdToSlot.end()) {
-                return it->second;
-            }
+        int resolve(U32 varRegister) const {
+            auto it = std::find(mSlots.begin(),mSlots.end(),varRegister);
+            if (it != mSlots.end()) return varRegister;
             return -1;
         }
-        // --------------------------------------
+        U32 getLocalCount() const { return mNextSlotIndex; }
 
-        uint32_t getSymbolIdForSlot(int slot) const {
-            return mSlotToSymbolId.at(slot);
-        }
-
-        int getLocalCount() const { return mNextSlotIndex; }
+        // uint32_t insert(uint32_t symbolId) {
+        //     auto it = mSymbolIdToSlot.find(symbolId);
+        //     if (it != mSymbolIdToSlot.end()) {
+        //         return it->second;
+        //     }
+        //
+        //     uint32_t assignedSlot = mNextSlotIndex++;
+        //     mSymbolIdToSlot[symbolId] = assignedSlot;
+        //     mSlotToSymbolId.push_back(symbolId);
+        //     return assignedSlot;
+        // }
+        //
+        // uint32_t allocateTemporarySlot() {
+        //     return mNextSlotIndex++;
+        // }
+        //
+        // void freeTemporarySlot() {
+        //     assert(mNextSlotIndex > 0 && "Compile ERROR too many slots released!!!!");
+        //     mNextSlotIndex--;
+        // }
+        // // --------------------------------------
+        // int resolve(S32 symbolId) const {
+        //     auto it = mSymbolIdToSlot.find(symbolId);
+        //     if (it != mSymbolIdToSlot.end()) {
+        //         return it->second;
+        //     }
+        //     return -1;
+        // }
+        // // --------------------------------------
+        //
+        // uint32_t getSymbolIdForSlot(int slot) const {
+        //     return mSlotToSymbolId.at(slot);
+        // }
+        //
+        // int getLocalCount() const { return mNextSlotIndex; }
     };
 
 

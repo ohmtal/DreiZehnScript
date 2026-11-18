@@ -596,8 +596,10 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
         
         
         
-    --- USING BRANCH EXPERIMENTAL ---
-- [ ] VariableFrame:
+----------------------------------------------------------------------------
+                --- USING BRANCH EXPERIMENTAL ---
+----------------------------------------------------------------------------
+- [X] VariableFrame:
     - LocalVariable enviroment is done:
         - AstNodes.cpp CallScriptFunc :: arguments as expression 
         - Functionmap CallScriptFunction :: arguments as ValueSpan
@@ -614,10 +616,24 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - bytecode: but whats about the redundant CompilerScope ? i guess this is obsolete then ?! 
     - save varcount then in AST Node! 
     - NOTE: i started but restored again .. must think about it more.
-    - [ ] VariableFrame stuff can be added directly to Enviroment
-    - [ ] globals should use register like in DLS
-    - [ ] Interpreter: locals should have a offset and not spawn a new Variable frame
-    - [ ] IMPORTANT!  get rid of : Globals::MasterVariableFrame 
+    - [X] VariableFrame stuff can be added directly to Enviroment
+    - [X] globals should use register like in DLS
+    - [X] Interpreter: locals should have a offset and not spawn a new Variable frame
+    - [X] IMPORTANT!  get rid of : Globals::MasterVariableFrame 
+    
+### Ok some problems:
+- Common
+    
+- Interpreter:
+    - [ ] handling: **Variable not found** must stop also on Interpreter
+    - [ ] main variables does not push a count and so nothing does work!
+    
+- ByteCode 
+    - [ ] registers are out of sync - VM localvars use different Register as ParserFrame 
+        
+----------------------------------------------------------------------------
+    
+    
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 

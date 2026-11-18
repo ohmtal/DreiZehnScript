@@ -45,7 +45,6 @@ namespace Globals {
     inline bool shutDownRUNNING = false;
     // ------
 
-    inline VariableFrame* MasterVariableFrame = nullptr;
 
 #ifdef DREIZEHN_DEBUG
     inline  bool gDumpStateNodes = false; //Debug

@@ -24,42 +24,42 @@ namespace DreiZehn {
     // ----------------------------------------------------------------------------
     //                  ------ ParserFrame ------
     // ----------------------------------------------------------------------------
-        bool ParserFrame::isFunctionVar(uint32_t symId) {
-            return std::find(mFunctionVariables.begin(), mFunctionVariables.end(), symId) != mFunctionVariables.end();
-        }
-        void ParserFrame::insertFunctionVar(uint32_t symId) {
-            // Tools::printf(" ** VAR %s insertFunctionVar {block:%d}\n",
-            //               SymbolTable::getName(symId).c_str(),
-            //               mBlockInFunction);
+    bool ParserFrame::isFunctionVar(uint32_t symId) {
+        return std::find(mFunctionVariables.begin(), mFunctionVariables.end(), symId) != mFunctionVariables.end();
+    }
+    void ParserFrame::insertFunctionVar(uint32_t symId) {
+        // Tools::printf(" ** VAR %s insertFunctionVar {block:%d}\n",
+        //               SymbolTable::getName(symId).c_str(),
+        //               mBlockInFunction);
 
-            if (!mBlockInFunction) return;
-            if (!isFunctionVar(symId))
-                mFunctionVariables.push_back(symId);
-        }
+        if (!mBlockInFunction) return;
+        if (!isFunctionVar(symId))
+            mFunctionVariables.push_back(symId);
+    }
 
-        bool ParserFrame::guessGlobalVarAndInsertLocalIfNot(Environment& env, uint32_t symId) {
-            bool foundAGlobal = Globals::MasterVariableFrame->isGlobalVar(symId);
-            bool foundFunctionVar = isFunctionVar(symId);
-            // Tools::printf(" ** VAR %s check foundAGlobal:%d foundFunc:%d {block:%d}\n",
-            //               SymbolTable::getName(symId).c_str(), foundAGlobal,foundFunctionVar,
-            //               mBlockInFunction);
-            if (!mBlockInFunction) return foundAGlobal;
-            if (!foundFunctionVar && foundAGlobal) return true;
-            insertFunctionVar(symId);
-            return false;
-        }
+    bool ParserFrame::guessGlobalVarAndInsertLocalIfNot(Environment& env, uint32_t symId) {
+        bool foundAGlobal = Globals::MasterVariableFrame->isGlobalVar(symId);
+        bool foundFunctionVar = isFunctionVar(symId);
+        // Tools::printf(" ** VAR %s check foundAGlobal:%d foundFunc:%d {block:%d}\n",
+        //               SymbolTable::getName(symId).c_str(), foundAGlobal,foundFunctionVar,
+        //               mBlockInFunction);
+        if (!mBlockInFunction) return foundAGlobal;
+        if (!foundFunctionVar && foundAGlobal) return true;
+        insertFunctionVar(symId);
+        return false;
+    }
 
-        void ParserFrame::startFunc(uint32_t funcSymId) {
-            // Tools::printf("StartFunc %s ......\n", SymbolTable::getName(funcSymId).c_str());
-            mFunctionVariables.clear();
-            mBlockInFunction = true;
-        }
-        void ParserFrame::endFunc(uint32_t funcSymId) {
-            // Tools::printf("..... EndFunc %s {block:%d} \n"
-            //     , SymbolTable::getName(funcSymId).c_str(), mBlockInFunction);
-            mFunctionVariables.clear();
-            mBlockInFunction = false;
-        }
+    void ParserFrame::startFunc(uint32_t funcSymId) {
+        // Tools::printf("StartFunc %s ......\n", SymbolTable::getName(funcSymId).c_str());
+        mFunctionVariables.clear();
+        mBlockInFunction = true;
+    }
+    void ParserFrame::endFunc(uint32_t funcSymId) {
+        // Tools::printf("..... EndFunc %s {block:%d} \n"
+        //     , SymbolTable::getName(funcSymId).c_str(), mBlockInFunction);
+        mFunctionVariables.clear();
+        mBlockInFunction = false;
+    }
 
 
 
@@ -145,7 +145,10 @@ namespace DreiZehn {
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
                     auto arg = parseMath();
-                    if (arg.get()) args.push_back(std::move(arg));
+                    if (arg.get()) {
+                        args.push_back(std::move(arg));
+                        args.back()->mLineNumber = lineNumber;
+                    }
                     if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
@@ -180,8 +183,10 @@ namespace DreiZehn {
                     while (isContinueToken(peek())) {
                         size_t lastPos = mPos;
                         auto arg = parseMath();
-                        if (arg) args.push_back(std::move(arg));
-
+                        if (arg) {
+                            args.push_back(std::move(arg));
+                            args.back()->mLineNumber = lineNumber;
+                        }
                         if (checkCommaBreak(args)) break; //TEST
 
                         if (lastPos == mPos) {
@@ -259,6 +264,7 @@ namespace DreiZehn {
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());
+                    args.back()->mLineNumber = lineNumber;
                     if (checkCommaBreak(args)) break; //TEST
                     if (lastPos == mPos) {
                         PrintParseError("In Curly Brackets:");
@@ -418,7 +424,10 @@ namespace DreiZehn {
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
                     auto arg = parseMath();
-                    if (arg) args.push_back(std::move(arg));
+                    if (arg){
+                        args.push_back(std::move(arg));
+                        args.back()->mLineNumber = lineNumber;
+                    }
 
                     if (checkCommaBreak(args)) break; //TEST
 
@@ -543,8 +552,10 @@ namespace DreiZehn {
                 {
                     size_t lastPos = mPos;
                     auto arg = parseMath();
-                    if (arg) args.push_back(std::move(arg));
-
+                    if (arg) {
+                        args.push_back(std::move(arg));
+                        args.back()->mLineNumber = lineNumber;
+                    }
                     if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {

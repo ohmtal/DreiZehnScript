@@ -585,18 +585,21 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     
 - [X] ParserFrame is also global !
     
-- [ ] ByteCode
+- [X] ByteCode
     - encapsulate VM with chunk in a class/struct 
         - MasterChunk
         - CompilerScope scope
         - ValueVector locals
     - [X] inital 
     - TOBAD: !!bytecode became slower!! test_var is about 100-200 ms slower. it's the mLocalVar! 
-    - [ ] but i dont like it so much since enviroment can have a mParentEnv ..
-         maybe it should somewhere else ... doing Interpreter and Bytecode paralell
-         cause some headache ;)
+    - [X] some expression linenumbers was not set 
         
 - [ ] VariableFrame:
+    - LocalVariable enviroment is done:
+        - AstNodes.cpp CallScriptFunc :: arguments as expression 
+        - Functionmap CallScriptFunction :: arguments as ValueSpan
+    
+    - _____________________________
     - the key is: guessGlobalVarAndInsertLocalIfNot - here i could resolve the index 
     - bytecode: but whats about the redundant CompilerScope ? i guess this is obsolete then ?! 
     - save varcount then in AST Node! 

@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // Enviroment VM
+// TODO add cpp!
+//-----------------------------------------------------------------------------
 #pragma once
 //-----------------------------------------------------------------------------
 #ifdef DREIZEHN_DEBUG
@@ -31,13 +33,7 @@
 #include "bytecode/VM.h"
 
 
-// Byte Code
-// #include "bytecode/VMStructure.h"
-// #include "bytecode/CompilerScope.h"
-// #include "bytecode/VM.h"
-
 namespace DreiZehn {
-
 
 
 class Environment {
@@ -46,6 +42,16 @@ private:
     Environment* mParentEnv = nullptr;
     VariableFrame* mVariableFrame = nullptr;
 
+    // -----
+    std::unordered_map<uint32_t, size_t> mGlobalsLookUp;
+    ValueVector mGlobalsRegister;
+
+    // -- Ast only locals Register --
+    std::vector<size_t> mLocalVarCount;
+    size_t mLocalOffset = 0;
+    ValueVector mLocalsRegister;
+
+    // ----
     // bad idea here ?!
     VM mVM;
 
@@ -53,8 +59,6 @@ private:
 public:
 
     Environment() : mParentEnv(nullptr) {
-        // // Globals::gCurEnv = this;
-        // // Globals::gMainEnv = this;
         mVariableFrame = new VariableFrame(nullptr);
     }
     Environment(Environment* parentEnv) : mParentEnv(parentEnv) {
@@ -62,9 +66,6 @@ public:
         mVariableFrame = new VariableFrame(parentEnv->mVariableFrame);
     }
     ~Environment() {
-        // // if (mParentEnv) Globals::gCurEnv = mParentEnv;
-        // // else Globals::gCurEnv = nullptr;
-
         if (mVariableFrame) {
             delete(mVariableFrame);
             mVariableFrame = nullptr;
@@ -81,6 +82,79 @@ public:
     }
 
     inline VM& getVM() { return mVM; } //const ?! ..
+
+
+    // -------------------------------------------------------------------------
+    // GlobalsRegister
+    // -------------------------------------------------------------------------
+    inline S64 getGlobalRegister(U32 symId) {
+        auto it = mGlobalsLookUp.find(symId);
+        if (it != mGlobalsLookUp.end()) [[likely]] {
+            return it->second;
+        }
+        return -1;
+    }
+
+    inline size_t reserveGlobal(U32 symId) {
+        S64 index = getGlobalRegister(symId);
+        if (index < 0 ) {
+            index = mGlobalsRegister.size();
+            mGlobalsLookUp[symId] = index;
+            mGlobalsRegister.push_back(Value());
+        }
+        return (size_t) index;
+    }
+
+    inline void saveGlobal(size_t index, const Value& value) {
+        #ifdef DLS_DEBUG
+        assert (index < mGlobalsRegister.size() && "SAVE: GLOBALS REGISTER OUT OF BOUNDS");
+        #endif
+        mGlobalsRegister[index] = value;
+    }
+
+    inline Value& getGlobal(size_t index) {
+        #ifdef DLS_DEBUG
+        assert (index < mGlobalsRegister.size() && "LOAD: GLOBALS REGISTER OUT OF BOUNDS");
+        #endif
+        return mGlobalsRegister[index];
+    }
+
+    inline bool getGlobalVariableValueRef(const std::string& varName, Value& ret) {
+        S64 index = getGlobalRegister(SymbolTable::insert(varName));
+        if (index < 0 ) return false;
+        ret = getGlobal((size_t)index);
+        return true;
+    }
+    // -------------------------------------------------------------------------
+    // LocalRegister
+    // -------------------------------------------------------------------------
+    inline void pushLocalStack(size_t varCount) {
+        mLocalVarCount.push_back(varCount);
+        mLocalOffset = mLocalsRegister.size();
+        mLocalsRegister.resize(mLocalOffset  + varCount);
+    }
+    inline void popLocalStack() {
+
+        size_t newSize = mLocalsRegister.size() - mLocalVarCount.back();
+        mLocalVarCount.pop_back();
+        mLocalsRegister.resize(newSize);
+        if (mLocalVarCount.size() > 0 ) mLocalOffset -= mLocalVarCount.back();
+        else mLocalOffset = 0;
+    }
+
+    inline void saveLocal(size_t index, const Value& value) {
+        // #ifdef DLS_DEBUG
+        assert ((index + mLocalOffset) < mLocalsRegister.size() && "SAVE: LOCALS REGISTER OUT OF BOUNDS");
+        // #endif
+        mLocalsRegister[(index + mLocalOffset)] = value;
+    }
+
+    inline Value& getLocal(size_t index) {
+        // #ifdef DLS_DEBUG
+        assert ((index + mLocalOffset) < mLocalsRegister.size() && "LOAD: LOCALS REGISTER OUT OF BOUNDS");
+        // #endif
+        return mLocalsRegister[(index + mLocalOffset)];
+    }
 
 
     // -------------------------------------------------------------------------

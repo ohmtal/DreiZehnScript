@@ -3,26 +3,28 @@ import Core
 
 global GlobalObject = 0
 global globalVar = 0
+localVar = 1;
 
-# function mhh p1
-#     print "p1:" p1 "globalVar:" globalVar
-# end
-# mhh 10
-#
-# return
+fn mhh param1
+    print "p1:" param1 "globalVar:" globalVar # "localVar outside:" localvar
+end
+mhh 10
+
+return
 
 
 
-
+printraw "Globals: "
+globalVar = 0
 while globalVar < 10; globalVar++; printraw globalVar " ";  end;
 printraw "\n"
 
 
-fn init
+function init
     GlobalObject = Object::new
 end
 
-fn foo p1
+function foo p1
     v1 = 10
     print p1 * v1
     print "global is" globalVar
@@ -41,16 +43,14 @@ end
 init
 -- core::printGlob; return;
 foo 100
-print "should be 0,0,20,Object[P] =>" p1 "," v1 "," globalVar "," GlobalObject
+// does not compile with BC! print "should be 0,0,20,Object[P] =>" p1 "," v1 "," globalVar "," GlobalObject
 
 localVar = 10
 -- core::printgc
-debug::printenv
-fn Init; return true; end
+function Init; return true; end
 
 if Init
     ifVar = 20
-debug::printenv
     print "LOCALVAR:" localVar "ifVar" ifVar
     while ifVar > 0 ; ifVar-=1; printraw ifVar " ";end
     print "....."
@@ -58,12 +58,12 @@ end
 
 print "outside if ifVar" ifVar
 
-fn lala p1 p2 p3 ; print "p1" p1 "p2" p2 "p3" p3;;
+function lala p1 p2 p3 ; print "p1" p1 "p2" p2 "p3" p3;;
 
 lala
 
 
-fn Object::lala this p1 p2 p3 ; print "obj: p1" p1 "p2" p2 "p3" p3;;
+function Object::lala this p1 p2 p3 ; print "obj: p1" p1 "p2" p2 "p3" p3;;
 obj = Object::new
 obj->lala
 -- while core::breath; core::sleep 16 ;;

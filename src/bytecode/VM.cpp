@@ -131,6 +131,8 @@ namespace DreiZehn {
 // -----------------------------------------------------------------------------
 Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
 
+    // ValueVector mLocals(64, Value(0));
+
     // TEST! register const uint8_t* pc __asm__("r14");
     if (Globals::ByteCodeRunning) {
         Tools::errorf("------------ Sorry. use include to add code to the current byte code ... machine is running! \n ----------------");

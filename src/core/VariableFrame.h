@@ -20,8 +20,6 @@
 #include "toolbox/Tools.h"
 
 namespace DreiZehn {
-
-// -----------------------------------------------------------------------------
 // Global Access:
 class VariableFrame;
 

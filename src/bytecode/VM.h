@@ -20,8 +20,9 @@ namespace DreiZehn {
 
         // NOTE:
         // moving the locals to class cause slower test_var/test_struct !
-        // and it's even slower when i add them to runVM but outside inline
-        // is not a option
+        // Outside inline is not a option
+        // inside function initialied with 64 is fast like before but can access them on next
+        // run.
         ValueVector mLocals;
 
     public:

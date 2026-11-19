@@ -640,8 +640,10 @@ At the moment i test with starfield.. need something better where i see whats wr
     - [X] Message: Runtime Error in native function call ?! 
 
 - Interpreter:
-    - [ ] handling: **Variable not found** must stop also on Interpreter
     - [ ] main variables does not push a count and so nothing does work!
+        - added varCount to BlockStatement but i have a lot of Blockstatements
+          so a new push kick the stack to somewhere !
+    -  handling: **Variable not found** must stop also on Interpreter
     
     
 ----------------------------------------------------------------------------

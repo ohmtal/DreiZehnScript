@@ -132,10 +132,14 @@ end
 -- fillRandom
 
 fillHouse
+print "I"
 curpic = 1
+print "II"
 
 spaceWasUp = true
+print "III"
 now = fenster->getTime
+print "IV"
 while fenster->loop && core::breath
    if fenster->isKeyDown KEY_SPACE
        if spaceWasUp
@@ -155,9 +159,6 @@ while fenster->loop && core::breath
    end
     -- ESC
    if fenster->isKeyDown KEY_ESC; break end
-
-
-
 end
 
 fenster->close

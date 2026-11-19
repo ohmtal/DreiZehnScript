@@ -133,12 +133,18 @@ public:
     inline U32 getLocalsFrameId() {return  mLocalsFrameId;}
 
     inline void pushLocalStack(size_t varCount) {
+        #ifdef DREIZEHN_DEBUG
+        Tools::printf("... pushLocalStack: %zu ....\n", varCount);
+        #endif
         mLocalVarCount.push_back(varCount);
         mLocalOffset = mLocalsRegister.size();
         mLocalsRegister.resize(mLocalOffset  + varCount);
         mLocalsFrameId++;
     }
     inline void popLocalStack() {
+        #ifdef DREIZEHN_DEBUG
+        Tools::printf("... popLocalStack\n");
+        #endif
         size_t newSize = mLocalsRegister.size() - mLocalVarCount.back();
         mLocalVarCount.pop_back();
         mLocalsRegister.resize(newSize);
@@ -147,9 +153,9 @@ public:
     }
 
     inline void saveLocal(size_t index, const Value& value) {
-        // #ifdef DREIZEHN_DEBUG
-        // Tools::printf("saveLocal [%zu]:%s\n", index, value.toString().c_str() );
-        // #endif
+        #ifdef DREIZEHN_DEBUG
+        Tools::printf("saveLocal [%zu]:%s\n", index, value.toString().c_str() );
+        #endif
         assert ((index + mLocalOffset) < mLocalsRegister.size() && "SAVE: LOCALS REGISTER OUT OF BOUNDS");
         mLocalsRegister[(index + mLocalOffset)] = value;
     }
@@ -157,11 +163,11 @@ public:
     inline Value& getLocal(size_t index) {
         #ifdef DREIZEHN_DEBUG
         if ((index + mLocalOffset) >= mLocalsRegister.size()){
-            Tools::errorf("LOAD: LOCALS REGISTER OUT OF BOUNDS");
-            assert(true);
+            Tools::errorf("LOAD: LOCALS REGISTER OUT OF BOUNDS: [%zu|%zu] => %zu\n", index, mLocalOffset, mLocalsRegister.size());
+            assert(true && "LOAD: LOCALS REGISTER OUT OF BOUNDS");
         }
         Value& value = mLocalsRegister[(index + mLocalOffset)];
-        // Tools::printf("LoadLocal [%zu]:%s\n", index, value.toString().c_str() );
+        Tools::printf("LoadLocal [%zu|%zu] => %zu VALUE:%s\n", index, mLocalOffset,mLocalsRegister.size(),  value.toString().c_str() );
         return value;
         #endif
         // #ifdef DLS_DEBUG
@@ -200,9 +206,10 @@ public:
             case NodeType::BlockStatement:
             {
                 auto* flowStmt = static_cast<BlockStatement*>(node);
-                currentEnv.pushLocalStack(flowStmt->VarCount);
+                bool doPush = flowStmt->VarCount > 0;
+                if (doPush) currentEnv.pushLocalStack(flowStmt->VarCount);
                 FlowStatus result =  flowStmt->execute(currentEnv);
-                popLocalStack();
+                if (doPush) popLocalStack();
                 return result;
             }
 

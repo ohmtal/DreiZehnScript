@@ -808,6 +808,11 @@ namespace DreiZehn {
     Value CallScriptFunc(Environment& env, const FunctionMap::ScriptFunction* sf
     , std::vector<std::unique_ptr<Expression>>& arguments) {
         auto& func = *(sf);
+
+        #ifdef DREIZEHN_DEBUG
+            Tools::printf("local count: %u\n",sf->localVarCount);
+        #endif
+
         env.pushLocalStack(sf->localVarCount);
 
         for (size_t i = 0; i < func.parameterNames.size(); ++i) {
@@ -861,13 +866,23 @@ namespace DreiZehn {
     Value CallExpression::evaluate(Environment& env) {
 
         if (cbCache) return CallFunc(env,cbCache,arguments,mFuncSymbolId);
-        if (sfCache) return CallScriptFunc(env,sfCache, arguments);
+        if (sfCache) {
+            #ifdef DREIZEHN_DEBUG
+            Tools::printf("CallScriptFunc [CACHED] %s:", SymbolTable::getName(mFuncSymbolId).c_str());
+            #endif
+            return CallScriptFunc(env,sfCache, arguments);
+        }
 
         cbCache = FunctionMap::GetCFunction(mFuncSymbolId);
         if (cbCache) return CallFunc(env,cbCache,arguments,mFuncSymbolId);
 
         sfCache =  FunctionMap::GetScriptFunction(mFuncSymbolId);
-        if (sfCache) return CallScriptFunc(env,sfCache, arguments);
+        if (sfCache) {
+            #ifdef DREIZEHN_DEBUG
+            Tools::printf("CallScriptFunc %s:", SymbolTable::getName(mFuncSymbolId).c_str());
+            #endif
+            return CallScriptFunc(env,sfCache, arguments);
+        }
 
         PrintASTError(this, "Unknown command:", SymbolTable::getName(mFuncSymbolId));
         return Value();

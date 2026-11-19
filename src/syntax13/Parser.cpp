@@ -1080,6 +1080,7 @@ namespace DreiZehn {
             return nullptr;
         }
 
+        mainProgram->VarCount = parserFrame.mLocalVariables.back().size();
         parserFrame.mLocalVariables.clear();
         return mainProgram;
     }

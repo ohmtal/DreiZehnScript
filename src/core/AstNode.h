@@ -14,7 +14,7 @@
 
 namespace DreiZehn {
 
-struct Environment;
+class Environment;
 struct BytecodeChunk;
 class CompilerScope;
 
@@ -171,6 +171,7 @@ struct FlowBaseStatement: public ASTNode {
 // block statement --------------------------------------------------------------
 class BlockStatement : public FlowBaseStatement {
 public:
+    size_t VarCount = 0;
     std::vector<std::shared_ptr<ASTNode>> mBody;
     BlockStatement() {
         mNodeType = NodeType::BlockStatement;

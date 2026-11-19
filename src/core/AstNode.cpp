@@ -808,7 +808,8 @@ namespace DreiZehn {
     Value CallScriptFunc(Environment& env, const FunctionMap::ScriptFunction* sf
     , std::vector<std::unique_ptr<Expression>>& arguments) {
         auto& func = *(sf);
-        env.pushLocalStack(sf->localVarCount);
+        // // env.pushLocalStack(sf->localVarCount);
+        env.pushLocalStack(func.parameterNames.size());
 
         for (size_t i = 0; i < func.parameterNames.size(); ++i) {
             if (i < arguments.size()) {

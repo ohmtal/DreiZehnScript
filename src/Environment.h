@@ -49,6 +49,7 @@ private:
     size_t mLocalOffset = 0;
     ValueVector mLocalsRegister;
 
+
     // ----
     // bad idea here ?!
     VM mVM;
@@ -130,6 +131,7 @@ public:
     // LocalRegister
     // -------------------------------------------------------------------------
     inline U32 getLocalsFrameId() {return  mLocalsFrameId;}
+
     inline void pushLocalStack(size_t varCount) {
         mLocalVarCount.push_back(varCount);
         mLocalOffset = mLocalsRegister.size();
@@ -173,7 +175,7 @@ public:
         if (Globals::gDumpStateNodes) Tools::printf("EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
         #endif
 
-        // switch(node->mNodeType) {
+        switch(node->mNodeType) {
         //     case NodeType::VariableExpression: static_cast<VariableExpression*>(node)->evaluate(currentEnv); break;
         //     // case NodeType::IfStatement: return static_cast<IfStatement*>(node)->execute(currentEnv); break;
         //     // case NodeType::ArrayVariableExpression:
@@ -185,7 +187,16 @@ public:
         //     // case NodeType::CallExpression
         //     // case NodeType::LiteralExpression
         //
-        //     default:
+            case NodeType::BlockStatement:
+            {
+                auto* flowStmt = static_cast<BlockStatement*>(node);
+                currentEnv.pushLocalStack(flowStmt->VarCount);
+                FlowStatus result =  flowStmt->execute(currentEnv);
+                popLocalStack();
+                return result;
+            }
+
+            default:
                 if (node->mFlags & NodeFlag_Expression) [[likely]] {
                     auto* expr = static_cast<Expression*>(node);
                     expr->evaluate(currentEnv);
@@ -195,7 +206,7 @@ public:
                 } /*I use it for functionstart node so no error! ==> else [[unlikely]] {
                     Tools::errorf("UNKNOWN Expression EXECUTE: %s\n", NodeTypeToString(node->mNodeType));
                 }*/
-        // }
+        }
 
         return FlowStatus(FlowSignal::None);
 

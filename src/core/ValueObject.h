@@ -22,7 +22,7 @@ namespace FunctionMap{ struct  ScriptFunction; using CallBack = std::function< b
 // --- RegisterUserObjectType ---
 // =============================================================================
 struct ValueObject;
-struct Environment;
+class Environment;
 int RegisterUserObjectType(std::string typeName);
 const char* GetObjectTypeName(ValueObject* object);
 

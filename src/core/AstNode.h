@@ -540,7 +540,7 @@ struct ElIfStatement: public IfStatement {
 
 };
 // fn --------------------------------------------------------------------------
-struct FunctionDefineStartNode : public ASTNode {
+struct FunctionDefineStartNode : public BlockStatement {
     uint32_t mFnNameSymbolId;
     FunctionDefineStartNode(uint32_t symId) : mFnNameSymbolId(symId) {
         mNodeType  = NodeType::FunctionDefineStartNode;

@@ -35,9 +35,11 @@ namespace DreiZehn {
 
 
     U32 ParserFrame::insertLocalVar(uint32_t symId) {
-        // Tools::printf(" ** VAR %s insertFunctionVar {block:%d}\n",
+        // #ifdef DREIZEHN_DEBUG
+        // Tools::printf(" ** VAR %s insertLocalVar {block:%d}\n",
         //               SymbolTable::getName(symId).c_str(),
         //               mBlockInFunction);
+        // #endif
         S64 foundIndex = findLocalVar(symId);
         if (foundIndex >= 0) {
             return static_cast<U32>(foundIndex);
@@ -58,13 +60,19 @@ namespace DreiZehn {
     }
 
     void ParserFrame::startFunc(uint32_t funcSymId) {
+        // #ifdef DREIZEHN_DEBUG
         // Tools::printf("StartFunc %s ......\n", SymbolTable::getName(funcSymId).c_str());
+        // #endif
         mLocalVariables.push_back({});
         mBlockInFunction = true;
     }
     void ParserFrame::endFunc(uint32_t funcSymId) {
-        // Tools::printf("..... EndFunc %s {block:%d} \n"
-        //     , SymbolTable::getName(funcSymId).c_str(), mBlockInFunction);
+        // #ifdef DREIZEHN_DEBUG
+        // Tools::printf("..... EndFunc %s {block:%d} variables: %zu \n"
+        //     , SymbolTable::getName(funcSymId).c_str(), mBlockInFunction, mLocalVariables.back().size());
+        // #endif
+        FunctionMap::RegisteredScriptFunctions[funcSymId].localVarCount = mLocalVariables.back().size();
+
         mLocalVariables.pop_back();
         mBlockInFunction = false;
     }
@@ -740,9 +748,9 @@ namespace DreiZehn {
                 if (parserFrame.mBlockOpenTypes.size() > 0) {
                     TokenType startToken = parserFrame.mBlockOpenTypes.back();
                     parserFrame.mBlockOpenTypes.pop_back();
-                    if (startToken == TokenType::Fn) {
-                        parserFrame.endFunc(0);
-                    }
+                    // // if (startToken == TokenType::Fn) {
+                    // //     parserFrame.endFunc(0);
+                    // // }
 
                     return std::make_unique<FunctionDefineEndNode>();
                 }
@@ -964,7 +972,7 @@ namespace DreiZehn {
 
                     // --- fn ---
                     if (auto* startNode = dynamic_cast<FunctionDefineStartNode*>(ast.get())) {
-                        blockStack.push_back({BlockType::Function, startNode->mFnNameSymbolId, nullptr, startNode->mLineNumber});
+                        blockStack.push_back({BlockType::Function, startNode->mFnNameSymbolId, startNode, startNode->mLineNumber});
                         mainProgram->mBody.push_back(std::make_shared<FunctionDefineStartNode>(startNode->mFnNameSymbolId)) ;
                         continue;
                     }
@@ -1013,6 +1021,13 @@ namespace DreiZehn {
                         if (blockStack.size() <= 1) {
                             PrintParseError("Syntax-Error: 'end' without starting statement.");
                             return nullptr;
+                        }
+
+
+                        if (blockStack.back().mType == BlockType::Function) {
+                            auto* actualFunc = dynamic_cast<FunctionDefineStartNode*>(blockStack.back().mBlockNodePointer);
+                            assert(actualFunc && "bockstack is function but function pointer is null!!");
+                            parserFrame.endFunc(actualFunc->mFnNameSymbolId);
                         }
 
                         blockStack.pop_back();

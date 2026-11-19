@@ -112,7 +112,7 @@ namespace DreiZehn {
 
     Value VariableExpression::evaluate(Environment& env) {
         //FIXME what is if the variable does not exists?!
-        return this->evaluatePtr(env);
+        return *this->evaluatePtr(env);
     }
 
     Value* VariableExpression::evaluatePtr(Environment& env) {
@@ -808,8 +808,7 @@ namespace DreiZehn {
     Value CallScriptFunc(Environment& env, const FunctionMap::ScriptFunction* sf
     , std::vector<std::unique_ptr<Expression>>& arguments) {
         auto& func = *(sf);
-        // // env.pushLocalStack(sf->localVarCount);
-        env.pushLocalStack(func.parameterNames.size());
+        env.pushLocalStack(sf->localVarCount);
 
         for (size_t i = 0; i < func.parameterNames.size(); ++i) {
             if (i < arguments.size()) {

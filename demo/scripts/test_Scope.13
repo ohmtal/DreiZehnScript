@@ -1,16 +1,11 @@
-print "----- Assignment redesign attempt 0.7 -----"
-import Core
-
-global GlobalObject = 0
 global globalVar = 0
+global GlobalObject = 0
 localVar = 1;
 
 fn mhh param1
     print "p1:" param1 "globalVar:" globalVar # "localVar outside:" localvar
 end
 mhh 10
-
-# return
 
 
 

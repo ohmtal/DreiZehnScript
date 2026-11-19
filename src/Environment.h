@@ -147,13 +147,23 @@ public:
     }
 
     inline void saveLocal(size_t index, const Value& value) {
-        // #ifdef DLS_DEBUG
-        assert ((index + mLocalOffset) < mLocalsRegister.size() && "SAVE: LOCALS REGISTER OUT OF BOUNDS");
+        // #ifdef DREIZEHN_DEBUG
+        // Tools::printf("saveLocal [%zu]:%s\n", index, value.toString().c_str() );
         // #endif
+        assert ((index + mLocalOffset) < mLocalsRegister.size() && "SAVE: LOCALS REGISTER OUT OF BOUNDS");
         mLocalsRegister[(index + mLocalOffset)] = value;
     }
 
     inline Value& getLocal(size_t index) {
+        #ifdef DREIZEHN_DEBUG
+        if ((index + mLocalOffset) >= mLocalsRegister.size()){
+            Tools::errorf("LOAD: LOCALS REGISTER OUT OF BOUNDS");
+            assert(true);
+        }
+        Value& value = mLocalsRegister[(index + mLocalOffset)];
+        // Tools::printf("LoadLocal [%zu]:%s\n", index, value.toString().c_str() );
+        return value;
+        #endif
         // #ifdef DLS_DEBUG
         assert ((index + mLocalOffset) < mLocalsRegister.size() && "LOAD: LOCALS REGISTER OUT OF BOUNDS");
         // #endif

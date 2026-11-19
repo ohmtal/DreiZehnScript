@@ -19,8 +19,7 @@ namespace DreiZehn::FunctionMap {
     {
         if (sf) {
             auto& func = *(sf);
-             // env.pushLocalStack(sf->localVarCount);
-             env.pushLocalStack(func.parameterNames.size());
+             env.pushLocalStack(sf->localVarCount);
 
             for (size_t i = 0; i < func.parameterNames.size(); ++i) {
                 if (i < args.size()) {

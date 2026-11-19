@@ -24,7 +24,7 @@ namespace DreiZehn {
                        const std::string& p2 = "", const std::string& p3 = ""){
 
         if (!node) return;
-        Tools::errorf("Runtime Error %s LINE:[%u]\n\tMessage: %s %s %s\n"
+        Tools::errorf("AST(runtime|compile) Error %s LINE:[%u]\n\tMessage: %s %s %s\n"
             , NodeTypeToString(node->mNodeType)
             , node->mLineNumber
             , p1.c_str()
@@ -1165,7 +1165,7 @@ namespace DreiZehn {
                 S32 localSlot = scope.resolve(vExpr->mVariableRegister);
                 if (localSlot < 0 ) {
                     // std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
-                    PrintASTError(this, "Variable not found in local scope.");
+                    PrintASTError(this, "Variable not found in local scope. REG:", std::to_string(localSlot).c_str(),  std::to_string(vExpr->mVariableRegister).c_str());
                     return true; // do not stop!
                 }
 
@@ -1699,8 +1699,10 @@ namespace DreiZehn {
                 if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
                 S32 localSlot = scope.resolve(vExpr->mVariableRegister);
                 if (localSlot < 0 ) {
-                    std::string varName = SymbolTable::getName(vExpr->mVariableRegister);
-                    PrintASTError(this,"Variable not found :", varName);
+                    // std::string varName = SymbolTable::getName(vExpr->mVariableRegister);
+                    // PrintASTError(this,"Variable not found :", varName);
+                    PrintASTError(this, "Variable not found in local scope. REG:", std::to_string(localSlot).c_str(),  std::to_string(vExpr->mVariableRegister).c_str());
+
                     return true; // do not stop!
                 }
 
@@ -2475,10 +2477,13 @@ namespace DreiZehn {
 
         CompilerScope funcScope;
 
-
-        for (const auto& paramName : sf->parameterNames) {
-            funcScope.insert(SymbolTable::insert(paramName));
+        for (U32 u = 0; u <  sf->parameterNames.size(); u++) {
+            funcScope.insert(u);
         }
+
+        // for (const auto& paramName : sf->parameterNames) {
+        //     funcScope.insert(SymbolTable::insert(paramName));
+        // }
 
         for (auto& statement : sf->body) {
             statement->compile(env, chunk, funcScope, ValueType::NONE);

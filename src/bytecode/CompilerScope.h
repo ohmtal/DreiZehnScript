@@ -9,6 +9,7 @@
 //-----------------------------------------------------------------------------
 #pragma once
 
+#include "core/Types.h"
 #include <unordered_map>
 #include <cstdint>
 #include <string>
@@ -57,20 +58,9 @@ namespace DreiZehn {
     public:
         std::vector<LoopInfo> mLoopStack;
 
-        U32 insert(U32 varRegister) {
-            auto it = std::find(mSlots.begin(),mSlots.end(),varRegister);
-            if (it != mSlots.end()) return varRegister;
-            mSlots.push_back(varRegister);
-            mNextSlotIndex++;
-            return varRegister;
-        }
-
-        int resolve(U32 varRegister) const {
-            auto it = std::find(mSlots.begin(),mSlots.end(),varRegister);
-            if (it != mSlots.end()) return varRegister;
-            return -1;
-        }
-        U32 getLocalCount() const { return mNextSlotIndex; }
+        U32 insert(U32 varRegister);
+        int resolve(U32 varRegister) const;
+        U32 getLocalCount() const;
 
         // uint32_t insert(uint32_t symbolId) {
         //     auto it = mSymbolIdToSlot.find(symbolId);

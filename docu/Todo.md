@@ -598,6 +598,7 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
         
 ----------------------------------------------------------------------------
                 --- USING BRANCH EXPERIMENTAL ---
+                git switch [main | experimental]
 ----------------------------------------------------------------------------
 - [X] VariableFrame:
     - LocalVariable enviroment is done:
@@ -622,18 +623,28 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - [X] IMPORTANT!  get rid of : Globals::MasterVariableFrame 
     
 ### Ok some problems:
-- Common
+
+At the moment i test with starfield.. need something better where i see whats wrong.
+
     
+- ByteCode 
+    - [X] registers are out of sync - VM localvars use different Register as ParserFrame 
+        - GET LOCAL COUNT: 16 : 0 1 2 8 3 9 4 5 6 10 11 12 13 14 15 7
+        - changed this scope insert it on the correct position but did not help
+            - GET LOCAL COUNT: 16 : 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+        - was a bug in insertLocalVar i return the size of the main vector! 
+
+- [X] shooter.13    
+    - [X] linenumber is still a problem!!!! << BinaryAndOrExpression!!!
+    - [X] line concat Backslash not working sometimes (shooter.13)=>  Special is isContinueToken handling
+    - [X] Message: Runtime Error in native function call ?! 
+
 - Interpreter:
     - [ ] handling: **Variable not found** must stop also on Interpreter
     - [ ] main variables does not push a count and so nothing does work!
     
-- ByteCode 
-    - [ ] registers are out of sync - VM localvars use different Register as ParserFrame 
-        
+    
 ----------------------------------------------------------------------------
-    
-    
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 

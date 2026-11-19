@@ -43,7 +43,7 @@ namespace DreiZehn {
             return static_cast<U32>(foundIndex);
         }
         mLocalVariables.back().push_back(symId);
-        return static_cast<U32>(mLocalVariables.size() - 1);
+        return static_cast<U32>(mLocalVariables.back().size() - 1);
     }
 
     bool ParserFrame::guessGlobalVar(Environment& env, uint32_t symId) {
@@ -176,6 +176,10 @@ namespace DreiZehn {
                 } else {
                     varRegister = parserFrame.insertLocalVar(nameTokenSymbolId);
                 }
+
+                #ifdef DREIZEHN_DEBUG
+                // if (!isGlobal) Tools::printf("[PARSER] ADD LOCAL %s  [REG:%2u}\n",nameToken.mValue.c_str(), varRegister );
+                #endif
                 currentExpression = std::make_unique<VariableExpression>(varRegister, isGlobal);
 
 
@@ -274,7 +278,7 @@ namespace DreiZehn {
                 if (peek().mType == TokenType::RParen) {
                     advance(); //  ')'
                 } else {
-                    PrintParseError("Error: Missing closing bracket");
+                    PrintParseError("Error: Missing closing bracket (parsePrimary)");
                 }
                 return expr;
             }
@@ -359,8 +363,9 @@ namespace DreiZehn {
 
 
         auto left = parsePrimary();
+        if (left) left->mLineNumber = lineNumber;
 
-        while (isMathType(peek())) {
+        while (isMathType(peek()) || peek().mType == TokenType::BackSlash) {
             Token op = peek();
 
             if (op.mType ==  TokenType::BackSlash) {
@@ -521,7 +526,11 @@ namespace DreiZehn {
             } else {
                 left = std::make_unique<BinaryExpression>(std::move(left), op.mType, std::move(right));
             }
+
+            if (left) left->mLineNumber = lineNumber;
         }
+
+        if (left) left->mLineNumber = lineNumber;
         return left;
     }
     // ----------------------------------------------------------------------------
@@ -539,6 +548,7 @@ namespace DreiZehn {
             auto right = parseMath();
             left = std::make_unique<BinaryExpression>(std::move(left), op.mType, std::move(right));
         }
+        if (left) left->mLineNumber = lineNumber;
         return left;
     }
     // ----------------------------------------------------------------------------
@@ -551,7 +561,7 @@ namespace DreiZehn {
             if (peek().mType == TokenType::RParen) {
                 advance(); // skip ')'
             } else {
-                PrintParseError("Error: Missing closing brackets");
+                PrintParseError("Error: Missing closing brackets (parseExpression)");
             }
             return expr;
         }

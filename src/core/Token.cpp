@@ -148,7 +148,6 @@ bool isMathType(const Token& op) {
     || op.mType == TokenType::DotDot
     || op.mType == TokenType::DotAssign
     || op.mType == TokenType::Assign
-    // NOT! || op.mType == TokenType::BackSlash
     || isInlineMathType(op.mType)
     || isMathAssignOperatorType(op.mType)
     ;
@@ -157,6 +156,7 @@ bool isMathType(const Token& op) {
 
 
 bool isContinueToken(const Token& op) {
+
     return op.mType != TokenType::EOFToken
     && op.mType != TokenType::RParen
     && op.mType != TokenType::Semicolon

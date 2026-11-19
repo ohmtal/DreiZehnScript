@@ -14,7 +14,7 @@
 
 namespace DreiZehn {
 
-class Environment;
+struct Environment;
 struct BytecodeChunk;
 class CompilerScope;
 

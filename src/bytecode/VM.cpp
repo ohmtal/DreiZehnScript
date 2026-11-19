@@ -21,12 +21,11 @@
 #include <cmath>
 #include "Environment.h"
 #include "core/AstNode.h"
-#include "core/VariableFrame.h"
 #include "VMStructure.h"
 #include "core/FunctionMap.h"
 #include <core/BaseObjects.h>
 #include "VM.h"
-#include <core/VectorFunctions.h>
+#include "core/VectorFunctions.h"
 
 namespace DreiZehn {
     //-----------------------------------------------------------------------------
@@ -796,8 +795,10 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
             Value returnValue = NumberNullValue;
             bool success = obj->onMethodCall(env, symID, evaluatedArgs, returnValue);
-            if (!success) {
-                PrintVMError(OP_CALL_OBJECT_METHOD,"Runtime Error in native function call\n");
+            if (!success) [[unlikely]]{
+                PrintVMError(OP_CALL_OBJECT_METHOD
+                             , "Runtime Error in native function call:"
+                             , SymbolTable::getName(symID));
             }
             PUSH_STACK(returnValue);
         }

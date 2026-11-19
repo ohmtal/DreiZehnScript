@@ -74,6 +74,7 @@ set(DREIZEHN_SRC
 
     # Bytecode compiler
     ${CMAKE_CURRENT_LIST_DIR}/bytecode/CompilerScope.h
+    ${CMAKE_CURRENT_LIST_DIR}/bytecode/CompilerScope.cpp
     ${CMAKE_CURRENT_LIST_DIR}/bytecode/VM.h
     ${CMAKE_CURRENT_LIST_DIR}/bytecode/VM.cpp
     ${CMAKE_CURRENT_LIST_DIR}/bytecode/VMStructure.h

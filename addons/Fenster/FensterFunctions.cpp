@@ -293,10 +293,18 @@ namespace DreiZehn {
             else
             // ------- rect
             if (rectProp.matchMethod( methodId , args) == 1) {
-                int x = args[0].getInt(); if (x < 0) return false;
-                int y = args[1].getInt(); if (y < 0) return false;
-                int w = args[2].getInt(); if (w < 0 || x+w > mFenster.width) return false;
-                int h = args[3].getInt(); if (h < 0 || y+h > mFenster.height) return false;
+                int x = args[0].getInt(); if (x < 0) {
+                    return true; //no error message here!
+                }
+                int y = args[1].getInt(); if (y < 0) {
+                    return true; //no error message here!
+                }
+                int w = args[2].getInt(); if (w < 0 || x+w > mFenster.width) {
+                    return false;
+                }
+                int h = args[3].getInt(); if (h < 0 || y+h > mFenster.height) {
+                    return false;
+                }
                 uint32_t c = args[4].getUInt();
 
                 rect(&mBuffer, x,y,w,h,c);

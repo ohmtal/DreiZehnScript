@@ -27,7 +27,8 @@ score = 0
 game_over = 0
 shoot_cooldown = 0
 
-while Fenster->loop && core::breath
+# while Fenster->loop && core::breath
+while Fenster->loop
     Fenster->clear 0x050510
     forEach star Stars
         star.y += star.speed

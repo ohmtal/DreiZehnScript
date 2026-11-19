@@ -40,15 +40,20 @@ private:
 
     // ------------------------------
 
-    Token peek() { return mTokens[mPos]; }
-    Token peekNext() { if (mPos + 1 < mTokens.size()) return mTokens[mPos+1]; else return Token(TokenType::EOFToken); }
-    Token peekNextNext() { if (mPos + 2 < mTokens.size()) return mTokens[mPos+2]; else return Token(TokenType::EOFToken); }
-    Token peekOffset(int32_t offset) {
-        int32_t tmpPeek = mPos + offset;
-        if (tmpPeek < mTokens.size() && tmpPeek >= 0 )
-            return mTokens[tmpPeek]; else return Token(TokenType::EOFToken);
+    Token peek(int offset = 0) {
+        S64 checkOffset = (S64)mPos + offset;
+        if (checkOffset < 0) return Token(TokenType::NoToken);
+        if (checkOffset >= mTokens.size()) return Token(TokenType::EOFToken);
+        return mTokens[(size_t) checkOffset];
     }
-    Token peekPrev() { if (mPos > 1) return mTokens[mPos-1]; else return Token(TokenType::NoToken); }
+
+    // Token peekNext() { if (mPos + 1 < mTokens.size()) return mTokens[mPos+1]; else return Token(TokenType::EOFToken); }
+    Token peekNext() { return peek(1); }
+    // Token peekNextNext() { if (mPos + 2 < mTokens.size()) return mTokens[mPos+2]; else return Token(TokenType::EOFToken); }
+    Token peekNextNext() { return peek(2); }
+    Token peekOffset(int32_t offset) { return peek(offset); }
+    // Token peekPrev() { if (mPos > 1) return mTokens[mPos-1]; else return Token(TokenType::NoToken); }
+    Token peekPrev() { return peek(-1); }
     Token advance() { if (mPos + 1 < mTokens.size()) return mTokens[mPos++]; else return Token(TokenType::EOFToken);}
 
     // -------------------------------------------------------------------------

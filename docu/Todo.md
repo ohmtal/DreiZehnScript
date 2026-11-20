@@ -640,9 +640,14 @@ At the moment i test with starfield.. need something better where i see whats wr
     - [X] Message: Runtime Error in native function call ?! 
 
 - Interpreter:
-    - [ ] main variables does not push a count and so nothing does work!
+    - [X?] main variables does not push a count and so nothing does work!
         - added varCount to BlockStatement but i have a lot of Blockstatements
           so a new push kick the stack to somewhere !
+    - [ ] found out when a file is included the result of a function is not assigned!
+        - when i directly print it it works
+        - when i assign it is works not!
+        - i guess it's my pointer handling the pointer is changes ?! 
+    
     -  handling: **Variable not found** must stop also on Interpreter
     
     

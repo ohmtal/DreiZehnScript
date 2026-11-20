@@ -63,6 +63,7 @@ public:
 
     Environment() : mParentEnv(nullptr) {
         // mVariableFrame = new VariableFrame(nullptr);
+        mLocalsRegister.reserve(LOCALS_SIZE);
     }
     Environment(Environment* parentEnv) : mParentEnv(parentEnv) {
         // mVariableFrame = new VariableFrame(parentEnv->mVariableFrame);
@@ -134,16 +135,23 @@ public:
 
     inline void pushLocalStack(size_t varCount) {
         #ifdef DREIZEHN_DEBUG
-        Tools::printf("... pushLocalStack: %zu ....\n", varCount);
+        // Tools::printf("... pushLocalStack: %zu ....\n", varCount);
         #endif
         mLocalVarCount.push_back(varCount);
         mLocalOffset = mLocalsRegister.size();
+
+        size_t newSize = mLocalOffset  + varCount;
+        if (newSize > mLocalsRegister.capacity()) {
+            PrintRuntimeError("Interpreter Locals Stack Overflow! raise LOCALS_SIZE as compile flag");
+            exit(1);
+        }
+
         mLocalsRegister.resize(mLocalOffset  + varCount);
         mLocalsFrameId++;
     }
     inline void popLocalStack() {
         #ifdef DREIZEHN_DEBUG
-        Tools::printf("... popLocalStack count: %zu\n", mLocalVarCount.back());
+        // Tools::printf("... popLocalStack count: %zu\n", mLocalVarCount.back());
         #endif
         size_t newSize = mLocalsRegister.size() - mLocalVarCount.back();
         mLocalVarCount.pop_back();
@@ -154,7 +162,7 @@ public:
 
     inline void saveLocal(size_t index, const Value& value) {
         #ifdef DREIZEHN_DEBUG
-        Tools::printf("saveLocal [%zu]:%s\n", index, value.toString().c_str() );
+        // Tools::printf("saveLocal [%zu]:%s\n", index, value.toString().c_str() );
         #endif
         assert ((index + mLocalOffset) < mLocalsRegister.size() && "SAVE: LOCALS REGISTER OUT OF BOUNDS");
         mLocalsRegister[(index + mLocalOffset)] = value;
@@ -167,7 +175,8 @@ public:
             assert(true && "LOAD: LOCALS REGISTER OUT OF BOUNDS");
         }
         Value& value = mLocalsRegister[(index + mLocalOffset)];
-        Tools::printf("LoadLocal [%zu|%zu] => %zu VALUE:%s\n", index, mLocalOffset,mLocalsRegister.size(),  value.toString().c_str() );
+        // Tools::printf("LoadLocal [%zu|%zu] SIZE:%zu [P:%p] VALUE:%s\n", index, mLocalOffset,mLocalsRegister.size()
+        //        ,(void*)&mLocalsRegister[(index + mLocalOffset)] ,  value.toString().c_str() );
         return value;
         #endif
         // #ifdef DLS_DEBUG

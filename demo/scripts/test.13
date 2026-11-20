@@ -1,8 +1,18 @@
 # Test for DreiZehn Script
-import Core
-import Debug
-import Math
-import String
+
+include "scripts/test_include.13"
+
+# fn myPI2 multi
+# return 3.14 * multi
+# end
+
+testPi = (myPI 2)
+print "myPI=" testPi
+
+# testPi2 = (myPI2 2)
+# print "myPI=" testPi "2=>" testPi2
+
+return;
 
 fn Holy::Cow; print "Muhhhh!";end;
 
@@ -35,8 +45,8 @@ end
 
 
 print ("*** Array Example ***")
-a = Array::new "x"=>10, "name"=>"hello"
-a["adress"] = Array::new "street" => "Elmstreet", "zip" => 12345
+a = Array::new "x"=>10 "name"=>"hello"
+a["adress"] = Array::new "street" => "Elmstreet" "zip" => 12345
 a->tree
 
 -- forRange i sys::args->count; print (sys::args->key i) "=>" (sys::args->value i);;

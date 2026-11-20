@@ -66,7 +66,9 @@ fenster->drawBuffer 140 20 pb270
 -- --------
 fireParts = 8.0
 fireWidth = int::cast WINDOW_W / fireParts
-fire = PixelFire::new fireWidth 20 32 0
+global fire = PixelFire::new fireWidth 20 32 0
+
+print "------------- GOT FIRE:" fire "-----------------------------"
 
 fenster->text 16 (WINDOW_H - 30) \
     (str::concat "fire pixels: " fireWidth * 20 " parts: " fireParts) \

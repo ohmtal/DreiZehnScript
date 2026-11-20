@@ -49,10 +49,7 @@ namespace DreiZehn {
     #define MAX_BC_STACK_SIZE  4096
     #endif
 
-    // dynamic
-    #ifndef INITIAL_BC_LOCALS_SIZE
-    #define INITIAL_BC_LOCALS_SIZE  1024
-    #endif
+
 
 
     #ifdef DREIZEHN_DEBUG
@@ -176,7 +173,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     CallFrame* curFrame = &callFrame.back();
 
     // ValueVectorlocals;
-    if (mLocals.size() == 0) mLocals.resize(INITIAL_BC_LOCALS_SIZE);
+    if (mLocals.size() == 0) mLocals.resize(LOCALS_SIZE);
 
     // -----------------------
 
@@ -1037,7 +1034,11 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         if (slot >= curFrame->mLocalsCount) {
             curFrame->mLocalsCount++;
-            if (slot  >= mLocals.size()) mLocals.resize(mLocals.size() * 2);
+            if (slot  >= mLocals.size()) [[unlikely]] {
+                env.PrintRuntimeError("VM Locals Stack Overflow! raise LOCALS_SIZE as compile flag");
+                exit(1);
+                // // mLocals.resize(mLocals.size() * 2);
+            }
             val = &mLocals[slot];
         } else {
             val = &mLocals[slot];
@@ -1114,7 +1115,12 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         // update curFrame
         curFrame = &callFrame.back();
 
-        if (argCount + curFrame->mLocalsStartIndex  >= mLocals.size()) mLocals.resize(mLocals.size() * 2);
+        if (argCount + curFrame->mLocalsStartIndex  >= mLocals.size()) [[unlikely]] {
+            env.PrintRuntimeError("VM Locals Stack Overflow! raise LOCALS_SIZE as compile flag");
+            exit(1);
+
+            // // mLocals.resize(mLocals.size() * 2);
+        }
 
 
         for (int i = (int)argCount - 1; i >= 0; i--) {

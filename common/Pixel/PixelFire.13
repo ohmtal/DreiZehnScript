@@ -92,7 +92,7 @@ fn PixelFire::new width height coolDown igniteRand
         this.coolDown = 32
     end
 
-
+    print "---------------- Pixelfire result is :" this
     return this
 end
 

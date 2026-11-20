@@ -8,12 +8,13 @@
 #include <cmath>
 #include "core/FunctionMap.h"
 #include "ScriptLoader.h"
+#include "toolbox/FastRgn.h"
 
 namespace DreiZehn {
     void RegisterMathFunctions(Environment& env) {
          static bool registered = false; if (registered) return; registered = true;
 
-        std::srand(std::time(nullptr)); // setup random seed
+        // std::srand(std::time(nullptr)); // setup random seed
 
         using namespace FunctionMap;
 
@@ -22,7 +23,7 @@ namespace DreiZehn {
         RegisterConstants("math::pi", Value(PI));
         // ---------------------------------------------------------------------
         RegisterFunction("math::randomf", [](ValueSpan args, Value& ret) -> bool {
-            ret = Value(static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX));
+            ret = Value(rng.next_double());
             return true;
         }, "return a random float value.");
 
@@ -34,17 +35,43 @@ namespace DreiZehn {
             }
             int min = args[0].getInt();
             int max = args[1].getInt();
-            if (min > max) std::swap(min, max);
+            if (min > max) std::swap(min, max); // Compiles to branchless cmov
 
-            int range = max - min + 1;
-            ret = Value((min + (std::rand() % range)));
+            ret = Value(rng.next_int(min, max));
             return true;
         }, "integer random number between value1 and value2");
+
         // ---------------------------------------------------------------------
         RegisterFunction("math::rand", [](ValueSpan args, Value& ret) -> bool {
-            ret = Value(std::rand());
+            ret = Value(rng.next_rand());
             return true;
         }, "integer random number without a parameter like c std::rand");
+
+        // // ---------------------------------------------------------------------
+        // RegisterFunction("math::randomf", [](ValueSpan args, Value& ret) -> bool {
+        //     ret = Value(static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX));
+        //     return true;
+        // }, "return a random float value.");
+        //
+        // // ---------------------------------------------------------------------
+        // RegisterFunction("math::random", [](ValueSpan args, Value& ret) -> bool {
+        //     if (args.size() != 2) {
+        //         Tools::errorf("usage: math::random min max\n");
+        //         return false;
+        //     }
+        //     int min = args[0].getInt();
+        //     int max = args[1].getInt();
+        //     if (min > max) std::swap(min, max);
+        //
+        //     int range = max - min + 1;
+        //     ret = Value((min + (std::rand() % range)));
+        //     return true;
+        // }, "integer random number between value1 and value2");
+        // // ---------------------------------------------------------------------
+        // RegisterFunction("math::rand", [](ValueSpan args, Value& ret) -> bool {
+        //     ret = Value(std::rand());
+        //     return true;
+        // }, "integer random number without a parameter like c std::rand");
         // ---------------------------------------------------------------------
         RegisterFunction("math::sin", [](ValueSpan args, Value& ret) -> bool {
             if (args.size() != 1) return false;

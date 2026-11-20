@@ -129,19 +129,19 @@ namespace DreiZehn {
 
     void Parser::PrintParseError(const std::string& message
     , const std::string& p1 ,const std::string& p2 ,const std::string& p3 ) {
-        Tools::errorf("[Parser LINE:%d]: %s %s %s %s\n%s\n",lineNumber
+        Tools::errorf("[Parser LINE:%d]: %s %s %s %s\n==>%s\n",lineNumber
             , message.c_str(),p1.c_str(),p2.c_str(),p3.c_str()
             , getLine().c_str());
     }
     void Parser::PrintParseWarning(const std::string& message
     , const std::string& p1 ,const std::string& p2 ,const std::string& p3 ) {
-        Tools::warnf("[Parser LINE:%d]: %s %s %s %s\n%s\n",lineNumber
+        Tools::warnf("[Parser LINE:%d]: %s %s %s %s\n==>%s\n",lineNumber
         , message.c_str(),p1.c_str(),p2.c_str(),p3.c_str()
         , getLine().c_str());
     }
     void Parser::PrintParseInfo(const std::string& message
     , const std::string& p1 ,const std::string& p2 ,const std::string& p3 ) {
-        Tools::infof("[Parser-INFO LINE:%d]: %s %s %s %s\n%s\n",lineNumber
+        Tools::infof("[Parser-INFO LINE:%d]: %s %s %s %s\n==>%s\n",lineNumber
             , message.c_str(),p1.c_str(),p2.c_str(),p3.c_str()
             , getLine().c_str());
     }

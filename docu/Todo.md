@@ -718,6 +718,7 @@ this is not a problem for the program but for finding a misstype
 
 - [X] removed inline cache for globals since globals are also registers 
     
+- [X] replaced std::rand with xoshiro256 (toolbox/FastRng.h)    
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 

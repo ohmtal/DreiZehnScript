@@ -643,7 +643,7 @@ At the moment i test with starfield.. need something better where i see whats wr
     - [X?] main variables does not push a count and so nothing does work!
         - added varCount to BlockStatement but i have a lot of Blockstatements
           so a new push kick the stack to somewhere !
-    - [ ] found out when a file is included the result of a function is not assigned!
+    - [X] found out when a file is included the result of a function is not assigned!
         - when i directly print it it works
         - when i assign it is works not!
         - i guess it's my pointer handling the pointer is changes ?! 
@@ -652,9 +652,12 @@ At the moment i test with starfield.. need something better where i see whats wr
     
     
 - I dont like this! what to push into main:
-    - [ ] Backslash fix
-    - [ ] Comma break remove 
+    - [X] Backslash fix
+    - [X] Comma break remove 
     
+    
+it works now :) But it's usually NOT faster (except fibo is) as before and i lost
+the local access in console. 
     
     
 ----------------------------------------------------------------------------

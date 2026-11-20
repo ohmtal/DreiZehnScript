@@ -50,7 +50,7 @@ function flux::Init
     print " *** Init"
     flux::size WIDTH HEIGTH WIDTH HEIGTH
 
-    template = Array::new "point" => 0, "color" => 0, "fill" => 0, "vec" => 0
+    template = Array::new "point" => 0 "color" => 0 "fill" => 0 "vec" => 0
     Rects = Vector::new
     Rects->fill COUNT template
     forEach item Rects
@@ -86,7 +86,7 @@ function flux::Render ft
         if item["point"][1]  <= 0.0;  item["vec"][1] *= (-1.0);;
     end
 
-    flux::Text 10, 60, "BaseFlux13 Demo" , 1.0, YELLOW, true, DARKGRAY
+    flux::Text 10 60 "BaseFlux13 Demo" 1.0 YELLOW true DARKGRAY
     flux::DrawFPS 10.0 10.0 1.0
 end
 -- -----------------------------------------------------------------------------

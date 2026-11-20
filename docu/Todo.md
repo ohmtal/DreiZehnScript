@@ -646,6 +646,12 @@ At the moment i test with starfield.. need something better where i see whats wr
     -  handling: **Variable not found** must stop also on Interpreter
     
     
+- I dont like this! what to push into main:
+    - [ ] Backslash fix
+    - [ ] Comma break remove 
+    
+    
+    
 ----------------------------------------------------------------------------
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it

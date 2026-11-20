@@ -97,8 +97,6 @@ ticker = 0
 tickCount = 4
 
 while fenster->loop
-
-
     -- ESC
    if fenster->isKeyDown 27
        break
@@ -111,14 +109,14 @@ while fenster->loop
             fenster->drawBuffer (fireWidth * partX) (WINDOW_H - 20) fire
         end
    end
-   str =  str::concat "mouse: x:" fenster->getMouseX, ", y:" fenster->getMouseY, ", down:" fenster->getMouseDown
+   str =  str::concat "mouse: x:" (fenster->getMouseX) ", y:" (fenster->getMouseY) ", down:" fenster->getMouseDown
    fenster->text 20 (WINDOW_H - 16) str FONT_SCALE COLOR_DARKGRAY
    fenster->text 21 (WINDOW_H - 15) str FONT_SCALE COLOR_WHITE
 
 
    ticker++; if ticker >= tickCount; ticker = 0;;
 
---    if !core::breath; break;;
+    if !core::breath; break;;
 end
 
 fenster->close

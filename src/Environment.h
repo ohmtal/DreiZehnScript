@@ -143,7 +143,7 @@ public:
     }
     inline void popLocalStack() {
         #ifdef DREIZEHN_DEBUG
-        Tools::printf("... popLocalStack\n");
+        Tools::printf("... popLocalStack count: %zu\n", mLocalVarCount.back());
         #endif
         size_t newSize = mLocalsRegister.size() - mLocalVarCount.back();
         mLocalVarCount.pop_back();
@@ -203,11 +203,11 @@ public:
         //     // case NodeType::CallExpression
         //     // case NodeType::LiteralExpression
         //
-            case NodeType::BlockStatement:
+            case NodeType::MainBlock:
             {
-                auto* flowStmt = static_cast<BlockStatement*>(node);
-                bool doPush = flowStmt->VarCount > 0;
-                if (doPush) currentEnv.pushLocalStack(flowStmt->VarCount);
+                auto* flowStmt = static_cast<MainBlock*>(node);
+                bool doPush = flowStmt->mVarCount > 0;
+                if (doPush) currentEnv.pushLocalStack(flowStmt->mVarCount);
                 FlowStatus result =  flowStmt->execute(currentEnv);
                 if (doPush) popLocalStack();
                 return result;

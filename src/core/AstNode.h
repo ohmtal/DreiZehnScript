@@ -66,6 +66,7 @@ enum class NodeType {
     ,KeyValueExpression
     ,StringConcatExpression
     ,StringConcatAssignExpression
+    ,MainBlock
 };
 
 
@@ -107,6 +108,7 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::KeyValueExpression:      return "KeyValueExpression";
         case NodeType::StringConcatExpression:       return "StringConcatExpression";
         case NodeType::StringConcatAssignExpression:       return "StringConcatAssignExpression";
+        case NodeType::MainBlock:       return "Main Programm Block";
     }
     return "UnknownNodeType";
 }
@@ -169,9 +171,7 @@ struct FlowBaseStatement: public ASTNode {
 
 
 // block statement --------------------------------------------------------------
-class BlockStatement : public FlowBaseStatement {
-public:
-    size_t VarCount = 0;
+struct BlockStatement : public FlowBaseStatement {
     std::vector<std::shared_ptr<ASTNode>> mBody;
     BlockStatement() {
         mNodeType = NodeType::BlockStatement;
@@ -181,6 +181,14 @@ public:
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 };
+
+struct MainBlock : public BlockStatement {
+    size_t mVarCount = 0;
+    MainBlock() {
+        mNodeType  = NodeType::MainBlock;
+    }
+};
+
 // constants -------------------------------------------------------------------
 struct LiteralExpression : public Expression {
     TokenType mType;

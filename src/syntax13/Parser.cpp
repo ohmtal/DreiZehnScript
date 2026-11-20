@@ -165,7 +165,7 @@ namespace DreiZehn {
                         args.push_back(std::move(arg));
                         args.back()->mLineNumber = lineNumber;
                     }
-                    if (checkCommaBreak(args)) break; //TEST
+                    // if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
                         PrintParseError("In function call:");
@@ -220,7 +220,7 @@ namespace DreiZehn {
                             args.push_back(std::move(arg));
                             args.back()->mLineNumber = lineNumber;
                         }
-                        if (checkCommaBreak(args)) break; //TEST
+                        // if (checkCommaBreak(args)) break; //TEST
 
                         if (lastPos == mPos) {
                             PrintParseError("In method call:");
@@ -298,7 +298,7 @@ namespace DreiZehn {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());
                     args.back()->mLineNumber = lineNumber;
-                    if (checkCommaBreak(args)) break; //TEST
+                    // if (checkCommaBreak(args)) break; //TEST
                     if (lastPos == mPos) {
                         PrintParseError("In Curly Brackets:");
                         break;
@@ -463,7 +463,7 @@ namespace DreiZehn {
                         args.back()->mLineNumber = lineNumber;
                     }
 
-                    if (checkCommaBreak(args)) break; //TEST
+                    // if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
                         PrintParseError("In method call:");
@@ -595,7 +595,7 @@ namespace DreiZehn {
                         args.push_back(std::move(arg));
                         args.back()->mLineNumber = lineNumber;
                     }
-                    if (checkCommaBreak(args)) break; //TEST
+                    // if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
                         PrintParseError("In function call:");
@@ -925,7 +925,7 @@ namespace DreiZehn {
         std::vector<std::unique_ptr<ASTNode>> statements;
 
         std::vector<OpenBlock> blockStack;
-        auto mainProgram = std::make_shared<BlockStatement>();
+        auto mainProgram = std::make_shared<MainBlock>();
         size_t statment_peek = 0;
         blockStack.push_back({BlockType::IfBlock, 0, mainProgram.get(), 0});
 
@@ -1095,8 +1095,8 @@ namespace DreiZehn {
             return nullptr;
         }
 
-        mainProgram->VarCount = parserFrame.mLocalVariables.back().size();
-        parserFrame.mLocalVariables.clear();
+        mainProgram->mVarCount = parserFrame.mLocalVariables.back().size();
+        // parserFrame.mLocalVariables.clear();
         return mainProgram;
     }
 

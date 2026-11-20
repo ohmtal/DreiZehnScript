@@ -813,16 +813,38 @@ namespace DreiZehn {
             Tools::printf("local count: %u\n",sf->localVarCount);
         #endif
 
+// //        env.pushLocalStack(sf->localVarCount);
+// //         for (size_t i = 0; i < func.parameterNames.size(); ++i) {
+// //             if (i < arguments.size()) {
+// //                 Value evaluatedArg = arguments[i]->evaluate(env);
+// //                 env.getLocal(i) = evaluatedArg;
+// //             } else {
+// //                 env.getLocal(i) = 0;
+// //             }
+// //         }
+// //
+
+        // -----------------
+        // pre fetch arguments
+        const size_t numArgs = arguments.size();
+        ValueVector evaluatedArgs;
+        evaluatedArgs.reserve(numArgs);
+        for (auto& argExpr : arguments) {
+            if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
+        }
+
+        // NOW push the STACK !!!
         env.pushLocalStack(sf->localVarCount);
 
-        for (size_t i = 0; i < func.parameterNames.size(); ++i) {
+        for (size_t i = 0; i < evaluatedArgs.size(); ++i) {
             if (i < arguments.size()) {
-                Value evaluatedArg = arguments[i]->evaluate(env);
-                env.getLocal(i) = evaluatedArg;
+                env.getLocal(i) = evaluatedArgs[i];
             } else {
                 env.getLocal(i) = 0;
             }
         }
+
+
         Value functionResult = NumberNullValue;
         for (auto& statement : func.body) {
             FlowStatus status = env.execute(statement.get(), env);

@@ -692,6 +692,9 @@ I moved this to main also if it's a bit slower. So: back on track
         - fetch it like mVariableBase[isGlobal][varRegister]
     - i need a setVariable for globals like i had in VariableFrame 
     
+    - [X] added reserve and lookup for root locals and modified parserFrame, remove varCount from Ast Node
+    - [X] added code to Enviroment.cpp 
+    - [ ] try enviroment locals also for bytecode ?! 
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 

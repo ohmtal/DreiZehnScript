@@ -26,6 +26,13 @@ namespace DreiZehn {
     //                  ------ ParserFrame ------
     // ----------------------------------------------------------------------------
     int64_t ParserFrame::findLocalVar(uint32_t symId) const {
+        if (!mEnvPtr) {
+            Tools::errorf("parserFrame enviroment not set! exit here\n");
+            exit(1);
+        }
+        if (!mBlockInFunction) {
+            return mEnvPtr->getLocalsRootRegister(symId);
+        }
         auto it = std::find(mLocalVariables.back().begin(), mLocalVariables.back().end(), symId);
         if (it != mLocalVariables.back().end()) {
             return static_cast<int64_t>(std::distance(mLocalVariables.back().begin(), it));
@@ -35,11 +42,25 @@ namespace DreiZehn {
 
 
     U32 ParserFrame::insertLocalVar(uint32_t symId) {
-        // #ifdef DREIZEHN_DEBUG
+        if (!mEnvPtr) {
+            Tools::errorf("parserFrame enviroment not set! exit here\n");
+            exit(1);
+        }
+        #ifdef DREIZEHN_DEBUG
         // Tools::printf(" ** VAR %s insertLocalVar {block:%d}\n",
         //               SymbolTable::getName(symId).c_str(),
         //               mBlockInFunction);
-        // #endif
+        #endif
+
+        //NOTE if not mBlockInFunction push into base locals
+        //      make sure we have space left so the core has it's own space
+        //      like 512 or 1024 so console can access them .. :) it also
+        //      need a lookup then
+
+        if (!mBlockInFunction) {
+            return static_cast<U32>(mEnvPtr->reserveRootLocal(symId));
+        }
+
         S64 foundIndex = findLocalVar(symId);
         if (foundIndex >= 0) {
             return static_cast<U32>(foundIndex);
@@ -1104,8 +1125,8 @@ namespace DreiZehn {
             return nullptr;
         }
 
-        mainProgram->mVarCount = parserFrame.mLocalVariables.back().size();
-        // parserFrame.mLocalVariables.clear();
+        // // mainProgram->mVarCount = parserFrame.mLocalVariables.back().size();
+        parserFrame.mLocalVariables.clear();
         return mainProgram;
     }
 

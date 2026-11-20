@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // Enviroment VM
-// TODO add cpp!
 //-----------------------------------------------------------------------------
 #pragma once
 //-----------------------------------------------------------------------------
@@ -39,17 +38,19 @@ namespace DreiZehn {
 class Environment {
 private:
 
-    Environment* mParentEnv = nullptr;
-    VariableFrame* mVariableFrame = nullptr;
-
-
-    // -- Ast only locals Register --
+    // -- locals Register --
+    std::unordered_map<uint32_t, size_t> mRootLocalsLookUp;
     std::vector<size_t> mLocalVarCount;
     U32 mLocalsFrameId = 0;
     size_t mLocalOffset = 0;
     size_t mLocalsSize = 0;
     ValueVector mLocalsRegister;
 
+    // -----
+    std::unordered_map<uint32_t, size_t> mGlobalsLookUp;
+    ValueVector mGlobalsRegister;
+
+    //TODO must be initialized and on local push pop updated! Value* mVariableBases[2];
 
     // ----
     // bad idea here ?!
@@ -57,58 +58,27 @@ private:
 
 
 public:
-    // -----
-    std::unordered_map<uint32_t, size_t> mGlobalsLookUp;
-    ValueVector mGlobalsRegister;
-    // -----
 
-    Environment() : mParentEnv(nullptr) {
-        // mVariableFrame = new VariableFrame(nullptr);
+    Environment() {
         mLocalsRegister.resize(LOCALS_SIZE);
+        pushLocalStack(0);
         mLocalVarCount.reserve(16);
     }
-    Environment(Environment* parentEnv) : mParentEnv(parentEnv) {
-        // mVariableFrame = new VariableFrame(parentEnv->mVariableFrame);
-    }
     ~Environment() {
-        // if (mVariableFrame) {
-        //     delete(mVariableFrame);
-        //     mVariableFrame = nullptr;
-        // }
     }
-
-    // inline VariableFrame* getVariableFrame() {
-    //     // assert(mVariableFrame && "FATAL ERROR: Enviroment require a VariableFrame!");
-    //     return mVariableFrame;
-    // }
 
     inline void PrintRuntimeError(const std::string& message, const std::string& p2 = "", const std::string& p3 = ""){
         Tools::errorf("RunTime Error [ENV:%p]: %s %s %s", (void*) this, message.c_str(), p2.c_str(),p3.c_str());
     }
 
-    inline VM& getVM() { return mVM; } //const ?! ..
+    inline VM& getVM() { return mVM; }
 
 
     // -------------------------------------------------------------------------
     // GlobalsRegister
     // -------------------------------------------------------------------------
-    inline S64 getGlobalRegister(U32 symId) {
-        auto it = mGlobalsLookUp.find(symId);
-        if (it != mGlobalsLookUp.end()) [[likely]] {
-            return it->second;
-        }
-        return -1;
-    }
-
-    inline size_t reserveGlobal(U32 symId) {
-        S64 index = getGlobalRegister(symId);
-        if (index < 0 ) {
-            index = mGlobalsRegister.size();
-            mGlobalsLookUp[symId] = index;
-            mGlobalsRegister.push_back(Value());
-        }
-        return (size_t) index;
-    }
+    S64 getGlobalRegister(U32 symId);
+    size_t reserveGlobal(U32 symId);
 
     inline void saveGlobal(size_t index, const Value& value) {
         #ifdef DLS_DEBUG
@@ -124,30 +94,30 @@ public:
         return mGlobalsRegister[index];
     }
 
-    inline bool getGlobalVariableValueRef(const std::string& varName, Value& ret) {
-        S64 index = getGlobalRegister(SymbolTable::insert(varName));
-        if (index < 0 ) return false;
-        ret = getGlobal((size_t)index);
-        return true;
-    }
+    bool getGlobalVariableValueRef(const std::string& varName, Value& ret);
+    void printGlobals();
     // -------------------------------------------------------------------------
     // LocalRegister
     // -------------------------------------------------------------------------
+    S64 getLocalsRootRegister(U32 symId);
+    size_t reserveRootLocal(U32 symId);
     inline U32 getLocalsFrameId() {return  mLocalsFrameId;}
 
     inline void pushLocalStack(size_t varCount) {
         #ifdef DREIZEHN_DEBUG
         // Tools::printf("... pushLocalStack: %zu ....\n", varCount);
         #endif
-        mLocalVarCount.push_back(varCount);
+        //TODO ROOT_LOCALS_OFFSET need to change the mLocalsSize
         mLocalOffset = mLocalsSize;
+        mLocalVarCount.push_back(varCount);
 
+        #ifdef DREIZEHN_DEBUG
         size_t newSize = mLocalOffset  + varCount;
         if (newSize > mLocalsRegister.capacity()) [[unlikely]] {
             PrintRuntimeError("Interpreter Locals Stack Overflow! raise LOCALS_SIZE as compile flag");
             exit(1);
         }
-
+        #endif
         mLocalsSize = mLocalOffset  + varCount;
         mLocalsFrameId++;
     }
@@ -155,13 +125,11 @@ public:
         #ifdef DREIZEHN_DEBUG
         // Tools::printf("... popLocalStack count: %zu\n", mLocalVarCount.back());
         #endif
+        if (mLocalVarCount.size() < 2) return; //we do not pop the root!
         mLocalsSize -=  mLocalVarCount.back();
         mLocalVarCount.pop_back();
-
-        mLocalOffset = mLocalVarCount.empty() ? 0 : (mLocalsSize - mLocalVarCount.back());
-
-        // if (mLocalVarCount.size() > 0 ) mLocalOffset -= mLocalVarCount.back();
-        // else mLocalOffset = 0;
+        mLocalOffset -=  mLocalVarCount.back();
+        //TEST to remove mLocalsSize before:  mLocalOffset = mLocalsSize - mLocalVarCount.back();
         mLocalsFrameId--;
     }
 
@@ -217,10 +185,10 @@ public:
             case NodeType::MainBlock:
             {
                 auto* flowStmt = static_cast<MainBlock*>(node);
-                bool doPush = flowStmt->mVarCount > 0;
-                if (doPush) currentEnv.pushLocalStack(flowStmt->mVarCount);
+                // bool doPush = flowStmt->mVarCount > 0;
+                // if (doPush) currentEnv.pushLocalStack(flowStmt->mVarCount);
                 FlowStatus result =  flowStmt->execute(currentEnv);
-                if (doPush) popLocalStack();
+                // if (doPush) popLocalStack();
                 return result;
             }
 

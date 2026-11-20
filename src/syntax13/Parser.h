@@ -17,6 +17,7 @@
 namespace DreiZehn{
 
 struct ParserFrame {
+    Environment* mEnvPtr = nullptr;
     // -- Function Vars ---------------
     std::vector<std::vector<uint32_t>> mLocalVariables;
     bool mBlockInFunction = false;
@@ -98,6 +99,7 @@ public:
     Parser(Environment& env, TokenVector t, std::istream* in) : mTokens(std::move(t)) {
         mCurrentCodeStream = in;
         mEnvPtr = &env;
+        parserFrame.mEnvPtr = mEnvPtr;
     }
 
     // std::vector<std::unique_ptr<ASTNode>> parse();

@@ -185,7 +185,6 @@ struct BlockStatement : public FlowBaseStatement {
 };
 
 struct MainBlock : public BlockStatement {
-    size_t mVarCount = 0;
     MainBlock() {
         mNodeType  = NodeType::MainBlock;
     }

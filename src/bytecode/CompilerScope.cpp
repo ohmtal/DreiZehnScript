@@ -13,7 +13,7 @@ namespace DreiZehn {
 
         U32 CompilerScope::insert(U32 varRegister) {
 #ifdef DREIZEHN_DEBUG
-            Tools::printf("SCOPE INSERT: %u\n", varRegister);
+            // Tools::printf("SCOPE INSERT: %u\n", varRegister);
 #endif
             auto it = std::find(mSlots.begin(),mSlots.end(),varRegister);
             if (it != mSlots.end()) return varRegister;
@@ -30,11 +30,11 @@ namespace DreiZehn {
         }
         U32 CompilerScope::getLocalCount() const {
 #ifdef DREIZEHN_DEBUG
-            Tools::printSeparator(80);
-            Tools::printf("GET LOCAL COUNT: %u :", mNextSlotIndex);
-            for (U32 index: mSlots) Tools::printf(" %u", index);
-            Tools::printf("\n");
-            Tools::printSeparator(80);
+            // Tools::printSeparator(80);
+            // Tools::printf("GET LOCAL COUNT: %u :", mNextSlotIndex);
+            // for (U32 index: mSlots) Tools::printf(" %u", index);
+            // Tools::printf("\n");
+            // Tools::printSeparator(80);
 #endif
             return mNextSlotIndex;
 

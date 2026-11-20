@@ -833,7 +833,7 @@ namespace DreiZehn {
         auto& func = *(sf);
 
         #ifdef DREIZEHN_DEBUG
-            Tools::printf("local count: %u\n",sf->localVarCount);
+            // Tools::printf("local count: %u\n",sf->localVarCount);
         #endif
 
 // //        env.pushLocalStack(sf->localVarCount);
@@ -913,7 +913,7 @@ namespace DreiZehn {
         if (cbCache) return CallFunc(env,cbCache,arguments,mFuncSymbolId);
         if (sfCache) {
             #ifdef DREIZEHN_DEBUG
-            Tools::printf("CallScriptFunc [CACHED] %s:", SymbolTable::getName(mFuncSymbolId).c_str());
+            // Tools::printf("CallScriptFunc [CACHED] %s:", SymbolTable::getName(mFuncSymbolId).c_str());
             #endif
             return CallScriptFunc(env,sfCache, arguments);
         }
@@ -924,7 +924,7 @@ namespace DreiZehn {
         sfCache =  FunctionMap::GetScriptFunction(mFuncSymbolId);
         if (sfCache) {
             #ifdef DREIZEHN_DEBUG
-            Tools::printf("CallScriptFunc %s:", SymbolTable::getName(mFuncSymbolId).c_str());
+            // Tools::printf("CallScriptFunc %s:", SymbolTable::getName(mFuncSymbolId).c_str());
             #endif
             return CallScriptFunc(env,sfCache, arguments);
         }

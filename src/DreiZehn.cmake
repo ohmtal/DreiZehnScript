@@ -41,6 +41,7 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/core/Types.h
 
     ${CMAKE_CURRENT_LIST_DIR}/Environment.h
+    ${CMAKE_CURRENT_LIST_DIR}/Environment.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/ScriptLoader.h
     ${CMAKE_CURRENT_LIST_DIR}/ScriptLoader.cpp

@@ -25,13 +25,15 @@
 #endif
 
 namespace DreiZehn {
-    class VariableFrame;
 
     // static!
     #ifndef LOCALS_SIZE
     #define LOCALS_SIZE  65536
     #endif
 
+    #ifndef ROOT_LOCALS_OFFSET
+    #define ROOT_LOCALS_OFFSET  2048
+    #endif
     // ------------------------------------------
     inline std::function<bool()> OnBreath = nullptr;
     inline bool BaseBreath() {

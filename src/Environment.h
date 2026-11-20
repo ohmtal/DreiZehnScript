@@ -65,6 +65,7 @@ public:
     Environment() : mParentEnv(nullptr) {
         // mVariableFrame = new VariableFrame(nullptr);
         mLocalsRegister.resize(LOCALS_SIZE);
+        mLocalVarCount.reserve(16);
     }
     Environment(Environment* parentEnv) : mParentEnv(parentEnv) {
         // mVariableFrame = new VariableFrame(parentEnv->mVariableFrame);

@@ -1154,11 +1154,11 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         S32 inc = ADVANCE_S32();
 
         Value* varPTR = POP_STACK().asValuePointer();
-        if (!varPTR) [[unlikely]] {
-            PUSH_STACK(NumberNullValue);
-            PrintVMError(OP_INC_PTR, "Invalid variable!!");
-            DISPATCH();
-        }
+        // if (!varPTR) [[unlikely]] {
+        //     PUSH_STACK(NumberNullValue);
+        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
+        //     DISPATCH();
+        // }
 
         if (varPTR->isInt()) [[likely]] {
             *varPTR = Value(varPTR->asFastInt() + inc);
@@ -1189,11 +1189,11 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     handle_OP_ASSIGN_PTR: {
         Value* varPTR = POP_STACK().asValuePointer();
         Value b = PEEK_STACK(0);
-        if (!varPTR) [[unlikely]] {
-            PUSH_STACK(NumberNullValue);
-            PrintVMError(OP_INC_PTR, "Invalid variable!!");
-            DISPATCH();
-        }
+        // if (!varPTR) [[unlikely]] {
+        //     PUSH_STACK(NumberNullValue);
+        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
+        //     DISPATCH();
+        // }
         *varPTR = b;
         DISPATCH();
     }
@@ -1201,11 +1201,11 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     handle_OP_ADD_PTR: {
         Value b = POP_STACK();
         Value* varPTR = POP_STACK().asValuePointer();
-        if (!varPTR) [[unlikely]] {
-            PUSH_STACK(NumberNullValue);
-            PrintVMError(OP_INC_PTR, "Invalid variable!!");
-            DISPATCH();
-        }
+        // if (!varPTR) [[unlikely]] {
+        //     PUSH_STACK(NumberNullValue);
+        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
+        //     DISPATCH();
+        // }
         if (varPTR->isDouble() && b.isDouble()) [[likely]] {
             *varPTR = Value(varPTR->asFastDouble() + b.asFastDouble());
             PUSH_STACK(*varPTR);
@@ -1235,11 +1235,11 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     handle_OP_SUB_PTR: {
         Value b = POP_STACK();
         Value* varPTR = POP_STACK().asValuePointer();
-        if (!varPTR) [[unlikely]] {
-            PUSH_STACK(NumberNullValue);
-            PrintVMError(OP_INC_PTR, "Invalid variable!!");
-            DISPATCH();
-        }
+        // if (!varPTR) [[unlikely]] {
+        //     PUSH_STACK(NumberNullValue);
+        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
+        //     DISPATCH();
+        // }
         if (varPTR->isDouble() && b.isDouble()) [[likely]] {
             *varPTR = Value(varPTR->asFastDouble() - b.asFastDouble());
             PUSH_STACK(*varPTR);
@@ -1269,11 +1269,11 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     handle_OP_MUL_PTR: {
         Value b = POP_STACK();
         Value* varPTR = POP_STACK().asValuePointer();
-        if (!varPTR) [[unlikely]] {
-            PUSH_STACK(NumberNullValue);
-            PrintVMError(OP_INC_PTR, "Invalid variable!!");
-            DISPATCH();
-        }
+        // if (!varPTR) [[unlikely]] {
+        //     PUSH_STACK(NumberNullValue);
+        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
+        //     DISPATCH();
+        // }
         if (varPTR->isDouble() && b.isDouble()) [[likely]] {
             *varPTR = Value(varPTR->asFastDouble() * b.asFastDouble());
             PUSH_STACK(*varPTR);
@@ -1304,11 +1304,11 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     handle_OP_DIV_PTR: {
         Value b = POP_STACK();
         Value* varPTR = POP_STACK().asValuePointer();
-        if (!varPTR) [[unlikely]] {
-            PUSH_STACK(NumberNullValue);
-            PrintVMError(OP_INC_PTR, "Invalid variable!!");
-            DISPATCH();
-        }
+        // if (!varPTR) [[unlikely]] {
+        //     PUSH_STACK(NumberNullValue);
+        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
+        //     DISPATCH();
+        // }
         // FIXME division by zero
         if (varPTR->isDouble() && b.isDouble()) [[likely]] {
             *varPTR = Value(varPTR->asFastDouble() / b.asFastDouble());

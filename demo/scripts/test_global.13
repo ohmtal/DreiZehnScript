@@ -1,14 +1,46 @@
+# Benchmark-Test for DreiZehn Script (0.8)
+import Core
+import Math
 
+define JLOOPS 25
 define ILOOPS 1000000
-global a = 0
-forRange i ILOOPS
-    a++
-    a--
-    a++
-    a--
-    a++
---     a = a + 1
---     a = a * 2
---     a = a / 2
+define HLOOPS ILOOPS / 2
+
+global globalX = 0.0
+
+forRange j JLOOPS
+    forRange i ILOOPS
+        globalX++
+    end
+    print  "SUM (++) IS: " globalX
+
+    forRange i ILOOPS
+        globalX--
+    end
+    print  "SUM (--) IS: " globalX
+
+    globalX = 66
+    print  "set Sum to 66 == " (globalX * 1)
+
+    forRange i ILOOPS
+        globalX *= (i + 1)
+        globalX /= (i + 1)
+    end
+    print  "SUM (*/ %i+1) IS: " globalX
+
+    ran = 0.0
+    forRange i HLOOPS
+        ran = math::randomf * i
+        globalX -= ran
+        globalX += ran
+    end
+    print  "last ran" ran
+    print  "SUM (rand +-) IS: " globalX
 end
-print a
+
+globalX = globalX - 33.0
+print "---------------------"
+print "---------------------"
+print  "Final sum should be 33.0 == " globalX
+print "---------------------"
+print "---------------------"

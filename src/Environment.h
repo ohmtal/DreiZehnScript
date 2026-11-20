@@ -156,6 +156,32 @@ public:
     }
 
 
+    // yay this is slightly faster
+    template<TokenType Op>
+    Value doMath(Value a, Value b) {
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+
+        if constexpr (Op == TokenType::Plus) {
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+        else if constexpr (Op == TokenType::Minus) {
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a - target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+        else if constexpr (Op == TokenType::Mul) {
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a * target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+        else if constexpr (Op == TokenType::Div) {
+            if (target_b == 0.0) [[unlikely]] return NumberNullValue;
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a / target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+    }
+
+
     // -------------------------------------------------------------------------
     // EXECUTE :D - currentEnv for function calls
     // second should be faster for cpu but issnt so maybe a mix of both ?

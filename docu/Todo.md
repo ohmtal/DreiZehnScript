@@ -679,7 +679,7 @@ I moved this to main also if it's a bit slower. So: back on track
     
 ### <<<<< internal 0.91 ----- 0.92 >>>>>>>    
     
-- [ ] Want the localvar access back to Interpreter and maybe bytecode
+- [X] Want the localvar access back to Interpreter and maybe bytecode
     - at the moment i have two local vars one in bytecode and one for Interpreter
     - change the code so i only use one localvars - the Enviroment one 
     - ParserFrame stuff can be done by enviroment so i can add a localvar lookup 
@@ -694,10 +694,23 @@ I moved this to main also if it's a bit slower. So: back on track
     
     - [X] added reserve and lookup for root locals and modified parserFrame, remove varCount from Ast Node
     - [X] added code to Enviroment.cpp 
-    - [ ] try enviroment locals also for bytecode ?! 
-    - [ ] op assign and inc/dec can be also used when it's a global 
+    - i keep the locals in bytecode as they are 
     
-- [ ] add more templates like Value doMath(Value a, Value b) this is slightly faster     
+### <<<<< internal 0.91 ----- 0.91b >>>>>>>    
+    
+- 0.91b Interpreter: **-O2 and > /dev/null** and best of three
+    - test_var: 2.009u 0.003s 0:02.01 99.5% 
+    - test_global: 2.019u 0.005s 0:02.03 99.0%
+    - test_field: 2.396u 0.004s 0:02.40 99.5% 
+    - test_fibonacci: 0.736u 0.004s 0:00.74 98.6%
+    - StarField2 (bench): 6.432u 0.196s 0:06.84 96.7%  
+
+- 0.91b ByteCode: **-O2 and > /dev/null** and best of three
+    - test_var: 1.238u 0.004s 0:01.24 99.1%
+    - test_global: 1.443u 0.005s 0:01.45 99.3% 
+    - test_field: 1.654u 0.001s 0:01.65 100.0%
+    - test_fibonacci: 0.343u 0.007s 0:00.35 97.1%
+    - StarField2 (bench): 5.057u 0.215s 0:05.50 95.6%
     
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it

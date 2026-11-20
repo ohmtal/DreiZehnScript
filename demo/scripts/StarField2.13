@@ -143,10 +143,13 @@ if Init
 
 
         SDL_RenderPresent Renderer
---         SDL_Delay 16
 
 --         if core::breath == false; break; end
-        if doBenchMark && loops >= 3000; break;;
+        if doBenchMark
+            if loops >= 3000; break;;
+        else
+            SDL_Delay 10
+        end
     end
 end
 

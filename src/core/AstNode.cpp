@@ -35,6 +35,30 @@ namespace DreiZehn {
 
     }
     // -------------------------------------------------------------------------
+    // yay this is slightly faster
+    template<TokenType Op>
+    Value doFloatMath(Value a, Value b) {
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+
+        if constexpr (Op == TokenType::Plus) {
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+        else if constexpr (Op == TokenType::Minus) {
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a - target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+        else if constexpr (Op == TokenType::Mul) {
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a * target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+        else if constexpr (Op == TokenType::Div) {
+            if (target_b == 0.0) [[unlikely]] return NumberNullValue;
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a / target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+    }
 
 
 
@@ -992,30 +1016,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // BinaryOpExpression
     // -------------------------------------------------------------------------
-    // yay this is slightly faster
-    template<TokenType Op>
-    Value doMath(Value a, Value b) {
-        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
 
-        if constexpr (Op == TokenType::Plus) {
-            uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
-            return Value(Unsafe{}, result_bits);
-        }
-        else if constexpr (Op == TokenType::Minus) {
-            uint64_t result_bits = std::bit_cast<uint64_t>(target_a - target_b);
-            return Value(Unsafe{}, result_bits);
-        }
-        else if constexpr (Op == TokenType::Mul) {
-            uint64_t result_bits = std::bit_cast<uint64_t>(target_a * target_b);
-            return Value(Unsafe{}, result_bits);
-        }
-        else if constexpr (Op == TokenType::Div) {
-            if (target_b == 0.0) [[unlikely]] return NumberNullValue;
-            uint64_t result_bits = std::bit_cast<uint64_t>(target_a / target_b);
-            return Value(Unsafe{}, result_bits);
-        }
-    }
 
     Value BinaryOpExpression::evaluate(Environment& env) {
         if (!mLeft || !mRight) [[unlikely]] {
@@ -1029,10 +1030,10 @@ namespace DreiZehn {
 
         // TEST >>>>>>>>>>>>>>>
         switch (mOp) {
-            case TokenType::Plus: return doMath<TokenType::Plus>(a,b);
-            case TokenType::Minus: return doMath<TokenType::Minus>(a,b);
-            case TokenType::Mul: return doMath<TokenType::Mul>(a,b);
-            case TokenType::Div: return doMath<TokenType::Div>(a,b);
+            case TokenType::Plus: return doFloatMath<TokenType::Plus>(a,b);
+            case TokenType::Minus: return doFloatMath<TokenType::Minus>(a,b);
+            case TokenType::Mul: return doFloatMath<TokenType::Mul>(a,b);
+            case TokenType::Div: return doFloatMath<TokenType::Div>(a,b);
             default:
                 return Value();
         }
@@ -1738,10 +1739,10 @@ namespace DreiZehn {
 
         // // TEST >>>>>>>>>>>>>>> when i add this it's slower again .. cpu drives me crazy ;)
         switch (mOp) {
-            case TokenType::AssignPlus:     return (*valuePtr = doMath<TokenType::Plus>(*valuePtr,rightHand));
-            case TokenType::AssignMinus:    return (*valuePtr = doMath<TokenType::Minus>(*valuePtr,rightHand));
-            case TokenType::AssignMul:      return (*valuePtr = doMath<TokenType::Mul>(*valuePtr,rightHand));
-            case TokenType::AssignDiv:      return (*valuePtr = doMath<TokenType::Div>(*valuePtr,rightHand));
+            case TokenType::AssignPlus:     return (*valuePtr = doFloatMath<TokenType::Plus>(*valuePtr,rightHand));
+            case TokenType::AssignMinus:    return (*valuePtr = doFloatMath<TokenType::Minus>(*valuePtr,rightHand));
+            case TokenType::AssignMul:      return (*valuePtr = doFloatMath<TokenType::Mul>(*valuePtr,rightHand));
+            case TokenType::AssignDiv:      return (*valuePtr = doFloatMath<TokenType::Div>(*valuePtr,rightHand));
             default:
                 return Value();
         }

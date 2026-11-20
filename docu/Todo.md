@@ -663,6 +663,21 @@ the local access in console. Also bytecode is slower on baseFlux13 ... ?!
 I moved this to main also if it's a bit slower. So: back on track 
     
 ----------------------------------------------------------------------------
+
+- 0.91 Interpreter: **-O2 and > /dev/null** and best of three
+    - test_var: 2.375u 0.005s 0:02.38 99.5% << slower since change to global/local register changes ahead see below
+    - test_field: 2.799u 0.002s 0:02.80 99.6%
+    - test_fibonacci: 0.743u 0.002s 0:00.74 100.0% << must faster with the register :)
+    - StarField2 (bench): 6.607u 0.192s 0:07.03 96.5%
+
+- 0.91 ByteCode: **-O2 and > /dev/null** and best of three
+    - test_var: 1.211u 0.004s 0:01.21 100.0%  << slower since localvar is part of VM and not global or in function
+    - test_field: 1.725u 0.003s 0:01.73 99.4%
+    - test_fibonacci: 0.347u 0.005s 0:00.35 97.1%
+    - StarField2 (bench): 5.230u 0.180s 0:05.64 95.9% 
+
+    
+### <<<<< internal 0.91 ----- 0.92 >>>>>>>    
     
 - [ ] Want the localvar access back to Interpreter and maybe bytecode
     - at the moment i have two local vars one in bytecode and one for Interpreter
@@ -676,6 +691,7 @@ I moved this to main also if it's a bit slower. So: back on track
         - 1 points to globals 
         - fetch it like mVariableBase[isGlobal][varRegister]
     - i need a setVariable for globals like i had in VariableFrame 
+    
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 

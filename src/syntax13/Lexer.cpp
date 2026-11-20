@@ -321,6 +321,10 @@ TokenVector Lexer::tokenize() {
 
         advance(); // skip unknown
     }
+    // new loader need a EOLToken !!
+    if (tokens.size() > 0 && tokens.back().mType != TokenType::EOLToken) {
+        tokens.push_back({TokenType::EOLToken, "\n"});
+    }
     tokens.push_back({TokenType::EOFToken, ""});
     return tokens;
 }

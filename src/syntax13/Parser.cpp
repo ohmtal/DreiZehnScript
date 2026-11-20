@@ -188,7 +188,12 @@ namespace DreiZehn {
                 #ifdef DREIZEHN_DEBUG
                 // if (!isGlobal) Tools::printf("[PARSER] ADD LOCAL %s  [REG:%2u}\n",nameToken.mValue.c_str(), varRegister );
                 #endif
-                currentExpression = std::make_unique<VariableExpression>(varRegister, isGlobal);
+                if (isGlobal) {
+                    currentExpression = std::make_unique<GlobalVariableExpression>(varRegister);
+                } else {
+                    currentExpression = std::make_unique<LocalVariableExpression>(varRegister);
+                }
+                // currentExpression = std::make_unique<VariableExpression>(varRegister, isGlobal);
 
 
                 // we got a variable
@@ -327,7 +332,8 @@ namespace DreiZehn {
             case TokenType::BitAnd:  {
                 Token t = advance();
                 auto expr = parseMath();
-                if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
+                if (!expr || (expr.get()->mNodeType != NodeType::LocalVariableExpression &&
+                    expr.get()->mNodeType != NodeType::GlobalVariableExpression &&
                     expr.get()->mNodeType != NodeType::ObjectFieldExpression)
                 ) {
                     PrintParseError("Get by Reference (&) need a Variable!");
@@ -339,7 +345,8 @@ namespace DreiZehn {
             case TokenType::Mul: {
                 Token t = advance();
                 auto expr = parseExpression();
-                if (!expr || (expr.get()->mNodeType != NodeType::VariableExpression &&
+                if (!expr || (expr.get()->mNodeType != NodeType::LocalVariableExpression &&
+                    expr.get()->mNodeType != NodeType::GlobalVariableExpression &&
                     expr.get()->mNodeType != NodeType::ObjectFieldExpression)
                 ) {
                     PrintParseError("Get by Reference (&) need a Variable!");
@@ -612,10 +619,12 @@ namespace DreiZehn {
             size_t varRegister = 0;
             if (isGlobal) {
                 varRegister = mEnvPtr->reserveGlobal(nameTokenSymbolId);
+                return std::make_unique<GlobalVariableExpression>(varRegister);
             } else {
                 varRegister = parserFrame.insertLocalVar(nameTokenSymbolId);
+                return std::make_unique<LocalVariableExpression>(varRegister);
             }
-            return std::make_unique<VariableExpression>(varRegister, isGlobal);
+            // // return std::make_unique<VariableExpression>(varRegister, isGlobal);
 
 
             // bool isGlobal = peekOffset(-2).mType == TokenType::Global;

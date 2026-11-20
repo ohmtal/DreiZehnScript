@@ -36,7 +36,8 @@ enum class NodeType {
     BlockStatement,
     LiteralExpression,
     ValueExpression,
-    VariableExpression,
+    LocalVariableExpression,
+    GlobalVariableExpression,
     VariableReferenceExpression,
     VariablePointerExpression,
     ArrayVariableExpression,
@@ -77,7 +78,8 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::BlockStatement:          return "BlockStatement";
         case NodeType::LiteralExpression:       return "LiteralExpression";
         case NodeType::ValueExpression:         return "ValueExpression";
-        case NodeType::VariableExpression:      return "VariableExpression";
+        case NodeType::LocalVariableExpression:      return "LocalVariableExpression";
+        case NodeType::GlobalVariableExpression:      return "GlobalVariableExpression";
         case NodeType::VariableReferenceExpression:      return "VariableReferenceExpression";
         case NodeType::VariablePointerExpression:      return "VariablePointerExpression";
         case NodeType::ArrayVariableExpression:   return "ArrayVariableExpression";
@@ -223,18 +225,34 @@ struct ValueExpression : public Expression {
 
 // Variables -------------------------------------------------------------------
 
-struct VariableExpression : public Expression {
+// // struct VariableExpression : public Expression {
+// //
+// //     // uint32_t mVariableNameSymbolId = 0;
+// //
+// //     size_t mVariableRegister = 0;
+// //     bool mGlobalVariable = false;
+// //
+// //     uint32_t mCacheFrameID = 0;
+// //     Value* mCacheValue = nullptr;
+// //
+// //     VariableExpression(size_t varRegister , bool isGlobal) : mVariableRegister(varRegister),mGlobalVariable(isGlobal)  {
+// //         mNodeType  = NodeType::VariableExpression;
+// //     }
+// //     Value evaluate(Environment& env) override;
+// //     Value* evaluatePtr(Environment& env) override;
+// //
+// //     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+// //     bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+// //     bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+// //
+// //
+// // };
 
-    // uint32_t mVariableNameSymbolId = 0;
-
+struct LocalVariableExpression : public Expression {
     size_t mVariableRegister = 0;
-    bool mGlobalVariable = false;
 
-    uint32_t mCacheFrameID = 0;
-    Value* mCacheValue = nullptr;
-
-    VariableExpression(size_t varRegister , bool isGlobal) : mVariableRegister(varRegister),mGlobalVariable(isGlobal)  {
-        mNodeType  = NodeType::VariableExpression;
+    LocalVariableExpression(size_t varRegister ) : mVariableRegister(varRegister)  {
+        mNodeType  = NodeType::LocalVariableExpression;
     }
     Value evaluate(Environment& env) override;
     Value* evaluatePtr(Environment& env) override;
@@ -242,8 +260,20 @@ struct VariableExpression : public Expression {
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
     bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
     bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+};
 
+struct GlobalVariableExpression : public Expression {
+    size_t mVariableRegister = 0;
 
+    GlobalVariableExpression(size_t varRegister ) : mVariableRegister(varRegister) {
+        mNodeType  = NodeType::GlobalVariableExpression;
+    }
+    Value evaluate(Environment& env) override;
+    Value* evaluatePtr(Environment& env) override;
+
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+    bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 };
 
 
@@ -744,16 +774,18 @@ struct StringConcatAssignExpression : public Expression {
 // less is more!
 inline Value evaluateFastPath(Expression* node, Environment& env) {
     if (!node) [[unlikely]] return NumberNullValue;
-    switch (node->mNodeType) {
-        case NodeType::VariableExpression: return static_cast<VariableExpression*>(node)->evaluate(env);
-        case NodeType::LiteralExpression: return static_cast<LiteralExpression*>(node)->evaluate(env);
-        // case NodeType::ObjectFieldExpression: return static_cast<ObjectFieldExpression*>(node)->evaluate(env);
-        // case NodeType::ArrayVariableExpression: return static_cast<ArrayVariableExpression*>(node)->evaluate(env);
-        // case NodeType::CallExpression: return static_cast<CallExpression*>(node)->evaluate(env);
-        // case NodeType::MethodExpression: return static_cast<MethodExpression*>(node)->evaluate(env);
-        default: return node->evaluate(env);
-    }
-    return NumberNullValue;
+    return node->evaluate(env);
+    // // switch (node->mNodeType) {
+    // //     case NodeType::LocalVariableExpression: return static_cast<LocalVariableExpression*>(node)->evaluate(env);
+    // //     case NodeType::GlobalVariableExpression: return static_cast<GlobalVariableExpression*>(node)->evaluate(env);
+    // //     case NodeType::LiteralExpression: return static_cast<LiteralExpression*>(node)->evaluate(env);
+    // //     // case NodeType::ObjectFieldExpression: return static_cast<ObjectFieldExpression*>(node)->evaluate(env);
+    // //     // case NodeType::ArrayVariableExpression: return static_cast<ArrayVariableExpression*>(node)->evaluate(env);
+    // //     // case NodeType::CallExpression: return static_cast<CallExpression*>(node)->evaluate(env);
+    // //     // case NodeType::MethodExpression: return static_cast<MethodExpression*>(node)->evaluate(env);
+    // //     default: return node->evaluate(env);
+    // // }
+    // // return NumberNullValue;
 }
 
 // inline Value* evaluatePtrFastPath(Expression* node, Environment& env) {

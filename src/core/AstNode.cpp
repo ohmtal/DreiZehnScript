@@ -96,121 +96,83 @@ namespace DreiZehn {
         return true;
     }
     // -------------------------------------------------------------------------
-    // VariableExpression
+    // LocalVariableExpression
     // -------------------------------------------------------------------------
-    // Value VariableExpression::evaluate(Environment& env) {
-    //     Value* valPtr = this->evaluatePtr(env);
-    //     if (valPtr) [[likely]] return *valPtr;
-    //     else  {
-    //         std::string varName = SymbolTable::getName(mVariableNameSymbolId);
-    //         PrintASTError(this,"Variable not found!",varName);
-    //         return NumberNullValue;
-    //     }
-    //
-    //     // return env.getVariableFrame()->getVariablePtr(mVariableNameSymbolId);
-    // }
-
-    Value VariableExpression::evaluate(Environment& env) {
-        //FIXME what is if the variable does not exists?!
-        return *this->evaluatePtr(env);
+    Value LocalVariableExpression::evaluate(Environment& env) {
+        return env.getLocal(mVariableRegister);
     }
 
-    Value* VariableExpression::evaluatePtr(Environment& env) {
-        //FIXME what is if the variable does not exists?!
-
-        if (mGlobalVariable) {
-            if (mCacheValue) return mCacheValue;
-            mCacheValue = &env.getGlobal(mVariableRegister);
-            return mCacheValue;
-        }
-
-        uint32_t frameID = env.getLocalsFrameId();
-        if (mCacheValue && mCacheFrameID == frameID) {
-            return mCacheValue;
-        }
-
-        mCacheFrameID = frameID;
-        mCacheValue = &env.getLocal(mVariableRegister);
-        return mCacheValue;
+    //FIXME what is if the variable does not exists?!
+    Value* LocalVariableExpression::evaluatePtr(Environment& env) {
+        return &env.getLocal(mVariableRegister);
     }
-
-
-    // Value* VariableExpression::evaluatePtr(Environment& env) {
-    //
-    //     VariableFrame* frame = env.getVariableFrame();
-    //     uint32_t frameID = frame->getFrameId();
-    //     if (mCacheValue && mCacheFrameID == frameID) {
-    //         return mCacheValue;
-    //     }
-    //
-    //     mCacheFrameID = frameID;
-    //     mCacheValue =  frame->getVariablePtr(mVariableNameSymbolId, AssignActive);
-    //     return mCacheValue;
-    // }
-
-    bool VariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-
-        if (mGlobalVariable) {
-            chunk.emit(OP_LOAD_VAR);
-            chunk.emit(mVariableRegister);
-            chunk.emitPointer(nullptr); //space for cache ptr
-        } else {
-            U32 localSlot = scope.insert(mVariableRegister);
-            chunk.emit(OP_GET_LOCAL);
-            chunk.emit(localSlot);
-        }
+    bool LocalVariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        U32 localSlot = scope.insert(mVariableRegister);
+        chunk.emit(OP_GET_LOCAL);
+        chunk.emit(localSlot);
         return true;
     }
 
-
-    // bool VariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-    //     if (mGlobalVariable) {
-    //         chunk.emit(OP_LOAD_VAR);
-    //         chunk.emit(mVariableNameSymbolId);
-    //         chunk.emitPointer(nullptr); //space for cached ptr!
-    //     } else {
-    //         S32 localSlot = scope.resolve(mVariableNameSymbolId);
-    //         if (localSlot < 0 ) {
-    //             std::string varName = SymbolTable::getName(mVariableNameSymbolId);
-    //             PrintASTError(this,"Variable not found in local scope", varName);
-    //             return false; // do  stop!
-    //         }
-    //         chunk.emit(OP_GET_LOCAL);
-    //         chunk.emit(localSlot);
-    //     }
-    //     return true;
-    // }
-
-    bool VariableExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+    bool LocalVariableExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
             PrintASTError(this,"compile pointer need a request!");
             return false;
         }
-        if (mGlobalVariable) {
-            chunk.emit(OP_PUSHPTR_VAR);
-            chunk.emit(mVariableRegister);
-            chunk.emitPointer(nullptr); //space for cache ptr
-        } else {
-            U32 localSlot = scope.insert(mVariableRegister);
-            chunk.emit(OP_PUSHPRT_LOCAL);
-            chunk.emit(localSlot);
-        }
-
+        U32 localSlot = scope.insert(mVariableRegister);
+        chunk.emit(OP_PUSHPRT_LOCAL);
+        chunk.emit(localSlot);
 
         return true;
     }
 
-    bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+    bool LocalVariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         // save var
-        if (mGlobalVariable) {
-            chunk.emit(OP_SAVE_VAR);
-            chunk.emit(mVariableRegister);
-            chunk.emitPointer(nullptr); //space for cache ptr
-        } else {
-            U32 localSlot = scope.insert(mVariableRegister);
-            chunk.emit(OP_SET_LOCAL);
-            chunk.emit(static_cast<U32>(localSlot));
+        U32 localSlot = scope.insert(mVariableRegister);
+        chunk.emit(OP_SET_LOCAL);
+        chunk.emit(static_cast<U32>(localSlot));
+
+        if (requestType == ValueType::NONE) {
+            chunk.emit(OP_POP_STACK);
         }
+        return true;
+    }
+
+    // -------------------------------------------------------------------------
+    // GlobalVariableExpression
+    // -------------------------------------------------------------------------
+    Value GlobalVariableExpression::evaluate(Environment& env) {
+        return env.getGlobal(mVariableRegister);
+    }
+
+        //FIXME what is if the variable does not exists?!
+    Value* GlobalVariableExpression::evaluatePtr(Environment& env) {
+        return &env.getGlobal(mVariableRegister);
+    }
+
+    bool GlobalVariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+
+        chunk.emit(OP_LOAD_VAR);
+        chunk.emit(mVariableRegister);
+        chunk.emitPointer(nullptr); //space for cache ptr
+        return true;
+    }
+
+    bool GlobalVariableExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+        if (requestType == ValueType::NONE) {
+            PrintASTError(this,"compile pointer need a request!");
+            return false;
+        }
+        chunk.emit(OP_PUSHPTR_VAR);
+        chunk.emit(mVariableRegister);
+        chunk.emitPointer(nullptr); //space for cache ptr
+        return true;
+    }
+
+    bool GlobalVariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+        // save var
+        chunk.emit(OP_SAVE_VAR);
+        chunk.emit(mVariableRegister);
+        chunk.emitPointer(nullptr); //space for cache ptr
 
         if (requestType == ValueType::NONE) {
             chunk.emit(OP_POP_STACK);
@@ -219,14 +181,75 @@ namespace DreiZehn {
         return true;
 
     }
+
+    // // -------------------------------------------------------------------------
+    // // VariableExpression
+    // // -------------------------------------------------------------------------
+    // Value VariableExpression::evaluate(Environment& env) {
+    //     //FIXME what is if the variable does not exists?!
+    //     return *this->evaluatePtr(env);
+    // }
+    //
+    //     //FIXME what is if the variable does not exists?!
+    // Value* VariableExpression::evaluatePtr(Environment& env) {
+    //
+    //     if (mGlobalVariable) {
+    //         if (mCacheValue) return mCacheValue;
+    //         mCacheValue = &env.getGlobal(mVariableRegister);
+    //         return mCacheValue;
+    //     }
+    //
+    //     uint32_t frameID = env.getLocalsFrameId();
+    //     if (mCacheValue && mCacheFrameID == frameID) {
+    //         return mCacheValue;
+    //     }
+    //
+    //     mCacheFrameID = frameID;
+    //     mCacheValue = &env.getLocal(mVariableRegister);
+    //     return mCacheValue;
+    // }
+    //
+    // bool VariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+    //
+    //     if (mGlobalVariable) {
+    //         chunk.emit(OP_LOAD_VAR);
+    //         chunk.emit(mVariableRegister);
+    //         chunk.emitPointer(nullptr); //space for cache ptr
+    //     } else {
+    //         U32 localSlot = scope.insert(mVariableRegister);
+    //         chunk.emit(OP_GET_LOCAL);
+    //         chunk.emit(localSlot);
+    //     }
+    //     return true;
+    // }
+    //
+    // bool VariableExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
+    //     if (requestType == ValueType::NONE) {
+    //         PrintASTError(this,"compile pointer need a request!");
+    //         return false;
+    //     }
+    //     if (mGlobalVariable) {
+    //         chunk.emit(OP_PUSHPTR_VAR);
+    //         chunk.emit(mVariableRegister);
+    //         chunk.emitPointer(nullptr); //space for cache ptr
+    //     } else {
+    //         U32 localSlot = scope.insert(mVariableRegister);
+    //         chunk.emit(OP_PUSHPRT_LOCAL);
+    //         chunk.emit(localSlot);
+    //     }
+    //
+    //
+    //     return true;
+    // }
+    //
     // bool VariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
     //     // save var
     //     if (mGlobalVariable) {
     //         chunk.emit(OP_SAVE_VAR);
-    //         chunk.emit(mVariableNameSymbolId);
+    //         chunk.emit(mVariableRegister);
     //         chunk.emitPointer(nullptr); //space for cache ptr
     //     } else {
-    //         U32 localSlot = scope.insert(mVariableNameSymbolId);
+    //         U32 localSlot = scope.insert(mVariableRegister);
     //         chunk.emit(OP_SET_LOCAL);
     //         chunk.emit(static_cast<U32>(localSlot));
     //     }
@@ -1195,26 +1218,24 @@ namespace DreiZehn {
 
 
         // 1. i need to know if it's a local
-        if (mExpr->mNodeType == NodeType::VariableExpression) {
-            VariableExpression* vExpr = static_cast<VariableExpression*>(mExpr.get());
+        if (mExpr->mNodeType == NodeType::LocalVariableExpression) {
+            LocalVariableExpression* vExpr = static_cast<LocalVariableExpression*>(mExpr.get());
             if (!vExpr) return false;
-            if (!vExpr->mGlobalVariable) {
-                S32 localSlot = scope.resolve(vExpr->mVariableRegister);
-                if (localSlot < 0 ) {
-                    // std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
-                    PrintASTError(this, "Variable not found in local scope. REG:", std::to_string(localSlot).c_str(),  std::to_string(vExpr->mVariableRegister).c_str());
-                    return true; // do not stop!
-                }
-
-                chunk.emit(OP_INC_LOCAL);
-                chunk.emit(localSlot);
-                chunk.emitS32(inc);
-
-                if (requestType == ValueType::NONE) {
-                    chunk.emit(OP_POP_STACK);
-                }
-                return true;
+            S32 localSlot = scope.resolve(vExpr->mVariableRegister);
+            if (localSlot < 0 ) {
+                // std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
+                PrintASTError(this, "Variable not found in local scope. REG:", std::to_string(localSlot).c_str(),  std::to_string(vExpr->mVariableRegister).c_str());
+                return true; // do not stop!
             }
+
+            chunk.emit(OP_INC_LOCAL);
+            chunk.emit(localSlot);
+            chunk.emitS32(inc);
+
+            if (requestType == ValueType::NONE) {
+                chunk.emit(OP_POP_STACK);
+            }
+            return true;
         }
 
         // load var pointer
@@ -1251,26 +1272,46 @@ namespace DreiZehn {
             return Value();
         }
 
-        if (mOp == TokenType::And) {
-            // Value a = evaluateFastPath(mLeft.get(),env);
-            Value a = mLeft->evaluate(env);
-            U32 l = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : a.getUInt());
-            if (l == 0) return Value(0);
-            // Value b = evaluateFastPath(mRight.get(),env);
-            Value b = mRight->evaluate(env);
-            U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
-            return Value( l && r);
-        } else
-        if (mOp == TokenType::Or) {
-            // Value a = evaluateFastPath(mLeft.get(),env);
-            Value a = mLeft->evaluate(env);
-            U32 l = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : a.getUInt());
-            if (l == 1) return Value(1);
-            // Value b = evaluateFastPath(mRight.get(),env);
-            Value b = mRight->evaluate(env);
-            U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
-            return Value( l || r);
+        Value a = mLeft->evaluate(env);
+        U32 l = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : a.getUInt());
+
+        switch (mOp) {
+            case TokenType::And: {
+                if (l == 0) return Value(0);
+                Value b = mRight->evaluate(env);
+                U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
+                return Value( l && r);
+            }
+            case TokenType::Or: {
+                if (l == 1) return Value(1);
+                Value b = mRight->evaluate(env);
+                U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
+                return Value( l || r);
+            }
+            default: {}
         }
+
+
+        // if (mOp == TokenType::And) {
+        //     // Value a = evaluateFastPath(mLeft.get(),env);
+        //     Value a = mLeft->evaluate(env);
+        //     U32 l = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : a.getUInt());
+        //     if (l == 0) return Value(0);
+        //     // Value b = evaluateFastPath(mRight.get(),env);
+        //     Value b = mRight->evaluate(env);
+        //     U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
+        //     return Value( l && r);
+        // } else
+        // if (mOp == TokenType::Or) {
+        //     // Value a = evaluateFastPath(mLeft.get(),env);
+        //     Value a = mLeft->evaluate(env);
+        //     U32 l = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : a.getUInt());
+        //     if (l == 1) return Value(1);
+        //     // Value b = evaluateFastPath(mRight.get(),env);
+        //     Value b = mRight->evaluate(env);
+        //     U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
+        //     return Value( l || r);
+        // }
 
         return NumberNullValue;
 
@@ -1634,7 +1675,7 @@ namespace DreiZehn {
     bool AssignStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
 
          if (!mVarExpr || !mRhs) [[unlikely]] {
-             PrintASTError(this,"AssignOP: variable or right is missing or invalid");
+             PrintASTError(this,"Assign: variable or right is missing or invalid");
              return false;
          }
         // types must support compileAssignment!
@@ -1671,7 +1712,7 @@ namespace DreiZehn {
         //     default: return false;
         // }
         //
-        // *valuePtr = target_a;
+        // *valuePtr = Value(target_a);
         // return *valuePtr;
 
         // ---------------
@@ -1718,7 +1759,7 @@ namespace DreiZehn {
                 return NumberNullValue;
         }
 
-        *valuePtr = result;
+        *valuePtr = Value(result);
         return *valuePtr;
     }
 
@@ -1730,34 +1771,32 @@ namespace DreiZehn {
             return false;
         }
 
-        if (mVarExpr->mNodeType == NodeType::VariableExpression) {
-            VariableExpression* vExpr = static_cast<VariableExpression*>(mVarExpr.get());
-            if (!vExpr->mGlobalVariable) {
-                if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
-                S32 localSlot = scope.resolve(vExpr->mVariableRegister);
-                if (localSlot < 0 ) {
-                    // std::string varName = SymbolTable::getName(vExpr->mVariableRegister);
-                    // PrintASTError(this,"Variable not found :", varName);
-                    PrintASTError(this, "Variable not found in local scope. REG:", std::to_string(localSlot).c_str(),  std::to_string(vExpr->mVariableRegister).c_str());
+        if (mVarExpr->mNodeType == NodeType::LocalVariableExpression) {
+            LocalVariableExpression* vExpr = static_cast<LocalVariableExpression*>(mVarExpr.get());
+            if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
+            S32 localSlot = scope.resolve(vExpr->mVariableRegister);
+            if (localSlot < 0 ) {
+                // std::string varName = SymbolTable::getName(vExpr->mVariableRegister);
+                // PrintASTError(this,"Variable not found :", varName);
+                PrintASTError(this, "Variable not found in local scope. REG:", std::to_string(localSlot).c_str(),  std::to_string(vExpr->mVariableRegister).c_str());
 
-                    return true; // do not stop!
-                }
-
-                switch(mOp) {
-                    case TokenType::AssignPlus:  chunk.emit(OP_ADD_LOCAL);  break;
-                    case TokenType::AssignMinus: chunk.emit(OP_SUB_LOCAL);  break;
-                    case TokenType::AssignMul:   chunk.emit(OP_MUL_LOCAL);  break;
-                    case TokenType::AssignDiv:   chunk.emit(OP_DIV_LOCAL);  break;
-                    default: return false;
-                }
-
-                chunk.emit(localSlot);
-
-                if (requestType == ValueType::NONE) {
-                    chunk.emit(OP_POP_STACK);
-                }
-                return true;
+                return true; // do not stop!
             }
+
+            switch(mOp) {
+                case TokenType::AssignPlus:  chunk.emit(OP_ADD_LOCAL);  break;
+                case TokenType::AssignMinus: chunk.emit(OP_SUB_LOCAL);  break;
+                case TokenType::AssignMul:   chunk.emit(OP_MUL_LOCAL);  break;
+                case TokenType::AssignDiv:   chunk.emit(OP_DIV_LOCAL);  break;
+                default: return false;
+            }
+
+            chunk.emit(localSlot);
+
+            if (requestType == ValueType::NONE) {
+                chunk.emit(OP_POP_STACK);
+            }
+            return true;
         }
 
         if (mVarExpr->compilePtr(env,chunk,scope,ValueType::ANY)) {

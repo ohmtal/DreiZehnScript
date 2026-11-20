@@ -47,6 +47,7 @@ private:
     std::vector<size_t> mLocalVarCount;
     U32 mLocalsFrameId = 0;
     size_t mLocalOffset = 0;
+    size_t mLocalsSize = 0;
     ValueVector mLocalsRegister;
 
 
@@ -63,7 +64,7 @@ public:
 
     Environment() : mParentEnv(nullptr) {
         // mVariableFrame = new VariableFrame(nullptr);
-        mLocalsRegister.reserve(LOCALS_SIZE);
+        mLocalsRegister.resize(LOCALS_SIZE);
     }
     Environment(Environment* parentEnv) : mParentEnv(parentEnv) {
         // mVariableFrame = new VariableFrame(parentEnv->mVariableFrame);
@@ -138,39 +139,42 @@ public:
         // Tools::printf("... pushLocalStack: %zu ....\n", varCount);
         #endif
         mLocalVarCount.push_back(varCount);
-        mLocalOffset = mLocalsRegister.size();
+        mLocalOffset = mLocalsSize;
 
         size_t newSize = mLocalOffset  + varCount;
-        if (newSize > mLocalsRegister.capacity()) {
+        if (newSize > mLocalsRegister.capacity()) [[unlikely]] {
             PrintRuntimeError("Interpreter Locals Stack Overflow! raise LOCALS_SIZE as compile flag");
             exit(1);
         }
 
-        mLocalsRegister.resize(mLocalOffset  + varCount);
+        mLocalsSize = mLocalOffset  + varCount;
         mLocalsFrameId++;
     }
     inline void popLocalStack() {
         #ifdef DREIZEHN_DEBUG
         // Tools::printf("... popLocalStack count: %zu\n", mLocalVarCount.back());
         #endif
-        size_t newSize = mLocalsRegister.size() - mLocalVarCount.back();
+        mLocalsSize -=  mLocalVarCount.back();
         mLocalVarCount.pop_back();
-        mLocalsRegister.resize(newSize);
-        if (mLocalVarCount.size() > 0 ) mLocalOffset -= mLocalVarCount.back();
-        else mLocalOffset = 0;
+
+        mLocalOffset = mLocalVarCount.empty() ? 0 : (mLocalsSize - mLocalVarCount.back());
+
+        // if (mLocalVarCount.size() > 0 ) mLocalOffset -= mLocalVarCount.back();
+        // else mLocalOffset = 0;
+        mLocalsFrameId--;
     }
 
     inline void saveLocal(size_t index, const Value& value) {
         #ifdef DREIZEHN_DEBUG
         // Tools::printf("saveLocal [%zu]:%s\n", index, value.toString().c_str() );
+            assert ((index + mLocalOffset) < mLocalsSize && "SAVE: LOCALS REGISTER OUT OF BOUNDS");
         #endif
-        assert ((index + mLocalOffset) < mLocalsRegister.size() && "SAVE: LOCALS REGISTER OUT OF BOUNDS");
         mLocalsRegister[(index + mLocalOffset)] = value;
     }
 
     inline Value& getLocal(size_t index) {
         #ifdef DREIZEHN_DEBUG
-        if ((index + mLocalOffset) >= mLocalsRegister.size()){
+        if ((index + mLocalOffset) >= mLocalsSize){
             Tools::errorf("LOAD: LOCALS REGISTER OUT OF BOUNDS: [%zu|%zu] => %zu\n", index, mLocalOffset, mLocalsRegister.size());
             assert(true && "LOAD: LOCALS REGISTER OUT OF BOUNDS");
         }
@@ -179,9 +183,6 @@ public:
         //        ,(void*)&mLocalsRegister[(index + mLocalOffset)] ,  value.toString().c_str() );
         return value;
         #endif
-        // #ifdef DLS_DEBUG
-        assert ((index + mLocalOffset) < mLocalsRegister.size() && "LOAD: LOCALS REGISTER OUT OF BOUNDS");
-        // #endif
         return mLocalsRegister[(index + mLocalOffset)];
     }
 

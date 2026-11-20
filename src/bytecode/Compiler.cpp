@@ -19,6 +19,7 @@ namespace DreiZehn {
         if (!node) return false;
 
         switch(node->mNodeType) {
+            case NodeType::MainBlock:
             case NodeType::BlockStatement:
             {
                 auto* flowStmt = static_cast<BlockStatement*>(node);

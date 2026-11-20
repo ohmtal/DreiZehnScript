@@ -3,7 +3,7 @@
 -- -----------------------------------------------------------------------------
 import Core
 import String # for str::format
-import Vector # for Vector::new
+-- import Vector # for Vector::new
 
 -- famous hello world
 print "1. Hello World!"

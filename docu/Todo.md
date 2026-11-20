@@ -677,7 +677,7 @@ I moved this to main also if it's a bit slower. So: back on track
     - StarField2 (bench): 5.230u 0.180s 0:05.64 95.9% 
 
     
-### <<<<< internal 0.91 ----- 0.92 >>>>>>>    
+### <<<<< internal 0.91 ----- 0.91b >>>>>>>    
     
 - [X] Want the localvar access back to Interpreter and maybe bytecode
     - at the moment i have two local vars one in bytecode and one for Interpreter
@@ -696,7 +696,6 @@ I moved this to main also if it's a bit slower. So: back on track
     - [X] added code to Enviroment.cpp 
     - i keep the locals in bytecode as they are 
     
-### <<<<< internal 0.91 ----- 0.91b >>>>>>>    
     
 - 0.91b Interpreter: **-O2 and > /dev/null** and best of three
     - test_var: 2.009u 0.003s 0:02.01 99.5% 
@@ -712,6 +711,10 @@ I moved this to main also if it's a bit slower. So: back on track
     - test_fibonacci: 0.343u 0.007s 0:00.35 97.1%
     - StarField2 (bench): 5.057u 0.215s 0:05.50 95.6%
     
+### <<<<< internal 0.91b ----- 0.91c >>>>>>>    
+
+- [ ] With the new local variable system unknown variables no longer cause a parse error
+this is not a problem for the program but for finding a misstype 
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 

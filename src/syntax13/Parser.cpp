@@ -69,15 +69,18 @@ namespace DreiZehn {
         return static_cast<U32>(mLocalVariables.back().size() - 1);
     }
 
-    bool ParserFrame::guessGlobalVar(Environment& env, uint32_t symId) {
+    S32 ParserFrame::guessGlobalVar(Environment& env, uint32_t symId) {
         bool foundAGlobal = env.getGlobalRegister(symId) >= 0;
         bool foundFunctionVar = findLocalVar(symId) >= 0;
         // Tools::printf(" ** VAR %s check foundAGlobal:%d foundFunc:%d {block:%d}\n",
         //               SymbolTable::getName(symId).c_str(), foundAGlobal,foundFunctionVar,
         //               mBlockInFunction);
-        if (!mBlockInFunction) return foundAGlobal;
-        if (!foundFunctionVar && foundAGlobal) return true;
-        return false;
+
+        if (!foundAGlobal && !foundFunctionVar) return -1;
+
+        if (!mBlockInFunction) return (S32)foundAGlobal;
+        if (!foundFunctionVar && foundAGlobal) return 1;
+        return 0;
     }
 
     void ParserFrame::startFunc(uint32_t funcSymId) {
@@ -126,13 +129,19 @@ namespace DreiZehn {
 
     void Parser::PrintParseError(const std::string& message
     , const std::string& p1 ,const std::string& p2 ,const std::string& p3 ) {
-        Tools::errorf("[Parser-ERROR LINE:%d]: %s %s %s %s\n%s\n",lineNumber
+        Tools::errorf("[Parser LINE:%d]: %s %s %s %s\n%s\n",lineNumber
             , message.c_str(),p1.c_str(),p2.c_str(),p3.c_str()
             , getLine().c_str());
     }
+    void Parser::PrintParseWarning(const std::string& message
+    , const std::string& p1 ,const std::string& p2 ,const std::string& p3 ) {
+        Tools::warnf("[Parser LINE:%d]: %s %s %s %s\n%s\n",lineNumber
+        , message.c_str(),p1.c_str(),p2.c_str(),p3.c_str()
+        , getLine().c_str());
+    }
     void Parser::PrintParseInfo(const std::string& message
     , const std::string& p1 ,const std::string& p2 ,const std::string& p3 ) {
-        Tools::printf("[Parser-INFO LINE:%d]: %s %s %s %s\n%s\n",lineNumber
+        Tools::infof("[Parser-INFO LINE:%d]: %s %s %s %s\n%s\n",lineNumber
             , message.c_str(),p1.c_str(),p2.c_str(),p3.c_str()
             , getLine().c_str());
     }
@@ -197,7 +206,11 @@ namespace DreiZehn {
             } else {
 
                 bool isGlobal = peekOffset(-2).mType == TokenType::Global;
-                if (!isGlobal) isGlobal = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
+                if (!isGlobal) {
+                    S32 globalRes = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
+                    if (globalRes < 0 && peekOffset(0).mType != TokenType::Assign) PrintParseWarning("Unknown Identifier:", nameToken.mValue);
+                    isGlobal = globalRes > 0;
+                }
 
                 size_t varRegister = 0;
                 if (isGlobal) {
@@ -215,15 +228,6 @@ namespace DreiZehn {
                     currentExpression = std::make_unique<LocalVariableExpression>(varRegister);
                 }
                 // currentExpression = std::make_unique<VariableExpression>(varRegister, isGlobal);
-
-
-                // we got a variable
-                // bool isGlobal = peekOffset(-2).mType == TokenType::Global;
-                // if (isGlobal) Globals::MasterVariableFrame->insertGlobalVar(nameTokenSymbolId);
-                // else {
-                //     isGlobal = parserFrame.guessGlobalVarAndInsertLocalIfNot(*mEnvPtr,nameTokenSymbolId);
-                // }
-                // currentExpression = std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
             }
 
             while (true) {
@@ -635,7 +639,12 @@ namespace DreiZehn {
 
             // ------ insert variable -------
             bool isGlobal = peekOffset(-2).mType == TokenType::Global;
-            if (!isGlobal) isGlobal = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
+
+            if (!isGlobal) {
+                S32 globalRes = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
+                if (globalRes < 0) PrintParseWarning("Unknown Identifier", nameToken.mValue);
+                isGlobal = globalRes > 0;
+            }
 
             size_t varRegister = 0;
             if (isGlobal) {
@@ -648,12 +657,6 @@ namespace DreiZehn {
             // // return std::make_unique<VariableExpression>(varRegister, isGlobal);
 
 
-            // bool isGlobal = peekOffset(-2).mType == TokenType::Global;
-            // if (isGlobal) Globals::MasterVariableFrame->insertGlobalVar(nameTokenSymbolId);
-            // else {
-            //     isGlobal = parserFrame.guessGlobalVarAndInsertLocalIfNot(*mEnvPtr,nameTokenSymbolId);
-            // }
-            // return std::make_unique<VariableExpression>(nameTokenSymbolId, isGlobal);
         }
 
         return nullptr;

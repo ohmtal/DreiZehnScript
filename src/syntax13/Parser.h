@@ -25,7 +25,7 @@ struct ParserFrame {
     // -------------------------------------------------------------------------
     int64_t findLocalVar(uint32_t symId) const;
     U32 insertLocalVar(uint32_t symId);
-    bool guessGlobalVar(Environment& env, uint32_t symId);
+    S32 guessGlobalVar(Environment& env, uint32_t symId);
     void startFunc(uint32_t funcSymId);
     void endFunc(uint32_t funcSymId);
 }; // ParserFrame
@@ -109,6 +109,8 @@ public:
 
     std::string getLine(int byLine = -1);
     void PrintParseError(const std::string& message
+    , const std::string& p1 = "",const std::string& p2 = "",const std::string& p3 = "");
+    void PrintParseWarning(const std::string& message
     , const std::string& p1 = "",const std::string& p2 = "",const std::string& p3 = "");
     void PrintParseInfo(const std::string& message
     , const std::string& p1 = "",const std::string& p2 = "",const std::string& p3 = "");

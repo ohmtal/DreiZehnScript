@@ -660,7 +660,22 @@ it works now :) But it's usually NOT faster (except fibo is) as before and i los
 the local access in console. Also bytecode is slower on baseFlux13 ... ?!
     
     
+I moved this to main also if it's a bit slower. So: back on track 
+    
 ----------------------------------------------------------------------------
+    
+- [ ] Want the localvar access back to Interpreter and maybe bytecode
+    - at the moment i have two local vars one in bytecode and one for Interpreter
+    - change the code so i only use one localvars - the Enviroment one 
+    - ParserFrame stuff can be done by enviroment so i can add a localvar lookup 
+      for the root locals and use it when code is added via console. 
+    - CompilerScope for variables is obsolete then ?! 
+    - Remove recurive stuff (parent) from Enviroment
+    - maybe merge variable frames again and use a pointer array to the variables 
+        - 0 points to local (needs to be updated every push/pop)
+        - 1 points to globals 
+        - fetch it like mVariableBase[isGlobal][varRegister]
+    - i need a setVariable for globals like i had in VariableFrame 
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 

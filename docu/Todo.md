@@ -594,20 +594,36 @@ todos listed here: [TodoByteCode](./TodoByteCode.md)
     - TOBAD: !!bytecode became slower!! test_var is about 100-200 ms slower. it's the mLocalVar! 
     - [X] some expression linenumbers was not set 
         
-- [ ] VariableFrame:
-    - LocalVariable enviroment is done:
-        - AstNodes.cpp CallScriptFunc :: arguments as expression 
-        - Functionmap CallScriptFunction :: arguments as ValueSpan
     
-    - _____________________________
-    - the key is: guessGlobalVarAndInsertLocalIfNot - here i could resolve the index 
-    - bytecode: but whats about the redundant CompilerScope ? i guess this is obsolete then ?! 
-    - save varcount then in AST Node! 
-    - NOTE: i started but restored again .. must think about it more.
-    - [ ] VariableFrame stuff can be added directly to Enviroment
-    - [ ] globals should use register like in DLS
-    - [ ] Interpreter: locals should have a offset and not spawn a new Variable frame
-    - [ ] IMPORTANT!  get rid of : Globals::MasterVariableFrame 
+- [X] removed Comma break 
+- [X] Fixed Backslash again 
+        
+
+- [X] Why are the commands not executed in console any more ? ==> `print "HUHU"`
+    - MainProgramm have no body ?! << that was one reason why i cancled my experimental!
+        - code is ok
+        - lexer is ok
+        - body is empty! --- i guess i'am not finished removing the preparser
+        - its because i have no TokenType::EOLToken ?!
+        - [X] tokenizer check if there is an EOL and add it if not.
+        
+
+        
+- [ ] VariableFrame 
+    - goal remove global inline VariableFrame* MasterVariableFrame = nullptr;
+        - this is used for global variables and master locals 
+        - at the moment (main) locals and globals are in the the MasterVariableFrame
+
+    - !!!! my experimental branch failed here !!!!
+        - i got bytecode working but Interpreter was broken
+        - i need a different approch - only change it for Globals ! 
+        - the globals can use registers and dont need to be added to Variableframe
+            - this remove the Global variable 
+            - it's maybe faster 
+            - it's mean we need to have a strange VariableExpression which hold
+            the symid for locals and the register for globals 
+    
+    
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 

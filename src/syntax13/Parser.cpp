@@ -149,7 +149,7 @@ namespace DreiZehn {
                         args.push_back(std::move(arg));
                         args.back()->mLineNumber = lineNumber;
                     }
-                    if (checkCommaBreak(args)) break; //TEST
+                    // if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
                         PrintParseError("In function call:");
@@ -187,7 +187,7 @@ namespace DreiZehn {
                             args.push_back(std::move(arg));
                             args.back()->mLineNumber = lineNumber;
                         }
-                        if (checkCommaBreak(args)) break; //TEST
+                        // if (checkCommaBreak(args)) break; //TEST
 
                         if (lastPos == mPos) {
                             PrintParseError("In method call:");
@@ -220,6 +220,7 @@ namespace DreiZehn {
 
                 }
                 else {
+                    // bad idea! PrintParseError("Unknwon Identifier:", nameToken.mValue);
                     break;
                 }
             }
@@ -265,7 +266,7 @@ namespace DreiZehn {
                     size_t lastPos = mPos;
                     args.push_back(parseMath());
                     args.back()->mLineNumber = lineNumber;
-                    if (checkCommaBreak(args)) break; //TEST
+                    // if (checkCommaBreak(args)) break; //TEST
                     if (lastPos == mPos) {
                         PrintParseError("In Curly Brackets:");
                         break;
@@ -339,7 +340,7 @@ namespace DreiZehn {
 
         auto left = parsePrimary();
 
-        while (isMathType(peek())) {
+        while (isMathType(peek()) || peek().mType == TokenType::BackSlash) {
             Token op = peek();
 
             if (op.mType ==  TokenType::BackSlash) {
@@ -429,7 +430,7 @@ namespace DreiZehn {
                         args.back()->mLineNumber = lineNumber;
                     }
 
-                    if (checkCommaBreak(args)) break; //TEST
+                    // if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
                         PrintParseError("In method call:");
@@ -556,7 +557,7 @@ namespace DreiZehn {
                         args.push_back(std::move(arg));
                         args.back()->mLineNumber = lineNumber;
                     }
-                    if (checkCommaBreak(args)) break; //TEST
+                    // if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
                         PrintParseError("In function call:");
@@ -870,6 +871,7 @@ namespace DreiZehn {
         std::vector<OpenBlock> blockStack;
         auto mainProgram = std::make_shared<BlockStatement>();
         size_t statment_peek = 0;
+
         blockStack.push_back({BlockType::IfBlock, 0, mainProgram.get(), 0});
 
 

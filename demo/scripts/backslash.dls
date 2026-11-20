@@ -1,0 +1,55 @@
+b = \
+{ 1 2 3 4 }
+print "b is=>" b
+
+print \
+"Hello World"
+
+
+e = Struct::new "x"=>0 "y"=>0
+Player = Struct::new "x"=>0 "y"=>0
+game_over = false
+if (e.y + 12 >= Player.y && e.y <= Player.y + 12 \
+    && e.x + 12 >= Player.x && e.x <= Player.x + 12)
+    game_over = 1;
+end
+
+
+foo = 1
+if foo == 2; print "oneline"; else print "NOT1 online";;
+
+if \
+    foo == 1
+    print "1!"
+end
+
+
+
+
+# debug::toggle
+if foo == 0 \
+    || foo == 2 \
+    || foo == 3
+    print "FOO FOO!"
+end
+
+print "HUHU" \ everthing is ignored !!!
+    "TOM"
+
+
+
+-- comment --
+
+# parse error?!
+print "HELLO?!"
+a = print 0\
+0 0 0 0 0 0 0 0 \
+0 0 0 0 0 0 0 0 \
+0 0 0 0 0 0 0 0 \
+0 0 0 0 0 0 0 0 \
+0 0 0 0xffffff00 0 0 0 0 \
+0 0 0xff00ffff 0 0xff00ffff 0 0 0 \
+0 0xff00ff00 0 0 0 0xff00ff00 0 0 \
+0xff00ff00 0 0 0 0 0 0xff00ff00 0
+
+

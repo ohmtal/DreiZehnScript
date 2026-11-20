@@ -46,10 +46,10 @@ private:
     std::unordered_map<uint32_t, size_t> mGlobalsLookUp;
     ValueVector mGlobalsRegister;
 
-    // -- Ast only locals Register --
-    std::vector<size_t> mLocalVarCount;
-    size_t mLocalOffset = 0;
-    ValueVector mLocalsRegister;
+    // // // -- Ast only locals Register --
+    // // std::vector<size_t> mLocalVarCount;
+    // // size_t mLocalOffset = 0;
+    // // ValueVector mLocalsRegister;
 
     // ----
     // bad idea here ?!
@@ -128,33 +128,33 @@ public:
     // -------------------------------------------------------------------------
     // LocalRegister
     // -------------------------------------------------------------------------
-    inline void pushLocalStack(size_t varCount) {
-        mLocalVarCount.push_back(varCount);
-        mLocalOffset = mLocalsRegister.size();
-        mLocalsRegister.resize(mLocalOffset  + varCount);
-    }
-    inline void popLocalStack() {
-
-        size_t newSize = mLocalsRegister.size() - mLocalVarCount.back();
-        mLocalVarCount.pop_back();
-        mLocalsRegister.resize(newSize);
-        if (mLocalVarCount.size() > 0 ) mLocalOffset -= mLocalVarCount.back();
-        else mLocalOffset = 0;
-    }
-
-    inline void saveLocal(size_t index, const Value& value) {
-        // #ifdef DLS_DEBUG
-        assert ((index + mLocalOffset) < mLocalsRegister.size() && "SAVE: LOCALS REGISTER OUT OF BOUNDS");
-        // #endif
-        mLocalsRegister[(index + mLocalOffset)] = value;
-    }
-
-    inline Value& getLocal(size_t index) {
-        // #ifdef DLS_DEBUG
-        assert ((index + mLocalOffset) < mLocalsRegister.size() && "LOAD: LOCALS REGISTER OUT OF BOUNDS");
-        // #endif
-        return mLocalsRegister[(index + mLocalOffset)];
-    }
+    // // inline void pushLocalStack(size_t varCount) {
+    // //     mLocalVarCount.push_back(varCount);
+    // //     mLocalOffset = mLocalsRegister.size();
+    // //     mLocalsRegister.resize(mLocalOffset  + varCount);
+    // // }
+    // // inline void popLocalStack() {
+    // //
+    // //     size_t newSize = mLocalsRegister.size() - mLocalVarCount.back();
+    // //     mLocalVarCount.pop_back();
+    // //     mLocalsRegister.resize(newSize);
+    // //     if (mLocalVarCount.size() > 0 ) mLocalOffset -= mLocalVarCount.back();
+    // //     else mLocalOffset = 0;
+    // // }
+    // //
+    // // inline void saveLocal(size_t index, const Value& value) {
+    // //     // #ifdef DLS_DEBUG
+    // //     assert ((index + mLocalOffset) < mLocalsRegister.size() && "SAVE: LOCALS REGISTER OUT OF BOUNDS");
+    // //     // #endif
+    // //     mLocalsRegister[(index + mLocalOffset)] = value;
+    // // }
+    // //
+    // // inline Value& getLocal(size_t index) {
+    // //     // #ifdef DLS_DEBUG
+    // //     assert ((index + mLocalOffset) < mLocalsRegister.size() && "LOAD: LOCALS REGISTER OUT OF BOUNDS");
+    // //     // #endif
+    // //     return mLocalsRegister[(index + mLocalOffset)];
+    // // }
 
 
     // -------------------------------------------------------------------------

@@ -111,7 +111,7 @@ while fenster->loop
             fenster->drawBuffer (fireWidth * partX) (WINDOW_H - 20) fire
         end
    end
-   str =  str::concat "mouse: x:" fenster->getMouseX, ", y:" fenster->getMouseY, ", down:" fenster->getMouseDown
+   str =  str::concat "mouse: x:" (fenster->getMouseX) ", y:" (fenster->getMouseY) ", down:" (fenster->getMouseDown)
    fenster->text 20 (WINDOW_H - 16) str FONT_SCALE COLOR_DARKGRAY
    fenster->text 21 (WINDOW_H - 15) str FONT_SCALE COLOR_WHITE
 

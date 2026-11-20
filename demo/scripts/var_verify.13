@@ -1,0 +1,7 @@
+foo = 1
+
+fn bar
+    print foo
+end
+
+bar

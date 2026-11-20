@@ -177,7 +177,7 @@ namespace DreiZehn {
 
         chunk.emit(OP_LOAD_VAR);
         chunk.emit(mVariableRegister);
-        chunk.emitPointer(nullptr); //space for cache ptr
+        // // chunk.emitPointer(nullptr); //space for cache ptr
         return true;
     }
 
@@ -188,7 +188,7 @@ namespace DreiZehn {
         }
         chunk.emit(OP_PUSHPTR_VAR);
         chunk.emit(mVariableRegister);
-        chunk.emitPointer(nullptr); //space for cache ptr
+        // // chunk.emitPointer(nullptr); //space for cache ptr
         return true;
     }
 
@@ -196,7 +196,7 @@ namespace DreiZehn {
         // save var
         chunk.emit(OP_SAVE_VAR);
         chunk.emit(mVariableRegister);
-        chunk.emitPointer(nullptr); //space for cache ptr
+        // // chunk.emitPointer(nullptr); //space for cache ptr
 
         if (requestType == ValueType::NONE) {
             chunk.emit(OP_POP_STACK);

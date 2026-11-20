@@ -48,11 +48,11 @@ X(OP_BIT_XOR,                  0, "bitwise XOR") \
 X(OP_SHL,                      0, "shift left") \
 X(OP_SHR,                      0, "shift right") \
 X(OP_MODULO,                   0, "modulo operation") \
-X(OP_LOAD_VAR,                 3, "load global variable") \
-X(OP_SAVE_VAR,                 3, "save global variable") \
+X(OP_LOAD_VAR,                 1, "load global variable") \
+X(OP_SAVE_VAR,                 1, "save global variable") \
 /* ..... */ \
 X(OP_PUSHPRT_LOCAL,            1, "set local variable pointer") \
-X(OP_PUSHPTR_VAR,              3, "set global variable pointer") \
+X(OP_PUSHPTR_VAR,              1, "set global variable pointer") \
 \
 X(OP_SET_LOCAL,                1, "set local variable") \
 X(OP_LOAD_OBJECT_FIELD,        1 + (2 * 2 /*sizeof(void*)*/), "load object field") \

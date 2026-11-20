@@ -713,8 +713,11 @@ I moved this to main also if it's a bit slower. So: back on track
     
 ### <<<<< internal 0.91b ----- 0.91c >>>>>>>    
 
-- [ ] With the new local variable system unknown variables no longer cause a parse error
+- [X] With the new local variable system unknown variables no longer cause a parse error
 this is not a problem for the program but for finding a misstype 
+
+- [X] removed inline cache for globals since globals are also registers 
+    
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 

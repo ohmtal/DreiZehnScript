@@ -459,75 +459,20 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     // -------------------------------------------------------------------------
     handle_OP_LOAD_VAR:{
         U32 varRegister = ADVANCE_U32();
-        U32 ptrPOS = ip;
-        // void* rawPtr = ADVANCE_PTR();
-        void* rawPtr = advance_ptr(code,ip);
-        Value* valuePtr = nullptr;
-
-        if (rawPtr) {
-            valuePtr = static_cast<Value*>(rawPtr);
-            PUSH_STACK(*valuePtr);
-            DISPATCH();
-        }
-        // VariableFrame* frame = Globals::MasterVariableFrame;
-        // valuePtr = frame->getVariablePtr(symID);
-        valuePtr = &env.getGlobal(varRegister);
-
-        patch_ptr(code, ptrPOS, valuePtr);
-        PUSH_STACK(*valuePtr);
-
+        PUSH_STACK(env.getGlobal(varRegister));
         DISPATCH();
     }
     // -------------------------------
-    //NOTE NEW
     handle_OP_PUSHPTR_VAR: {
         U32 varRegister = ADVANCE_U32();
-        U32 ptrPOS = ip;
-        void* rawPtr = advance_ptr(code,ip);
-        Value* valuePtr = nullptr;
-
-        if (rawPtr) {
-            valuePtr = static_cast<Value*>(rawPtr);
-            PUSH_STACK(valuePtr);
-            DISPATCH();
-        }
-        // VariableFrame* frame = Globals::MasterVariableFrame;
-        // valuePtr = frame->getVariablePtr(symID, true);
-
-        valuePtr = &env.getGlobal(varRegister);
-
-        patch_ptr(code, ptrPOS, valuePtr);
-        PUSH_STACK(valuePtr);
-
+        PUSH_STACK(&env.getGlobal(varRegister));
         DISPATCH();
     }
     // -------------------------------
     handle_OP_SAVE_VAR:{
         U32 varRegister = ADVANCE_U32();
-        U32 ptrPOS = ip;
-        // void* rawPtr = ADVANCE_PTR();
-        void* rawPtr =  advance_ptr(code,ip);
-        Value* valuePtr = nullptr;
-
-        if (rawPtr) {
-            valuePtr = static_cast<Value*>(rawPtr);
-
-            _set_var_pointer_value(valuePtr, PEEK_STACK(0));
-
-            DISPATCH();
-        }
-        // VariableFrame* frame = Globals::MasterVariableFrame;
-        // valuePtr = frame->getVariablePtr(symID, true);
-
-        valuePtr = &env.getGlobal(varRegister);
-
-
-        // PATCH_PTR(ptrPOS,valuePtr);
-        patch_ptr(code, ptrPOS, valuePtr);
-
-        _set_var_pointer_value(valuePtr, PEEK_STACK(0));
-
-
+        Value& a = env.getGlobal(varRegister);
+        _set_var_pointer_value(&a, PEEK_STACK(0));
         DISPATCH();
     }
     // -------------------------------------------------------------------------

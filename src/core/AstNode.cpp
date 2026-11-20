@@ -992,6 +992,31 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // BinaryOpExpression
     // -------------------------------------------------------------------------
+    // yay this is slightly faster
+    template<TokenType Op>
+    Value doMath(Value a, Value b) {
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+
+        if constexpr (Op == TokenType::Plus) {
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+        else if constexpr (Op == TokenType::Minus) {
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a - target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+        else if constexpr (Op == TokenType::Mul) {
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a * target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+        else if constexpr (Op == TokenType::Div) {
+            if (target_b == 0.0) [[unlikely]] return NumberNullValue;
+            uint64_t result_bits = std::bit_cast<uint64_t>(target_a / target_b);
+            return Value(Unsafe{}, result_bits);
+        }
+    }
+
     Value BinaryOpExpression::evaluate(Environment& env) {
         if (!mLeft || !mRight) [[unlikely]] {
             PrintASTError(this, "left or right is missing.");
@@ -1001,41 +1026,51 @@ namespace DreiZehn {
         Value a = evaluateFastPath(mLeft.get(),env);
         Value b = evaluateFastPath(mRight.get(),env);
 
-        // Value a = mLeft->evaluate(env);
-        // Value b = mRight->evaluate(env);
 
-        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
-
-
+        // TEST >>>>>>>>>>>>>>>
         switch (mOp) {
-            case TokenType::Plus: {
-                 // return Value(target_a + target_b);
-                uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
-                return Value(Unsafe{}, result_bits);
-            }
-            case TokenType::Minus: {
-                 // return Value(target_a - target_b);
-                uint64_t result_bits = std::bit_cast<uint64_t>(target_a - target_b);
-                return Value(Unsafe{}, result_bits);
-            }
-
-            case TokenType::Mul: {
-                 // return Value(target_a * target_b);
-                uint64_t result_bits = std::bit_cast<uint64_t>(target_a * target_b);
-                return Value(Unsafe{}, result_bits);
-            }
-
-            case TokenType::Div: {
-                 if (target_b == 0.0) [[unlikely]] return NumberNullValue;
-                 // return Value(target_a / target_b);
-                uint64_t result_bits = std::bit_cast<uint64_t>(target_a / target_b);
-                return Value(Unsafe{}, result_bits);
-            }
-
+            case TokenType::Plus: return doMath<TokenType::Plus>(a,b);
+            case TokenType::Minus: return doMath<TokenType::Minus>(a,b);
+            case TokenType::Mul: return doMath<TokenType::Mul>(a,b);
+            case TokenType::Div: return doMath<TokenType::Div>(a,b);
             default:
                 return Value();
         }
+
+        // <<<<<<<<<<<<<< TEST
+
+        // double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
+        // double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        //
+        //
+        // switch (mOp) {
+        //     case TokenType::Plus: {
+        //          // return Value(target_a + target_b);
+        //         uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
+        //         return Value(Unsafe{}, result_bits);
+        //     }
+        //     case TokenType::Minus: {
+        //          // return Value(target_a - target_b);
+        //         uint64_t result_bits = std::bit_cast<uint64_t>(target_a - target_b);
+        //         return Value(Unsafe{}, result_bits);
+        //     }
+        //
+        //     case TokenType::Mul: {
+        //          // return Value(target_a * target_b);
+        //         uint64_t result_bits = std::bit_cast<uint64_t>(target_a * target_b);
+        //         return Value(Unsafe{}, result_bits);
+        //     }
+        //
+        //     case TokenType::Div: {
+        //          if (target_b == 0.0) [[unlikely]] return NumberNullValue;
+        //          // return Value(target_a / target_b);
+        //         uint64_t result_bits = std::bit_cast<uint64_t>(target_a / target_b);
+        //         return Value(Unsafe{}, result_bits);
+        //     }
+        //
+        //     default:
+        //         return Value();
+        // }
     }
     // Value BinaryOpExpression::evaluate(Environment& env) {
     //     if (!mLeft || !mRight) [[unlikely]] {
@@ -1699,21 +1734,21 @@ namespace DreiZehn {
 
         Value rightHand = mRhs->evaluate(env);
 
-        // ---------------
-        // NOTE THIS IS NOT FASTER
-        // double target_a = valuePtr->isDouble() ? valuePtr->asFastDouble() : (valuePtr->isInt() ? static_cast<double>(valuePtr->asFastInt()) : 0.0);
-        // double target_b = rightHand.isDouble() ? rightHand.asFastDouble() : (rightHand.isInt() ? static_cast<double>(rightHand.asFastInt()) : 0.0);
-        //
-        // switch(mOp) {
-        //     case TokenType::AssignPlus:  target_a += target_b;  break;
-        //     case TokenType::AssignMinus: target_a -= target_b;  break;
-        //     case TokenType::AssignMul:   target_a *= target_b;  break;
-        //     case TokenType::AssignDiv:   target_a /= target_b;  break;
-        //     default: return false;
-        // }
-        //
-        // *valuePtr = Value(target_a);
-        // return *valuePtr;
+
+
+        // // TEST >>>>>>>>>>>>>>> when i add this it's slower again .. cpu drives me crazy ;)
+        switch (mOp) {
+            case TokenType::AssignPlus:     return (*valuePtr = doMath<TokenType::Plus>(*valuePtr,rightHand));
+            case TokenType::AssignMinus:    return (*valuePtr = doMath<TokenType::Minus>(*valuePtr,rightHand));
+            case TokenType::AssignMul:      return (*valuePtr = doMath<TokenType::Mul>(*valuePtr,rightHand));
+            case TokenType::AssignDiv:      return (*valuePtr = doMath<TokenType::Div>(*valuePtr,rightHand));
+            default:
+                return Value();
+        }
+
+        // // TEST <<<<<<<<<<<<<<<<<<<<
+
+
 
         // ---------------
         Value result;
@@ -1975,7 +2010,7 @@ namespace DreiZehn {
     // For Range
     // -------------------------------------------------------------------------
     FlowStatus ForRangeStatement::execute(Environment& env){
-        if (!this->mCountExpr ) {
+        if (!this->mCountExpr )[[unlikely]] {
             PrintASTError(this,"Runtime Error: range need a count border!");
             return FlowStatus (FlowSignal::None);
         }
@@ -1983,7 +2018,7 @@ namespace DreiZehn {
         // Environment loopEnv(&env);
 
         int32_t count = countVal.getInt();
-        if (count < 0 ) {
+        if (count < 0 ) [[unlikely]]{
             PrintASTError(this,"Runtime Error: range border must be >= 0 and is:", std::to_string( count ));
             return FlowStatus (FlowSignal::None);
         }

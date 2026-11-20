@@ -209,7 +209,11 @@ int main(int argc, char* argv[]) {
 
     // inject Flux Object
     BaseValueObject* FluxObject = new BaseValueObject();
-    Globals::MasterVariableFrame->setVariable(SymbolTable::insert("Flux"), Value(FluxObject), true);
+
+    size_t tmpid = env.reserveGlobal(SymbolTable::insert("Flux"));
+    env.saveGlobal(tmpid,Value(FluxObject));
+
+    // Globals::MasterVariableFrame->setVariable(SymbolTable::insert("Flux"), Value(FluxObject), true);
     // FluxObject->mClassName ="Flux"; // mhh does not do anything!
 
     Tools::printf("Console ready. Mode: %s\n", Globals::ByteCodeMode ? "ByteCode" : "Interpreter");

@@ -657,7 +657,7 @@ At the moment i test with starfield.. need something better where i see whats wr
     
     
 it works now :) But it's usually NOT faster (except fibo is) as before and i lost
-the local access in console. 
+the local access in console. Also bytecode is slower on baseFlux13 ... ?!
     
     
 ----------------------------------------------------------------------------

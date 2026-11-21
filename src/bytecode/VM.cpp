@@ -1144,11 +1144,11 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     handle_OP_ASSIGN_PTR: {
         Value* varPTR = POP_STACK().asValuePointer();
         Value b = PEEK_STACK(0);
-        // if (!varPTR) [[unlikely]] {
-        //     PUSH_STACK(NumberNullValue);
-        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
-        //     DISPATCH();
-        // }
+        if (!varPTR) [[unlikely]] {
+            PUSH_STACK(NumberNullValue);
+            PrintVMError(OP_INC_PTR, "Invalid variable!!");
+            DISPATCH();
+        }
         *varPTR = b;
         DISPATCH();
     }

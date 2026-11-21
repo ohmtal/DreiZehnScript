@@ -733,7 +733,8 @@ this is not a problem for the program but for finding a misstype
     - test_field: 1.575u 0.003s 0:01.58 99.3%
     - test_fibonacci: 0.313u 0.007s 0:00.32 96.8%
     - StarField2 (bench): 5.063u 0.184s 0:05.45 96.1% 
-    
+  
+**lucky binary!**
     
 ### <<<<< internal 0.91c ----- 0.91d >>>>>>>        
 - [X] Curly creates an Array if all values are keyvalue else it creates an Vector
@@ -746,26 +747,23 @@ this two methods. no idea what it can be used for - but it's implemented.
 
 - NOTE added a new OP_CODE and test_var raised from 1.085 to 1.300 sec ... grrrr    
  
-- heavy stuff should be in function like : ConstructArray
-    - OP_LOAD_OBJECT_FIELD
-    - OP_LOAD_OBJECT_FIELD_GENERIC
-    - OP_PUSHPTR_OBJECT_FIELD
-    - OP_PUSHPTR_OBJECT_FIELD_GENERIC
-    - OP_SAVE_OBJECT_FIELD
-    - OP_SAVE_OBJECT_FIELD_GENERIC
-    - OP_CALL_OBJECT_METHOD
-    - OP_PUSHPTR_OBJECT_METHOD
-    - OP_SAVE_OBJECT_METHOD
-    - ... lots of ^^ ...
-    
-    
-- [ ] Test and port thread safe symboltable from DLS 
+- [X] Test and port thread safe symboltable from DLS 
+   
+- [ ] missing assign ops `|=` `&=` `^=` `%=` `>>=` `<<=` 
 
+- Enviroment VM should be a pointer and only created if bytecode is used?
+
+- [ ] think about adding parent to calls with comma separated parameters this would 
+    enable multi line and lamda calls - add a new syntax folder and switch to it ? 
+    I need to rewrite all scripts but ok 
+    - [ ] Interface to switch Syntax
+    - [ ] support for common for 
+    - [ ] switch case 
+    
 
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 
 this a lot of times i have a monster sized code then.
-
 
 
 
@@ -814,6 +812,17 @@ this a lot of times i have a monster sized code then.
     - but how to call ?! this would be at runtime bad idea for performance OR add it as
       lambda token. 
     
+- heavy stuff should be in function like : ConstructArray
+    - OP_LOAD_OBJECT_FIELD
+    - OP_LOAD_OBJECT_FIELD_GENERIC
+    - OP_PUSHPTR_OBJECT_FIELD
+    - OP_PUSHPTR_OBJECT_FIELD_GENERIC
+    - OP_SAVE_OBJECT_FIELD
+    - OP_SAVE_OBJECT_FIELD_GENERIC
+    - OP_CALL_OBJECT_METHOD
+    - OP_PUSHPTR_OBJECT_METHOD
+    - OP_SAVE_OBJECT_METHOD
+    - ... lots of ^^ ...
     
 -  Array: compileAssignment still uses SymbolTable::insert! - not sure how to change
 - [.] Handbook: CheatSheet for basic syntax and functions.

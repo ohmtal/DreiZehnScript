@@ -720,6 +720,23 @@ this is not a problem for the program but for finding a misstype
     
 - [X] replaced std::rand with xoshiro256 (toolbox/FastRng.h)    
     
+- 0.91c Interpreter: **-O2 and > /dev/null** and best of three
+    - test_var: 1.746u 0.006s 0:01.75 99.4%
+    - test_global: 1.743u 0.004s 0:01.75 99.4% 
+    - test_field: 2.122u 0.005s 0:02.13 99.5%
+    - test_fibonacci: 0.677u 0.007s 0:00.68 98.5%
+    - StarField2 (bench): 6.213u 0.196s 0:06.65 96.2%
+
+- 0.91c ByteCode: **-O2 and > /dev/null** and best of three
+    - test_var: 1.085u 0.003s 0:01.09 99.0%
+    - test_global: 1.276u 0.004s 0:01.28 99.2%
+    - test_field: 1.575u 0.003s 0:01.58 99.3%
+    - test_fibonacci: 0.313u 0.007s 0:00.32 96.8%
+    - StarField2 (bench): 5.063u 0.184s 0:05.45 96.1% 
+    
+    
+### <<<<< internal 0.91c ----- 0.91d >>>>>>>        
+
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 
 this a lot of times i have a monster sized code then.

@@ -2,12 +2,14 @@
 
 I used my Benchmark Script from ElfScript:
 
+- 👾 DreiZehn(0.91c): 1.085u 0.003s 0:01.09 99.0%
 - 👾 DreiZehn(0.9e): 1.187u 0.003s 0:01.19 99.1%     0+0k 0+0io 0pf+0w
 - Lua 5.5.1: 1.243u 0.002s 0:01.25 99.2%     0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.9f): 1.265u 0.004s 0:01.27 99.2%     0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.9d): 1.252u 0.006s 0:01.26 99.2%     0+0k 0+0io 0pf+0w
 - Elfscript 0.7c: 1.354u 0.002s 0:01.36 99.2%     0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.9a): 1.410u 0.005s 0:01.42 99.2%     0+0k 0+0io 0pf+0w 
+- 🐢 DreiZehn(0.91c): 1.746u 0.006s 0:01.75 99.4%
 - 👾 DreiZehn(0.9b ?!): 1.873u 0.004s 0:01.88 99.4%     0+0k 0+0io 0pf+0w
 - 🐏 DLS 0.61: 2.054u 0.004s 0:02.07 99.0%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.9e): 2.594u 0.006s 0:02.61 99.2%     0+0k 0+0io 0pf+0w
@@ -48,8 +50,10 @@ i need to write a better Benchmark here but for now its only a info for me.
 
 it can happen, that when i restart the prog that it's only peek 310 not 340
 - 👾 DreiZehn(0.9f): 4.938u 0.208s 0:05.37 95.5% (peek: 680FPS, low: 610FPS)
+- 👾 DreiZehn(0.91c): 5.063u 0.184s 0:05.45 96.1% 
 - 👾 DreiZehn(0.9e): 5.391u 0.200s 0:05.82 96.0% (peek: 600FPS, low: 500FPS)
 - 🐏 DLS 0.61: 5.934u 0.222s 0:06.35 96.8%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.91c): 6.213u 0.196s 0:06.65 96.2%
 - 🐏 DLS 0.6: 6.391u 0.212s 0:06.83 96.6%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.9f): 7.477u 0.230s 0:07.91 97.3% (peek: 440FPS, low: 425FPS)
 - 🐢 DreiZehn(0.9e): 8.672u 0.218s 0:09.16 96.9%(peek: 350 FPS, low: 325 FPS)
@@ -115,7 +119,9 @@ Note on 0.5b: While Variables  uses fast "++"/"--" fields only have the slower a
 
 Note on 0.5c: Added inline OP and OP assign :) Nearly as fast as global var
 
+- 👾 DreiZehn(0.9f): 1.575u 0.003s 0:01.58 99.3%
 - 👾 DreiZehn(0.9f): 1.780u 0.007s 0:01.79 99.4%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.91c): 2.122u 0.005s 0:02.13 99.5%
 - 👾 DreiZehn(0.9d): 2.709u 0.001s 0:02.72 99.2%     0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.9e): 2.774u 0.004s 0:02.78 99.6%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.9e): 3.234u 0.003s 0:03.24 99.6%     0+0k 0+0io 0pf+0w
@@ -142,13 +148,15 @@ num = 33
 print "running fib with number:" num
 print "Fib recursiv" num "=" (fib num)
 ```
-- php (0.5.10): 0.252u 0.008s 0:00.26 96.1%     0+0k 0+0io 0pf+0w
+- php (8.5.10): 0.252u 0.008s 0:00.26 96.1%     0+0k 0+0io 0pf+0w
+- 👾 DreiZehn(0.91c): 0.313u 0.007s 0:00.32 96.8%
 - lua (Lua 5.5.1): 0.325u 0.002s 0:00.33 96.9%     0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.9e): 0.337u 0.004s 0:00.34 97.0%     0+0k 0+0io 0pf+0w
 - 👾 DreiZehn(0.9f):  0.346u 0.001s 0:00.34 100.0%    0+0k 0+0io 0pf+0w
 - ruby (3.4.10): 0.447u 0.013s 0:00.48 93.7%     0+0k 3392+0io 67pf+0w
 - 👾 DreiZehn(0.9d): 0.646u 0.004s 0:00.65 98.4%     0+0k 0+0io 0pf+0w
 - Python (3.14.7): 0.649u 0.006s 0:00.65 98.4%     0+0k 0+0io 0pf+0w
+- 🐢 DreiZehn(0.91c): 0.677u 0.007s 0:00.68 98.5% 
 - 🐏 DLS 0.61: 0.796u 0.001s 0:00.80 98.7%   (special globals with stack)
 - 🐏 DLS 0.6: 0.998u 0.002s 0:01.00 99.0%   (special globals with stack)
 - ElfScript 0.8a: 1.199u 0.001s 0:01.20 99.1%     0+0k 0+0io 0pf+0w
@@ -157,7 +165,6 @@ print "Fib recursiv" num "=" (fib num)
 - 🐢 DreiZehn(0.9c): 2.296u 0.003s 0:02.30 99.5%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8a): 2.396u 0.001s 0:02.40 99.5%     0+0k 0+0io 0pf+0w
 - 🐢 DreiZehn(0.8b): 2.647u 0.004s 0:02.66 99.2%     0+0k 0+0io 0pf+0w
-- 🐢 DreiZehn(0.7f): 2.339u 0.001s 0:02.34 99.5%     0+0k 0+0io 0pf+0w
 - 💩 ElfScript 0.8: 4.446u 0.003s 0:04.46 99.5%     0+0k 0+0io 0pf+0w
 
 DreiZehn 0.7f very cool for a AST-Interpreter :D 

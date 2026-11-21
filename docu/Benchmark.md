@@ -32,11 +32,9 @@ I used my Benchmark Script from ElfScript:
 - 🐢 DreiZehn 0.1: 26.907u 0.006s 0:27.00 99.6%    0+0k 0+0io 0pf+0w
 - OGE3D (my Torque3D based on 3.10) : 33.268u 0.299s 0:33.61 99.8%  0+0k 0+24io 0pf+0w
 
-🐢 == Noderunner (pre bytecode)- using "global/scope variables"- not bad for that ;) 
+🐢 == Interpreter
 
-👾 == bytecode in porting mode ....
-
-🚀 == bytecode in place 
+👾 == bytecode 
 
 🐏 DLS == Dirty Little Script (RelWithDeb)
 
@@ -173,39 +171,3 @@ ElfScript 0.8 sucks here must be optimized for script function calls!
 
 ElfScript 0.8a all night long hackfest for inline function call, damn i hoped i get
 under 0.5 sec ;)
-
-
-## Counting to one Billion 
-
-stupid iterator test ;)
-- 🐢 DreiZehn(0.7f): 0.333u 0.002s 0:00.33 100.0%    0+0k 0+0io 0pf+0w
-- 🐢 DreiZehn(0.7c): 0.334u 0.004s 0:00.34 97.0%     0+0k 0+0io 0pf+0w
-- 🐢 DreiZehn(0.8e): 0.814u 0.004s 0:00.82 98.7%     0+0k 0+0io 0pf+0w 
-- 🐢 DreiZehn(0.8b): 0.982u 0.004s 0:00.98 100.0%    0+0k 0+0io 0pf+0w
-- ElfScript 0.7a: 2.688u 0.003s 0:02.69 99.6% 0+0k 0+0io 0pf+0w
-- 👾 DreiZehn(0.9a): 2.740u 0.005s 0:02.75 99.6%     0+0k 0+0io 0pf+0w
-- 👾 DreiZehn(0.9e): 3.252u 0.004s 0:03.26 99.6%     0+0k 0+0io 0pf+0w
-- 👾 DreiZehn(0.9d): 3.258u 0.007s 0:03.27 99.3%     0+0k 0+0io 0pf+0w
-- Lua (5.5.0): 3.504u 0.003s 0:03.52 99.4% 0+0k 0+0io 0pf+0w
-- PHP (8.5.8): 3.644u 0.019s 0:03.66 99.7% 0+0k 0+0io 0pf+0w
-- 🐏 DLS 0.61: 4.934u 0.005s 0:04.95 99.5%     0+0k 0+0io 0pf+0w
-- 👾 DreiZehn(0.4a): 8.512u 0.000s 0:08.54 99.6%     0+0k 0+0io 0pf+0w
-- 🐢 DreiZehn(0.3): 14.335u 0.002s 0:14.36 99.7%    0+0k 0+0io 0pf+0w
-- 🐏 DLS 0.6: 16.721u 0.003s 0:16.76 99.7%    0+0k 8+0io 0pf+0w
-- 🐏 DLS 0.5: 25.109u 0.000s 0:25.15 99.8%    0+0k 0+0io 0pf+0w
-- 🐢 DreiZehn(0.1): 29.409u 0.001s 0:29.48 99.7%    0+0k 0+0io 0pf+0w
-- Python 3 (3.14.6): 40.648u 0.006s 0:40.71 99.8% 0+0k 0+0io 0pf+0w
-- ruby 3.4.10: 55.675u 0.023s 0:55.79 99.8% 0+0k 0+0io 0pf+0w
-- Duktape (2.7.0 RelWithDeb): 179.464u 0.000s 2:59.77 99.8% 0+0k 0+0io 0pf+0w
-- 🌩️ ChaiScript ( v6.1.0 RelWithDeb (*5)): Segmentation fault (core dumped) after: 190.456u 0.148s 3:11.52 99.5% 0+0k 1312+0io 9pf+0w
-
-
-```
-i = 0
-for i 1 1000000000
-end
-print "I=" i
-```
-
-
-

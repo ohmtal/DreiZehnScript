@@ -737,6 +737,9 @@ this is not a problem for the program but for finding a misstype
     
 ### <<<<< internal 0.91c ----- 0.91d >>>>>>>        
 
+- [ ] Test and port thread safe symboltable from DLS 
+
+
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 
 this a lot of times i have a monster sized code then.

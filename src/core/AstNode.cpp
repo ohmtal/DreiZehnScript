@@ -777,20 +777,33 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     Value ListExpression::evaluate(Environment& env) {
 
-        VectorValueObject* arr = new VectorValueObject();
-
-        // add args!
-        for (auto& argExpr: arguments) {
-            if (!argExpr) continue;
-            auto arg = argExpr->evaluate(env);
-
-            if (arg.isObjectPointer()) {
-                arg.asPointerObject()->setAssigned(true);
+        if (mAllKeyValue) {
+            ValueVector evaluatedArgs;
+            evaluatedArgs.reserve(mArguments.size());
+            for (auto& argExpr : mArguments) {
+                if (argExpr) evaluatedArgs.push_back(argExpr->evaluate(env));
             }
-            arr->mElements.push_back(arg);
+            ArrayObject* arr = new ArrayObject(evaluatedArgs);
+
+            return Value(arr);
+        } else {
+            VectorValueObject* arr = new VectorValueObject();
+
+            // add args!
+            for (auto& argExpr: mArguments) {
+                if (!argExpr) continue;
+                auto arg = argExpr->evaluate(env);
+
+                if (arg.isObjectPointer()) {
+                    arg.asPointerObject()->setAssigned(true);
+                }
+                arr->mElements.push_back(arg);
+            }
+
+            return Value(arr);
         }
 
-        return Value(arr);
+
     }
     // --------------------
     bool ListExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
@@ -799,13 +812,17 @@ namespace DreiZehn {
             return false;
         }
         U32 argCount = 0;
-        for (auto& argExpr : arguments) {
+        for (auto& argExpr : mArguments) {
             if (argExpr) {
                 if (!argExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
                 argCount++;
             }
         }
-        chunk.emit(OP_CREATE_LIST);
+        if (mAllKeyValue)
+            chunk.emit(OP_CONSTRUCT_ARRAY);
+        else
+            chunk.emit(OP_CONSTRUCT_VECTOR);
+
         chunk.emit(argCount);
 
         return true;

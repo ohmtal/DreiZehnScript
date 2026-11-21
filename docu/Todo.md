@@ -736,7 +736,14 @@ this is not a problem for the program but for finding a misstype
     
     
 ### <<<<< internal 0.91c ----- 0.91d >>>>>>>        
+- [X] Curly creates an Array if all values are keyvalue else it creates an Vector
 
+- [X] i cancled this serveral times but keyvalue object need methods : ->key ->value
+keyvalue was designed as an Array Object Construct helper but it should be also have
+this two methods. no idea what it can be used for - but it's implemented.
+    - [X] methods
+    - [X] enable assign for value ...
+    
 - [ ] Test and port thread safe symboltable from DLS 
 
 

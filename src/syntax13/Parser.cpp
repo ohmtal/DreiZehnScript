@@ -129,7 +129,7 @@ namespace DreiZehn {
 
     void Parser::PrintParseError(const std::string& message
     , const std::string& p1 ,const std::string& p2 ,const std::string& p3 ) {
-        Tools::errorf("[Parser LINE:%d]: %s %s %s %s\n==>%s\n",lineNumber
+        Tools::errorf("[Parser LINE:%d]: %s %s %s %s\n  ==> %s\n",lineNumber
             , message.c_str(),p1.c_str(),p2.c_str(),p3.c_str()
             , getLine().c_str());
     }
@@ -195,11 +195,12 @@ namespace DreiZehn {
                         args.push_back(std::move(arg));
                         args.back()->mLineNumber = lineNumber;
                     }
-                    // if (checkCommaBreak(args)) break; //TEST
+                    if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
                         PrintParseError("In function call:");
-                        break;
+                        // break;
+                        return nullptr;
                     }
                 }
                 return std::make_unique<CallExpression>(nameTokenSymbolId, std::move(args));
@@ -208,7 +209,9 @@ namespace DreiZehn {
                 bool isGlobal = peekOffset(-2).mType == TokenType::Global;
                 if (!isGlobal) {
                     S32 globalRes = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
-                    if (globalRes < 0 && peekOffset(0).mType != TokenType::Assign) PrintParseWarning("Unknown Identifier:", nameToken.mValue);
+                    if (globalRes < 0 && peekOffset(0).mType != TokenType::Assign) {
+                        PrintParseWarning("Unknown Identifier:", nameToken.mValue);
+                    }
                     isGlobal = globalRes > 0;
                 }
 
@@ -250,11 +253,12 @@ namespace DreiZehn {
                             args.push_back(std::move(arg));
                             args.back()->mLineNumber = lineNumber;
                         }
-                        // if (checkCommaBreak(args)) break; //TEST
+                        if (checkCommaBreak(args)) break; //TEST
 
                         if (lastPos == mPos) {
                             PrintParseError("In method call:");
-                            break;
+                            return nullptr;
+                            // break;
                         }
                     }
                     currentExpression = std::make_unique<MethodExpression>(std::move(currentExpression), methodSymbolId, std::move(args));
@@ -262,12 +266,14 @@ namespace DreiZehn {
                 else if (peek().mType == TokenType::Dot) {
                     PrintParseError("Field expected after  '.'");
                     advance();
-                    break;
+                    return nullptr;
+                    // break;
                 }
                 else if (peek().mType == TokenType::Arrow) {
                     PrintParseError("Method expected after '->'");
                     advance(); // eat '->'
-                    break;
+                    return nullptr;
+                    // break;
                 }
                 else if (peek().mType == TokenType::LSquare) {
                     advance(); // eat '['
@@ -275,7 +281,8 @@ namespace DreiZehn {
 
                     if (peek().mType != TokenType::RSquare) {
                         PrintParseError("expected ']' after array index!");
-                        break;
+                        return nullptr;
+                        // break;
                     }
                     advance(); // eat ']'
                     currentExpression = std::make_unique<ArrayVariableExpression>(
@@ -317,6 +324,7 @@ namespace DreiZehn {
                     advance(); //  ')'
                 } else {
                     PrintParseError("Error: Missing closing bracket (parsePrimary)");
+                    return nullptr;
                 }
                 return expr;
             }
@@ -326,20 +334,35 @@ namespace DreiZehn {
                 std::vector<std::unique_ptr<Expression>> args;
                 while (isContinueToken(peek())) {
                     size_t lastPos = mPos;
-                    args.push_back(parseMath());
+                    std::unique_ptr<Expression> expr = parseMath();
+                    if (!expr.get()) {
+                        PrintParseWarning("In Curly Brackets: Invalid Expression.");
+                        advance();
+                        continue;
+                    }
+                    args.push_back(std::move(expr));
                     args.back()->mLineNumber = lineNumber;
-                    // if (checkCommaBreak(args)) break; //TEST
+                    if (checkCommaBreak(args)) break; //TEST
                     if (lastPos == mPos) {
                         PrintParseError("In Curly Brackets:");
-                        break;
+                        // break;
+                        return nullptr;
                     }
                 }
                 if (peek().mType == TokenType::RCurly) {
                     advance();
+                    bool allKeyValue = args.size() > 0;
+                    for(auto& arg: args) {
+                        if (arg->mNodeType != NodeType::KeyValueExpression) {
+                            allKeyValue = false;
+                            break;
+                        }
+                    }
 
-                    return std::make_unique<ListExpression>(std::move(args));
+                    return std::make_unique<ListExpression>(std::move(args), allKeyValue);
                 } else {
                     PrintParseError("Error: Missing closing curly bracket\n");
+                    return nullptr;
                 }
                 return nullptr;
             }
@@ -495,7 +518,7 @@ namespace DreiZehn {
                         args.back()->mLineNumber = lineNumber;
                     }
 
-                    // if (checkCommaBreak(args)) break; //TEST
+                    if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
                         PrintParseError("In method call:");
@@ -554,8 +577,6 @@ namespace DreiZehn {
                     );
                     continue;
                 }
-
-
 
             auto right = parseMath(precedence + 1);
 
@@ -627,7 +648,7 @@ namespace DreiZehn {
                         args.push_back(std::move(arg));
                         args.back()->mLineNumber = lineNumber;
                     }
-                    // if (checkCommaBreak(args)) break; //TEST
+                    if (checkCommaBreak(args)) break; //TEST
 
                     if (lastPos == mPos) {
                         PrintParseError("In function call:");

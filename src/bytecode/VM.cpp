@@ -776,7 +776,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             destPrt =  obj->onMethodCallGetAssignPtr(symID, evaluatedArgs);
         }
         if (!destPrt) [[unlikely]] {
-            PrintVMError(OP_SAVE_OBJECT_METHOD, "Cant fins method on object:",objectValue.toString());
+            PrintVMError(OP_SAVE_OBJECT_METHOD, "Cant find method on object:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -813,7 +813,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             destPrt =  obj->onMethodCallGetAssignPtr(symID, evaluatedArgs);
         }
         if (!destPrt) [[unlikely]] {
-            PrintVMError(OP_SAVE_OBJECT_METHOD, "Cant fins method on object:",objectValue.toString());
+            PrintVMError(OP_SAVE_OBJECT_METHOD, "Cant find assign enabled method on object:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -1526,7 +1526,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         DISPATCH();
     }
     // -------------------------------
-    handle_OP_CREATE_LIST: {
+    handle_OP_CONSTRUCT_VECTOR: {
         U32 argCount = ADVANCE_U32();
         VectorValueObject* arr = new VectorValueObject();
 
@@ -1540,6 +1540,23 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         _STK -= argCount;
 
         PUSH_STACK(Value(arr));
+        DISPATCH();
+    }
+    // -------------------------------
+    handle_OP_CONSTRUCT_ARRAY: {
+        U32 argCount = ADVANCE_U32();
+        {
+            ValueVector evaluatedArgs;
+            evaluatedArgs.reserve(argCount);
+            for (int i = (int)argCount - 1; i >= 0; i--) {
+                Value arg = PEEK_STACK(i);
+                evaluatedArgs.push_back(arg);
+            }
+            _STK -= argCount;
+
+            ArrayObject* arr = new ArrayObject(evaluatedArgs);
+            PUSH_STACK(Value(arr));
+        }
         DISPATCH();
     }
     // -------------------------------

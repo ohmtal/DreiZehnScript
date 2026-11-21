@@ -100,7 +100,8 @@ X(OP_SAVE_OBJECT_FIELD_GENERIC, 1 + (2 * 2 /*sizeof(void*)*/), "save object fiel
 X(OP_VALUE_PTR_PTR_TO_VALUE_PTR,   0, "translate to current stack pointer of a pointer to pointer") \
 X(OP_VALUE_PTR_PTR_TO_VALUE,   0, "translate to current stack pointer of a pointer to value of a pointer") \
 X(OP_CREATE_KEYVALUE,          0, "create key-value pair") \
-X(OP_CREATE_LIST,              0, "create curly list to vector") \
+X(OP_CONSTRUCT_VECTOR,         1, "create curly list to vector") \
+X(OP_CONSTRUCT_ARRAY,          1, "create curly key value list to array") \
 X(OP_RETURN,                   0, "return from function") \
 X(OP_STR_CONCAT,               0, "string add (concat)") \
 X(OP_EXIT,                     0, "exit interpreter") \

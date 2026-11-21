@@ -27,7 +27,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     // only a helper object for Array constructor
     struct KeyValueObject : public ValueObject {
-        // inline static ValueObjectProperty mKeyProp, mValueProp;
+        inline static ValueObjectProperty mKeyProp, mValueProp;
         uint32_t mKeyId = 0;
         Value mValue = NumberNullValue;
         KeyValueObject() ;
@@ -35,7 +35,8 @@ namespace DreiZehn {
         std::string  toString() override;
         // -------------------------------------------------------------------------
         static void RegisterSymbols();
-        // bool onMethodCall(Environment& env, uint32_t methodId,  ValueSpan args, Value& ret) override;
+        bool onMethodCall(Environment& env, uint32_t methodId,  ValueSpan args, Value& ret) override;
+        Value* onMethodCallGetAssignPtr(uint32_t methodNameSymbolId,  ValueSpan args) override;
         // -------------------------------------------------------------------------
         void Dump() override;
     };

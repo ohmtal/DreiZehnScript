@@ -42,23 +42,31 @@ namespace DreiZehn {
      void KeyValueObject::RegisterSymbols(){
          static bool mSymbolsLoaded = false;
          if (mSymbolsLoaded) return;
-         // // mKeyProp    = ValueObjectProperty("key", 0,0,  "get the first (key)", TypeStructObject);
-         // // mValueProp  = ValueObjectProperty("second", 0,0,  "get the second (value)", TypeStructObject);
+         mKeyProp    = ValueObjectProperty("key", 0,0,  "get the key", TypeKeyValueObject);
+         mValueProp  = ValueObjectProperty("value", 0,0,  "get the value", TypeKeyValueObject);
          mSymbolsLoaded = true;
 
     }
-    // // bool KeyValueObject::onMethodCall(Environment& env, uint32_t methodId, ValueSpan args, Value& ret) {
-    // //     if (mFirstProp.matchMethod(methodId, args) == 1) {
-    // //         ret = Value(SymbolTable::getName(mKeyId));
-    // //         return true;
-    // //     }
-    // //     else
-    // //     if (mFirstProp.matchMethod(methodId, args) == 1) {
-    // //         ret = Value(SymbolTable::getName(mKeyId));
-    // //         return true;
-    // //     }
-    // //     return ValueObject::onMethodCall(env, methodId, args, ret);
-    // // }
+    bool KeyValueObject::onMethodCall(Environment& env, uint32_t methodId, ValueSpan args, Value& ret) {
+        if (mKeyProp.matchMethod(methodId, args) == 1) {
+            ret = Value(SymbolTable::getName(mKeyId));
+            return true;
+        }
+        else
+        if (mValueProp.matchMethod(methodId, args) == 1) {
+            ret = mValue;
+            return true;
+        }
+        return ValueObject::onMethodCall(env, methodId, args, ret);
+    }
+    Value* KeyValueObject::onMethodCallGetAssignPtr(uint32_t methodId,  ValueSpan args) {
+        if (mValueProp.matchMethod(methodId, args) == 1) {
+            return &mValue;
+        }
+
+        return ValueObject::onMethodCallGetAssignPtr(methodId, args);
+    }
+
      // ============================ StructObject ==================================
     StructObject::StructObject(ValueSpan args) : ValueObject(TypeStructObject){
         mSupportClone = true;

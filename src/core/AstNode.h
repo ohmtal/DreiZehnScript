@@ -714,10 +714,11 @@ struct IncludeStatement : public FlowBaseStatement {
 };
 // lists {} --------------------------------------------------------------
 struct ListExpression : public Expression {
-    std::vector<std::unique_ptr<Expression>> arguments;
+    std::vector<std::unique_ptr<Expression>> mArguments;
+    bool mAllKeyValue = false;
 
-    ListExpression( std::vector<std::unique_ptr<Expression>> args)
-    :  arguments(std::move(args)) {
+    ListExpression( std::vector<std::unique_ptr<Expression>> args, bool allKeyValue)
+    :  mArguments(std::move(args)), mAllKeyValue(allKeyValue) {
         mNodeType  = NodeType::ListExpression;
     }
 

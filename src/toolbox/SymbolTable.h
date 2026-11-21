@@ -4,6 +4,7 @@
 //-----------------------------------------------------------------------------
 // String / SymbolTable for fast map lookup ,
 // NOTE: Singleton
+// 2026-11-14: heavy update for c++20 optimize and thread safety
 //-----------------------------------------------------------------------------
 #pragma once
 #include <string>
@@ -11,31 +12,63 @@
 #include <vector>
 #include <cstdint>
 
-class BaseStringTable {
+#include <deque>
+#include <functional>
+#include <mutex>
+#include <shared_mutex>
+#include <string_view>
 
-protected:
-    BaseStringTable() {
-        internalInsert(""); //first is a emty string
-    }
-    uint32_t internalInsert(const std::string& name) {
-        auto it = mNameToId.find(name);
-        if (it != mNameToId.end()) {
-            return it->second;
+
+
+    class BaseStringTable {
+    protected:
+        BaseStringTable() {
+            internalInsert("");
         }
 
-        uint32_t newId = static_cast<uint32_t>(mIdToName.size());
-        mIdToName.push_back(name);
-        mNameToId[name] = newId;
-        return newId;
-    }
+        uint32_t internalInsert(std::string_view name) {
+            {
+                std::shared_lock readLock(mMutex);
+                if (auto it = mNameToId.find(name); it != mNameToId.end()) {
+                    return it->second;
+                }
+            }
 
-    const std::string& internalGetName(uint32_t id) const {
-        return mIdToName.at(id);
-    }
+            std::unique_lock writeLock(mMutex);
+            if (auto it = mNameToId.find(name); it != mNameToId.end()) {
+                return it->second;
+            }
 
-    std::unordered_map<std::string, uint32_t> mNameToId;
-    std::vector<std::string> mIdToName;
-};
+            uint32_t newId = static_cast<uint32_t>(mIdToName.size());
+            mIdToName.emplace_back(name);
+
+            mNameToId.emplace(mIdToName.back(), newId);
+            return newId;
+        }
+
+        const std::string& internalGetName(uint32_t id) const {
+            std::shared_lock readLock(mMutex);
+            return mIdToName.at(id);
+        }
+
+        size_t internalSize() const {
+            std::shared_lock readLock(mMutex);
+            return mIdToName.size();
+        }
+
+    private:
+        struct StringHash {
+            using is_transparent = void;
+            [[nodiscard]] size_t operator()(std::string_view sv) const noexcept {
+                return std::hash<std::string_view>{}(sv);
+            }
+        };
+
+        mutable std::shared_mutex mMutex;
+        std::unordered_map<std::string_view, uint32_t, StringHash, std::equal_to<>> mNameToId;
+        std::deque<std::string> mIdToName;
+    };
+
 // ----------------------------------------------------------------
 // for Symbols like variable names, methods, fieldnames, ..
 // ----------------------------------------------------------------
@@ -46,7 +79,7 @@ public:
     }
 
     inline static const size_t size() {
-        return get().mNameToId.size();
+        return get().internalSize();
     }
 
     inline static const std::string& getName(uint32_t id) {
@@ -75,7 +108,7 @@ public:
         return get().internalInsert(name);
     }
     inline static const size_t size() {
-        return get().mNameToId.size();
+        return get().internalSize();
     }
     inline static const std::string& get(uint32_t id) {
         return get().internalGetName(id);
@@ -94,3 +127,4 @@ private:
     }
 
 };
+

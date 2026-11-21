@@ -41,6 +41,16 @@ namespace DreiZehn {
 
     }
     //-----------------------------------------------------------------------------
+    Value ConstructArray(Value* values, U32 argCount) {
+        ValueVector evaluatedArgs;
+        evaluatedArgs.reserve(argCount);
+        for (int i = (int)argCount - 1; i >= 0; i--) {
+            Value arg = values[i];
+            evaluatedArgs.push_back(arg);
+        }
+        ArrayObject* arr = new ArrayObject(evaluatedArgs);
+        return(Value(arr));
+    }
     //-----------------------------------------------------------------------------
 
 
@@ -1545,20 +1555,27 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     // -------------------------------
     handle_OP_CONSTRUCT_ARRAY: {
         U32 argCount = ADVANCE_U32();
-        {
-            ValueVector evaluatedArgs;
-            evaluatedArgs.reserve(argCount);
-            for (int i = (int)argCount - 1; i >= 0; i--) {
-                Value arg = PEEK_STACK(i);
-                evaluatedArgs.push_back(arg);
-            }
-            _STK -= argCount;
-
-            ArrayObject* arr = new ArrayObject(evaluatedArgs);
-            PUSH_STACK(Value(arr));
-        }
+        Value arr = ConstructArray(&PEEK_STACK(argCount-1), argCount);
+        _STK -= argCount;
+        PUSH_STACK(arr);
         DISPATCH();
     }
+    // handle_OP_CONSTRUCT_ARRAY: {
+    //     U32 argCount = ADVANCE_U32();
+    //     {
+    //         ValueVector evaluatedArgs;
+    //         evaluatedArgs.reserve(argCount);
+    //         for (int i = (int)argCount - 1; i >= 0; i--) {
+    //             Value arg = PEEK_STACK(i);
+    //             evaluatedArgs.push_back(arg);
+    //         }
+    //         _STK -= argCount;
+    //
+    //         ArrayObject* arr = new ArrayObject(evaluatedArgs);
+    //         PUSH_STACK(Value(arr));
+    //     }
+    //     DISPATCH();
+    // }
     // -------------------------------
     handle_OP_STR_CONCAT: {
         Value b = POP_STACK();

@@ -53,13 +53,13 @@ X(OP_SAVE_VAR,                 1, "save global variable") \
 /* ..... */ \
 X(OP_PUSHPRT_LOCAL,            1, "set local variable pointer") \
 X(OP_PUSHPTR_VAR,              1, "set global variable pointer") \
-\
 X(OP_SET_LOCAL,                1, "set local variable") \
 X(OP_LOAD_OBJECT_FIELD,        1 + (2 * 2 /*sizeof(void*)*/), "load object field") \
 X(OP_PUSHPTR_OBJECT_FIELD,     1 + (2 * 2 /*sizeof(void*)*/), "push object field pointer") \
 X(OP_PUSHPTR_OBJECT_FIELD_GENERIC,     1 + (2 * 2 /*sizeof(void*)*/), "push object field pointer") \
 X(OP_SAVE_OBJECT_FIELD,        1 + (2 * 2 /*sizeof(void*)*/), "save object field") \
 X(OP_CALL_OBJECT_METHOD,       3, "call object method") \
+/* ..... */ \
 X(OP_PUSHPTR_OBJECT_METHOD,    2, "push object method assign pointer") \
 X(OP_SAVE_OBJECT_METHOD,       2, "save object method") \
 X(OP_LOAD_ARRAY,               0, "load array element") \
@@ -68,15 +68,16 @@ X(OP_LOAD_ARRAY_SYMID,         1, "load array element") \
 X(OP_PUSHPTR_ARRAY,            0, "push array element pointer") \
 X(OP_PUSHPTR_ARRAY_INDEX,      1, "push array element pointer by index") \
 X(OP_PUSHPTR_ARRAY_SYMID,      1, "push array element pointer by symId") \
+/* ..... */ \
 X(OP_SAVE_ARRAY,               0, "save array element") \
 X(OP_CALL_C_FUNCTION,          0, "SPECIAL emittedCount variable") \
-/* ..... */ \
 X(OP_CALL_SF_FUNCTION,         3,  "call script function") \
 X(OP_INC_LOCAL,                2, "increment local variable") \
 X(OP_INC_PTR,                  1, "increment other variable") \
 X(OP_ADD_LOCAL,                1, "add to local variable") \
 X(OP_SUB_LOCAL,                1, "subtract from local variable") \
 X(OP_MUL_LOCAL,                1, "multiply local variable") \
+/* ..... */ \
 X(OP_DIV_LOCAL,                1, "divide local variable") \
 X(OP_ASSIGN_PTR,               1, "assign to the pointer") \
 X(OP_ADD_PTR,                  1, "add to pointer variable") \
@@ -103,6 +104,7 @@ X(OP_CREATE_KEYVALUE,          0, "create key-value pair") \
 X(OP_CONSTRUCT_VECTOR,         1, "create curly list to vector") \
 X(OP_CONSTRUCT_ARRAY,          1, "create curly key value list to array") \
 X(OP_RETURN,                   0, "return from function") \
+/* ..... */ \
 X(OP_STR_CONCAT,               0, "string add (concat)") \
 X(OP_EXIT,                     0, "exit interpreter") \
 X(OP_INVALID,                  0, "invalid opcode fallback")

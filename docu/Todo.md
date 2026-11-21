@@ -743,6 +743,21 @@ keyvalue was designed as an Array Object Construct helper but it should be also 
 this two methods. no idea what it can be used for - but it's implemented.
     - [X] methods
     - [X] enable assign for value ...
+
+- NOTE added a new OP_CODE and test_var raised from 1.085 to 1.300 sec ... grrrr    
+ 
+- heavy stuff should be in function like : ConstructArray
+    - OP_LOAD_OBJECT_FIELD
+    - OP_LOAD_OBJECT_FIELD_GENERIC
+    - OP_PUSHPTR_OBJECT_FIELD
+    - OP_PUSHPTR_OBJECT_FIELD_GENERIC
+    - OP_SAVE_OBJECT_FIELD
+    - OP_SAVE_OBJECT_FIELD_GENERIC
+    - OP_CALL_OBJECT_METHOD
+    - OP_PUSHPTR_OBJECT_METHOD
+    - OP_SAVE_OBJECT_METHOD
+    - ... lots of ^^ ...
+    
     
 - [ ] Test and port thread safe symboltable from DLS 
 

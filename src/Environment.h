@@ -126,12 +126,19 @@ public:
         // Tools::printf("... popLocalStack count: %zu\n", mLocalVarCount.back());
         #endif
         if (mLocalVarCount.size() < 2) return; //we do not pop the root!
-        mLocalsSize -=  mLocalVarCount.back();
+        size_t funcVarCount = mLocalVarCount.back();
+        mLocalsSize -=  funcVarCount;
         mLocalVarCount.pop_back();
-
-        //FIXME  popped variables must be checked against Object Assign!
-
         mLocalOffset -=  mLocalVarCount.back();
+
+        // popped variables must be checked against Object Assign!
+        for(size_t i = mLocalOffset; i < mLocalOffset + funcVarCount; i++) {
+            if (mLocalsRegister[i].isObjectPointer()) {
+                mLocalsRegister[i].asPointerObject()->setAssigned(false);
+            }
+            mLocalsRegister[i] = NumberNullValue;
+        }
+
         //TEST to remove mLocalsSize before:  mLocalOffset = mLocalsSize - mLocalVarCount.back();
         mLocalsFrameId--;
     }

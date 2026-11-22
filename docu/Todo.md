@@ -749,7 +749,7 @@ this two methods. no idea what it can be used for - but it's implemented.
  
 - [X] Test and port thread safe symboltable from DLS 
    
-- [ ] Interpreter Test Garbage Assign test_Garbage have lots of objects left 
+- [X] Interpreter Test Garbage Assign test_Garbage have lots of objects left 
     - passed: `foo = Object::new` multiple times 
     - passed: `v = Vector::new; v->push (Object::new); core::printgc;`
     - fail: `fn lala; v = Vector::new; v->push (Object::new);; lala;core::printgc;`
@@ -758,8 +758,8 @@ this two methods. no idea what it can be used for - but it's implemented.
         -  here also one vector left and one object so it's the Script function call
         which does not unassign the local variables after exit. Caused by my latest change
         to local variable stack from VariableFrame. This was done be VariableFrame pop before!
-    - [ ] Enviroment.h about line 130 when the stack is popped.
-        
+    - [X] Enviroment.h about line 130 when the stack is popped.
+    - [X] test_Garbage    
         
         
         

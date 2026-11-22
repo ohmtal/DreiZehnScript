@@ -1,7 +1,7 @@
 print "----- Testing Garbage collection -----"
 import All
 
-define DEEP_COUNT 10
+define DEEP_COUNT 1000
 
 fn RunCrazy
     vec = Vector::new
@@ -26,4 +26,4 @@ core::gc; core::printgc;
 
 -- print "vec:" vec ", field:" field ", newVec" newVec
 
-while core::breath; core::sleep 16 ;;
+# while core::breath; core::sleep 16 ;;

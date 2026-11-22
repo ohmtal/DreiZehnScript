@@ -128,6 +128,9 @@ public:
         if (mLocalVarCount.size() < 2) return; //we do not pop the root!
         mLocalsSize -=  mLocalVarCount.back();
         mLocalVarCount.pop_back();
+
+        //FIXME  popped variables must be checked against Object Assign!
+
         mLocalOffset -=  mLocalVarCount.back();
         //TEST to remove mLocalsSize before:  mLocalOffset = mLocalsSize - mLocalVarCount.back();
         mLocalsFrameId--;

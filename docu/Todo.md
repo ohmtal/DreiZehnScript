@@ -749,6 +749,20 @@ this two methods. no idea what it can be used for - but it's implemented.
  
 - [X] Test and port thread safe symboltable from DLS 
    
+- [ ] Interpreter Test Garbage Assign test_Garbage have lots of objects left 
+    - passed: `foo = Object::new` multiple times 
+    - passed: `v = Vector::new; v->push (Object::new); core::printgc;`
+    - fail: `fn lala; v = Vector::new; v->push (Object::new);; lala;core::printgc;`
+        - it keep the last assigned - so it's the function and test_garbage is much more nested
+    - `fn lala; forRange i 10; v = Vector::new; v->push (Object::new) end;end; lala;core::printgc;`
+        -  here also one vector left and one object so it's the Script function call
+        which does not unassign the local variables after exit. Caused by my latest change
+        to local variable stack from VariableFrame. This was done be VariableFrame pop before!
+    - [ ] Enviroment.h about line 130 when the stack is popped.
+        
+        
+        
+        
 - [ ] missing assign ops `|=` `&=` `^=` `%=` `>>=` `<<=` 
 
 - Enviroment VM should be a pointer and only created if bytecode is used?

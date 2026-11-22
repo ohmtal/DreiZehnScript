@@ -31,9 +31,7 @@
 
 #include "PixelBuffer.h"
 
-namespace DreiZehn::PixelBuffer {
-
-
+namespace PixelBuffer {
 
 uint32_t pixel_buffer::get(uint32_t x, uint32_t y) {
     if (!buffer || x >= width || y >= height) return 0;
@@ -447,7 +445,7 @@ int save_to_bmp(const char* filename, pixel_buffer* f) {
 
 
 
-} // namespace DreiZehn::PixelBuffer
+} // namespace PixelBuffer
 
 
 

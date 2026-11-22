@@ -10,7 +10,7 @@ include "../common/Pixel/PixelFire.13" true
 
 define WINDOW_W = 160
 define WINDOW_H 100
-define WINDOW_SCALE 3
+define WINDOW_SCALE 5
 define FONT_SCALE 1.5
 
 fenster = Fenster::new "DreiZehn Fenster" WINDOW_W WINDOW_H WINDOW_SCALE
@@ -64,7 +64,7 @@ fenster->drawBuffer 100 20 pb180
 fenster->drawBuffer 140 20 pb270
 
 -- --------
-fireParts = 8.0
+fireParts = 4
 fireWidth = int::cast WINDOW_W / fireParts
 fire = PixelFire::new fireWidth 20 32 0
 

@@ -32,22 +32,28 @@ import All
 
 global W = 320
 global H = 200
-global SCALE = 2
-
+global SCALE = 3.1
+global curpic = 1
 global fenster = Fenster::new "DreiZehn Fenster Drawing Demo" W H SCALE
 
 
 -- -----------------------------------------------------------------------------
 fn fillHouse
     -- Draw :)
+    # clear
     fenster->rect 0 0 W H 0x00333333
+    # main
     fenster->rect (W / 4) (H / 2) (W / 2) (H / 3) COLOR_RED
+    # door
     fenster->rect (W / 2) (H / 2 + H / 12) (W / 6) (H / 3 - H / 12) COLOR_BLUE
+    # window
     fenster->circle (W / 2 - W / 8) (H / 2 + H / 6) (W / 20) COLOR_WHITE
+    # roof
     fenster->line (W / 4 - 25) (H / 2) ( W / 2 ) ( H / 4 ) 0x0000ffff
     fenster->line (W - W / 4 + 25) (H / 2) (W / 2) (H / 4) 0x0000ffff
     fenster->line (W - W / 4 + 25) (H / 2) (W / 4 - 25) (H / 2) 0x0000ffff
-    fenster->fill (W / 2) (H / 3) 0x00333333 0x00ff00ff
+    # i "optimized" the fill so it fill from bottom to top only
+    fenster->fill (W / 2) (H / 2 - 1) 0x00333333 0x00202020
     fenster->text 10 10 "House" 6 0x00ffffff
 end
 
@@ -121,6 +127,23 @@ fn fillGradient
     fenster->text 10 10 "RGB Gradient" 6 0x00ffffff
 end
 
+function infoText
+      fenster->text 5, H - 10, "#" .. curpic .. " - press space to toggle" , 1, 0x00000000
+      fenster->text 6, H - 9, "#" .. curpic .. " - press space to toggle" , 1, 0x00A0B0C0
+end
+
+function nextPic
+    curpic = (curpic + 1) % 5
+    print "curpic is:" curpic
+    if (curpic == 0) fillRandom
+        elif (curpic == 1) fillHouse
+        elif (curpic == 2) fillGradient
+        elif (curpic == 3) fillTunnel
+        else fillSky
+    end
+
+end
+
 -- -----------------------------------------------------------------------------
 -- Main
 -- -----------------------------------------------------------------------------
@@ -132,33 +155,32 @@ end
 -- fillRandom
 
 fillHouse
+infoText
 print "I"
-curpic = 1
+
 print "II"
 
 spaceWasUp = true
 print "III"
-now = fenster->getTime
+tickTime = fenster->getTime
 print "IV"
-while fenster->loop && core::breath
+while fenster->loop # && core::breath
    if fenster->isKeyDown KEY_SPACE
        if spaceWasUp
-           curpic = (curpic + 1) % 5
-           print "curpic is:" curpic
-
-            if (curpic == 0) fillRandom
-            elif (curpic == 1) fillHouse
-            elif (curpic == 2) fillGradient
-            elif (curpic == 3) fillTunnel
-            else fillSky
-            end
+            nextPic
         end
+        tickTime = fenster->getTime + 15000
         spaceWasUp = false
+        infoText
     else
         spaceWasUp = true
    end
     -- ESC
    if fenster->isKeyDown KEY_ESC; break end
+   if fenster->getTime > tickTime + 3000
+       tickTime = fenster->getTime
+       nextPic
+   end
 end
 
 fenster->close

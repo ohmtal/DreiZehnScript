@@ -21,7 +21,7 @@
 #pragma once
 
 
-namespace DreiZehn::PixelBuffer {
+namespace PixelBuffer {
 
 // ARGB
 struct pixel_buffer {
@@ -90,4 +90,4 @@ void text(pixel_buffer *f, int x, int y, const char *s, int scale, uint32_t c);
 // -------------------------------------------------------------------------
 int save_to_bmp(const char *filename, pixel_buffer *f );
 // ------------------------------------------------------------------------
-} // namespace DreiZehn
+} // namespace PixelBuffer

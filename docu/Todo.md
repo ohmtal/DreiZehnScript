@@ -761,7 +761,7 @@ this two methods. no idea what it can be used for - but it's implemented.
     - [X] Enviroment.h about line 130 when the stack is popped.
     - [X] test_Garbage    
         
-        
+- [ ] init VM/Interpreter locals only when it's really runs << save some bytes
         
 - [ ] missing assign ops `|=` `&=` `^=` `%=` `>>=` `<<=` 
 

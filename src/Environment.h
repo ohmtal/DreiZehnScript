@@ -60,7 +60,7 @@ private:
 public:
 
     Environment() {
-        mLocalsRegister.resize(LOCALS_SIZE);
+        // mLocalsRegister.resize(LOCALS_SIZE);
         pushLocalStack(0);
         mLocalVarCount.reserve(16);
     }
@@ -389,7 +389,8 @@ public:
     // -------------------------------------------------------------------------
     // main execute
     inline FlowStatus execute(ASTNode* node) {
-         return execute(node, *this);
+        if (mLocalsRegister.size()==0) mLocalsRegister.resize(LOCALS_SIZE);
+        return execute(node, *this);
     }
     // -------------------------------------------------------------------------
 }; //Class

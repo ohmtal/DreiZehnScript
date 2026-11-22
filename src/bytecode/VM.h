@@ -31,7 +31,7 @@ namespace DreiZehn {
 
     public:
         VM() {
-            mLocals.resize(LOCALS_SIZE);
+            // mLocals.resize(LOCALS_SIZE);
         }
         Value compileExec(Environment& env, ASTNode* node);
         bool Compile( ASTNode* node, Environment& env, BytecodeChunk& chunk, CompilerScope& scope);

@@ -25,6 +25,7 @@
 #include "ScriptLoader.h"
 
 #include "addons/minifb/MinifbFunctions.h"
+#include "addons/Miniaudio/MiniAudioFunctions.h"
 
 
 #ifdef DREIZEHN_LINENOISE
@@ -151,6 +152,7 @@ int main(int argc, char* argv[]) {
 
     FunctionMap::ModuleRegistry::LoadAll(env);
     RegisterMiniFBFunctions(env);
+    RegisterMiniAudioFunctions(env);
 
     OnBreath = [&env]() -> bool {
         return ConsoleCall(env);

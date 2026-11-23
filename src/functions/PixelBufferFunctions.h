@@ -74,8 +74,6 @@ namespace DreiZehn {
             , "set or get one pixel. @param index [color]"
             , TypePixelBuffer);
 
-
-
             clearProp = ValueObjectProperty("clear", 0,1
             , "clear the buffer with a color. @params [uint color] default COLOR_WHITE "
             , TypePixelBuffer);

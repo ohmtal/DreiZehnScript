@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 //-----------------------------------------------------------------------------
 // Fenster Commands
-// FIXME: Register system for help!!!
 // NOTE! Modified fenster.h!
 //      - I had to remove const int width and height in fenster.h!
 //      - added X11 wmDeleteMessage message so my prog does not crash when
@@ -156,7 +155,6 @@ namespace DreiZehn {
                 ret = Value(static_cast<uint32_t>(FENSTER_SAMPLE_RATE));
                 return true;
             }
-
              return ValueObject::onMethodCall(env,methodId, args, ret);
         }
         // -------------------------------------------------------------------------
@@ -165,19 +163,12 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     void RegisterFensterAudioFunctions(Environment& env) {
         static bool registered = false; if (registered) return; registered = true;
-
         using namespace FunctionMap;
-
         // --------------------
         FensterAudioObject::RegisterSymbols();
         // --------------------
-
-
         RegisterFunction("FensterAudio::new", [](std::span<Value> args, Value& ret) -> bool {
-
-
             FensterAudioObject* fa = new FensterAudioObject();
-
             ret = Value(fa);
             return true;
         });

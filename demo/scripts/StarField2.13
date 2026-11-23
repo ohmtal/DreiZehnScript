@@ -142,14 +142,15 @@ if Init
         SDL_SetRenderScale Renderer  1 1
 
 
-        SDL_RenderPresent Renderer
 
 --         if core::breath == false; break; end
         if doBenchMark
+#             SDL_RenderDebugText Renderer 10 30  (str::concat "Loops:" loops)
             if loops >= 3000; break;;
         else
             SDL_Delay 10
         end
+        SDL_RenderPresent Renderer
     end
 end
 

@@ -761,11 +761,22 @@ this two methods. no idea what it can be used for - but it's implemented.
     - [X] Enviroment.h about line 130 when the stack is popped.
     - [X] test_Garbage    
         
-- [ ] init VM/Interpreter locals only when it's really runs << save some bytes
+- [X] init VM/Interpreter locals only when it's really runs << save some bytes
         
-- [ ] missing assign ops `|=` `&=` `^=` `%=` `>>=` `<<=` 
+        
+- [X] another Interpreter root locals bug: when running Benchmark doBenchMark is 
+not detected or not set ?!
+    - passed: `foo = 10; i = 0;if i == 0; while i < 4; i++; print foo;; end`
+    - mhh i'am sure it did work yesterday - i did a benchmark 
+    - look like it's removed ... garbage collection fix ?!  << THIS!
+        
+    
 
-- Enviroment VM should be a pointer and only created if bytecode is used?
+- [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
+On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 
+this a lot of times i have a monster sized code then.
+
+- [ ] missing assign ops `|=` `&=` `^=` `%=` `>>=` `<<=` 
 
 - [ ] think about adding parent to calls with comma separated parameters this would 
     enable multi line and lamda calls - add a new syntax folder and switch to it ? 
@@ -773,15 +784,10 @@ this two methods. no idea what it can be used for - but it's implemented.
     - [ ] Interface to switch Syntax
     - [ ] support for common for 
     - [ ] switch case 
-    
-
-- [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
-On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 
-this a lot of times i have a monster sized code then.
 
 
 
-
+================================================================================
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 
 
 - [X] common/FileTools.13
@@ -810,7 +816,7 @@ this a lot of times i have a monster sized code then.
             
 
 
----
+================================================================================
 
 ## still missing:
 - [ ] ByteCode: hot reload and run!

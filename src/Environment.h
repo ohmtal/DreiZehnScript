@@ -60,7 +60,7 @@ private:
 public:
 
     Environment() {
-        // mLocalsRegister.resize(LOCALS_SIZE);
+        mLocalsRegister.resize(LOCALS_SIZE);
         pushLocalStack(0);
         mLocalVarCount.reserve(16);
     }
@@ -129,7 +129,6 @@ public:
         size_t funcVarCount = mLocalVarCount.back();
         mLocalsSize -=  funcVarCount;
         mLocalVarCount.pop_back();
-        mLocalOffset -=  mLocalVarCount.back();
 
         // popped variables must be checked against Object Assign!
         for(size_t i = mLocalOffset; i < mLocalOffset + funcVarCount; i++) {
@@ -140,6 +139,7 @@ public:
         }
 
         //TEST to remove mLocalsSize before:  mLocalOffset = mLocalsSize - mLocalVarCount.back();
+        mLocalOffset -=  mLocalVarCount.back();
         mLocalsFrameId--;
     }
 
@@ -389,7 +389,6 @@ public:
     // -------------------------------------------------------------------------
     // main execute
     inline FlowStatus execute(ASTNode* node) {
-        if (mLocalsRegister.size()==0) mLocalsRegister.resize(LOCALS_SIZE);
         return execute(node, *this);
     }
     // -------------------------------------------------------------------------

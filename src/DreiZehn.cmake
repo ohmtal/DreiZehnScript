@@ -89,3 +89,13 @@ set(DREIZEHN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/DreiZehn.cpp
 
 )
+
+if (NOT DREIZEHN_SKIP_LIB)
+    add_library(DreiZehn
+        ${DREIZEHN_SRC}
+    )
+
+    target_include_directories(DreiZehn PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}
+    )
+endif()

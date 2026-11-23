@@ -75,6 +75,8 @@ set (LINK_LIBS)
 # =============== DreiZehn >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 set(DREIZEHN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../" CACHE PATH "Path to DreiZehn Script")
 set(DREIZEHN_CMAKE ${DREIZEHN_DIR}/src/DreiZehn.cmake)
+set(DREIZEHN_SKIP_LIB ON)
+
 
 if(NOT EXISTS ${DREIZEHN_CMAKE})
     message(FATAL_ERROR
@@ -85,6 +87,7 @@ if(NOT EXISTS ${DREIZEHN_CMAKE})
 else()
  include(${DREIZEHN_CMAKE})
  list(APPEND PROJECT_INCLUDES "${DREIZEHN_DIR}/src/")
+ # list(APPEND LINK_LIBS DreiZehn)
 endif()
 
 

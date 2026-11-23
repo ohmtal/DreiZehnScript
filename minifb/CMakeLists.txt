@@ -26,7 +26,7 @@ set(PROJECT_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/toolbox/PixelBuffer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../addons/minifb/MinifbFunctions.cpp
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../addons/Miniaudio/miniaudio/miniaudio.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../addons/Miniaudio/miniaudio/miniaudio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../addons/Miniaudio/MiniAudioFunctions.cpp
 )
 

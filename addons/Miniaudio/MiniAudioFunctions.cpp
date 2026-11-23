@@ -14,7 +14,8 @@
 #include "src/core/VariableFrame.h"
 #include "src/Globals.h"
 
-#define MINIAUDIO_IMPLEMENTATION
+//need to compile miniaudio.c but it's faster compile time
+//  #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio/miniaudio.h"
 
 // =============================================================================
@@ -105,7 +106,7 @@ namespace DreiZehn {
         }
 
         // ------------ Open Device and Init RingBuffer
-        bool Open(U32 sampleRate, U32 channels, U32 bufferSize = 2048) {
+        bool Open(U32 sampleRate, U32 channels, U32 bufferSize) {
             if (!mClosed) {
                 Tools::errorf("MiniAudio: Device is open i will not open it again!");
                 return false;
@@ -237,14 +238,17 @@ namespace DreiZehn {
         RegisterFunction("MiniAudioCallback::new", [](std::span<Value> args, Value& ret) -> bool {
             MiniAudioCallBackObject* obj = new MiniAudioCallBackObject();
             U32 defSR = 8000; U32 defChannel = 1; //8k mono ;)
-            if (args.size() > 0) defSR = args[0].getUInt();
-            if (args.size() > 1) defChannel = args[1].getUInt();
-            if (!obj->Open(defSR, defChannel)) {
+            U32 defBufferSize = 1024;
+            if (args.size() > 0) defSR          = std::clamp(args[0].getUInt(), (U32)4000, (U32) 48000);
+            if (args.size() > 1) defChannel     = std::clamp(args[1].getUInt(), (U32)1, (U32)16); //16?
+            if (args.size() > 2) defBufferSize  = std::clamp(args[2].getUInt(), (U32)512, (U32) 65536);
+
+            if (!obj->Open(defSR, defChannel, defBufferSize)) {
                 return false;
             }
             ret = Value(obj);
             return true;
-        }, "Initialize MiniAudioObject: MiniAudio::new [sampleRate:8000] [channel:1]");
+        }, "Initialize MiniAudioObject: MiniAudio::new [sampleRate:8000] [channel:1] [bufferSize:1024]");
 
     }
 } //namespace DreiZehn

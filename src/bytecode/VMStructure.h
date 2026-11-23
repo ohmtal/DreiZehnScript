@@ -72,12 +72,13 @@ X(OP_PUSHPTR_ARRAY_SYMID,      1, "push array element pointer by symId") \
 X(OP_SAVE_ARRAY,               0, "save array element") \
 X(OP_CALL_C_FUNCTION,          0, "SPECIAL emittedCount variable") \
 X(OP_CALL_SF_FUNCTION,         3,  "call script function") \
+X(OP_CALL_SF_METHOD,           3,  "call script method") \
 X(OP_INC_LOCAL,                2, "increment local variable") \
 X(OP_INC_PTR,                  1, "increment other variable") \
 X(OP_ADD_LOCAL,                1, "add to local variable") \
 X(OP_SUB_LOCAL,                1, "subtract from local variable") \
-X(OP_MUL_LOCAL,                1, "multiply local variable") \
 /* ..... */ \
+X(OP_MUL_LOCAL,                1, "multiply local variable") \
 X(OP_DIV_LOCAL,                1, "divide local variable") \
 X(OP_ASSIGN_PTR,               1, "assign to the pointer") \
 X(OP_ADD_PTR,                  1, "add to pointer variable") \
@@ -85,8 +86,8 @@ X(OP_SUB_PTR,                  1, "subtract pointer variable") \
 X(OP_MUL_PTR,                  1, "multiply pointer variable") \
 X(OP_DIV_PTR,                  1, "divide pointer variable") \
 X(OP_ADD,                      0, "addition") \
-X(OP_SUB,                      0, "subtraction") \
 /* ..... */ \
+X(OP_SUB,                      0, "subtraction") \
 X(OP_LOOP_INCREMENT_JUMP,      3, "increment loop and jump") \
 X(OP_MUL,                      0, "multiplication") \
 X(OP_DIV,                      0, "division") \
@@ -94,8 +95,8 @@ X(OP_NOT,                      0, "logical NOT") \
 X(OP_FOR_RANGE,                2, "for range loop") \
 X(OP_FOR_STEP_INIT,            3, "initialize for step loop") \
 X(OP_FOR_EACH_INIT,            2, "initialize foreach loop") \
-X(OP_FOR_EACH_INCREMENT_JUMP,  2, "increment foreach and jump") \
 /* ..... */ \
+X(OP_FOR_EACH_INCREMENT_JUMP,  2, "increment foreach and jump") \
 X(OP_LOAD_OBJECT_FIELD_GENERIC, 1 + (2 * 2 /*sizeof(void*)*/), "load object field with skip cache!") \
 X(OP_SAVE_OBJECT_FIELD_GENERIC, 1 + (2 * 2 /*sizeof(void*)*/), "save object field with skip cache!") \
 X(OP_VALUE_PTR_PTR_TO_VALUE_PTR,   0, "translate to current stack pointer of a pointer to pointer") \
@@ -103,8 +104,8 @@ X(OP_VALUE_PTR_PTR_TO_VALUE,   0, "translate to current stack pointer of a point
 X(OP_CREATE_KEYVALUE,          0, "create key-value pair") \
 X(OP_CONSTRUCT_VECTOR,         1, "create curly list to vector") \
 X(OP_CONSTRUCT_ARRAY,          1, "create curly key value list to array") \
-X(OP_RETURN,                   0, "return from function") \
 /* ..... */ \
+X(OP_RETURN,                   0, "return from function") \
 X(OP_STR_CONCAT,               0, "string add (concat)") \
 X(OP_EXIT,                     0, "exit interpreter") \
 X(OP_INVALID,                  0, "invalid opcode fallback")

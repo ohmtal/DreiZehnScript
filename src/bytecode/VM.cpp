@@ -706,7 +706,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         // pull method name id
         U32 symID = ADVANCE_U32();
         U32 argCount = ADVANCE_U32();
-        U32* sfLoopUpPtr = &code[ip];
+        U32* sfLoopUpPtr = &PEEK_U32();
         U32 skipSF = ADVANCE_U32();
 
         Value objectValue = POP_STACK();
@@ -727,12 +727,21 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             if (!skipSF) {
                 FunctionMap::ScriptFunction* sf = obj->getScriptMethod(symID);
                 if (sf) {
+                    // patch_ptr(code, ptrPOS, sf);
                     ip -= 4;
-                    code[ ip ] = OP_CALL_SF_FUNCTION;
+                    code[ ip ] = OP_CALL_SF_METHOD;
                     code[ ip + 1 ] = argCount + 1;
                     code[ ip + 2 ] = sf->bytecodeAddress;
                     code[ ip + 3 ] = sf->localVarCount;
                     PUSH_STACK(obj); //push this
+
+                    // only works once!
+                    // PUSH_STACK(obj);
+                    // for (U32 i = 0; i < argCount; i++) {
+                    //     PEEK_STACK(i) = PEEK_STACK(i + 1);
+                    // }
+                    // PEEK_STACK(argCount) = obj;
+
                     DISPATCH();
                 }
                 // did not find a script method next time we skip this
@@ -754,6 +763,40 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             PUSH_STACK(returnValue);
         }
 
+        DISPATCH();
+    }
+    // -------------------------------
+    handle_OP_CALL_SF_METHOD: {
+        U32 argCount = ADVANCE_U32();
+
+        // 0.91 back to emitted values instead of pointer!
+        U32 targetIP = ADVANCE_U32();
+        U32 varCount = ADVANCE_U32();
+
+        // save current ip in curFrame
+        curFrame->mIP = ip;
+        // push new frame with offsets:
+        U32 startIndex = curFrame->mLocalsStartIndex + curFrame->mLocalsCount;
+        U32 localCount = argCount + varCount;
+        callFrame.push_back({targetIP, startIndex, localCount});
+        // update curFrame
+        curFrame = &callFrame.back();
+
+        if (argCount + curFrame->mLocalsStartIndex  >= mLocals.size()) [[unlikely]] {
+            env.PrintRuntimeError("VM Locals Stack Overflow in Script Method.");
+            exit(1);
+            // // mLocals.resize(mLocals.size() * 2);
+        }
+        // "this" is the last but must be first
+        U32 slot =  curFrame->mLocalsStartIndex;
+        mLocals[slot] = POP_STACK();
+
+        for (int i = (int)argCount - 1; i >= 1; i--) {
+            Value param = POP_STACK();
+            U32 slot =  i + curFrame->mLocalsStartIndex;
+            mLocals[slot] = param;
+        }
+        ip = targetIP;
         DISPATCH();
     }
     // -----------------
@@ -1055,7 +1098,6 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     handle_OP_CALL_SF_FUNCTION: {
         U32 argCount = ADVANCE_U32();
 
-
         // 0.91 back to emitted values instead of pointer!
         U32 targetIP = ADVANCE_U32();
         U32 varCount = ADVANCE_U32();
@@ -1065,17 +1107,15 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         // push new frame with offsets:
         U32 startIndex = curFrame->mLocalsStartIndex + curFrame->mLocalsCount;
         U32 localCount = argCount + varCount;
-        callFrame.push_back({targetIP, startIndex, localCount/*, constantsOffset*/});
+        callFrame.push_back({targetIP, startIndex, localCount});
         // update curFrame
         curFrame = &callFrame.back();
 
         if (argCount + curFrame->mLocalsStartIndex  >= mLocals.size()) [[unlikely]] {
-            env.PrintRuntimeError("VM Locals Stack Overflow! raise LOCALS_SIZE as compile flag");
+            env.PrintRuntimeError("VM Locals Stack Overflow in Script Function.");
             exit(1);
-
             // // mLocals.resize(mLocals.size() * 2);
         }
-
 
         for (int i = (int)argCount - 1; i >= 0; i--) {
             Value param = POP_STACK();

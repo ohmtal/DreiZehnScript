@@ -770,20 +770,28 @@ not detected or not set ?!
     - mhh i'am sure it did work yesterday - i did a benchmark 
     - look like it's removed ... garbage collection fix ?!  << THIS!
         
-- [ ] ByteCode Bug: Method Script calls "this" is not attached !!!
-    - `foo = Object::new; fn Object::bar this; print this;;foo->bar`
-      ==> `[warn] [Parser LINE:1]: Unknown Identifier: foo`
+- [X] ByteCode Bug: Method Script calls "this" is not attached !!!
+    - [X] `foo = Object::new; fn Object::bar this; print this;;foo->bar`
+        - `[warn] [Parser LINE:1]: Unknown Identifier: foo`
+        - parser status on last foo it is in a block! called from parseIdentifier
+        - i had disabled endFunc in `TokenType::End` not sure why tagged: 2026-11-23
+        - now i now this cause a crash testing with "main.13" multipe endFunc
+        - the problem with the onliner is it does not find the way back to "::parse"
+        - i added ::End Token in Blocks check: `if (peekPrev().mType == TokenType::EOLToken || peekPrev().mType == TokenType::End)`
+      
+      
     - `fn Object::bar this; print this;;foo = Object::new;foo->bar`
       ==> This works on both ?! 
-    - [ ] Interpreter : the one liner also does not work on Interpreter !!!!! 
-        - debug start at parser foo not found why - it's something with the ";" skip
-          i guess. no guessing debugging :P
-          
-    - with global foo it works on Interpreter and ByteCode ... something is 
-      wrong with the locals here !!! 
-    - [ ] but in miniFB bc also does not work when it's global! i broke it somewhere 
+
+    - [X] but in miniFB bc also does not work when it's global! i broke it somewhere 
         - debug start at: handle_OP_CALL_OBJECT_METHOD 
-    
+        - scrambled order: `this: 800 w: 430 h: 2 fontscale: MiniFB [0x556cf8e663b0]`
+        - i guess it's my register change with the new frameParser ? 
+            - passed order: `INSERT:VAR this [REG:0] {block:1}` so it's in the VM!
+            - i push "this" to the bottom: `PUSH_STACK(obj); //push this`
+                - lol thats why it's the last : `OP_CALL_SF_FUNCTION` push it reverse!
+            - added new OP_CODE: OP_CALL_SF_METHOD is the same as OP_CALL_SF_FUNCTION but repair the param order.
+
     
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it

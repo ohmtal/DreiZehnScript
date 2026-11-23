@@ -46,11 +46,7 @@ namespace DreiZehn {
             Tools::errorf("parserFrame enviroment not set! exit here\n");
             exit(1);
         }
-        #ifdef DREIZEHN_DEBUG
-        // Tools::printf(" ** VAR %s insertLocalVar {block:%d}\n",
-        //               SymbolTable::getName(symId).c_str(),
-        //               mBlockInFunction);
-        #endif
+
 
         //NOTE if not mBlockInFunction push into base locals
         //      make sure we have space left so the core has it's own space
@@ -65,36 +61,45 @@ namespace DreiZehn {
         if (foundIndex >= 0) {
             return static_cast<U32>(foundIndex);
         }
+
+
         mLocalVariables.back().push_back(symId);
+        #ifdef DREIZEHN_DEBUG
+        Tools::printf(" ** INSERT:VAR %s [REG:%d] {block:%d}\n",
+                      SymbolTable::getName(symId).c_str(),
+                      mLocalVariables.back().size() - 1,
+                      mBlockInFunction);
+        #endif
         return static_cast<U32>(mLocalVariables.back().size() - 1);
     }
 
     S32 ParserFrame::guessGlobalVar(Environment& env, uint32_t symId) {
         bool foundAGlobal = env.getGlobalRegister(symId) >= 0;
-        bool foundFunctionVar = findLocalVar(symId) >= 0;
-        // Tools::printf(" ** VAR %s check foundAGlobal:%d foundFunc:%d {block:%d}\n",
-        //               SymbolTable::getName(symId).c_str(), foundAGlobal,foundFunctionVar,
+        bool foundLocalVar = findLocalVar(symId) >= 0;
+        #ifdef DREIZEHN_DEBUG
+        // Tools::printf(" ** CHECK::VAR %s check Global:%d Local:%d {block:%d}\n",
+        //               SymbolTable::getName(symId).c_str(), foundAGlobal,foundLocalVar,
         //               mBlockInFunction);
-
-        if (!foundAGlobal && !foundFunctionVar) return -1;
+        #endif
+        if (!foundAGlobal && !foundLocalVar) return -1;
 
         if (!mBlockInFunction) return (S32)foundAGlobal;
-        if (!foundFunctionVar && foundAGlobal) return 1;
+        if (!foundLocalVar && foundAGlobal) return 1;
         return 0;
     }
 
     void ParserFrame::startFunc(uint32_t funcSymId) {
-        // #ifdef DREIZEHN_DEBUG
-        // Tools::printf("StartFunc %s ......\n", SymbolTable::getName(funcSymId).c_str());
-        // #endif
+        #ifdef DREIZEHN_DEBUG
+        Tools::printf("StartFunc %s ......\n", SymbolTable::getName(funcSymId).c_str());
+        #endif
         mLocalVariables.push_back({});
         mBlockInFunction = true;
     }
     void ParserFrame::endFunc(uint32_t funcSymId) {
-        // #ifdef DREIZEHN_DEBUG
-        // Tools::printf("..... EndFunc %s {block:%d} variables: %zu \n"
-        //     , SymbolTable::getName(funcSymId).c_str(), mBlockInFunction, mLocalVariables.back().size());
-        // #endif
+        #ifdef DREIZEHN_DEBUG
+        Tools::printf("..... EndFunc %s {block:%d} variables: %zu \n"
+            , SymbolTable::getName(funcSymId).c_str(), mBlockInFunction, mLocalVariables.back().size());
+        #endif
         FunctionMap::RegisteredScriptFunctions[funcSymId].localVarCount = mLocalVariables.back().size();
 
         mLocalVariables.pop_back();
@@ -210,7 +215,7 @@ namespace DreiZehn {
                 if (!isGlobal) {
                     S32 globalRes = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
                     if (globalRes < 0 && peekOffset(0).mType != TokenType::Assign) {
-                        PrintParseWarning("Unknown Identifier:", nameToken.mValue);
+                        PrintParseWarning("Unknown Identifier :", nameToken.mValue);
                     }
                     isGlobal = globalRes > 0;
                 }
@@ -663,7 +668,7 @@ namespace DreiZehn {
 
             if (!isGlobal) {
                 S32 globalRes = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
-                if (globalRes < 0) PrintParseWarning("Unknown Identifier", nameToken.mValue);
+                if (globalRes < 0) PrintParseWarning("Unknown Identifier:", nameToken.mValue);
                 isGlobal = globalRes > 0;
             }
 
@@ -802,9 +807,11 @@ namespace DreiZehn {
                 if (parserFrame.mBlockOpenTypes.size() > 0) {
                     TokenType startToken = parserFrame.mBlockOpenTypes.back();
                     parserFrame.mBlockOpenTypes.pop_back();
-                    // // if (startToken == TokenType::Fn) {
-                    // //     parserFrame.endFunc(0);
-                    // // }
+
+                    // NOTE 2026-11-23: why did i remove this ?!
+                    // in onliner i need it
+                    // but this cause double end on other scripts!
+
 
                     return std::make_unique<FunctionDefineEndNode>();
                 }
@@ -1019,7 +1026,7 @@ namespace DreiZehn {
             //------------------------------------------------------------------
             // Blocks
             //------------------------------------------------------------------
-            if (peekPrev().mType == TokenType::EOLToken) {
+            if (peekPrev().mType == TokenType::EOLToken || peekPrev().mType == TokenType::End) {
                 for (size_t iter = statment_peek; iter < statements.size(); iter++) {
                     auto& ast = statements[iter];
                     if (!ast) return nullptr;

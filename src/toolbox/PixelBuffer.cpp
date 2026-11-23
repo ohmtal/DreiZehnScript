@@ -33,9 +33,15 @@
 
 namespace PixelBuffer {
 
+
 uint32_t pixel_buffer::get(uint32_t x, uint32_t y) {
     if (!buffer || x >= width || y >= height) return 0;
     return buffer[y * width + x];
+}
+bool pixel_buffer::get(uint32_t x, uint32_t y, uint32_t& resultColor) {
+    if (!buffer || x >= width || y >= height) return false;
+    resultColor =  buffer[y * width + x];
+    return true;
 }
 
 bool pixel_buffer::set(uint32_t x, uint32_t y, uint32_t color) {
@@ -47,6 +53,12 @@ bool pixel_buffer::set(uint32_t x, uint32_t y, uint32_t color) {
 bool pixel_buffer::setAt(uint32_t index, uint32_t color) {
     if (!buffer || index >= (width * height)) return false;
     buffer[index] = color;
+    return true;
+}
+
+bool pixel_buffer::getAt(uint32_t index, uint32_t& resultColor) {
+    if (!buffer || index >= (width * height)) return false;
+    resultColor = buffer[index];
     return true;
 }
 

@@ -1133,13 +1133,13 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value& val = mLocals[slot];
 
         if (val.isInt()) [[likely]] {
+            PUSH_STACK(val); // ++v return the current value! ++v is this
             val = Value(val.asFastInt() + inc);
-            PUSH_STACK(val);
             DISPATCH();
         }
 
-        val = Value(val.getInt() + inc);
         PUSH_STACK(val);
+        val = Value(val.getInt() + inc);
 
         DISPATCH();
     }
@@ -1148,21 +1148,20 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         S32 inc = ADVANCE_S32();
 
         Value* varPTR = POP_STACK().asValuePointer();
-        // if (!varPTR) [[unlikely]] {
-        //     PUSH_STACK(NumberNullValue);
-        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
-        //     DISPATCH();
-        // }
-
-        if (varPTR->isInt()) [[likely]] {
-            *varPTR = Value(varPTR->asFastInt() + inc);
-            PUSH_STACK(*varPTR);
+        if (!varPTR) [[unlikely]] {
+            PUSH_STACK(NumberNullValue);
+            PrintVMError(OP_INC_PTR, "Invalid variable!!");
             DISPATCH();
         }
 
-        *varPTR = Value(varPTR->getInt() + inc);
-        PUSH_STACK(*varPTR);
+        if (varPTR->isInt()) [[likely]] {
+            PUSH_STACK(*varPTR);
+            *varPTR = Value(varPTR->asFastInt() + inc);
+            DISPATCH();
+        }
 
+        PUSH_STACK(*varPTR);
+        *varPTR = Value(varPTR->getInt() + inc);
         DISPATCH();
     }
     // -------------------------------

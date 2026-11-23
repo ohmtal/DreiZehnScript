@@ -1211,7 +1211,8 @@ namespace DreiZehn {
                 val--;
             }
             *valPtr = Value(val);
-            return *valPtr;
+            // return *valPtr;
+            return Value(val);
         }
 
         if (valPtr->isDouble()) {
@@ -1222,7 +1223,8 @@ namespace DreiZehn {
                 val -= 1.0;
             }
             *valPtr = Value(val);
-            return *valPtr;
+            // return *valPtr;
+            return Value(val);
         }
 
         PrintASTError(this,"Invalid type for increment/decrement operator!");

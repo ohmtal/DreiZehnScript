@@ -35,7 +35,7 @@ namespace DreiZehn {
         pixel_buffer mBuffer;
 
         // Methods
-        inline static ValueObjectProperty  setPixelProp, setPixelAtProp;
+        inline static ValueObjectProperty  setPixelProp, setPixelAtProp, pixelProp;
         inline static ValueObjectProperty clearProp, lineProp;
         inline static ValueObjectProperty rectProp, circleProp, fillProp;
         inline static ValueObjectProperty textProp, sleepProp, exportProp;
@@ -69,6 +69,12 @@ namespace DreiZehn {
             setPixelAtProp = ValueObjectProperty("setPixelAt", 2,2
             , "set one pixel at absolute index. @param int index uint color"
             , TypePixelBuffer);
+
+            pixelProp = ValueObjectProperty("pixel", 1,2
+            , "set or get one pixel. @param index [color]"
+            , TypePixelBuffer);
+
+
 
             clearProp = ValueObjectProperty("clear", 0,1
             , "clear the buffer with a color. @params [uint color] default COLOR_WHITE "
@@ -170,16 +176,28 @@ namespace DreiZehn {
                 return true;
             }
             // ------- setPixel
-            if (setPixelAtProp.matchMethod( methodId , args) == 1) {
+            else if (setPixelAtProp.matchMethod( methodId , args) == 1) {
                 int32_t index = args[0].getUInt();
                 uint32_t color = args[1].getUInt();
                 mBuffer.setAt(index,color);
                 return true;
             }
-
-            else
+            // ------- pixel
+            else if (pixelProp.matchMethod( methodId , args) == 1) {
+                U32 index = args[0].getInt();
+                if ( args.size() > 0 ) {
+                    U32 color = args[1].getUInt();
+                    if (!mBuffer.setAt(index, color)) return false;
+                    ret = args[1];
+                    return true;
+                }
+                U32 resultColor = 0;
+                if (!mBuffer.getAt(index, resultColor)) return false;
+                ret = Value(resultColor);
+                return true;
+            }
             // ------- clear
-            if (clearProp.matchMethod( methodId , args) == 1) {
+            else if (clearProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer  ) {
                     ret = NumberNullValue;
                     return true;
@@ -191,15 +209,13 @@ namespace DreiZehn {
                 std::fill_n(mBuffer.buffer, mBuffer.width * mBuffer.height, color);
                 return true;
             }
-            else
             // ------- line
-            if (lineProp.matchMethod( methodId , args) == 1) {
+            else if (lineProp.matchMethod( methodId , args) == 1) {
                 line(&mBuffer, args[0].getInt(), args[1].getInt(), args[2].getInt(), args[3].getInt(),args[4].getUInt());
                 return true;
             }
-            else
             // ------- rect
-            if (rectProp.matchMethod( methodId , args) == 1) {
+            else if (rectProp.matchMethod( methodId , args) == 1) {
                 int x = args[0].getInt();
                 int y = args[1].getInt();
                 int w = args[2].getInt();
@@ -209,39 +225,33 @@ namespace DreiZehn {
                 rect(&mBuffer, x,y,w,h,c);
                 return true;
             }
-            else
             // ------- circle
-            if (circleProp.matchMethod( methodId , args) == 1) {
+            else if (circleProp.matchMethod( methodId , args) == 1) {
                 circle(&mBuffer, args[0].getInt(), args[1].getInt(), args[2].getInt(), args[3].getUInt());
                 return true;
             }
-            else
             // ------- fill
-            if (fillProp.matchMethod( methodId , args) == 1) {
+            else if (fillProp.matchMethod( methodId , args) == 1) {
                 fill(&mBuffer, args[0].getInt(), args[1].getInt(), args[2].getUInt(), args[3].getUInt());
                 return true;
             }
-            else
             // ------- text
-            if (textProp.matchMethod( methodId , args) == 1) {
+            else if (textProp.matchMethod( methodId , args) == 1) {
                 text(&mBuffer,
                                      args[0].getInt(), args[1].getInt(),
                                      args[2].getStringRef().c_str(),
                                      args[3].getInt(), args[4].getUInt());
                 return true;
             }
-            else
-
             // ------- export
-            if (exportProp.matchMethod( methodId , args) == 1) {
+            else if (exportProp.matchMethod( methodId , args) == 1) {
 
                 std::string filename = args[0].getStringRef().c_str();
                 save_to_bmp(args[0].getStringRef().c_str(), &mBuffer);
                 return true;
             }
-            else
             // ------- print
-            if (printProp.matchMethod( methodId , args) == 1) {
+            else if (printProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer) return false;
                 uint32_t count = mBuffer.width * mBuffer.height;
                 for (uint32_t i = 0 ; i < count; i++) {
@@ -251,7 +261,7 @@ namespace DreiZehn {
                 return true;
             }
             // ------- setData
-            if (setDataProp.matchMethod( methodId , args) == 1) {
+            else if (setDataProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer) return false;
 
                 uint32_t buffercount = mBuffer.width * mBuffer.height;
@@ -265,7 +275,7 @@ namespace DreiZehn {
             }
 
             // ------- save (tga)
-            if (saveProp.matchMethod( methodId , args) == 1) {
+            else if (saveProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer) return false;
 
                 if (!args[0].isString()) {
@@ -278,7 +288,7 @@ namespace DreiZehn {
                 return true;
             }
             // ------- load (tga)
-            if (loadProp.matchMethod( methodId , args) == 1) {
+            else if (loadProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer) return false;
 
                 if (!args[0].isString()) {
@@ -291,7 +301,7 @@ namespace DreiZehn {
                 return true;
             }
             // ------- clone Rotate
-            if (cloneRotate90Prop.matchMethod( methodId , args) == 1) {
+            else if (cloneRotate90Prop.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer) return false;
 
                 PixelBufferObject* obj = new PixelBufferObject( mBuffer.width, mBuffer.height);
@@ -301,7 +311,7 @@ namespace DreiZehn {
                 return true;
             }
 
-            if (cloneRotateFreeProp.matchMethod( methodId , args) == 1) {
+            else if (cloneRotateFreeProp.matchMethod( methodId , args) == 1) {
                 if (!mBuffer.buffer) return false;
 
                 float angle = args[0].getFloat();

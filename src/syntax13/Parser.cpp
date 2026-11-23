@@ -65,10 +65,10 @@ namespace DreiZehn {
 
         mLocalVariables.back().push_back(symId);
         #ifdef DREIZEHN_DEBUG
-        Tools::printf(" ** INSERT:VAR %s [REG:%d] {block:%d}\n",
-                      SymbolTable::getName(symId).c_str(),
-                      mLocalVariables.back().size() - 1,
-                      mBlockInFunction);
+        // Tools::printf(" ** INSERT:VAR %s [REG:%d] {block:%d}\n",
+        //               SymbolTable::getName(symId).c_str(),
+        //               mLocalVariables.back().size() - 1,
+        //               mBlockInFunction);
         #endif
         return static_cast<U32>(mLocalVariables.back().size() - 1);
     }
@@ -90,15 +90,15 @@ namespace DreiZehn {
 
     void ParserFrame::startFunc(uint32_t funcSymId) {
         #ifdef DREIZEHN_DEBUG
-        Tools::printf("StartFunc %s ......\n", SymbolTable::getName(funcSymId).c_str());
+        // Tools::printf("StartFunc %s ......\n", SymbolTable::getName(funcSymId).c_str());
         #endif
         mLocalVariables.push_back({});
         mBlockInFunction = true;
     }
     void ParserFrame::endFunc(uint32_t funcSymId) {
         #ifdef DREIZEHN_DEBUG
-        Tools::printf("..... EndFunc %s {block:%d} variables: %zu \n"
-            , SymbolTable::getName(funcSymId).c_str(), mBlockInFunction, mLocalVariables.back().size());
+        // Tools::printf("..... EndFunc %s {block:%d} variables: %zu \n"
+        //     , SymbolTable::getName(funcSymId).c_str(), mBlockInFunction, mLocalVariables.back().size());
         #endif
         FunctionMap::RegisteredScriptFunctions[funcSymId].localVarCount = mLocalVariables.back().size();
 

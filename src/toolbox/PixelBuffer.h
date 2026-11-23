@@ -31,8 +31,10 @@ struct pixel_buffer {
 
 
     uint32_t get(uint32_t x, uint32_t y);
+    bool get(uint32_t x, uint32_t y, uint32_t& resultColor);
     bool set(uint32_t x, uint32_t y, uint32_t color);
     bool setAt(uint32_t index, uint32_t color);
+    bool getAt(uint32_t index, uint32_t& resultColor);
     void blit(uint32_t dest_x, uint32_t dest_y, const pixel_buffer& src);
 
 }; // pixel buffer

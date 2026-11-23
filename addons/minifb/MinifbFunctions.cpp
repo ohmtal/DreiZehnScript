@@ -120,7 +120,7 @@ namespace DreiZehn
 
 
         // Methods
-        inline static ValueObjectProperty loopProp, setPixelProp, isKeyDownProp;
+        inline static ValueObjectProperty loopProp, setPixelProp, pixelProp, isKeyDownProp;
         inline static ValueObjectProperty closeProp, clearProp, lineProp;
         inline static ValueObjectProperty rectProp, circleProp, fillProp;
         inline static ValueObjectProperty textProp, sleepProp, exportProp;
@@ -183,6 +183,10 @@ namespace DreiZehn
 
             setPixelProp = ValueObjectProperty("setPixel", 3,3
             , "set one pixel. @param int x int y uint color"
+            , TypeMiniFBObject);
+
+            pixelProp = ValueObjectProperty("pixel", 1,2
+            , "set or get one pixel. @param index [color]"
             , TypeMiniFBObject);
 
             isKeyDownProp = ValueObjectProperty("isKeyDown", 1,1
@@ -259,9 +263,8 @@ namespace DreiZehn
                 ret = Value(static_cast<int32_t>(mState));
                 return true;
             }
-            else
             // ------- setPixel
-            if (setPixelProp.matchMethod( methodId , args) == 1) {
+            else if (setPixelProp.matchMethod( methodId , args) == 1) {
                 int32_t x = args[0].getInt();
                 int32_t y = args[1].getInt();
 
@@ -270,6 +273,20 @@ namespace DreiZehn
                 if (x >= 0 && x < mPixelBuffer.width && y >= 0 && y < mPixelBuffer.height) {
                     mPixelBuffer.set(x,y,color);
                 }
+                return true;
+            }
+            // ------- pixel
+            else if (pixelProp.matchMethod( methodId , args) == 1) {
+                U32 index = args[0].getInt();
+                if ( args.size() > 0 ) {
+                    U32 color = args[1].getUInt();
+                    if (!mPixelBuffer.setAt(index, color)) return false;
+                    ret = args[1];
+                    return true;
+                }
+                U32 resultColor = 0;
+                if (!mPixelBuffer.getAt(index, resultColor)) return false;
+                ret = Value(resultColor);
                 return true;
             }
             // ------- isKeyDown

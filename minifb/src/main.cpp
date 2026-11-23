@@ -1,141 +1,202 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <MiniFB.h>
+//-----------------------------------------------------------------------------
+// Copyright (c) 2012 Thomas Hühn (XXTH)
+// SPDX-License-Identifier: MIT
+//-----------------------------------------------------------------------------
+// DreiZehn MiniFB Implementation with Console
+//-----------------------------------------------------------------------------
+#define DREIZEHN_LINENOISE
+#ifdef DREIZEHN_LINENOISE
+    #include "addons/cpp-linenoise/linenoise.hpp"
+    #ifdef _WIN32
+    #include <conio.h>
+    #else
+    #include <sys/select.h>
+    #include <unistd.h>
+    #endif
+#endif
 
-#include "core/Types.h"
-#include "toolbox/PixelBuffer.h"
-
-
-// see also >>> MiniFB_enums.h <<<
-// Window Flags:
-// -------------
-// MFB_WF_RESIZABLE          = 0x01,
-// MFB_WF_FULLSCREEN         = 0x02,
-// MFB_WF_FULLSCREEN_DESKTOP = 0x04,
-// MFB_WF_BORDERLESS         = 0x08,
-// MFB_WF_ALWAYS_ON_TOP      = 0x10,
-
-// Update states:
-// -------------
-// MFB_STATE_OK             =  0,
-// MFB_STATE_EXIT           = -1,
-// MFB_STATE_INVALID_WINDOW = -2,
-// MFB_STATE_INVALID_BUFFER = -3,
-// MFB_STATE_INTERNAL_ERROR = -4,
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 
-using namespace DreiZehn;
+#include "DreiZehn.h"
+#include "ScriptLoader.h"
 
-U32 W = 640;
-U32 H = 400;
+#include "addons/minifb/MinifbFunctions.h"
 
-struct PixelObject : public PixelBuffer::pixel_buffer {
-private:
-    bool initialized = false;
-    struct mfb_window *window = nullptr;
-    mfb_update_state state;
-public:
-    size_t pixelcount = 0;
 
-    bool Init (const char* caption, U32 w, U32 h, U32 flags = MFB_WF_RESIZABLE) {
-        window = mfb_open_ex(caption, w, h, flags);
-        if (!window) return false;
-        width = w;
-        height = h;
-        pixelcount = w * h;
-        buffer = new uint32_t[pixelcount]();
-        if (!buffer) return false;
-        initialized = true;
-        return true;
-    }
-    ~PixelObject() {
-        window = nullptr;
-        if (buffer) delete[] buffer;
-        buffer = nullptr;
-        initialized = false;
-    }
-    void clear (U32 color) {
-          std::fill(buffer, buffer + pixelcount, color);
-    }
-    static U32 rgb(U8 r, U8 g, U8 b) {
-        return MFB_RGB(r,g,b);
+#ifdef DREIZEHN_LINENOISE
+static std::string hints_callback(
+    const char* input,
+    int& color,
+    bool& bold
+) {
+    const std::string prefix = input ? input : "";
+    if (prefix.empty()) {
+        return "";
     }
 
-    size_t getCount() {return pixelcount;}
+    for (const auto& [key, value] : DreiZehn::FunctionMap::RegisteredFunctions) {
+        const std::string name = SymbolTable::getName(key);
 
-    const mfb_update_state& Update() {
-        if (!initialized) {
-            state =  MFB_STATE_INTERNAL_ERROR;
-        } else {
-            state =  mfb_update_ex(window, buffer, width, height);
+        if (name.compare(0, prefix.size(), prefix) == 0) {
+            color = 35;
+            bold = false;
+
+            return name.substr(prefix.size());
         }
-        return state;
-    }
-    bool Loop() {
-        if (!initialized) return false;
-        return mfb_wait_sync(window);
     }
 
-    void Line( U32 x1, U32 y1,U32 x2,U32 y2, U32 color ){
-        line(this,x1,y1,x2,y2,color);
-    }
-    void Rect( U32 x, U32 y,U32 w,U32 h, U32 color ){
-        rect(this,x,y,w,h,color);
-    }
-    void Circle(U32 x, U32 y, U32 r, U32 color) {
-        circle(this,x,y,r,color);
-    }
-    void Text(U32 x, U32 y, const char *caption, U32 scale, U32 color) {
-        text(this, x, y, caption, scale, color);
-    }
-
-
-
-
-};
-
-PixelObject Pixels;
-
-
-void DrawOverlay() {
-    Pixels.Line(0,0, W, H, Pixels.rgb(180, 200, 255));
-    Pixels.Line(0,H, W, 0, Pixels.rgb(180, 200, 255));
-    Pixels.Rect(50, 60, W - 100,H - 100, Pixels.rgb(0, 0, 200));
-    Pixels.Circle((U32)(W / 2), (U32)(H / 2), (U32)(H/3), Pixels.rgb(180, 0, 0));
-    Pixels.Circle((U32)(W / 2), (U32)(H / 2), (U32)(H/4), Pixels.rgb(0, 160, 160));
-    Pixels.Text(10,10, "* Pixels *", 12 , 0);
-    Pixels.Text(11,11, "* Pixels *", 12 , 0x00FFFF);
+    return "";
 }
 
-int main() {
+static void completion_callback(
+    const char* input,
+    std::vector<std::string>& completions
+) {
+    const std::string prefix = input ? input : "";
 
-    if (!Pixels.Init("Hello FB",W,H)) return -1;
-    Pixels.clear(Pixels.rgb(30,30,30));
+    for (const auto& [key, value] : DreiZehn::FunctionMap::RegisteredFunctions) {
+        const std::string name = SymbolTable::getName(key);
 
-
-
-    size_t      i;
-    uint32_t    noise, carry, seed = 0xbeef;
-    do {
-
-        for (i = 0; i < Pixels.pixelcount; ++i) {
-            noise = seed;
-            noise >>= 3;
-            noise ^= seed;
-            carry = noise & 1;
-            noise >>= 1;
-            seed >>= 1;
-            seed |= (carry << 30);
-            noise &= 0xFF;
-            Pixels.buffer[i] = noise;
-            // Pixels.buffer[i] = MFB_RGB(0, noise, 0);
+        if (name.compare(0, prefix.size(), prefix) == 0) {
+            completions.push_back(name);
         }
-        DrawOverlay();
-
-        if (Pixels.Update() != MFB_STATE_OK) break;
-    } while(Pixels.Loop());
+    }
+}
 
 
+bool read_line_nonblocking(const char* prompt, std::string& line) {
+    static linenoise::EditState st;
+    static bool is_initialized = false;
+
+    if (!is_initialized) {
+        linenoise::EditStart(st, prompt);
+        is_initialized = true;
+    }
+
+    bool has_input = false;
+    #ifdef _WIN32
+    has_input = _kbhit();
+    #else
+    fd_set readfds;
+    struct timeval tv = {0, 0};
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+    has_input = (select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv) > 0);
+    #endif
+
+    if (!has_input) {
+        return false;
+    }
+
+    auto status = linenoise::EditFeed(st, line);
+
+    if (status == linenoise::EditStatus::More) {
+        return false;
+    }
+
+    linenoise::EditStop(st);
+    is_initialized = false;
+
+    return (status == linenoise::EditStatus::Done);
+}
+#endif
+
+bool ConsoleCall(DreiZehn::Environment& env) {
+#ifdef DREIZEHN_LINENOISE
+    static std::string line;
+
+    if (read_line_nonblocking("> ", line)) {
+        if (line == "exit" || line == "quit") return false;
+
+        if (!line.empty()) {
+            linenoise::AddHistory(line.c_str());
+        }
+
+        std::stringstream stream(line);
+        if (DreiZehn::Globals::ByteCodeMode) {
+            DreiZehn::RunScriptStreamByteCode(stream, env, false);
+
+        } else {
+            DreiZehn::RunScriptStream(stream, env);
+        }
+    }
+#endif
+    return true;
+}
+
+// bool ConsoleCall(DreiZehn::Environment& env) {
+//     static std::string line;
+//     if (read_line_nonblocking("> ", line )) {
+//         if (line == "exit") return false;
+//         if (line == "quit") return false;
+//
+//         std::stringstream stream(line);
+//         DreiZehn::RunScriptStream(stream, env);
+//     }
+//     return true;
+// }
+
+// -------------------------------------------------------------------------
+int main(int argc, char* argv[]) {
+    using namespace DreiZehn;
+
+    Environment env;
+    Init(env, argc, argv);
+
+
+
+    FunctionMap::ModuleRegistry::LoadAll(env);
+    RegisterMiniFBFunctions(env);
+
+    OnBreath = [&env]() -> bool {
+        return ConsoleCall(env);
+    };
+
+    int minargs = 1;
+    for (int i = 1; i < argc; i++) {
+        std::string strArg = argv[i];
+        if (strArg == "-ip") {
+            Globals::ByteCodeMode = false;
+            minargs++;
+            break;
+        } else if (strArg == "-bc") {
+            Globals::ByteCodeMode = true;
+            minargs++;
+            break;
+        }
+    }
+
+
+    if (argc > minargs) {
+
+        std::string scriptPath = argv[minargs];
+
+        bool success = RunScriptFile(scriptPath, env, Globals::ByteCodeMode);
+
+
+        return success ? 0 : 1;
+
+    }
+    // -------------------------------------------------------------------------
+    // Console Mode
+    // -------------------------------------------------------------------------
+#ifdef DREIZEHN_LINENOISE
+    std::string line;
+
+    linenoise::SetCompletionCallback(completion_callback);
+    linenoise::SetHintsCallback(hints_callback);
+
+    Tools::printf(">> DreiZehn [%s]. Console ready .. type quit or exit to escape <<\n", Globals::ByteCodeMode ? "Bytecode" : "Interpreter");
+    while (true) {
+
+        if (!ConsoleCall(env)) break;
+        Tools::sleep(16);
+
+    }
+#endif
     return 0;
 }

@@ -18,7 +18,7 @@ endif()
 # -----------------------------------------------------------------------------
 project(pixels C CXX)
 
-
+set(DREIZEHN_LINENOISE ON CACHE BOOL "" FORCE)
 include ("../src/DreiZehn.cmake")
 set (LINK_LIBS DreiZehn)
 
@@ -26,6 +26,7 @@ set(PROJECT_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     # ${CMAKE_CURRENT_SOURCE_DIR}/src/SDL3Functions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/toolbox/PixelBuffer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../addons/minifb/MinifbFunctions.cpp
 )
 
 # ------------- miniFB
@@ -57,6 +58,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/../
+
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

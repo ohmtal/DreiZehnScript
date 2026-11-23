@@ -770,8 +770,22 @@ not detected or not set ?!
     - mhh i'am sure it did work yesterday - i did a benchmark 
     - look like it's removed ... garbage collection fix ?!  << THIS!
         
+- [ ] ByteCode Bug: Method Script calls "this" is not attached !!!
+    - `foo = Object::new; fn Object::bar this; print this;;foo->bar`
+      ==> `[warn] [Parser LINE:1]: Unknown Identifier: foo`
+    - `fn Object::bar this; print this;;foo = Object::new;foo->bar`
+      ==> This works on both ?! 
+    - [ ] Interpreter : the one liner also does not work on Interpreter !!!!! 
+        - debug start at parser foo not found why - it's something with the ";" skip
+          i guess. no guessing debugging :P
+          
+    - with global foo it works on Interpreter and ByteCode ... something is 
+      wrong with the locals here !!! 
+    - [ ] but in miniFB bc also does not work when it's global! i broke it somewhere 
+        - debug start at: handle_OP_CALL_OBJECT_METHOD 
     
-
+    
+    
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 
 this a lot of times i have a monster sized code then.

@@ -5,6 +5,8 @@
 
     cp DreiZehn.xml ~/.local/share/org.kde.syntax-highlighting/syntax/
 
+    RELOAD [F7] => reload-highlighting
+
     based on LUA (www.lua.org) syntax highlighting for Kate
 
 
@@ -170,11 +172,10 @@
     <contexts>
       <context name="Normal" attribute="Normal Text" lineEndContext="#stay">
         <DetectChar attribute="Comment" context="Comment" char="#"/>
-
         <Detect2Chars attribute="Comment" context="ShebangLine" char="#" char1="!" column="0"/>
-
         <DetectSpaces/>
         <keyword attribute="Deprecated" context="#stay" String="deprecated"/>
+        <Detect2Chars attribute="Comment" context="MatchComment" char="/" char1="/" lookAhead="true"/>
         <Detect2Chars attribute="Comment" context="MatchComment" char="-" char1="-" lookAhead="true"/>
 
         <RegExpr attribute="RawStrings" context="String_block" String="\[(=*)\["/>
@@ -214,6 +215,7 @@
       <context name="MatchComment" attribute="Normal Text" lineEndContext="#pop" fallthroughContext="#pop">
 <!--         <IncludeRules context="##DoxygenLua"/> -->
         <Detect2Chars attribute="Comment" context="#pop!Comment" char="-" char1="-"/>
+        <Detect2Chars attribute="Comment" context="#pop!Comment" char="/" char1="/"/>
         <DetectChar attribute="Comment" context="#pop!Comment" char="#"/>
       </context>
 
@@ -327,6 +329,7 @@
     <comments>
       <comment name="singleLine" start="--" />
       <comment name="singleLine" start="#"/>
+      <comment name="singleLine" start="//" />
     </comments>
     <keywords casesensitive="1" weakDeliminator="." additionalDeliminator="'&quot;#"/>
   </general>

@@ -33,7 +33,10 @@ define BEIGE      Vector::new 211 176 131 255    # Beige
 define BROWN      Vector::new 127 106 79 255     # Brown
 define DARKBROWN  Vector::new 76 63 47 255       # Dark Brown
 
-global Rects = 0
+// NOTE: only define NOT set because on reload this is overwritten
+// A global here is bad anyway
+// global Rects = 0
+global Rects
 -- -----------------------------------------------------------------------------
 -- To set parameters before it open the window
 fn flux::Setup

@@ -814,13 +814,21 @@ not detected or not set ?!
         - [X] fixed IncludeStatement \o/
 
 
-- [ ] Interpreter
+- [X] Interpreter
     - [X] on interpreter it should also end on a RunTimeError.
         - splittes runtime and compile error to set `InterpreterFatalError`
         - added FlowStatus::Error
         
 
-- [ ] BaseElf13: interpreter and bytecode reload fail. Do i need to  register the events again?!
+- [X] BaseElf13: interpreter and bytecode reload fail. Do i need to  register the events again?!
+    - **testing on Interpreter**
+    - global Rects are 0 after reload - objects are still assigned in GC
+    - when i set global/root locals before reload the values are still ok. 
+    - when i assign Rects to a varible it's still set after reload
+    - LOL! in code we have `global Rects = 0` thats why it's 0 after reload!
+    - FIX: only define not set! => `global Rects`
+    
+- Finally: reload with *event driven loop* runs with Interpreter and ByteCode :D
 
 ================================================================================
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 

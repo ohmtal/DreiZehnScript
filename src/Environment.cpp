@@ -30,6 +30,7 @@ namespace DreiZehn{
     size_t Environment::reserveAndSaveGlobal(U32 symId, const Value& value) {
         size_t result = reserveGlobal(symId);
         saveGlobal(result,value);
+        if (value.isObjectPointer()) value.asPointerObject()->setAssigned(true);
         return result;
     }
 

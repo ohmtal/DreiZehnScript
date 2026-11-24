@@ -22,7 +22,7 @@ namespace DreiZehn {
 
 
     // -------------------------------------------------------------------------
-    void PrintASTCompileError(const ASTNode* node,  const std::string& p1,
+    void PrintASTCompileError( Environment& env, const ASTNode* node,  const std::string& p1,
                        const std::string& p2 = "", const std::string& p3 = ""){
 
         if (!node) return;
@@ -33,6 +33,7 @@ namespace DreiZehn {
             , p2.c_str()
             , p3.c_str()
         );
+         env.FatalError = true;
     }
 
     void PrintAstRuntimeError(Environment& env, const ASTNode* node,  const std::string& p1,
@@ -46,17 +47,17 @@ namespace DreiZehn {
             , p2.c_str()
             , p3.c_str()
         );
-        env.InterpreterFatalError = true;
+        env.FatalError = true;
     }
 
 
     // -------------------------------------------------------------------------
     bool Expression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
-        PrintASTCompileError(this,"Expression can not compile a Reference.");
+        PrintASTCompileError( env, this,"Expression can not compile a Reference.");
         return false;
     }
     bool Expression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
-        PrintASTCompileError(this,"Expression has no assign handler.");
+        PrintASTCompileError( env, this,"Expression has no assign handler.");
         return false;
     }
 
@@ -124,7 +125,7 @@ namespace DreiZehn {
 
     bool LiteralExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"LiteralExpression without a request!");
+            PrintASTCompileError( env, this,"LiteralExpression without a request!");
             return false;
         }
         uint32_t constIdx = chunk.addConstant(this->evaluate(env));
@@ -137,7 +138,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     bool ValueExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"ValueExpression without a request!");
+            PrintASTCompileError( env, this,"ValueExpression without a request!");
             return false;
         }
         uint32_t constIdx = chunk.addConstant(this->evaluate(env));
@@ -165,7 +166,7 @@ namespace DreiZehn {
 
     bool LocalVariableExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"compile pointer need a request!");
+            PrintASTCompileError( env, this,"compile pointer need a request!");
             return false;
         }
         U32 localSlot = scope.insert(mVariableRegister);
@@ -209,7 +210,7 @@ namespace DreiZehn {
 
     bool GlobalVariableExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"compile pointer need a request!");
+            PrintASTCompileError( env, this,"compile pointer need a request!");
             return false;
         }
         chunk.emit(OP_PUSHPTR_VAR);
@@ -249,7 +250,7 @@ namespace DreiZehn {
     // -------------------------
     bool VariableReferenceExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mVarExpr) {
-            PrintASTCompileError(this, "bytecode compile missing Variable");
+            PrintASTCompileError( env, this, "bytecode compile missing Variable");
             return false;;
         }
         mVarExpr->compilePtr(env,chunk,scope,requestType);
@@ -258,17 +259,17 @@ namespace DreiZehn {
     // -------------------------
     bool VariableReferenceExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mVarExpr) {
-            PrintASTCompileError(this, "bytecode compileAssignment missing Variable");
+            PrintASTCompileError( env, this, "bytecode compileAssignment missing Variable");
             return false;
         }
-        PrintASTCompileError(this, "Variable Reference can't be assigned directly to set the value use (*var)");
+        PrintASTCompileError( env, this, "Variable Reference can't be assigned directly to set the value use (*var)");
 
         return false;
     }
     // -------------------------
     bool VariableReferenceExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mVarExpr) {
-            PrintASTCompileError(this, "bytecode compilePtr missing Variable");
+            PrintASTCompileError( env, this, "bytecode compilePtr missing Variable");
             return false;
         }
         return mVarExpr->compilePtr(env,chunk,scope,requestType);
@@ -301,11 +302,11 @@ namespace DreiZehn {
     // -------------------------
     bool VariablePointerExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"need a request!");
+            PrintASTCompileError( env, this,"need a request!");
             return false;
         }
         if (!mVarExpr) {
-            PrintASTCompileError(this, "bytecode compile missing Variable");
+            PrintASTCompileError( env, this, "bytecode compile missing Variable");
             return false;;
         }
 
@@ -317,7 +318,7 @@ namespace DreiZehn {
     // -------------------------
     bool VariablePointerExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mVarExpr) {
-            PrintASTCompileError(this, "bytecode compileAssignment missing Variable");
+            PrintASTCompileError( env, this, "bytecode compileAssignment missing Variable");
             return false;
         }
 
@@ -332,7 +333,7 @@ namespace DreiZehn {
     bool VariablePointerExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
 
         if (!mVarExpr) {
-            PrintASTCompileError(this, "bytecode compilePtr missing Variable");
+            PrintASTCompileError( env, this, "bytecode compilePtr missing Variable");
             return false;
         }
 
@@ -402,7 +403,7 @@ namespace DreiZehn {
     // ----------------
     bool ArrayVariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mVarExpr || !mIndexExpr ) {
-            PrintASTCompileError(this,"Array Field invalid Variable or index");
+            PrintASTCompileError( env, this,"Array Field invalid Variable or index");
             return false;
         }
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
@@ -416,7 +417,7 @@ namespace DreiZehn {
                 chunk.emit(OP_LOAD_ARRAY_SYMID);
                 chunk.emit(SymbolTable::insert( val.getStringRef()) );
             } else {
-                PrintASTCompileError(this,"Array Field index is NOT a number and NOT a string ?!");
+                PrintASTCompileError( env, this,"Array Field index is NOT a number and NOT a string ?!");
                 return false;
             }
         } else {
@@ -432,12 +433,12 @@ namespace DreiZehn {
     // ----------------
     bool ArrayVariableExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"compile pointer need a request!");
+            PrintASTCompileError( env, this,"compile pointer need a request!");
             return false;
         }
 
         if (!mVarExpr || !mIndexExpr ) {
-            PrintASTCompileError(this,"Array Field invalid Variable or index");
+            PrintASTCompileError( env, this,"Array Field invalid Variable or index");
             return false;
         }
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
@@ -451,7 +452,7 @@ namespace DreiZehn {
                 chunk.emit(OP_PUSHPTR_ARRAY_SYMID);
                 chunk.emit(SymbolTable::insert( val.getStringRef()) );
             } else {
-                PrintASTCompileError(this,"Array Field index is NOT a number and NOT a string ?!");
+                PrintASTCompileError( env, this,"Array Field index is NOT a number and NOT a string ?!");
                 return false;
             }
         } else {
@@ -464,7 +465,7 @@ namespace DreiZehn {
     // ----------------
     bool ArrayVariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mVarExpr || !mIndexExpr ) {
-            PrintASTCompileError(this,"Array Field invalid Variable or index");
+            PrintASTCompileError( env, this,"Array Field invalid Variable or index");
             return false;
         }
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
@@ -536,7 +537,7 @@ namespace DreiZehn {
     // -----------------------
     bool ObjectFieldExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mVarExpr ) {
-            PrintASTCompileError(this, "Field without an variable");
+            PrintASTCompileError( env, this, "Field without an variable");
             return false;
         }
         // PUSH VAR
@@ -555,11 +556,11 @@ namespace DreiZehn {
     // -----------------------
     bool ObjectFieldExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mVarExpr ) {
-            PrintASTCompileError(this, "Field without an variable");
+            PrintASTCompileError( env, this, "Field without an variable");
             return false;
         }
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"compile pointer need a request!");
+            PrintASTCompileError( env, this,"compile pointer need a request!");
             return false;
         }
         // PUSH VAR
@@ -579,7 +580,7 @@ namespace DreiZehn {
     // -----------------------
     bool ObjectFieldExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mVarExpr ) {
-            PrintASTCompileError(this, "Field without an variable");
+            PrintASTCompileError( env, this, "Field without an variable");
             return false;
         }
         // PUSH VAR
@@ -653,7 +654,7 @@ namespace DreiZehn {
     bool MethodExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
 
         if (!mVarExpr) {
-            PrintASTCompileError(this, "No Variable Expression!");
+            PrintASTCompileError( env, this, "No Variable Expression!");
             return false;
         }
         U32 argCount = 0;
@@ -675,11 +676,11 @@ namespace DreiZehn {
     // ---------------------
     bool MethodExpression::compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"compile pointer need a request!");
+            PrintASTCompileError( env, this,"compile pointer need a request!");
             return false;
         }
         if (!mVarExpr) {
-            PrintASTCompileError(this, "No Variable Expression!");
+            PrintASTCompileError( env, this, "No Variable Expression!");
             return false;
         }
         U32 argCount = 0;
@@ -700,7 +701,7 @@ namespace DreiZehn {
     bool MethodExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
 
         if (!mVarExpr) {
-            PrintASTCompileError(this, "No Variable Expression!");
+            PrintASTCompileError( env, this, "No Variable Expression!");
             return false;
         }
         U32 argCount = 0;
@@ -754,7 +755,7 @@ namespace DreiZehn {
     // --------------------
     bool ListExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"list need a request!");
+            PrintASTCompileError( env, this,"list need a request!");
             return false;
         }
         U32 argCount = 0;
@@ -918,7 +919,7 @@ namespace DreiZehn {
             return CallScriptFunc(env,sfCache, arguments);
         }
 
-        PrintASTCompileError(this, "Unknown command:", SymbolTable::getName(mFuncSymbolId));
+        PrintASTCompileError( env, this, "Unknown command:", SymbolTable::getName(mFuncSymbolId));
         return Value();
 
     }
@@ -974,7 +975,7 @@ namespace DreiZehn {
 
 
 
-        PrintASTCompileError(this, "Unknown command:", SymbolTable::getName(mFuncSymbolId));
+        PrintASTCompileError( env, this, "Unknown command:", SymbolTable::getName(mFuncSymbolId));
         return false;
     }
 
@@ -1113,7 +1114,7 @@ namespace DreiZehn {
         // bool unary = false;
         if (requestType == ValueType::NONE) {
             // if (mOp != TokenType::Minus) {
-                PrintASTCompileError(this, "Invalid calculation: If you want to add a '-' Value encapsulate it like (-1).");
+                PrintASTCompileError( env, this, "Invalid calculation: If you want to add a '-' Value encapsulate it like (-1).");
                 return false;
             // }
             // unary hack
@@ -1122,7 +1123,7 @@ namespace DreiZehn {
 
 
         if (!mLeft.get() || !mRight.get()) {
-            PrintASTCompileError(this, "left or right is missing");
+            PrintASTCompileError( env, this, "left or right is missing");
             return false;
         }
 
@@ -1136,7 +1137,7 @@ namespace DreiZehn {
             case TokenType::Mul     : chunk.emit(OP_MUL); break;
             case TokenType::Div     : chunk.emit(OP_DIV); break;
             default:
-                PrintASTCompileError(this, "COMPILE ERROR BinaryOpExpression : unknown TokenType:", std::to_string( (int)this->mOp) );
+                PrintASTCompileError( env, this, "COMPILE ERROR BinaryOpExpression : unknown TokenType:", std::to_string( (int)this->mOp) );
                 return false;
         }
         return true;
@@ -1227,7 +1228,7 @@ namespace DreiZehn {
             S32 localSlot = scope.resolve(vExpr->mVariableRegister);
             if (localSlot < 0 ) {
                 // std::string varName = SymbolTable::getName(vExpr->mVariableNameSymbolId);
-                PrintASTCompileError(this, "Variable not found in local scope. REG:", std::to_string(localSlot).c_str(),  std::to_string(vExpr->mVariableRegister).c_str());
+                PrintASTCompileError( env, this, "Variable not found in local scope. REG:", std::to_string(localSlot).c_str(),  std::to_string(vExpr->mVariableRegister).c_str());
                 return true; // do not stop!
             }
 
@@ -1323,7 +1324,7 @@ namespace DreiZehn {
     bool BinaryAndOrExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
 
         if (!mLeft.get() || !mRight.get()) {
-            PrintASTCompileError(this,"(&& ||) left or right is missing");
+            PrintASTCompileError( env, this,"(&& ||) left or right is missing");
             return false;
         }
 
@@ -1357,7 +1358,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     bool BinaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mLeft.get() || !mRight.get()) {
-            PrintASTCompileError(this,"left or right is missing");
+            PrintASTCompileError( env, this,"left or right is missing");
             return false;
         }
 
@@ -1380,7 +1381,7 @@ namespace DreiZehn {
             case TokenType::Modulo:       chunk.emit(OP_MODULO); break;
 
             default:
-                PrintASTCompileError(this,"Unknown binary operator");
+                PrintASTCompileError( env, this,"Unknown binary operator");
                 return false;
         }
 
@@ -1639,7 +1640,7 @@ namespace DreiZehn {
     }
     bool BinarySingleRightOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"Expression without a request!");
+            PrintASTCompileError( env, this,"Expression without a request!");
             return false;
         }
         if (!mRight) return false;
@@ -1678,7 +1679,7 @@ namespace DreiZehn {
     bool AssignStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
 
          if (!mVarExpr || !mRhs) [[unlikely]] {
-             PrintASTCompileError(this,"Assign: variable or right is missing or invalid");
+             PrintASTCompileError( env, this,"Assign: variable or right is missing or invalid");
              return false;
          }
         // types must support compileAssignment!
@@ -1770,7 +1771,7 @@ namespace DreiZehn {
     bool AssignOPStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
 
         if (!mVarExpr || !mRhs) [[unlikely]] {
-            PrintASTCompileError(this,"AssignOP: variable or right is missing or invalid");
+            PrintASTCompileError( env, this,"AssignOP: variable or right is missing or invalid");
             return false;
         }
 
@@ -1780,8 +1781,8 @@ namespace DreiZehn {
             S32 localSlot = scope.resolve(vExpr->mVariableRegister);
             if (localSlot < 0 ) {
                 // std::string varName = SymbolTable::getName(vExpr->mVariableRegister);
-                // PrintASTCompileError(this,"Variable not found :", varName);
-                PrintASTCompileError(this, "Variable not found in local scope. REG:", std::to_string(localSlot).c_str(),  std::to_string(vExpr->mVariableRegister).c_str());
+                // PrintASTCompileError( env, this,"Variable not found :", varName);
+                PrintASTCompileError( env, this, "Variable not found in local scope. REG:", std::to_string(localSlot).c_str(),  std::to_string(vExpr->mVariableRegister).c_str());
 
                 return true; // do not stop!
             }
@@ -1841,7 +1842,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     bool TernaryExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (!mCondition || !mTrueBranch || ! mFalseBranch) {
-            PrintASTCompileError(this,"TernaryExpression missing condition or true or false branch!");
+            PrintASTCompileError( env, this,"TernaryExpression missing condition or true or false branch!");
             return false;
         }
 
@@ -1876,7 +1877,7 @@ namespace DreiZehn {
     }
     bool UnaryMinusExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"Minus Expression without a request!");
+            PrintASTCompileError( env, this,"Minus Expression without a request!");
             return false;
         }
         if (!mExpr) return false;
@@ -1944,7 +1945,7 @@ namespace DreiZehn {
     // ----------------
     bool IfStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (!mCondition.get() ) {
-            PrintASTCompileError(this,"If expression is missing condition or then-branch");
+            PrintASTCompileError( env, this,"If expression is missing condition or then-branch");
             return false;
         }
 
@@ -2013,7 +2014,7 @@ namespace DreiZehn {
     // ------
     bool ForRangeStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!this->mCountExpr ) {
-            PrintASTCompileError(this,"forRange need a count border");
+            PrintASTCompileError( env, this,"forRange need a count border");
             return false;
         }
         // add iter values to registers
@@ -2122,7 +2123,7 @@ namespace DreiZehn {
     // ---------------------
     bool ForStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mStartExpr || !mEndExpr ) {
-            PrintASTCompileError(this,"For-Loop is missing Start, End or Step expression:");
+            PrintASTCompileError( env, this,"For-Loop is missing Start, End or Step expression:");
             return false;
         }
 
@@ -2210,7 +2211,7 @@ namespace DreiZehn {
 
     bool WhileStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (!mCondition.get()) {
-            PrintASTCompileError(this,"While loop is missing condition:");
+            PrintASTCompileError( env, this,"While loop is missing condition:");
             return false;
         }
         U32 loopStartIP = chunk.tell();
@@ -2306,7 +2307,7 @@ namespace DreiZehn {
     // ---------------------
     bool ForEachStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!this->mVarExpr ) {
-            PrintASTCompileError(this,"forEach need a list expression!");
+            PrintASTCompileError( env, this,"forEach need a list expression!");
             return false;
         }
         // add iter values to registers
@@ -2386,7 +2387,7 @@ namespace DreiZehn {
     // --------------------
     bool KeyValueExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mKeyExpr || !mValueExpr) {
-            PrintASTCompileError(this,"Compile: KeyValueExpression error key or value missing");
+            PrintASTCompileError( env, this,"Compile: KeyValueExpression error key or value missing");
             return false;
         }
         if (!mKeyExpr->compile(env,chunk,scope, ValueType::ANY)) return false;
@@ -2463,7 +2464,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     bool BreakStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (scope.mLoopStack.empty()) {
-            PrintASTCompileError(this,"Error: 'break' outside of loop context!");
+            PrintASTCompileError( env, this,"Error: 'break' outside of loop context!");
             return false;
         }
         chunk.emit(OP_JUMP_CLEAN_STACK);
@@ -2478,7 +2479,7 @@ namespace DreiZehn {
     // -------------------------------------------------------------------------
     bool ContinueStatement::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (scope.mLoopStack.empty()) {
-            PrintASTCompileError(this,"Error: 'continue' outside of loop context!");
+            PrintASTCompileError( env, this,"Error: 'continue' outside of loop context!");
             return false;
         }
 
@@ -2507,12 +2508,12 @@ namespace DreiZehn {
     // ------------------------
     bool StringConcatExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         if (requestType == ValueType::NONE) {
-            PrintASTCompileError(this,"Concat but no request for it.");
+            PrintASTCompileError( env, this,"Concat but no request for it.");
             return false;
         }
 
         if (!mLeft.get() || !mRight.get()) {
-            PrintASTCompileError(this,"left or right is missing");
+            PrintASTCompileError( env, this,"left or right is missing");
             return false;
         }
 
@@ -2545,7 +2546,7 @@ namespace DreiZehn {
     // ------------------------------
     bool StringConcatAssignExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (!mLeft) [[unlikely]] {
-            PrintASTCompileError(this,"String Concat  but variable is missing");
+            PrintASTCompileError( env, this,"String Concat  but variable is missing");
             return false;
         }
 
@@ -2567,7 +2568,7 @@ namespace DreiZehn {
         FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFnNameSymbolId);
 
         if (!sf) {
-              PrintASTCompileError(this,"Function not found:", SymbolTable::getName(mFnNameSymbolId));
+              PrintASTCompileError( env, this,"Function not found:", SymbolTable::getName(mFnNameSymbolId));
               return false;
         }
 
@@ -2593,14 +2594,15 @@ namespace DreiZehn {
             statement->compile(env, chunk, funcScope, ValueType::NONE);
         }
 
-
-
+        // if the function did not return a value before i add a return
+        // value 0 here.
+        // i could check a return was emitted but to be sure this is better.
+        // cost 3 slots = 12 bytes on every script function.
         chunk.emit(OP_PUSH_VALUE);
         chunk.emitValue(NumberNullValue);
         chunk.emit(OP_RETURN);
 
         sf->localVarCount = funcScope.getLocalCount();
-
 
         chunk.patch(jumpOffset, chunk.tell());
 

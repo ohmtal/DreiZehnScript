@@ -146,6 +146,7 @@ namespace DreiZehn {
     #define THROW_VM_ERROR(...) \
     do { \
         PrintVMError(__VA_ARGS__); \
+        env.FatalError = true; \
         goto handle_OP_EXIT; \
     } while (0)
 

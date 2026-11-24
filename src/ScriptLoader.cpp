@@ -242,7 +242,7 @@ namespace DreiZehn {
 
     // --------------------------------------------------------------------------------
     Value RunScriptStreamByteCode(std::istream& stream, Environment& env, bool resetByteCode  ) {
-
+        env.FatalError = false;
         auto mainProgram = ParseScriptToAST(env,stream);
         if (!mainProgram) return false;
 

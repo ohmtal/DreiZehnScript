@@ -211,8 +211,8 @@ void RunScriptWrapper(Environment& env, std::string filename) {
     if (filename.empty()) return;
     // if (Globals::ByteCodeMode)
     {
-        Tools::errorf("FIXME reload: also on Interpreter - always ForEach no object! Must be the FireScriptEvent");
-        return;
+        // Tools::errorf("FIXME reload: also on Interpreter - always ForEach no object! Must be the FireScriptEvent");
+        // return;
     }
     //not enough?! env.getVM().resetChunk(); // doesnt matter if it's bytecode mode reset anyway
     RunScriptFile(filename, env, Globals::ByteCodeMode);

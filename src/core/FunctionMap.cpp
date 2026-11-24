@@ -91,6 +91,9 @@ namespace DreiZehn::FunctionMap {
             Tools::errorf("FireScriptEvent - Init first - function not found!");
             return NumberNullValue;
         }
+        if (event.envPtr->FatalError) [[unlikely]] {
+            return NumberNullValue;
+        }
         if ( Globals::ByteCodeMode ) {
 
             BytecodeChunk& chunk =  env.getVM().getChunk();

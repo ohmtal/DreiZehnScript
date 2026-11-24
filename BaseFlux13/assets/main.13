@@ -33,7 +33,8 @@ define BEIGE      Vector::new 211 176 131 255    # Beige
 define BROWN      Vector::new 127 106 79 255     # Brown
 define DARKBROWN  Vector::new 76 63 47 255       # Dark Brown
 
-// NOTE: only define NOT set because on reload this is overwritten
+// NOTE: only define NOT set because on reload this is set to 0 and we have no
+//       object assigned
 // A global here is bad anyway
 // global Rects = 0
 global Rects
@@ -47,7 +48,7 @@ end
 -- -----------------------------------------------------------------------------
 define WIDTH   800.0
 define HEIGTH  600.0
-define COUNT   500
+define COUNT   5000
 
 function flux::Init
     print " *** Init"

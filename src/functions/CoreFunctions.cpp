@@ -141,6 +141,18 @@ namespace DreiZehn {
             return true;
         }, "Run the GarbageCollection manually");
 
+        RegisterFunction("core::gcGetObject", [](ValueSpan args, Value& ret) -> bool {
+            if (args.size() < 1) {
+                ret =  NumberNullValue;
+                Tools::errorf("Usage: core::gcGetObject index");
+                return true;
+            }
+            ValueObject* obj = GarbageCollection::getValueObject(args[0].getUInt());
+            if (obj) ret = Value(obj); else ret = NumberNullValue;
+            return true;
+        }, "Get a value out of GarbageCollection - this is for debug purposes only!");
+
+
         RegisterFunction("core::printgc", [](ValueSpan args, Value& ret) -> bool {
             bool onlyNotAssigned = args.size() > 0 && args[0].getBool();
             GarbageCollection::print(onlyNotAssigned);

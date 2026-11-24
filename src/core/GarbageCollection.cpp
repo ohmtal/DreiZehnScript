@@ -53,16 +53,24 @@ size_t GarbageCollection::getGarbageSize() {
     return mGarbageCollection.size();
 }
 // ------------------------------------------------------------------------
+ValueObject* GarbageCollection::getObjectValueByIndex(size_t index) {
+    if (mLocked || index >= mGarbageCollection.size()) {
+        Tools::errorf("GarbageCollection is locked or index out of bounds: %u", (U32)index);
+        return nullptr;
+    }
+    return mGarbageCollection[index];
+}
+// ------------------------------------------------------------------------
 void GarbageCollection::listGarbageObjects(bool onlyNotAssigned) {
     Tools::printf("---------------- Garbage Collection ------------------\n");
     size_t countNotAssigned = 0;
-    int i = 0;
     uint64_t curTime = Tools::time_since_start_milliseconds();
-    for (auto* obj : mGarbageCollection) {
+    for (size_t index = 0; index < mGarbageCollection.size(); index++) {
+        ValueObject* obj = mGarbageCollection[index];
         if (onlyNotAssigned && obj->mAssigned > 0) continue;
         int objtype = obj->mType;
-        Tools::printf("#%05d [%p] assigned: %d type:%d %s age:%" PRIu64 "\n"
-        , i, (void*)obj, obj->mAssigned
+        Tools::printf("#%05u [%p] assigned: %d type:%d %s age:%" PRIu64 "\n"
+        , (U32)index, (void*)obj, obj->mAssigned
         , objtype
         , GetObjectTypeName(obj)
         , (curTime - obj->mCreationTime)
@@ -70,7 +78,6 @@ void GarbageCollection::listGarbageObjects(bool onlyNotAssigned) {
         );
 
         if (obj->mAssigned == 0) countNotAssigned++;
-        i++;
     }
     Tools::printf("*** count is: %zu, not assigned: %zu  ***\n"
             , GarbageCollection::size(), countNotAssigned);

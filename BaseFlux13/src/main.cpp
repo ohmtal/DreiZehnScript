@@ -211,7 +211,7 @@ void RunScriptWrapper(Environment& env, std::string filename) {
     if (filename.empty()) return;
     env.getVM().resetChunk(); // doesnt matter if it's bytecode mode reset anyway
     RunScriptFile(filename, env, Globals::ByteCodeMode); // run
-    GarbageCollection::run(); // clean the old stuff
+    // GarbageCollection::run(); // clean the old stuff
 }
 // ----------------------------------------------------------------------------
 void onDraw(SDL_Renderer* renderer, Environment& env) {

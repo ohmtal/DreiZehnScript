@@ -47,6 +47,10 @@ public:
     inline static void print(bool onlyNotAssigned) {
         return get().listGarbageObjects(onlyNotAssigned);
     }
+    // NOTE: this is not assigned so be carefull can be deleted soon!
+    inline static ValueObject* getValueObject(size_t index) {
+        return get().getObjectValueByIndex(index);
+    }
 
     inline static void lock() {
        get().mLocked = true;
@@ -74,6 +78,7 @@ protected:
     void removeFromGarbageCollection(ValueObject* obj);
     size_t getGarbageSize();
     void listGarbageObjects(bool onlyNotAssigned);
+    ValueObject* getObjectValueByIndex(size_t index);
 
 private:
 

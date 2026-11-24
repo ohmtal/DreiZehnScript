@@ -247,6 +247,7 @@ namespace DreiZehn {
     // --------------------------------------------------------------------------------
     bool RunScriptFile(const std::string& filename, Environment& env, bool useByteCode) {
         std::ifstream file(filename);
+        env.CurrentFilename = filename;
         if (!file.is_open()) {
             Tools::errorf("Script file cant be opened: %s\n", filename.c_str());
             return false;

@@ -49,15 +49,12 @@ private:
     // -----
     std::unordered_map<uint32_t, size_t> mGlobalsLookUp;
     ValueVector mGlobalsRegister;
-
-    //TODO must be initialized and on local push pop updated! Value* mVariableBases[2];
-
     // ----
-    // bad idea here ?!
     VM mVM;
 
 
 public:
+    std::string CurrentFilename = "";
 
     Environment() {
         mLocalsRegister.resize(LOCALS_SIZE);
@@ -73,12 +70,12 @@ public:
 
     inline VM& getVM() { return mVM; }
 
-
     // -------------------------------------------------------------------------
     // GlobalsRegister
     // -------------------------------------------------------------------------
     S64 getGlobalRegister(U32 symId);
     size_t reserveGlobal(U32 symId);
+    size_t reserveAndSaveGlobal(U32 symId, const Value& value);
 
     inline void saveGlobal(size_t index, const Value& value) {
         #ifdef DLS_DEBUG
@@ -96,6 +93,7 @@ public:
 
     bool getGlobalVariableValueRef(const std::string& varName, Value& ret);
     void printGlobals();
+    size_t getGlobalsCount();
     // -------------------------------------------------------------------------
     // LocalRegister
     // -------------------------------------------------------------------------

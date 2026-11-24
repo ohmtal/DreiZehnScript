@@ -793,19 +793,13 @@ not detected or not set ?!
             - added new OP_CODE: OP_CALL_SF_METHOD is the same as OP_CALL_SF_FUNCTION but repair the param order.
 
     
+### <<<<< 0.91 ----- 0.92 >>>>>>>     
     
 - [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
 On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 
 this a lot of times i have a monster sized code then.
 
-- [ ] missing assign ops `|=` `&=` `^=` `%=` `>>=` `<<=` 
 
-- [ ] think about adding parent to calls with comma separated parameters this would 
-    enable multi line and lamda calls - add a new syntax folder and switch to it ? 
-    I need to rewrite all scripts but ok 
-    - [ ] Interface to switch Syntax
-    - [ ] support for common for 
-    - [ ] switch case 
 
 
 
@@ -848,6 +842,16 @@ this a lot of times i have a monster sized code then.
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works but depends on compiler! 
 
 ## maybe:
+
+- [ ] missing assign ops `|=` `&=` `^=` `%=` `>>=` `<<=` 
+
+- [ ] think about adding parent to calls with comma separated parameters this would 
+    enable multi line and lamda calls - add a new syntax folder and switch to it ? 
+    I need to rewrite all scripts but ok 
+    - [ ] Interface to switch Syntax
+    - [ ] support for common for 
+    - [ ] switch case 
+
 -  ScriptFunction Lambda << would say NO.
     - need to define FunctionDefineStartNode as expression 
     - return the pointer in evalute and compile 

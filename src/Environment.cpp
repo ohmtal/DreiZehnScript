@@ -27,6 +27,12 @@ namespace DreiZehn{
         return (size_t) index;
     }
 
+    size_t Environment::reserveAndSaveGlobal(U32 symId, const Value& value) {
+        size_t result = reserveGlobal(symId);
+        saveGlobal(result,value);
+        return result;
+    }
+
     bool Environment::getGlobalVariableValueRef(const std::string& varName, Value& ret){
         S64 index = getGlobalRegister(SymbolTable::insert(varName));
         if (index < 0 ) return false;
@@ -41,6 +47,9 @@ namespace DreiZehn{
             ,  SymbolTable::getName(globs.first).c_str()
             , val.toString().c_str());
         }
+    }
+    size_t Environment::getGlobalsCount() {
+        return mGlobalsRegister.size();
     }
 
     S64 Environment::getLocalsRootRegister(U32 symId){

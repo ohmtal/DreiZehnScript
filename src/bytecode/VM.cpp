@@ -154,7 +154,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     #undef X
 
 
-    if (chunk.mByteCodes.empty()) {
+    if (chunk.mTape.empty()) {
         return Value(0.0);
     }
     // -----------------------
@@ -170,8 +170,8 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     #endif
 
     uint32_t  ip = offset;
-    uint32_t* code = chunk.mByteCodes.data();
-    size_t codeSize = chunk.mByteCodes.size();
+    uint32_t* code = chunk.mTape.data();
+    size_t codeSize = chunk.mTape.size();
 
     #ifdef DEBUG_TRACE_EXECUTION
         Tools::printf("----- Running chunk size: %zu, offset: %d ----- \n", codeSize, offset);

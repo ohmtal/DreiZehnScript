@@ -145,19 +145,19 @@ struct RollBackMarker {
 
 // the code chunk
 struct BytecodeChunk {
-    std::vector<U32> mByteCodes;
+    std::vector<U32> mTape;
     ValueVector mConstants;
 
     RollBackMarker mRollBackMarker = {0, 0, false};
 
     void reset() {
         mConstants.clear();
-        mByteCodes.clear();
+        mTape.clear();
     }
 
 
     void touchRollBack() {
-        mRollBackMarker.byteCodeSize = mByteCodes.size();
+        mRollBackMarker.byteCodeSize = mTape.size();
         mRollBackMarker.constantsSize = mConstants.size();
         mRollBackMarker.touched = true;
     }
@@ -167,7 +167,7 @@ struct BytecodeChunk {
             return;
         }
         mRollBackMarker.touched = false;
-        mByteCodes.resize(mRollBackMarker.byteCodeSize);
+        mTape.resize(mRollBackMarker.byteCodeSize);
         mConstants.resize(mRollBackMarker.constantsSize);
     }
 
@@ -187,15 +187,15 @@ struct BytecodeChunk {
     U32 emitValue(const Value& val) {
         static_assert(sizeof(Value) <= 2 * sizeof(U32), "Value size missmatch! Only 8 bytes allowed.");
 
-        U32 startIp = (U32)mByteCodes.size();
-        mByteCodes.resize(startIp + 2);
+        U32 startIp = (U32)mTape.size();
+        mTape.resize(startIp + 2);
 
         if (sizeof(Value) < 8) {
-            mByteCodes[startIp] = 0;
-            mByteCodes[startIp + 1] = 0;
+            mTape[startIp] = 0;
+            mTape[startIp + 1] = 0;
         }
 
-        std::memcpy(&mByteCodes[startIp], &val, sizeof(Value));
+        std::memcpy(&mTape[startIp], &val, sizeof(Value));
         return startIp;
     }
 
@@ -208,45 +208,45 @@ struct BytecodeChunk {
     //     return startIp;
     // }
     U32 emitPointer(void* ptr) {
-        U32 startIp = (U32)mByteCodes.size();
+        U32 startIp = (U32)mTape.size();
         size_t slotsNeeded = sizeof(void*) / sizeof(U32);
-        mByteCodes.resize(startIp + slotsNeeded);
-        std::memcpy(&mByteCodes[startIp], &ptr, sizeof(void*));
+        mTape.resize(startIp + slotsNeeded);
+        std::memcpy(&mTape[startIp], &ptr, sizeof(void*));
         return startIp;
     }
 
 
     U32 tell() {
-        return (U32)mByteCodes.size();
+        return (U32)mTape.size();
     }
 
     bool patch(U32 pos, U32 code) {
-        if (pos >= mByteCodes.size()) return false;
-        mByteCodes[pos] = code;
+        if (pos >= mTape.size()) return false;
+        mTape[pos] = code;
         return true;
     }
 
 
     bool patchPtr(U32 pos, void* ptr) {
-        if ((pos + 2) >= mByteCodes.size()) return false;
-        std::memcpy(&mByteCodes[pos], &ptr, sizeof(void*));
+        if ((pos + 2) >= mTape.size()) return false;
+        std::memcpy(&mTape[pos], &ptr, sizeof(void*));
         return true;
     }
 
     U32 emitS32 (S32 op) {
-        mByteCodes.push_back(static_cast<U32>(op));
-        return (U32)mByteCodes.size() - 1;
+        mTape.push_back(static_cast<U32>(op));
+        return (U32)mTape.size() - 1;
     }
 
     U32 emitF32 (F32 op) {
-        mByteCodes.push_back(static_cast<U32>(op));
-        return (U32)mByteCodes.size() - 1;
+        mTape.push_back(static_cast<U32>(op));
+        return (U32)mTape.size() - 1;
     }
 
 
     U32 emit(U32 op) {
-        mByteCodes.push_back(op);
-        return (U32)mByteCodes.size() - 1;
+        mTape.push_back(op);
+        return (U32)mTape.size() - 1;
     }
 
 };

@@ -7,6 +7,7 @@
 //-----------------------------------------------------------------------------
 #include <cstdio>
 #include <string>
+#include <filesystem>
 
 // ---- DreiZehn
 #include "DreiZehn.h"
@@ -21,17 +22,21 @@
 
 #include "BaseFlux/Main.h"
 #include "spice/gui/ImConsole.h"
-
+#define FILE_EXT ".13"
 
 
 BaseFlux::Main app;
 ImConsole gConsole;
 SDL_Point gMousePos = {0,0};
 
+
+
+namespace fs = std::filesystem;
+std::vector<fs::path> scriptFiles;
+
 bool gDoUpdateCall; // = Con::isFunction("OnUpdate");
 bool gDoRenderCall; // = Con::isFunction("OnRender");
 
-bool gShowConsole = false;
 
 std::string gDirectory = "assets/";
 std::string gScriptFile = "assets/main.13";
@@ -39,6 +44,25 @@ std::string gScriptFile = "assets/main.13";
 
 using namespace DreiZehn;
 extern void RegisterBaseFluxFunctions(Environment& env);
+
+//-----------------------------------------------------------------------------
+bool fetchScriptFiles() {
+    scriptFiles.clear();
+    std::string path = BaseFlux::Tools::getBasePath() + "assets/";
+    try {
+        if (fs::exists(path) && fs::is_directory(path)) {
+            for (const auto& entry : fs::recursive_directory_iterator(path)) {
+                if (entry.is_regular_file() && entry.path().extension() == FILE_EXT) {
+                    scriptFiles.push_back(fs::relative(entry.path(), path));
+                }
+            }
+        }
+    } catch (const fs::filesystem_error& e) {
+        SDL_Log("[error]%s",e.what());
+        return false;
+    }
+    return true;
+}
 
 //-----------------------------------------------------------------------------
 // console redirect ....
@@ -183,7 +207,63 @@ int argParser(int argc, char* argv[]) {
 // }
 
 // ----------------------------------------------------------------------------
+void RunScriptWrapper(Environment& env, std::string filename) {
+    if (filename.empty()) return;
+    // if (Globals::ByteCodeMode)
+    {
+        Tools::errorf("FIXME reload: also on Interpreter - always ForEach no object! Must be the FireScriptEvent");
+        return;
+    }
+    //not enough?! env.getVM().resetChunk(); // doesnt matter if it's bytecode mode reset anyway
+    RunScriptFile(filename, env, Globals::ByteCodeMode);
+}
 // ----------------------------------------------------------------------------
+void onDraw(SDL_Renderer* renderer, Environment& env) {
+
+    static bool showConsole = true;
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("Main")) {
+            ImGui::MenuItem("Console", "GraveAccent", &showConsole);
+            ImGui::MenuItem("---");
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Scripts")) {
+            if (ImGui::MenuItem(("Reload " + env.CurrentFilename).c_str(),"CTRL-R")) {
+                RunScriptWrapper(env,env.CurrentFilename);
+            }
+
+            ImGui::SeparatorText("Files");
+            bool selected = false;
+            for (const auto& f : scriptFiles) {
+                selected = "assets/" + f.string() ==  env.CurrentFilename;
+                if (ImGui::MenuItem(f.string().c_str(), nullptr, selected)) {
+                    RunScriptWrapper(env,"assets/" + f.string());
+                }
+            }
+
+            ImGui::EndMenu();
+        }
+
+        BytecodeChunk& chunk =  env.getVM().getChunk();
+        ImGui::Text("[TAPE: %05zu]", chunk.mTape.size());
+        ImGui::Text("[GLOB: %04zu]", env.getGlobalsCount());
+        // ImGui::Text("[STK: %03zu]", DLS::Flux::getStackCount());
+        ImGui::Text("[GARB: %05zu]", GarbageCollection::size());
+        ImGui::EndMainMenuBar();
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent)) showConsole = !showConsole;
+
+    // FIXME RELOAD see also scriptfile above
+    if (app.getImGuiIO()->KeyCtrl) {
+        if (ImGui::IsKeyPressed(ImGuiKey_R))  {
+            RunScriptWrapper(env,env.CurrentFilename);
+        }
+    }
+
+
+    gConsole.Draw("DLS Console",&showConsole);
+}
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 //  MAIN
@@ -203,15 +283,16 @@ int main(int argc, char* argv[]) {
     FunctionMap::RegisterScriptEvent(&env, evOnKey,"flux::OnKey",{"keycode","isDown", "mod"},"When is is pressed or released.");
     FunctionMap::RegisterScriptEvent(&env, evOnMouse,"flux::OnMouse",{"x","y","button","isDown"},"mouse event.");
 
+
     argParser(argc, argv);
 
     initConsole(env);
+    fetchScriptFiles();
 
     // inject Flux Object
     BaseValueObject* FluxObject = new BaseValueObject();
 
-    size_t tmpid = env.reserveGlobal(SymbolTable::insert("Flux"));
-    env.saveGlobal(tmpid,Value(FluxObject));
+    size_t tmpid = env.reserveAndSaveGlobal(SymbolTable::insert("Flux"), Value(FluxObject));
 
     // Globals::MasterVariableFrame->setVariable(SymbolTable::insert("Flux"), Value(FluxObject), true);
     // FluxObject->mClassName ="Flux"; // mhh does not do anything!
@@ -255,13 +336,13 @@ int main(int argc, char* argv[]) {
         // FIXME
         // ElfSDL3::ClearInputFrameTicks();
     };
-    app.OnRender = [&env, &evRender](SDL_Renderer* renderer) {
+    // -------------------------------------------------------------------------
 
+    app.OnRender = [&env, &evRender](SDL_Renderer* renderer) {
+        onDraw( renderer, env);
         // Core::Eval("flux::Render", env);
         FunctionMap::FireScriptEvent(env,evRender,{Value(BaseFlux::getFrameTime() * 100.f)});
 
-        if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent)) gShowConsole = !gShowConsole;
-        gConsole.Draw("Console",&gShowConsole);
     };
 
     // -------------------------------------------------------------------------

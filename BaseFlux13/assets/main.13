@@ -42,13 +42,13 @@ fn flux::Setup
 --     flux::maxfps 0
 end
 -- -----------------------------------------------------------------------------
-define WIDTH   600.0
-define HEIGTH  380.0
+define WIDTH   800.0
+define HEIGTH  600.0
 define COUNT   500
 
 function flux::Init
     print " *** Init"
-    flux::size WIDTH HEIGTH WIDTH HEIGTH
+//     flux::size WIDTH HEIGTH WIDTH HEIGTH
 
     template = Array::new "point" => 0 "color" => 0 "fill" => 0 "vec" => 0
     Rects = Vector::new

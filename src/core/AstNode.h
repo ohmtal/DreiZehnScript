@@ -22,7 +22,8 @@ enum class FlowSignal {
     None,
     Break,
     Return,
-    Continue
+    Continue,
+    Error
 };
 
 struct FlowStatus {
@@ -137,6 +138,30 @@ struct ASTNode {
         return false;
     }
 
+    #ifdef DREIZEHN_DEBUG
+    virtual void print(const std::string& prefix = "", bool isLast = true) const {
+        printHeader(prefix, isLast);
+        Tools::printf("\n");
+    }
+
+    protected:
+    void printHeader(const std::string& prefix, bool isLast, const char* extraInfo = nullptr) const {
+        Tools::printf("%s%s%s [L:%u]",
+                      prefix.c_str(),
+                      isLast ? "+-- " : "|-- ",
+                      NodeTypeToString(mNodeType),
+                      mLineNumber
+        );
+        if (extraInfo && extraInfo[0] != '\0') {
+            Tools::printf(" (%s)", extraInfo);
+        }
+    }
+
+    static std::string nextPrefix(const std::string& prefix, bool isLast) {
+        return prefix + (isLast ? "    " : "|   ");
+    }
+    #endif
+
 };
 
 // base expression -------------------------------------------------------------
@@ -152,13 +177,9 @@ struct Expression : public ASTNode {
     }
 
     // push a pointer to the stack!
-    virtual bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
-        return false;
-    }
+    virtual bool compilePtr(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType);
 
-    virtual bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
-        return false;
-    }
+    virtual bool compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType);
 
 };
 
@@ -182,6 +203,20 @@ struct BlockStatement : public FlowBaseStatement {
     FlowStatus execute(Environment& env) override;
 
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+
+    #ifdef DREIZEHN_DEBUG
+    inline void print(const std::string& prefix = "", bool isLast = true) const override {
+        printHeader(prefix, isLast);
+        Tools::printf(" (%zu items)\n", mBody.size());
+
+        std::string childPrefix = nextPrefix(prefix, isLast);
+        for (size_t i = 0; i < mBody.size(); ++i) {
+            if (mBody[i]) {
+                mBody[i]->print(childPrefix, i == mBody.size() - 1);
+            }
+        }
+    }
+    #endif
 };
 
 struct MainBlock : public BlockStatement {

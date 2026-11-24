@@ -40,6 +40,15 @@ namespace DreiZehn {
         );
 
     }
+
+    #ifdef DREIZEHN_DEBUG
+    void VM::PrintChunk(BytecodeChunk& chunk) {
+        if (chunk.mTape.size() == 0) return;
+        disassembleCode(chunk.mTape.data(), chunk.mTape.size());
+    }
+    #endif
+
+
     //-----------------------------------------------------------------------------
     Value ConstructArray(Value* values, U32 argCount) {
         ValueVector evaluatedArgs;
@@ -134,9 +143,17 @@ namespace DreiZehn {
     #endif
 
 
+    #define THROW_VM_ERROR(...) \
+    do { \
+        PrintVMError(__VA_ARGS__); \
+        goto handle_OP_EXIT; \
+    } while (0)
+
 // -----------------------------------------------------------------------------
 Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset) {
-
+    #if defined(DREIZEHN_DEBUG) && defined(DEBUG_TRACE_EXECUTION)
+        PrintChunk(chunk);
+    #endif
 
     // TEST! register const uint8_t* pc __asm__("r14");
     if (Globals::ByteCodeRunning) {
@@ -445,7 +462,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         if (lVal.isDouble() && rVal.isDouble()) {
             double r = rVal.asFastDouble();
             if (r == 0.0) {
-                PrintVMError(OP_MODULO,"Modulo Division by 0.0!");
+                THROW_VM_ERROR(OP_MODULO,"Modulo Division by 0.0!");
                 PUSH_STACK(NumberNullValue);
             } else {
                 PUSH_STACK(Value(std::fmod(lVal.asFastDouble(), r)));
@@ -454,7 +471,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             int64_t l = lVal.getInt64();
             int64_t r = rVal.getInt64();
             if (r == 0) {
-                PrintVMError(OP_MODULO,"Modulo Division by 0!");
+                THROW_VM_ERROR(OP_MODULO,"Modulo Division by 0!");
                 PUSH_STACK(NumberNullValue);
             } else {
                 int64_t res = l % r;
@@ -499,7 +516,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         Value objectValue = POP_STACK();
         if (!objectValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_LOAD_OBJECT_FIELD,"Object not found:",objectValue.toString());
+            THROW_VM_ERROR(OP_LOAD_OBJECT_FIELD,"Object not found:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -514,7 +531,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
                 code[saveObjPtrPos - 2] = OP_LOAD_OBJECT_FIELD_GENERIC;
             }
             if (!fieldValuePtr) [[unlikely]] {
-                PrintVMError(OP_LOAD_OBJECT_FIELD, "Object have no field named:",
+                THROW_VM_ERROR(OP_LOAD_OBJECT_FIELD, "Object have no field named:",
                              objectValue.toString(),
                              SymbolTable::getName(fieldSymId));
                 PUSH_STACK(NumberNullValue);
@@ -538,7 +555,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         Value objectValue = POP_STACK();
         if (!objectValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_LOAD_OBJECT_FIELD_GENERIC,"RunTime Error: Object not found:",objectValue.toString());
+            THROW_VM_ERROR(OP_LOAD_OBJECT_FIELD_GENERIC,"RunTime Error: Object not found:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -547,7 +564,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value* fieldValuePtr = nullptr;
         fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
         if (!fieldValuePtr) [[unlikely]] {
-            PrintVMError(OP_LOAD_OBJECT_FIELD_GENERIC, "Object have no field named:",
+            THROW_VM_ERROR(OP_LOAD_OBJECT_FIELD_GENERIC, "Object have no field named:",
                          objectValue.toString(),
                          SymbolTable::getName(fieldSymId));
             PUSH_STACK(NumberNullValue);
@@ -568,7 +585,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         Value objectValue = POP_STACK();
         if (!objectValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_PUSHPTR_OBJECT_FIELD, "Object not found:",objectValue.toString());
+            THROW_VM_ERROR(OP_PUSHPTR_OBJECT_FIELD, "Object not found:",objectValue.toString());
             DISPATCH();
         }
 
@@ -584,7 +601,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
                 code[saveObjPtrPos - 2] = OP_PUSHPTR_OBJECT_FIELD_GENERIC;
             }
             if (!fieldValuePtr) [[unlikely]] {
-                PrintVMError(OP_PUSHPTR_OBJECT_FIELD, "Object have no field named:",
+                THROW_VM_ERROR(OP_PUSHPTR_OBJECT_FIELD, "Object have no field named:",
                              objectValue.toString(),
                              SymbolTable::getName(fieldSymId));
                 PUSH_STACK(NumberNullValue);
@@ -609,7 +626,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         Value objectValue = POP_STACK();
         if (!objectValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_PUSHPTR_OBJECT_FIELD_GENERIC, "Object not found:",objectValue.toString());
+            THROW_VM_ERROR(OP_PUSHPTR_OBJECT_FIELD_GENERIC, "Object not found:",objectValue.toString());
             DISPATCH();
         }
 
@@ -617,7 +634,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value* fieldValuePtr = nullptr;
         fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
         if (!fieldValuePtr) [[unlikely]] {
-            PrintVMError(OP_SAVE_OBJECT_FIELD_GENERIC, "Object have no field named:",
+            THROW_VM_ERROR(OP_SAVE_OBJECT_FIELD_GENERIC, "Object have no field named:",
                          objectValue.toString(),
                          SymbolTable::getName(fieldSymId));
             DISPATCH();
@@ -640,7 +657,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         Value objectValue = POP_STACK();
         if (!objectValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_SAVE_OBJECT_FIELD, "Object not found:",objectValue.toString());
+            THROW_VM_ERROR(OP_SAVE_OBJECT_FIELD, "Object not found:",objectValue.toString());
             DISPATCH();
         }
 
@@ -655,7 +672,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
                 code[saveObjPtrPos - 2] = OP_SAVE_OBJECT_FIELD_GENERIC;
             }
             if (!fieldValuePtr) [[unlikely]] {
-                PrintVMError(OP_SAVE_OBJECT_FIELD, "Object have no field named:",
+                THROW_VM_ERROR(OP_SAVE_OBJECT_FIELD, "Object have no field named:",
                              objectValue.toString(),
                              SymbolTable::getName(fieldSymId));
                 DISPATCH();
@@ -680,7 +697,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         Value objectValue = POP_STACK();
         if (!objectValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_SAVE_OBJECT_FIELD_GENERIC, "Object not found:",objectValue.toString());
+            THROW_VM_ERROR(OP_SAVE_OBJECT_FIELD_GENERIC, "Object not found:",objectValue.toString());
             DISPATCH();
         }
 
@@ -688,7 +705,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value* fieldValuePtr = nullptr;
         fieldValuePtr = obj->onGetFieldPtr(fieldSymId);
         if (!fieldValuePtr) [[unlikely]] {
-            PrintVMError(OP_SAVE_OBJECT_FIELD_GENERIC, "Object have no field named:",
+            THROW_VM_ERROR(OP_SAVE_OBJECT_FIELD_GENERIC, "Object have no field named:",
                          objectValue.toString(),
                          SymbolTable::getName(fieldSymId));
             DISPATCH();
@@ -711,13 +728,13 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         Value objectValue = POP_STACK();
         if (!objectValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_CALL_OBJECT_METHOD, "Object not found:",objectValue.toString());
+            THROW_VM_ERROR(OP_CALL_OBJECT_METHOD, "Object not found:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
         ValueObject* obj = objectValue.asPointerObject();
         if (!obj) [[unlikely]] {
-            PrintVMError(OP_CALL_OBJECT_METHOD, "Object INVALID:",objectValue.toString());
+            THROW_VM_ERROR(OP_CALL_OBJECT_METHOD, "Object INVALID:",objectValue.toString());
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -756,7 +773,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             Value returnValue = NumberNullValue;
             bool success = obj->onMethodCall(env, symID, evaluatedArgs, returnValue);
             if (!success) [[unlikely]]{
-                PrintVMError(OP_CALL_OBJECT_METHOD
+                THROW_VM_ERROR(OP_CALL_OBJECT_METHOD
                              , "Runtime Error in native function call:"
                              , SymbolTable::getName(symID));
             }
@@ -784,8 +801,6 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         if (argCount + curFrame->mLocalsStartIndex  >= mLocals.size()) [[unlikely]] {
             env.PrintRuntimeError("VM Locals Stack Overflow in Script Method.");
-            exit(1);
-            // // mLocals.resize(mLocals.size() * 2);
         }
         // "this" is the last but must be first
         U32 slot =  curFrame->mLocalsStartIndex;
@@ -807,13 +822,13 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         Value objectValue = POP_STACK();
         if (!objectValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_SAVE_OBJECT_METHOD, "Object not found:",objectValue.toString());
+            THROW_VM_ERROR(OP_SAVE_OBJECT_METHOD, "Object not found:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
         ValueObject* obj = objectValue.asPointerObject();
         if (!obj) [[unlikely]]{
-            PrintVMError(OP_SAVE_OBJECT_METHOD, "Object not INVALID:",objectValue.toString());
+            THROW_VM_ERROR(OP_SAVE_OBJECT_METHOD, "Object not INVALID:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -828,7 +843,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             destPrt =  obj->onMethodCallGetAssignPtr(symID, evaluatedArgs);
         }
         if (!destPrt) [[unlikely]] {
-            PrintVMError(OP_SAVE_OBJECT_METHOD, "Cant find method on object:",objectValue.toString());
+            THROW_VM_ERROR(OP_SAVE_OBJECT_METHOD, "Cant find method on object:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -844,13 +859,13 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         Value objectValue = POP_STACK();
         if (!objectValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_SAVE_OBJECT_METHOD, "Object not found:",objectValue.toString());
+            THROW_VM_ERROR(OP_SAVE_OBJECT_METHOD, "Object not found:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
         ValueObject* obj = objectValue.asPointerObject();
         if (!obj) {
-            PrintVMError(OP_SAVE_OBJECT_METHOD, "Object not INVALID:",objectValue.toString());
+            THROW_VM_ERROR(OP_SAVE_OBJECT_METHOD, "Object not INVALID:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -865,7 +880,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             destPrt =  obj->onMethodCallGetAssignPtr(symID, evaluatedArgs);
         }
         if (!destPrt) [[unlikely]] {
-            PrintVMError(OP_SAVE_OBJECT_METHOD, "Cant find assign enabled method on object:",objectValue.toString());
+            THROW_VM_ERROR(OP_SAVE_OBJECT_METHOD, "Cant find assign enabled method on object:",objectValue.toString());
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -882,7 +897,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value varValue = POP_STACK();
 
         if (!varValue.isObjectPointer()) {
-           PrintVMError(OP_LOAD_ARRAY,"Array is not an Object!");
+           THROW_VM_ERROR(OP_LOAD_ARRAY,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -901,7 +916,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value varValue = POP_STACK();
 
         if (!varValue.isObjectPointer()) {
-            PrintVMError(OP_LOAD_ARRAY,"Array is not an Object!");
+            THROW_VM_ERROR(OP_LOAD_ARRAY,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -916,7 +931,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value varValue = POP_STACK();
 
         if (!varValue.isObjectPointer()) {
-            PrintVMError(OP_LOAD_ARRAY,"Array is not an Object!");
+            THROW_VM_ERROR(OP_LOAD_ARRAY,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -937,7 +952,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value varValue = POP_STACK();
 
         if (!varValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_PUSHPTR_ARRAY_INDEX,"Array is not an Object!");
+            THROW_VM_ERROR(OP_PUSHPTR_ARRAY_INDEX,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -952,7 +967,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value varValue = POP_STACK();
 
         if (!varValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_PUSHPTR_ARRAY_SYMID,"Array is not an Object!");
+            THROW_VM_ERROR(OP_PUSHPTR_ARRAY_SYMID,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -967,7 +982,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value varValue = POP_STACK();
 
         if (!varValue.isObjectPointer()) [[unlikely]] {
-            PrintVMError(OP_PUSHPTR_ARRAY,"Array is not an Object!");
+            THROW_VM_ERROR(OP_PUSHPTR_ARRAY,"Array is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -987,7 +1002,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value assignValue = PEEK_STACK(0);
 
         if (!varValue.isObjectPointer()) {
-            PrintVMError(OP_SAVE_ARRAY,"Array is not an Object!");
+            THROW_VM_ERROR(OP_SAVE_ARRAY,"Array is not an Object!");
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -1033,8 +1048,6 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
             curFrame->mLocalsCount++;
             if (slot  >= mLocals.size()) [[unlikely]] {
                 env.PrintRuntimeError("VM Locals Stack Overflow! raise LOCALS_SIZE as compile flag");
-                exit(1);
-                // // mLocals.resize(mLocals.size() * 2);
             }
             val = &mLocals[slot];
         } else {
@@ -1086,7 +1099,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
             // SILENT !
             // if (!success) [[unlikely]]{
-                // PrintVMError(OP_CALL_C_FUNCTION, "Runtime Error in native function call\n");
+                // THROW_VM_ERROR(OP_CALL_C_FUNCTION, "Runtime Error in native function call\n");
             // }
 
             PUSH_STACK(returnValue);
@@ -1113,8 +1126,6 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
         if (argCount + curFrame->mLocalsStartIndex  >= mLocals.size()) [[unlikely]] {
             env.PrintRuntimeError("VM Locals Stack Overflow in Script Function.");
-            exit(1);
-            // // mLocals.resize(mLocals.size() * 2);
         }
 
         for (int i = (int)argCount - 1; i >= 0; i--) {
@@ -1150,7 +1161,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value* varPTR = POP_STACK().asValuePointer();
         if (!varPTR) [[unlikely]] {
             PUSH_STACK(NumberNullValue);
-            PrintVMError(OP_INC_PTR, "Invalid variable!!");
+            THROW_VM_ERROR(OP_INC_PTR, "Invalid variable!!");
             DISPATCH();
         }
 
@@ -1184,7 +1195,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value b = PEEK_STACK(0);
         if (!varPTR) [[unlikely]] {
             PUSH_STACK(NumberNullValue);
-            PrintVMError(OP_INC_PTR, "Invalid variable!!");
+            THROW_VM_ERROR(OP_INC_PTR, "Invalid variable!!");
             DISPATCH();
         }
         *varPTR = b;
@@ -1196,7 +1207,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value* varPTR = POP_STACK().asValuePointer();
         // if (!varPTR) [[unlikely]] {
         //     PUSH_STACK(NumberNullValue);
-        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
+        //     THROW_VM_ERROR(OP_INC_PTR, "Invalid variable!!");
         //     DISPATCH();
         // }
         if (varPTR->isDouble() && b.isDouble()) [[likely]] {
@@ -1230,7 +1241,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value* varPTR = POP_STACK().asValuePointer();
         // if (!varPTR) [[unlikely]] {
         //     PUSH_STACK(NumberNullValue);
-        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
+        //     THROW_VM_ERROR(OP_INC_PTR, "Invalid variable!!");
         //     DISPATCH();
         // }
         if (varPTR->isDouble() && b.isDouble()) [[likely]] {
@@ -1264,7 +1275,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value* varPTR = POP_STACK().asValuePointer();
         // if (!varPTR) [[unlikely]] {
         //     PUSH_STACK(NumberNullValue);
-        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
+        //     THROW_VM_ERROR(OP_INC_PTR, "Invalid variable!!");
         //     DISPATCH();
         // }
         if (varPTR->isDouble() && b.isDouble()) [[likely]] {
@@ -1299,7 +1310,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value* varPTR = POP_STACK().asValuePointer();
         // if (!varPTR) [[unlikely]] {
         //     PUSH_STACK(NumberNullValue);
-        //     PrintVMError(OP_INC_PTR, "Invalid variable!!");
+        //     THROW_VM_ERROR(OP_INC_PTR, "Invalid variable!!");
         //     DISPATCH();
         // }
         // FIXME division by zero
@@ -1518,7 +1529,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         U32 iterSlot = ADVANCE_U32() + curFrame->mLocalsStartIndex;
         Value objectValue = POP_STACK();
         if (!objectValue.isObjectPointer()) {
-            PrintVMError(OP_FOR_EACH_INIT,"forEach without a object");
+            THROW_VM_ERROR(OP_FOR_EACH_INIT,"forEach without a object");
             ip = exitIP;
             DISPATCH();
         }
@@ -1562,7 +1573,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value keyVal = POP_STACK();
 
         if (!keyVal.isString())  {
-            PrintVMError(OP_CREATE_KEYVALUE,"KeyValueExpression value must be a string,.");
+            THROW_VM_ERROR(OP_CREATE_KEYVALUE,"KeyValueExpression value must be a string,.");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -1627,13 +1638,13 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     handle_OP_VALUE_PTR_PTR_TO_VALUE_PTR: {
         // get Value pointer to pointer
         if (!PEEK_STACK(0).isValuePointer()) [[unlikely]] {
-            PrintVMError(OP_VALUE_PTR_PTR_TO_VALUE,"Value is not a pointer");
+            THROW_VM_ERROR(OP_VALUE_PTR_PTR_TO_VALUE,"Value is not a pointer");
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
         Value* varPTR = PEEK_STACK(0).asValuePointer();
         if (!varPTR->isValuePointer()) [[unlikely]] {
-            PrintVMError(OP_VALUE_PTR_PTR_TO_VALUE,"Value from pointer is not a pointer");
+            THROW_VM_ERROR(OP_VALUE_PTR_PTR_TO_VALUE,"Value from pointer is not a pointer");
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
@@ -1647,13 +1658,13 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
     handle_OP_VALUE_PTR_PTR_TO_VALUE: {
         // get Value pointer to pointer
         if (!PEEK_STACK(0).isValuePointer()) [[unlikely]] {
-            PrintVMError(OP_VALUE_PTR_PTR_TO_VALUE,"Value is not a pointer");
+            THROW_VM_ERROR(OP_VALUE_PTR_PTR_TO_VALUE,"Value is not a pointer");
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }
         Value* varPTR = PEEK_STACK(0).asValuePointer();
         if (!varPTR->isValuePointer()) [[unlikely]] {
-            PrintVMError(OP_VALUE_PTR_PTR_TO_VALUE,"Value from pointer is not a pointer");
+            THROW_VM_ERROR(OP_VALUE_PTR_PTR_TO_VALUE,"Value from pointer is not a pointer");
             PEEK_STACK(0) = NumberNullValue;
             DISPATCH();
         }

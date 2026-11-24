@@ -52,9 +52,11 @@ private:
     // ----
     VM mVM;
 
+    // ----
 
 public:
     std::string CurrentFilename = "";
+    bool InterpreterFatalError = false;
 
     Environment() {
         mLocalsRegister.resize(LOCALS_SIZE);
@@ -64,9 +66,7 @@ public:
     ~Environment() {
     }
 
-    inline void PrintRuntimeError(const std::string& message, const std::string& p2 = "", const std::string& p3 = ""){
-        Tools::errorf("RunTime Error [ENV:%p]: %s %s %s", (void*) this, message.c_str(), p2.c_str(),p3.c_str());
-    }
+    void PrintRuntimeError(const std::string& message, const std::string& p2 = "", const std::string& p3 = "");
 
     inline VM& getVM() { return mVM; }
 
@@ -204,6 +204,7 @@ public:
         if (node->mFlags & NodeFlag_Expression) [[likely]] {
             auto* expr = static_cast<Expression*>(node);
             expr->evaluate(currentEnv);
+            if (InterpreterFatalError) [[unlikely]] return FlowStatus(FlowSignal::Error);
         } else if (node->mFlags & NodeFlag_Flow) {
             auto* flowStmt = static_cast<FlowBaseStatement*>(node);
             return flowStmt->execute(currentEnv);
@@ -387,6 +388,7 @@ public:
     // -------------------------------------------------------------------------
     // main execute
     inline FlowStatus execute(ASTNode* node) {
+        InterpreterFatalError = false;
         return execute(node, *this);
     }
     // -------------------------------------------------------------------------

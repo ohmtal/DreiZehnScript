@@ -132,7 +132,10 @@ constexpr OpCodeInfo OpCodeInfos[] = {
 
 
 #ifdef DREIZEHN_DEBUG
-void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize);
+    size_t disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk = -1, const size_t callstk = 0, size_t localsSize = 0);
+    void disassembleCode(const uint32_t* code, size_t codeSize);
+
+// void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize);
 #endif
 
 // -----------------------------------------------------------------------------

@@ -12,7 +12,7 @@ print "myPI=" testPi
 # testPi2 = (myPI2 2)
 # print "myPI=" testPi "2=>" testPi2
 
-return;
+// return;
 
 fn Holy::Cow; print "Muhhhh!";end;
 
@@ -52,7 +52,7 @@ a->tree
 -- forRange i sys::args->count; print (sys::args->key i) "=>" (sys::args->value i);;
 
 
-while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;
+
 
 
 print ("while return value test")
@@ -169,7 +169,7 @@ while i < 6
     print "i:" i;
 end
 -- if (i == 1); print 1; else print "?"; end
-fn bla
+fn FuncBla
     x = 0
     while x < 2
         a = 1; b = 1;
@@ -189,9 +189,9 @@ fn bla
     end
     print "inside bla"
 end
-bla
+FuncBla
 print "-----------------------------------"
-return
+// return
 -- fn sel
 --     if i == 1 return true;;
 --     if i == 2 return true;;
@@ -212,7 +212,6 @@ if ( (i == 2) \
     print "huhu"
 end
 
-return
 
 foo = 1
 if ( foo == 0 )
@@ -275,6 +274,7 @@ print "---- one line separated while break test: ----- "
 i = 0; while 1; i = i + 1;if i > 4 break;end; print i; end
 
 print "---- one line separated while break test localvar: ----- "
+lo = 0;
 while 1; print "lo is" lo; lo = lo + 1; if lo > 4 break;end;  end
 
 print "---- one line separated while break test inside a function ----- "
@@ -285,23 +285,24 @@ whiler
 print "final i is" i;
 
 print "... many simulated ';' and invalid variable adds:"
--- -- ;;;;;;;;;;;;;;;;;;;print "huhu";;;;;;;;;;;;;;;;;;;;;;;; i i i i i
 
 print ""; print "----------- another local var test: --------------"
 
-bla= 1212;
+bla2 = 1212;
 
 fn fasel
-    bla = 12;
-    print "inside fn bla (12) is:" bla
+    bla2 = 12;
+    print "inside fn bla (12) is:" bla2
 end
 
 fasel
 
-print "outside bla is (global was: 1212):" bla
+print "outside bla is (global was: 1212):" bla2
 print "its 12 so fasel hijacked the global var ... good or bad ? "
 print "setVariable and getVariable does the magic"
 
 print ""
 print "....................."
 print "--- test ends ... ---"
+
+// while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;

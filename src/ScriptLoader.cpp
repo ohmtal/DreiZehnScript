@@ -222,6 +222,23 @@ namespace DreiZehn {
         return true;
     }
 
+    #ifdef DREIZEHN_DEBUG
+    bool PrintScriptFileAST(const std::string& filename, Environment& env) {
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            Tools::errorf("Script file cant be opened: %s\n", filename.c_str());
+            return false;
+        }
+        Tools::printSeparator(80);
+        Tools::printf(" --- %s --- \n",filename.c_str());
+        Tools::printSeparator(80);
+        auto mainProgram = ParseScriptToAST(env,file);
+        if (!mainProgram) return false;
+        mainProgram->print();
+        Tools::printSeparator(80);
+        return true;
+    }
+    #endif
 
     // --------------------------------------------------------------------------------
     Value RunScriptStreamByteCode(std::istream& stream, Environment& env, bool resetByteCode  ) {
@@ -242,6 +259,7 @@ namespace DreiZehn {
             Tools::errorf("Script file cant be opened: %s\n", filename.c_str());
             return nullptr;
         }
+
         return ParseScriptToAST(env,file);
     }
     // --------------------------------------------------------------------------------

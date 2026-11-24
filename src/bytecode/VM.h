@@ -38,6 +38,10 @@ namespace DreiZehn {
 
         Value runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offset = 0);
 
+        #ifdef DREIZEHN_DEBUG
+        static void PrintChunk(BytecodeChunk& chunk);
+        #endif
+
         inline void resetChunk() { mChunk.reset(); }
         inline BytecodeChunk& getChunk() { return mChunk; }
         inline CompilerScope& getScope() { return mCompilerScope; }

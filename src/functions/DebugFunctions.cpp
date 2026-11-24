@@ -10,6 +10,11 @@
 #include <core/GarbageCollection.h>
 #include <ScriptLoader.h>
 
+#ifdef DREIZEHN_DEBUG
+#include <Environment.h>
+#include "bytecode/VMStructure.h"
+#endif
+
 namespace DreiZehn {
 
 
@@ -44,6 +49,32 @@ namespace DreiZehn {
             Tools::printf("Garbage count    : %zu\n", GarbageCollection::size());
             return true;
         });
+        // ---------------------------------------------------------------------
+        RegisterFunction("debug::printAst", [&env](ValueSpan args, Value& ret) -> bool {
+            #ifdef DREIZEHN_DEBUG
+            if (args.size() == 0) {
+                Tools::errorf("Usage:debug::printAst filename");
+                return false;
+            }
+            return PrintScriptFileAST(args[0].getString(), env);
+            #else
+                Tools::warnf("Sorry only available in debug build");
+                return true;
+            #endif
+        }, "Print the AST for the given file. (debug only)");
+        // ---------------------------------------------------------------------
+        RegisterFunction("debug::printByteCode", [&env](ValueSpan args, Value& ret) -> bool {
+            #ifdef DREIZEHN_DEBUG
+            if (args.size() > 0) {
+                Tools::warnf("Usage:debug::printByteCode");
+            }
+            VM::PrintChunk(env.getVM().getChunk());
+            return true;
+            #else
+            Tools::warnf("Sorry only available in debug build");
+            return true;
+            #endif
+        }, "Print the current ByteCode. (debug only)");
         // ---------------------------------------------------------------------
         // ---------------------------------------------------------------------
         // DEBUG BYTECODE

@@ -1,5 +1,5 @@
-foo = 1
-
 fn myPI multi
     return 3.14 * multi
 end
+
+print "ALDER BABSACK!!!!!"

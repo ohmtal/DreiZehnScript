@@ -72,4 +72,8 @@ namespace DreiZehn{
         }
         return (size_t) index;
     }
+
+    void Environment::PrintRuntimeError(const std::string& message, const std::string& p2, const std::string& p3) {
+        Tools::errorf("RunTime Error [ENV:%p]: %s %s %s", (void*) this, message.c_str(), p2.c_str(),p3.c_str());
+    }
 } //namespace

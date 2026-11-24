@@ -12,52 +12,110 @@
 namespace DreiZehn {
 
 #ifdef DREIZEHN_DEBUG
-void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize) {
-    uint32_t opcode = code[offset];
+    size_t disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize) {
+        uint32_t opcode = code[offset];
+        Tools::printf("%04zu: ", offset);
 
-    Tools::printf("%04zu: ", offset);
+        if (opcode < OP_INVALID) {
+            Tools::printf("%s", OpCodeInfos[opcode].name);
 
-
-    if (opcode < OP_INVALID) {
-        Tools::printf("%s", OpCodeInfos[opcode].name);
-
-        switch (opcode) {
-            case OP_PUSH_VALUE: {
-                offset++;
-                Value val;
-                std::memcpy(&val, &code[offset], sizeof(Value));
-                offset += 2;
-                Tools::printf("  Value: %s",val.toString().c_str());
-            }
-            break;
-            case OP_CALL_C_FUNCTION: {
-                offset++;
-                U32 symId = code[offset++];
-                void* cb = nullptr;
-                std::memcpy(&cb, &code[offset], sizeof(void*));
-                offset += 2;
-
-                U32 argCount = code[offset++];
-                Tools::printf("  SymId:%u Pointer: %p, Arg: %u", symId, cb, argCount);
-            }
-            break;
-            default:
-                if (OpCodeInfos[opcode].emittedCount > 0) {
-                    Tools::printf(" Arg: ");
-                    for (U32 i = 1; i <= OpCodeInfos[opcode].emittedCount; i++ ) {
-                        Tools::printf("%u ", code[offset + i]);
-                    }
+            switch (opcode) {
+                case OP_PUSH_VALUE: {
+                    offset++;
+                    Value val;
+                    std::memcpy(&val, &code[offset], sizeof(Value));
+                    offset += 2;
+                    Tools::printf("  Value: %s", val.toString().c_str());
+                    break;
                 }
-                break;
+                case OP_CALL_C_FUNCTION: {
+                    offset++;
+                    U32 symId = code[offset++];
+                    void* cb = nullptr;
+                    std::memcpy(&cb, &code[offset], sizeof(void*));
+                    offset += 2;
+                    U32 argCount = code[offset++];
+                    Tools::printf("  SymId:%u Pointer: %p, Arg: %u", symId, cb, argCount);
+                    break;
+                }
+                default: {
+                    U32 count = OpCodeInfos[opcode].emittedCount;
+                    if (count > 0) {
+                        Tools::printf(" Arg: ");
+                        for (U32 i = 1; i <= count; i++) {
+                            Tools::printf("%u ", code[offset + i]);
+                        }
+                    }
+                    offset += 1 + count;
+                    break;
+                }
+            }
+        } else {
+            Tools::printf("UNKNOWN_OPCODE [%u]", opcode);
+            offset++;
         }
 
+        if (stk >= 0) {
+            Tools::printf(", _STK[%d], CF:%zu (%zu)", stk, callstk, localsSize);
+        }
+        Tools::printf("\n");
 
-
-    } else {
-        Tools::printf("UNKNOWN_OPCODE [%u]", opcode);
+        return offset;
     }
-    Tools::printf(", _STK[%d], CF:%zu (%zu)\n", stk, callstk, localsSize);
-}
+
+    void disassembleCode(const uint32_t* code, size_t codeSize) {
+        Tools::printf("=== BYTECODE DUMP ===\n");
+        size_t offset = 0;
+        while (offset < codeSize) {
+            offset = disassembleInstruction(code, offset);
+        }
+        Tools::printf("=====================\n");
+    }
+
+
+// void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize) {
+//     uint32_t opcode = code[offset];
+//
+//     Tools::printf("%04zu: ", offset);
+//
+//
+//     if (opcode < OP_INVALID) {
+//         Tools::printf("%s", OpCodeInfos[opcode].name);
+//
+//         switch (opcode) {
+//             case OP_PUSH_VALUE: {
+//                 offset++;
+//                 Value val;
+//                 std::memcpy(&val, &code[offset], sizeof(Value));
+//                 offset += 2;
+//                 Tools::printf("  Value: %s",val.toString().c_str());
+//             }
+//             break;
+//             case OP_CALL_C_FUNCTION: {
+//                 offset++;
+//                 U32 symId = code[offset++];
+//                 void* cb = nullptr;
+//                 std::memcpy(&cb, &code[offset], sizeof(void*));
+//                 offset += 2;
+//
+//                 U32 argCount = code[offset++];
+//                 Tools::printf("  SymId:%u Pointer: %p, Arg: %u", symId, cb, argCount);
+//             }
+//             break;
+//             default:
+//                 if (OpCodeInfos[opcode].emittedCount > 0) {
+//                     Tools::printf(" Arg: ");
+//                     for (U32 i = 1; i <= OpCodeInfos[opcode].emittedCount; i++ ) {
+//                         Tools::printf("%u ", code[offset + i]);
+//                     }
+//                 }
+//                 break;
+//         }
+//     } else {
+//         Tools::printf("UNKNOWN_OPCODE [%u]", opcode);
+//     }
+//     Tools::printf(", _STK[%d], CF:%zu (%zu)\n", stk, callstk, localsSize);
+// }
 #endif
 
 } // namespace

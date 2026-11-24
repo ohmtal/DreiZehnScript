@@ -794,14 +794,33 @@ not detected or not set ?!
 
     
 ### <<<<< 0.91 ----- 0.92 >>>>>>>     
-    
-- [ ] ByteCode run .. reset the chunk ? .. yes if it's the same file ... need think about it
-On AST it attach the new nodes so i need to attach it to bytecode also ?! but doing 
-this a lot of times i have a monster sized code then.
+- [X] renamed mByteCode to mTape - i like this name more ;)
+- [X] added script reload and infos from DLS Baseflux
+
+- [X] ByteCode 
+    - [X] RuntimeError should goto OP_EXIT 
+        - define as VM method so i can easier so it
+        - the "exit 1" can be removed then - bad practice
+        - macro: THROW_VM_ERROR
+        
+    - [X] when i have a function and do a assign to it bytecode compile fail without an 
+        error message why and Interpreter ignores it ?! 
+
+    - [X] test.13 (this thing became a mess ;)): but `VM Locals Stack Overflow` should never happen
+        mLocalsStartIndex at maximum 65535 !!!! WTF! 
+        - OP_CALL_SF_FUNCTION runs in an endless loop on IP 0?!?!?
+            - it's the `include "scripts/test_include.13"` ?!
+        - [X] added disassembleCode :D
+        - [X] fixed IncludeStatement \o/
 
 
+- [ ] Interpreter
+    - [X] on interpreter it should also end on a RunTimeError.
+        - splittes runtime and compile error to set `InterpreterFatalError`
+        - added FlowStatus::Error
+        
 
-
+- [ ] BaseElf13: interpreter and bytecode reload fail. Do i need to  register the events again?!
 
 ================================================================================
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 

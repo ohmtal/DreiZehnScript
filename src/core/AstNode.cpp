@@ -871,6 +871,7 @@ namespace DreiZehn {
 
 
 
+
     // Value CallScriptFunc(Environment& env, const FunctionMap::ScriptFunction* sf
     // , std::vector<std::unique_ptr<Expression>>& arguments) {
     //     auto& func = *(sf);
@@ -2623,6 +2624,40 @@ namespace DreiZehn {
         sf->localVarCount = funcScope.getLocalCount();
 
         chunk.patch(jumpOffset, chunk.tell());
+
+        return true;
+    }
+
+    // --------------------------------------------------------------------------------------------------
+    // SequenceExpression
+    // --------------------------------------------------------------------------------------------------
+
+    DreiZehn::Value SequenceExpression::evaluate(Environment& env){
+        if (!mLeft || !mRight) [[unlikely]] {
+            PrintAstRuntimeError( env, this,"Sequence but left or right is missing");
+            return NumberNullValue;
+        }
+        mLeft->evaluate(env);
+        Value result = mRight->evaluate(env);
+
+        Tools::printf("RESULT IS: %s\n", result.toString().c_str());
+
+        return result;
+    }
+    bool SequenceExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
+        if (requestType == ValueType::NONE) {
+            PrintASTCompileError( env, this,"Sequence but no request for it.");
+            return false;
+        }
+
+        if (!mLeft.get() || !mRight.get()) {
+            PrintASTCompileError( env, this,"left or right is missing");
+            return false;
+        }
+
+        if (!this->mLeft->compile(env,chunk, scope, requestType)) return false;
+        chunk.emit(OP_POP_STACK);
+        if (!this->mRight->compile(env,chunk, scope, requestType)) return false;
 
         return true;
     }

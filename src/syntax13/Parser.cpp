@@ -178,6 +178,7 @@ namespace DreiZehn {
         if (type == TokenType::DotDot) return 0;
         if (type == TokenType::DotAssign) return 0;
         if (isMathAssignOperatorType(type)) return 0;
+        // NOTE CANCEL if (type == TokenType::Comma) return 0;
 
         return -1;
     }
@@ -371,6 +372,7 @@ namespace DreiZehn {
     std::unique_ptr< DreiZehn::Expression > Parser::parsePrimary() {
         Token t = peek();
         TokenType curType = peek().mType;
+
 
         switch (curType) {
             // ~~~~ LineBreak ~~~~
@@ -635,23 +637,36 @@ namespace DreiZehn {
                 );
                 continue;
             }
-            else
-                if (op.mType == TokenType::DotAssign) {
-                    if (!left) {
-                        PrintParseError("String Concat Dot Assign but no left!");
-                        return nullptr;
-                    }
-                    auto rhs = parseMath(0);
-                    if (!rhs) {
-                        PrintParseError("String Concat Dot Assign bu no right!");
-                        return nullptr;
-                    }
-
-                    left = std::make_unique<StringConcatAssignExpression>(
-                        std::move(left), std::move(rhs)
-                    );
-                    continue;
+            else if (op.mType == TokenType::DotAssign) {
+                if (!left) {
+                    PrintParseError("String Concat Dot Assign but no left!");
+                    return nullptr;
                 }
+                auto rhs = parseMath(0);
+                if (!rhs) {
+                    PrintParseError("String Concat Dot Assign but no right!");
+                    return nullptr;
+                }
+
+                left = std::make_unique<StringConcatAssignExpression>(
+                    std::move(left), std::move(rhs)
+                );
+                continue;
+            }
+            // NOTE CANCEL
+            // else if (op.mType == TokenType::Comma) {
+            //         if (!left) {
+            //             PrintParseError("SequenceExpression but no left!");
+            //             return nullptr;
+            //         }
+            //         auto rhs = parseMath(0);
+            //         if (!rhs) {
+            //             PrintParseError("SequenceExpression but no right!");
+            //             return nullptr;
+            //         }
+            //         left = std::make_unique<SequenceExpression>(std::move(left), std::move(rhs));
+            //     continue;
+            // }
 
             auto right = parseMath(precedence + 1);
 
@@ -673,6 +688,18 @@ namespace DreiZehn {
     std::unique_ptr< DreiZehn::Expression > Parser::parseComparison() {
         auto left = parseMath();
 
+
+        // SequenceExpression NOT HERE!
+        // if (peek().mType == TokenType::Comma) {
+        //     while (peek().mType == TokenType::Comma) {
+        //         advance();
+        //         auto rhs = parseMath(0);
+        //         left = std::make_unique<SequenceExpression>(std::move(left), std::move(rhs));
+        //     }
+        //     // return left;
+        // }
+
+
         while (peek().mType == TokenType::Greater
             || peek().mType == TokenType::Less
             || peek().mType == TokenType::Equal
@@ -689,6 +716,8 @@ namespace DreiZehn {
     }
     // ----------------------------------------------------------------------------
     std::unique_ptr< DreiZehn::Expression > Parser::parseExpression() {
+
+
 
         if (peek().mType == TokenType::LParen) {
             advance(); // skip '('

@@ -150,6 +150,7 @@ bool isMathType(const Token& op) {
     || op.mType == TokenType::Assign
     || isInlineMathType(op.mType)
     || isMathAssignOperatorType(op.mType)
+    //NOTE CANCEL || op.mType == TokenType::Comma
     ;
 }
 

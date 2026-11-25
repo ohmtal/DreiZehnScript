@@ -69,6 +69,7 @@ enum class NodeType {
     ,StringConcatExpression
     ,StringConcatAssignExpression
     ,MainBlock
+    ,SequenceExpression
 };
 
 
@@ -112,6 +113,7 @@ constexpr const char* NodeTypeToString(NodeType type) {
         case NodeType::StringConcatExpression:       return "StringConcatExpression";
         case NodeType::StringConcatAssignExpression:       return "StringConcatAssignExpression";
         case NodeType::MainBlock:       return "Main Programm Block";
+        case NodeType::SequenceExpression:       return "Comma separated Sequence";
     }
     return "UnknownNodeType";
 }
@@ -801,7 +803,18 @@ struct StringConcatAssignExpression : public Expression {
     Value evaluate(Environment& env) override;
     bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
 };
+// SequenceExpression  ----------------------------------------------------------------------
+struct SequenceExpression : public Expression {
+    std::unique_ptr<Expression> mLeft;
+    std::unique_ptr<Expression> mRight;
 
+    SequenceExpression(std::unique_ptr<Expression> left, std::unique_ptr<Expression> right)
+    :  mLeft(std::move(left)), mRight(std::move(right)) {
+        mNodeType  = NodeType::SequenceExpression;
+    }
+    Value evaluate(Environment& env) override;
+    bool compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) override;
+};
 
 // -----------------------------------------------------------------------------------------------------
 // FastPath

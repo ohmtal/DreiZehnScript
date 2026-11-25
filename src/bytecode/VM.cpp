@@ -61,6 +61,20 @@ namespace DreiZehn {
         return(Value(arr));
     }
     //-----------------------------------------------------------------------------
+    bool getArrayIsString(const Value& varValue, U32 index, Value& resultValue ) {
+        if (varValue.isString() )  {
+            const std::string& str = varValue.getStringRef();
+            if (index >= str.length()) {
+                return false;
+            }
+            std::string result(1, static_cast<char>(str[index]));
+            resultValue=Value(result);
+            return true;
+        }
+        return false;
+    }
+
+    //-----------------------------------------------------------------------------
 
 
 
@@ -897,15 +911,31 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value indexValue = POP_STACK();
         Value varValue = POP_STACK();
 
-        if (!varValue.isObjectPointer()) {
-           THROW_VM_ERROR(ip, OP_LOAD_ARRAY,"Array is not an Object!");
-            PUSH_STACK(NumberNullValue);
-            DISPATCH();
-        }
+
+
+
         const Value* resultPtr = nullptr;
         if (indexValue.isNumber()) [[likely]] {
+            Value resultValue;
+            if (getArrayIsString(varValue,indexValue.getUInt(),resultValue)) [[unlikely]] {
+                PUSH_STACK(resultValue);
+                DISPATCH();
+            }
+
+            if (!varValue.isObjectPointer() ) [[unlikely]]{
+                THROW_VM_ERROR(ip, OP_LOAD_ARRAY,"Array is not an Object!");
+                PUSH_STACK(NumberNullValue);
+                DISPATCH();
+            }
+
              resultPtr = varValue.asPointerObject()->onGetArrayIndexPtr((size_t)indexValue.getUInt());
         } else if (indexValue.isString()) {
+            if (!varValue.isObjectPointer() ) [[unlikely]]{
+                THROW_VM_ERROR(ip, OP_LOAD_ARRAY,"Array is not an Object!");
+                PUSH_STACK(NumberNullValue);
+                DISPATCH();
+            }
+
             resultPtr =varValue.asPointerObject()->onGetArrayByStringSymId(SymbolTable::insert( indexValue.getStringRef()));
         }
         PUSH_STACK(resultPtr ? *resultPtr : NumberNullValue);
@@ -916,8 +946,14 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         U32 index = ADVANCE_U32();
         Value varValue = POP_STACK();
 
-        if (!varValue.isObjectPointer()) {
-            THROW_VM_ERROR(ip, OP_LOAD_ARRAY,"Array is not an Object!");
+        Value resultValue;
+        if (getArrayIsString(varValue,index,resultValue)) [[unlikely]] {
+            PUSH_STACK(resultValue);
+            DISPATCH();
+        }
+
+        if (!varValue.isObjectPointer() ) [[unlikely]] {
+            THROW_VM_ERROR(ip, OP_LOAD_ARRAY,"Array by index is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -931,8 +967,8 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         U32 symId = ADVANCE_U32();
         Value varValue = POP_STACK();
 
-        if (!varValue.isObjectPointer()) {
-            THROW_VM_ERROR(ip, OP_LOAD_ARRAY,"Array is not an Object!");
+        if (!varValue.isObjectPointer()) [[unlikely]]{
+            THROW_VM_ERROR(ip, OP_LOAD_ARRAY,"Array by name is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -953,7 +989,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value varValue = POP_STACK();
 
         if (!varValue.isObjectPointer()) [[unlikely]] {
-            THROW_VM_ERROR(ip, OP_PUSHPTR_ARRAY_INDEX,"Array is not an Object!");
+            THROW_VM_ERROR(ip, OP_PUSHPTR_ARRAY_INDEX,"Array assign by index is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -968,7 +1004,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value varValue = POP_STACK();
 
         if (!varValue.isObjectPointer()) [[unlikely]] {
-            THROW_VM_ERROR(ip, OP_PUSHPTR_ARRAY_SYMID,"Array is not an Object!");
+            THROW_VM_ERROR(ip, OP_PUSHPTR_ARRAY_SYMID,"Array assign by string is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }
@@ -983,7 +1019,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value varValue = POP_STACK();
 
         if (!varValue.isObjectPointer()) [[unlikely]] {
-            THROW_VM_ERROR(ip, OP_PUSHPTR_ARRAY,"Array is not an Object!");
+            THROW_VM_ERROR(ip, OP_PUSHPTR_ARRAY,"Array assign  is not an Object!");
             PUSH_STACK(NumberNullValue);
             DISPATCH();
         }

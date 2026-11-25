@@ -64,24 +64,6 @@ private:
     // -------------------------------------------------------------------------
     std::unique_ptr<Expression> parsePrimary();
 
-    //TEST THIS SUCKS <<  to use ()!!
-    inline bool checkCommaBreak(std::vector<std::unique_ptr<Expression>>& args) {
-        if (peek().mType == TokenType::Comma) {
-            advance();
-
-            // NOTE:
-            // i got it working with the nullptr args hack but if you cant use it to
-            // call a function with parameter inside a function call so you still need
-            // to encapsulate with ()
-            /*
-             a = 47; print core::date, a, "jiji"
-            */
-            if (args.empty()) return false; // never ?!
-            Expression* last = args.back().get();
-            if (!last) return true;
-        }
-        return false;
-    }
 
     // -------------------------------------------------------------------------
     // 0.6 added short if/then
@@ -92,8 +74,12 @@ private:
     std::unique_ptr<Expression> parseIdentifier();
     std::unique_ptr<Expression> parsePostFix(std::unique_ptr<Expression> currentExpression); // [] -> .
 
-
     std::istream* mCurrentCodeStream;
+
+    #ifdef COMMA_MADNESS
+    bool unhandledComma = false;
+    #endif
+    bool checkCommaBreak(std::vector<std::unique_ptr<Expression>>& args);
 public:
     U32 lineNumber = 0;
 

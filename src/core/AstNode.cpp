@@ -1655,7 +1655,7 @@ namespace DreiZehn {
             return NumberNullValue;
         }
         Value rVal = mRight->evaluate(env);
-        return Value(!rVal.getInt());
+        return Value(!rVal.getBool());
     }
     bool BinarySingleRightOpExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         if (requestType == ValueType::NONE) {
@@ -1942,9 +1942,10 @@ namespace DreiZehn {
     FlowStatus IfStatement::execute(Environment& env){
         Value condVal = this->mCondition->evaluate(env);
 
-        double condNum = condVal.getDouble();
-        const double EPSILON = 1e-9;
-        bool isTrue = std::abs(condNum) > EPSILON;
+        // double condNum = condVal.getDouble();
+        // const double EPSILON = 1e-9;
+        // bool isTrue = std::abs(condNum) > EPSILON;
+        bool isTrue = condVal.getBool();
 
         if (isTrue) {
             for (auto& childNode : this->mBody) {
@@ -2208,7 +2209,7 @@ namespace DreiZehn {
 
         auto checkCondition = [&]() -> bool {
             Value condVal = this->mCondition->evaluate(env);
-            return (condVal.getInt() != 0);
+            return (condVal.getBool());
         };
 
         while (checkCondition()) {
@@ -2640,7 +2641,7 @@ namespace DreiZehn {
         mLeft->evaluate(env);
         Value result = mRight->evaluate(env);
 
-        Tools::printf("RESULT IS: %s\n", result.toString().c_str());
+        // Tools::printf("DEBUG SequenceExpression RESULT IS: %s\n", result.toString().c_str());
 
         return result;
     }

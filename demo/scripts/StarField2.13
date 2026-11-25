@@ -33,13 +33,15 @@ end
 if doBenchMark print "*** running benchmark 3000 loops ***";;
 
 fn Init
+    print "enter Init"
     if !( SDL_Init SDL_INIT_VIDEO )
         print "Failed to init SDL3"
         return false
     end
-
-    if !(Window = SDL_CreateWindow "StarField DreiZehn" W H 0); return false;;
-    if !(Renderer = SDL_CreateRenderer Window ); return false;;
+    print "Create Window......"
+    if !(Window = SDL_CreateWindow "StarField DreiZehn" W H 0); error "Failed to create Window with param:" W H ; return false;;
+    print "Create Render......"
+    if !(Renderer = SDL_CreateRenderer Window ); error "Failed to create Render from Window:" Window; return false;;
     Event = SDL_CreateEvent
 
     Points = Vector::new

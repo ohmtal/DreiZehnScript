@@ -848,7 +848,38 @@ not detected or not set ?!
         Comma (,): Precedence 1 
         - started and added SequenceExpression but did not get parser working so far
         - tagged with "NOTE CANCEL"
-    
+        - need to find a position where it works with Paren : 
+            - `a = b=10,b*5;print a` => `10` this is ok 
+                (i had this in parseComp.. but paren does not work there)
+            - `a = (b=10,b*5);print a` => now it should be `50`
+            debug::printAst "scripts/l.13"
+
+
+Removed all comma handling for sequence and get:
+
+```
+error] [Parser LINE:2]: Error: Missing closing bracket (parsePrimary)   
+  ==> c = (x=4,x++)
+[error] [Parser LINE:2]: Assignment but no Assign Expression!   
+  ==> c = (x=4,x++)
+[error] Syntax-Error: Unexpected token 'Comma' (c = (x=4,x++):2)
+[error] Syntax-Error: Unexpected token 'RParen )' (c = (x=4,x++):2)
++-- Main Programm Block [L:0] (1 items)
+    +-- BinaryInlineExpression [L:2]
+```
+so this is a good point to start ;)
+- it only create the x++ (this would be mLeft)
+- need to change Paren parsing - i guess
+- must be added to parse math and Assign, AssignOp need a higher Precedence ? 
+
+   
+debug::printAst "scripts/l.13"; run "scripts/l.13"
+
+- WORKS: `a = (b=2),b*3`
+- NOT: `a = b=5,b*3;` if b ==1 it does a and b => 3 9 27
+- NOT: `a = (b=5,b*3)` like before 3 9 27 or stays on 0
+- NOT: `print a,b` : only print a
+
 ================================================================================
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 
 

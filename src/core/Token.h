@@ -6,6 +6,8 @@
 //-----------------------------------------------------------------------------
 #pragma once
 
+#define COMMA_MADNESS
+
 #include <string>
 
 namespace DreiZehn{

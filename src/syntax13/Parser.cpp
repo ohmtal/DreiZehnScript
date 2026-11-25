@@ -107,6 +107,35 @@ namespace DreiZehn {
     }
 
 
+    //TEST THIS SUCKS <<  to use ()!!
+    bool Parser::checkCommaBreak(std::vector<std::unique_ptr<Expression>>& args) {
+        #ifdef COMMA_MADNESS
+        // Tools::infof("we got a checkCommaBreak request and commaflag is %d\n", unhandledComma);
+
+        if (unhandledComma) {
+            if (args.empty()) return false; // never ?!
+            Expression* last = args.back().get();
+            if (!last) return true;
+        }
+
+        return false;
+        #endif
+        if (peek().mType == TokenType::Comma) {
+            advance();
+
+            // NOTE:
+            // i got it working with the nullptr args hack but if you cant use it to
+            // call a function with parameter inside a function call so you still need
+            // to encapsulate with ()
+            /*
+             *             a = 47; print core::date, a, "jiji"
+             */
+            if (args.empty()) return false; // never ?!
+            Expression* last = args.back().get();
+            if (!last) return true;
+        }
+        return false;
+    }
 
     // ----------------------------------------------------------------------------
     // -------------------------------------------------------------------------
@@ -170,16 +199,19 @@ namespace DreiZehn {
 
         if (type == TokenType::And || type == TokenType::Or) return 10;
 
-        if (type == TokenType::Question) return 0;
+#ifdef COMMA_MADNESS
         if (type == TokenType::Assign) return 0;
-        if (type == TokenType::Dot) return 0;
-        if (type == TokenType::Arrow) return 0;
+        if (isMathAssignOperatorType(type)) return 0;
+        if (type == TokenType::Comma) return 0;
+#else
+        if (type == TokenType::Assign) return 0; ;
+        if (isMathAssignOperatorType(type)) return 0;
+#endif
+
+        if (type == TokenType::Question) return 0;
         if (type == TokenType::KeyValue) return 0;
         if (type == TokenType::DotDot) return 0;
         if (type == TokenType::DotAssign) return 0;
-        if (isMathAssignOperatorType(type)) return 0;
-        // NOTE CANCEL if (type == TokenType::Comma) return 0;
-
         return -1;
     }
 
@@ -304,67 +336,6 @@ namespace DreiZehn {
                 // currentExpression = std::make_unique<VariableExpression>(varRegister, isGlobal);
             }
 
-            // MOVED TO PARSE POSTFIX
-            // while (true) {
-            //     if (peek().mType  == TokenType::Dot && peekNext().mType == TokenType::Identifier ) {
-            //         advance(); // eat DOT
-            //         Token fieldToken = advance();
-            //         uint32_t fieldSymbolId = SymbolTable::insert(fieldToken.mValue);
-            //         currentExpression = std::make_unique<ObjectFieldExpression>(std::move(currentExpression), fieldSymbolId);
-            //     }
-            //     else  if (peek().mType  == TokenType::Arrow && peekNext().mType == TokenType::Identifier ) {
-            //         advance(); // eat ->
-            //         Token methodToken = advance();
-            //         uint32_t methodSymbolId = SymbolTable::insert(methodToken.mValue);
-            //
-            //         std::vector<std::unique_ptr<Expression>> args;
-            //         while (isContinueToken(peek())) {
-            //             size_t lastPos = mPos;
-            //             auto arg = parseMath();
-            //             if (arg) {
-            //                 args.push_back(std::move(arg));
-            //                 args.back()->mLineNumber = lineNumber;
-            //             }
-            //             if (checkCommaBreak(args)) break; //TEST
-            //
-            //             if (lastPos == mPos) {
-            //                 PrintParseError("In method call:");
-            //                 return nullptr;
-            //                 // break;
-            //             }
-            //         }
-            //         currentExpression = std::make_unique<MethodExpression>(std::move(currentExpression), methodSymbolId, std::move(args));
-            //     }
-            //     else if (peek().mType == TokenType::Dot) {
-            //         PrintParseError("Field expected after  '.'");
-            //         advance();
-            //         return nullptr;
-            //         // break;
-            //     }
-            //     else if (peek().mType == TokenType::Arrow) {
-            //         PrintParseError("Method expected after '->'");
-            //         advance(); // eat '->'
-            //         return nullptr;
-            //         // break;
-            //     }
-            //     else if (peek().mType == TokenType::LSquare) {
-            //         advance(); // eat '['
-            //         std::unique_ptr<Expression> indexExpr = parseMath();
-            //
-            //         if (peek().mType != TokenType::RSquare) {
-            //             PrintParseError("expected ']' after array index!");
-            //             return nullptr;
-            //             // break;
-            //         }
-            //         advance(); // eat ']'
-            //         currentExpression = std::make_unique<ArrayVariableExpression>(
-            //             std::move(currentExpression), std::move(indexExpr));
-            //
-            //     }
-            //     else {
-            //         break;
-            //     }
-            // } // while true
             return currentExpression;
 
     }
@@ -505,6 +476,9 @@ namespace DreiZehn {
         auto left = parsePrimary();
         if (left) left->mLineNumber = lineNumber;
 
+#ifdef COMMA_MADNESS
+        unhandledComma = false;
+#endif
         while (isMathType(peek()) || peek().mType == TokenType::BackSlash) {
             Token op = peek();
 
@@ -521,6 +495,8 @@ namespace DreiZehn {
                 break;
             }
             advance();
+
+
 
             if (op.mType == TokenType::Assign) {
                 if (!left) {
@@ -653,20 +629,29 @@ namespace DreiZehn {
                 );
                 continue;
             }
-            // NOTE CANCEL
-            // else if (op.mType == TokenType::Comma) {
-            //         if (!left) {
-            //             PrintParseError("SequenceExpression but no left!");
-            //             return nullptr;
-            //         }
-            //         auto rhs = parseMath(0);
-            //         if (!rhs) {
-            //             PrintParseError("SequenceExpression but no right!");
-            //             return nullptr;
-            //         }
-            //         left = std::make_unique<SequenceExpression>(std::move(left), std::move(rhs));
-            //     continue;
-            // }
+            // TEST FIXME see TODO
+#ifdef COMMA_MADNESS
+            else if (op.mType == TokenType::Comma ) {
+                if (!left) {
+                    PrintParseError("SequenceExpression but no left!");
+                    return nullptr;
+                }
+                if (left->mNodeType == NodeType::AssignStatement)  {
+                    auto rhs = parseMath(0);
+                    if (!rhs) {
+                        PrintParseError("SequenceExpression but no right!");
+                        return nullptr;
+                    }
+                    left = std::make_unique<SequenceExpression>(std::move(left), std::move(rhs));
+                    continue;
+                } else {
+                    // PrintParseError("SequenceExpression left must be a Assignment");
+                    unhandledComma = true;
+                    left->mLineNumber = lineNumber;
+                    return left;
+                }
+            }
+#endif
 
             auto right = parseMath(precedence + 1);
 
@@ -681,6 +666,7 @@ namespace DreiZehn {
             if (left) left->mLineNumber = lineNumber;
         }
 
+
         if (left) left->mLineNumber = lineNumber;
         return left;
     }
@@ -689,8 +675,9 @@ namespace DreiZehn {
         auto left = parseMath();
 
 
-        // SequenceExpression NOT HERE!
+        // // SequenceExpression NOT HERE!
         // if (peek().mType == TokenType::Comma) {
+        //     Tools::printf("%s\n",tokenTypeToString(peekPrev().mType));
         //     while (peek().mType == TokenType::Comma) {
         //         advance();
         //         auto rhs = parseMath(0);
@@ -716,7 +703,6 @@ namespace DreiZehn {
     }
     // ----------------------------------------------------------------------------
     std::unique_ptr< DreiZehn::Expression > Parser::parseExpression() {
-
 
 
         if (peek().mType == TokenType::LParen) {

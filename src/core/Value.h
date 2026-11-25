@@ -143,7 +143,7 @@ public:
     //     return (isPointer() && asPointerObject()->mType == ValueObjectType::String);
     // }
 
-    inline bool isNumber() {ValueType t = getType(); return (t == ValueType::Int || t == ValueType::Double);}
+    inline bool isNumber() const {ValueType t = getType(); return (t == ValueType::Int || t == ValueType::Double);}
 
     // -------------------------------------------------------------------------
     // --- Getter (Unboxing) ---

@@ -1,16 +1,16 @@
 # DreiZehn-Script
 
-A lightweight, modular scripting language built from scratch in C++. 
+A modular scripting language built from scratch in C++. 
 
 - High optimized AST-Interpreter
-- High optimized Byte-Code Compiler (WiP)
-- It's designed for easy embedding a Script language into your Application. 
+- High optimized Byte-Code Compiler 
 
 [Handbook](handbook/Main.md)
 
 [Todo / Done List](docu/Todo.md)
 
 [Benchmark Results](docu/Benchmark.md)
+
 
 ### Why is it called DreiZehn Script ? 
 Dreizehn is the number 13 in german. I also work on ElfScript (Elf == 11 in german) and so i count up. 

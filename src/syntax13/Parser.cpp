@@ -297,7 +297,7 @@ namespace DreiZehn {
                 else {
                     break;
                 }
-            }
+            } // while true
             return currentExpression;
 
     }

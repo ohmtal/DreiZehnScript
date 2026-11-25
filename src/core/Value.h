@@ -13,6 +13,7 @@
 
 #include "ValueObject.h"
 #include "Globals.h"
+#include <cmath>
 
 namespace DreiZehn{
 
@@ -210,9 +211,19 @@ public:
             return std::bit_cast<double>(mBits);
         }
         if (isInt())      return static_cast<double>(asFastInt());
-        if (isObjectPointer())  return static_cast<double>(asPointer() != nullptr);
-        if (isString())   return static_cast<double>(!getStringRef().empty());
-        return 0.0;
+        if (isString()) {
+            const std::string& str = getStringRef();
+            if (str.empty()) return std::numeric_limits<double>::quiet_NaN();
+
+            char* endPtr = nullptr;
+            double val = std::strtod(str.c_str(), &endPtr);
+
+            if (endPtr == str.c_str()) {
+                return std::numeric_limits<double>::quiet_NaN();
+            }
+            return val;
+        }
+        return std::numeric_limits<double>::quiet_NaN();
     }
 
     // -------------------------------------------------------------------------
@@ -222,23 +233,21 @@ public:
 
     // -------------------------------------------------------------------------
     inline int64_t getInt64() const {
-        if (isInt()) [[likely]] {
-            return static_cast<int64_t>(asFastInt());
-        }
-        if (isDouble())   return static_cast<int64_t>(asFastDouble());
-        if (isObjectPointer())  return reinterpret_cast<int64_t>(asPointer());
-        if (isString())   return static_cast<int64_t>(!getStringRef().empty());
-        return 0;
+        return static_cast<int64_t>(getInt());
     }
 
     // -------------------------------------------------------------------------
     inline int32_t getInt() const {
         if (isInt()) [[likely]] {
-            return static_cast<int32_t>(mBits & 0xFFFFFFFFULL);
+            return asFastInt();
         }
-        if (isDouble())   return static_cast<int32_t>(asFastDouble());
-        if (isObjectPointer())  return static_cast<int32_t>(asPointer() != nullptr);
-        if (isString())   return static_cast<int32_t>(!getStringRef().empty());
+        if (isDouble() || isString()) {
+            double d = getDouble();
+            if (!std::isfinite(d)) {
+                return 0;
+            }
+            return static_cast<int32_t>(d);
+        }
         return 0;
     }
 
@@ -260,66 +269,6 @@ public:
         if (isString())   return !getStringRef().empty();
         return false;
     }
-
-    // // inline double getDouble() const {
-    // //     if (!isDouble()) {
-    // //         if (isInt()) return (double) asFastInt();
-    // //         else if (isPointer()) return (double) (asPointer() != nullptr);
-    // //         else if (isString()) return (double)( getStringRef().length() > 0  );
-    // //         else return 0;
-    // //     }
-    // //     return std::bit_cast<double>(mBits);
-    // // }
-    // //
-    // // // -------------------------------------------------------------------------
-    // // inline float getFloat() const {
-    // //     if (!isDouble()) {
-    // //         if (isInt()) return (float) asFastInt();
-    // //         else if (isPointer()) return (float) (asPointer() != nullptr);
-    // //         else if (isString()) return (float)( getStringRef().length() > 0  );
-    // //         else return 0;
-    // //     }
-    // //     return (float)std::bit_cast<double>(mBits);
-    // // }
-    // // // -------------------------------------------------------------------------
-    // // inline int64_t getInt64() const {
-    // //
-    // //     if (isDouble()) return static_cast<int64_t>(asFastDouble());
-    // //     else if (isInt()) return (int64_t)(asFastInt());
-    // //     else if (isPointer()) return (int64_t)(asPointer());
-    // //     else if (isString()) return (int64_t)( getStringRef().length() > 0  );
-    // //     return 0;
-    // // }
-    // // // -------------------------------------------------------------------------
-    // // inline int32_t getInt() const {
-    // //     if (!isInt()) {
-    // //         if (isDouble()) return (int32_t) asFastDouble();
-    // //         else if (isPointer()) return (int32_t)(asPointer() != nullptr);
-    // //         else if (isString()) return (int32_t)( getStringRef().length() > 0  );
-    // //         else return 0;
-    // //     }
-    // //     return static_cast<int32_t>(mBits & 0xFFFFFFFFULL);
-    // // }
-    // // // -------------------------------------------------------------------------
-    // // inline uint32_t getUInt() const {
-    // //     if (!isInt()) {
-    // //         if (isDouble()) return (uint32_t) asFastDouble();
-    // //         else if (isPointer()) return (uint32_t)(asPointer() != nullptr);
-    // //         else if (isString()) return (uint32_t)( getStringRef().length() > 0  );
-    // //         else return 0;
-    // //     }
-    // //     return static_cast<uint32_t>(mBits & 0xFFFFFFFFULL);
-    // // }
-    // // // -------------------------------------------------------------------------
-    // // inline bool getBool() const {
-    // //     if (!isInt()) {
-    // //         if (isDouble()) return ((uint32_t) asFastDouble() == 1);
-    // //         else if (isPointer()) return (uint32_t)(asPointer() != nullptr);
-    // //         else if (isString()) return (uint32_t)( getStringRef().length() > 0  );
-    // //         else return 0;
-    // //     }
-    // //     return (static_cast<uint32_t>(mBits & 0xFFFFFFFFULL) == 1);
-    // // }
 
     // -------------------------------------------------------------------------
     inline void* getPointer() const {
@@ -346,31 +295,6 @@ public:
         return StringTable::get(asString());
     }
     // -------------------------------------------------------------------------
-    // Debug print
-    // inline const std::string toString() const {
-    //     char buffer[256];
-    //
-    //     if (isInt()) {
-    //         snprintf(buffer, sizeof(buffer), "%d" , asInt());
-    //         return std::string(buffer);
-    //     }
-    //     else if (isDouble()) {
-    //         snprintf(buffer, sizeof(buffer), "%f" , asDouble());
-    //         return std::string(buffer);
-    //     }
-    //     else if (isString()){
-    //         return getStringRef();
-    //     }
-    //     else if (isPointer()) {
-    //         ValueObject* obj = asPointerObject();
-    //         return obj->toString();
-    //     }
-    //     else if(isValuePointer()) {
-    //         snprintf(buffer, sizeof(buffer), "[%p]" , asValuePointer());
-    //         return std::string(buffer);
-    //     }
-    //     return "unknown!";
-    // }
 
     inline std::string toString() const {
         if (isString()) [[likely]] {

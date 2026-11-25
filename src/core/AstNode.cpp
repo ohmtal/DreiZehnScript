@@ -65,8 +65,8 @@ namespace DreiZehn {
     // yay this is slightly faster
     template<TokenType Op>
     Value doFloatMath(Value a, Value b) {
-        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
 
         if constexpr (Op == TokenType::Plus) {
             uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
@@ -1006,8 +1006,8 @@ namespace DreiZehn {
 
         // <<<<<<<<<<<<<< TEST
 
-        // double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-        // double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        // double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+        // double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
         //
         //
         // switch (mOp) {
@@ -1406,26 +1406,26 @@ namespace DreiZehn {
 
         switch (mOp) {
             case TokenType::Greater: {
-                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
                 uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a > target_b);
                 return Value(Unsafe{}, result_bits);
             }
             case TokenType::GreaterEqual: {
-                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
                 uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a >= target_b);
                 return Value(Unsafe{}, result_bits);
             }
             case TokenType::Less:  {
-                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
                 uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a < target_b);
                 return Value(Unsafe{}, result_bits);
             }
             case TokenType::LowerEqual: {
-                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+                double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
                 uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a <= target_b);
                 return Value(Unsafe{}, result_bits);
 
@@ -1433,8 +1433,8 @@ namespace DreiZehn {
             case TokenType::Equal: {
 
                 if (a.isNumber() && b.isNumber()) [[likely]]{
-                    double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-                    double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                    double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+                    double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
                     uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a == target_b);
                     return Value(Unsafe{}, result_bits);
                 }
@@ -1451,8 +1451,8 @@ namespace DreiZehn {
             }
             case TokenType::NotEqual: {
                 if (a.isNumber() && b.isNumber()) [[likely]]{
-                    double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-                    double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+                    double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+                    double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
                     uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a != target_b);
                     return Value(Unsafe{}, result_bits);
                 }

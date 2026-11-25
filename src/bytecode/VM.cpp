@@ -1329,8 +1329,8 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
         uint64_t result_bits = std::bit_cast<uint64_t>(target_a + target_b);
         PUSH_STACK(Value(Unsafe{}, result_bits));
         DISPATCH();
@@ -1359,8 +1359,8 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
         uint64_t result_bits = std::bit_cast<uint64_t>(target_a - target_b);
         PUSH_STACK(Value(Unsafe{}, result_bits));
         DISPATCH();
@@ -1381,8 +1381,8 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
         uint64_t result_bits = std::bit_cast<uint64_t>(target_a * target_b);
         PUSH_STACK(Value(Unsafe{}, result_bits));
         DISPATCH();
@@ -1408,8 +1408,8 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         Value b = POP_STACK();
         Value a = POP_STACK();
 
-        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : 0.0);
-        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : 0.0);
+        double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+        double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
         if (target_b == 0.0) [[unlikely]]  {
             PUSH_STACK(NumberNullValue);
             DISPATCH();

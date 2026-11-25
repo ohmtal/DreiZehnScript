@@ -830,6 +830,21 @@ not detected or not set ?!
     
 - Finally: reload with *event driven loop* runs with Interpreter and ByteCode :D
 
+
+- [X] Value getDouble return silent nan and convert string to number, getInt use not getDouble
+
+- Understanding bytebeats and js specials
+    - "[]" operators
+        - `"123"[0]` is `1` on math the string is casted to number so `"123"[0]*5` is 5
+            - parser string literal is the same as a isString() Value
+            - getDouble on String return the converted number like my int::cast automaticly 
+        - `true + "1"` => `"true1"` << i replaced string concat with ".." so doesnt matter
+        - `[] + 1` => `"1"` << this would be a number 1 but i dont have [] lists. 
+        - but i could have `{1,2,3}[0]`
+        - [ ] move the "[" "." "->" to a new parsePostFix and attach it
+    
+    - ',' in assign expressions calulate inline a value like: return t+5,t*2
+    
 ================================================================================
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 
 
@@ -869,6 +884,10 @@ not detected or not set ?!
 - [ ] from hex: int::cast "0x37" ==> 7 , note: float::cast works but depends on compiler! 
 
 ## maybe:
+
+
+    
+
 
 - [ ] missing assign ops `|=` `&=` `^=` `%=` `>>=` `<<=` 
 

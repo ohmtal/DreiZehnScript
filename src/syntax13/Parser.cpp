@@ -183,7 +183,69 @@ namespace DreiZehn {
     }
 
     // ----------------------------------------------------------------------------
-     std::unique_ptr<Expression> Parser::parsePostFix() {
+     std::unique_ptr<Expression> Parser::parsePostFix(std::unique_ptr<Expression> currentExpression) {
+         // std::unique_ptr<Expression> currentExpression = nullptr;
+         while (true) {
+             if (peek().mType  == TokenType::Dot && peekNext().mType == TokenType::Identifier ) {
+                 advance(); // eat DOT
+                 Token fieldToken = advance();
+                 uint32_t fieldSymbolId = SymbolTable::insert(fieldToken.mValue);
+                 currentExpression = std::make_unique<ObjectFieldExpression>(std::move(currentExpression), fieldSymbolId);
+             }
+             else  if (peek().mType  == TokenType::Arrow && peekNext().mType == TokenType::Identifier ) {
+                 advance(); // eat ->
+                 Token methodToken = advance();
+                 uint32_t methodSymbolId = SymbolTable::insert(methodToken.mValue);
+
+                 std::vector<std::unique_ptr<Expression>> args;
+                 while (isContinueToken(peek())) {
+                     size_t lastPos = mPos;
+                     auto arg = parseMath();
+                     if (arg) {
+                         args.push_back(std::move(arg));
+                         args.back()->mLineNumber = lineNumber;
+                     }
+                     if (checkCommaBreak(args)) break; //TEST
+
+                     if (lastPos == mPos) {
+                         PrintParseError("In method call:");
+                         return nullptr;
+                         // break;
+                     }
+                 }
+                 currentExpression = std::make_unique<MethodExpression>(std::move(currentExpression), methodSymbolId, std::move(args));
+             }
+             else if (peek().mType == TokenType::Dot) {
+                 PrintParseError("Field expected after  '.'");
+                 advance();
+                 return nullptr;
+                 // break;
+             }
+             else if (peek().mType == TokenType::Arrow) {
+                 PrintParseError("Method expected after '->'");
+                 advance(); // eat '->'
+                 return nullptr;
+                 // break;
+             }
+             else if (peek().mType == TokenType::LSquare) {
+                 advance(); // eat '['
+                 std::unique_ptr<Expression> indexExpr = parseMath();
+
+                 if (peek().mType != TokenType::RSquare) {
+                     PrintParseError("expected ']' after array index!");
+                     return nullptr;
+                     // break;
+                 }
+                 advance(); // eat ']'
+                 currentExpression = std::make_unique<ArrayVariableExpression>(
+                     std::move(currentExpression), std::move(indexExpr));
+
+             }
+             else {
+                 break;
+             }
+         } // while true
+        return currentExpression;
      }
     // ----------------------------------------------------------------------------
     std::unique_ptr<Expression> Parser::parseIdentifier() {
@@ -242,66 +304,66 @@ namespace DreiZehn {
             }
 
             // MOVED TO PARSE POSTFIX
-            while (true) {
-                if (peek().mType  == TokenType::Dot && peekNext().mType == TokenType::Identifier ) {
-                    advance(); // eat DOT
-                    Token fieldToken = advance();
-                    uint32_t fieldSymbolId = SymbolTable::insert(fieldToken.mValue);
-                    currentExpression = std::make_unique<ObjectFieldExpression>(std::move(currentExpression), fieldSymbolId);
-                }
-                else  if (peek().mType  == TokenType::Arrow && peekNext().mType == TokenType::Identifier ) {
-                    advance(); // eat ->
-                    Token methodToken = advance();
-                    uint32_t methodSymbolId = SymbolTable::insert(methodToken.mValue);
-
-                    std::vector<std::unique_ptr<Expression>> args;
-                    while (isContinueToken(peek())) {
-                        size_t lastPos = mPos;
-                        auto arg = parseMath();
-                        if (arg) {
-                            args.push_back(std::move(arg));
-                            args.back()->mLineNumber = lineNumber;
-                        }
-                        if (checkCommaBreak(args)) break; //TEST
-
-                        if (lastPos == mPos) {
-                            PrintParseError("In method call:");
-                            return nullptr;
-                            // break;
-                        }
-                    }
-                    currentExpression = std::make_unique<MethodExpression>(std::move(currentExpression), methodSymbolId, std::move(args));
-                }
-                else if (peek().mType == TokenType::Dot) {
-                    PrintParseError("Field expected after  '.'");
-                    advance();
-                    return nullptr;
-                    // break;
-                }
-                else if (peek().mType == TokenType::Arrow) {
-                    PrintParseError("Method expected after '->'");
-                    advance(); // eat '->'
-                    return nullptr;
-                    // break;
-                }
-                else if (peek().mType == TokenType::LSquare) {
-                    advance(); // eat '['
-                    std::unique_ptr<Expression> indexExpr = parseMath();
-
-                    if (peek().mType != TokenType::RSquare) {
-                        PrintParseError("expected ']' after array index!");
-                        return nullptr;
-                        // break;
-                    }
-                    advance(); // eat ']'
-                    currentExpression = std::make_unique<ArrayVariableExpression>(
-                        std::move(currentExpression), std::move(indexExpr));
-
-                }
-                else {
-                    break;
-                }
-            } // while true
+            // while (true) {
+            //     if (peek().mType  == TokenType::Dot && peekNext().mType == TokenType::Identifier ) {
+            //         advance(); // eat DOT
+            //         Token fieldToken = advance();
+            //         uint32_t fieldSymbolId = SymbolTable::insert(fieldToken.mValue);
+            //         currentExpression = std::make_unique<ObjectFieldExpression>(std::move(currentExpression), fieldSymbolId);
+            //     }
+            //     else  if (peek().mType  == TokenType::Arrow && peekNext().mType == TokenType::Identifier ) {
+            //         advance(); // eat ->
+            //         Token methodToken = advance();
+            //         uint32_t methodSymbolId = SymbolTable::insert(methodToken.mValue);
+            //
+            //         std::vector<std::unique_ptr<Expression>> args;
+            //         while (isContinueToken(peek())) {
+            //             size_t lastPos = mPos;
+            //             auto arg = parseMath();
+            //             if (arg) {
+            //                 args.push_back(std::move(arg));
+            //                 args.back()->mLineNumber = lineNumber;
+            //             }
+            //             if (checkCommaBreak(args)) break; //TEST
+            //
+            //             if (lastPos == mPos) {
+            //                 PrintParseError("In method call:");
+            //                 return nullptr;
+            //                 // break;
+            //             }
+            //         }
+            //         currentExpression = std::make_unique<MethodExpression>(std::move(currentExpression), methodSymbolId, std::move(args));
+            //     }
+            //     else if (peek().mType == TokenType::Dot) {
+            //         PrintParseError("Field expected after  '.'");
+            //         advance();
+            //         return nullptr;
+            //         // break;
+            //     }
+            //     else if (peek().mType == TokenType::Arrow) {
+            //         PrintParseError("Method expected after '->'");
+            //         advance(); // eat '->'
+            //         return nullptr;
+            //         // break;
+            //     }
+            //     else if (peek().mType == TokenType::LSquare) {
+            //         advance(); // eat '['
+            //         std::unique_ptr<Expression> indexExpr = parseMath();
+            //
+            //         if (peek().mType != TokenType::RSquare) {
+            //             PrintParseError("expected ']' after array index!");
+            //             return nullptr;
+            //             // break;
+            //         }
+            //         advance(); // eat ']'
+            //         currentExpression = std::make_unique<ArrayVariableExpression>(
+            //             std::move(currentExpression), std::move(indexExpr));
+            //
+            //     }
+            //     else {
+            //         break;
+            //     }
+            // } // while true
             return currentExpression;
 
     }
@@ -368,7 +430,8 @@ namespace DreiZehn {
                         }
                     }
 
-                    return std::make_unique<ListExpression>(std::move(args), allKeyValue);
+                    // return std::make_unique<ListExpression>(std::move(args), allKeyValue);
+                    return parsePostFix(std::make_unique<ListExpression>(std::move(args), allKeyValue));
                 } else {
                     PrintParseError("Error: Missing closing curly bracket\n");
                     return nullptr;
@@ -381,10 +444,13 @@ namespace DreiZehn {
                 auto expr = parseMath();
                 return std::make_unique<BinarySingleRightOpExpression>( TokenType::Not, std::move(expr));
             }
-            case TokenType::Number:
-            case TokenType::StringLiteral: {
+            case TokenType::Number: {
                 Token t = advance();
                 return std::make_unique<LiteralExpression>(t.mType, t.mValue);
+            }
+            case TokenType::StringLiteral: {
+                Token t = advance();
+                return parsePostFix(std::make_unique<LiteralExpression>(t.mType, t.mValue));
             }
             case TokenType::BitAnd:  {
                 Token t = advance();
@@ -413,7 +479,7 @@ namespace DreiZehn {
                 return std::make_unique<VariablePointerExpression>(std::move(expr));
             }
             case  TokenType::Identifier: {
-                return parseIdentifier();
+                return parsePostFix( parseIdentifier() ) ;
             } // TokenType::Identifier
             default:
                 //not! PrintParseError("parsePrimary :: Unhandled Token:", tokenTypeToString(curType));

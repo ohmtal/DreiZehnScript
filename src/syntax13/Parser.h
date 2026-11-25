@@ -90,7 +90,7 @@ private:
     std::unique_ptr<Expression> parseComparison();
     std::unique_ptr<Expression> parseExpression();
     std::unique_ptr<Expression> parseIdentifier();
-    std::unique_ptr<Expression> parsePostFix(); // [] -> .
+    std::unique_ptr<Expression> parsePostFix(std::unique_ptr<Expression> currentExpression); // [] -> .
 
 
     std::istream* mCurrentCodeStream;

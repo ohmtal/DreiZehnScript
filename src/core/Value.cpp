@@ -16,13 +16,16 @@ std::string Value::toStringSlowPath() const {
         }
         return "0.0";
     }
-
+    constexpr uint32_t ID_NAN = 0;
     constexpr uint32_t ID_INT = 1;
     constexpr uint32_t ID_PTR = 2;
     constexpr uint32_t ID_VALUE_PTR = 3;
     constexpr uint32_t ID_RAW_PTR = 5;
 
     switch (tag) {
+        case ID_NAN: {
+            return "NaN";
+        }
         case ID_INT: {
             std::array<char, 32> buffer;
             auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), asFastInt());

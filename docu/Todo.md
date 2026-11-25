@@ -841,7 +841,8 @@ not detected or not set ?!
         - `true + "1"` => `"true1"` << i replaced string concat with ".." so doesnt matter
         - `[] + 1` => `"1"` << this would be a number 1 but i dont have [] lists. 
         - but i could have `{1,2,3}[0]`
-        - [ ] move the "[" "." "->" to a new parsePostFix and attach it
+        - [ ] move the "[" "." "->" to a new parsePostFix and attach it 
+            Lots of testing i guess :P
     
     - ',' in assign expressions calulate inline a value like: return t+5,t*2
     

@@ -81,7 +81,7 @@ namespace DreiZehn {
             return Value(Unsafe{}, result_bits);
         }
         else if constexpr (Op == TokenType::Div) {
-            if (target_b == 0.0) [[unlikely]] return NumberNullValue;
+            if (target_b == 0.0) [[unlikely]] return Value( std::numeric_limits<double>::quiet_NaN()) ; //NumberNullValue;
             uint64_t result_bits = std::bit_cast<uint64_t>(target_a / target_b);
             return Value(Unsafe{}, result_bits);
         }
@@ -1431,23 +1431,41 @@ namespace DreiZehn {
 
             }
             case TokenType::Equal: {
-
-                if (a.isNumber() && b.isNumber()) [[likely]]{
-                    double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
-                    double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
-                    uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a == target_b);
-                    return Value(Unsafe{}, result_bits);
+                // 0.92  from bytecode both should be equal !!
+                if (a.isDouble() && b.isDouble()) [[likely]] {
+                    return(Value(a.asFastDouble() == b.asFastDouble() ? 1 : 0));
                 }
-                else [[unlikely]] {
 
-                    if (a.isObjectPointer() && b.isObjectPointer())  {
-                        return Value(a.asPointer() == b.asPointer() ? 1 : 0);
-                    } else if (a.isString() && b.isString()) {
-                        return Value(a.getStringRef() == b.getStringRef());
-                    } else if (a.isString() || b.isString()) {
-                        return NumberNullValue;
-                    }
+                if (a.isInt() && b.isInt()) {
+                    return(Value(a.asFastInt() == b.asFastInt() ? 1 : 0));
                 }
+
+                if (a.isObjectPointer() && b.isObjectPointer()) {
+                    return (Value(a.asPointer() == b.asPointer() ? 1 : 0));
+                }
+
+                if (a.isString() && b.isString()) {
+                    return (a.getStringRef() == b.getStringRef());
+                }
+
+                return (Value(a.getDouble() == b.getDouble()));
+
+                // if (a.isNumber() && b.isNumber()) [[likely]]{
+                //     double target_a = a.isDouble() ? a.asFastDouble() : (a.isInt() ? static_cast<double>(a.asFastInt()) : a.getDouble());
+                //     double target_b = b.isDouble() ? b.asFastDouble() : (b.isInt() ? static_cast<double>(b.asFastInt()) : b.getDouble());
+                //     uint64_t result_bits = QNAN_MASK | TAG_INT | (target_a == target_b);
+                //     return Value(Unsafe{}, result_bits);
+                // }
+                // else [[unlikely]] {
+                //
+                //     if (a.isObjectPointer() && b.isObjectPointer())  {
+                //         return Value(a.asPointer() == b.asPointer() ? 1 : 0);
+                //     } else if (a.isString() && b.isString()) {
+                //         return Value(a.getStringRef() == b.getStringRef());
+                //     } else if (a.isString() || b.isString()) {
+                //         return NumberNullValue;
+                //     }
+                // }
             }
             case TokenType::NotEqual: {
                 if (a.isNumber() && b.isNumber()) [[likely]]{

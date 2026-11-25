@@ -183,6 +183,9 @@ namespace DreiZehn {
     }
 
     // ----------------------------------------------------------------------------
+     std::unique_ptr<Expression> Parser::parsePostFix() {
+     }
+    // ----------------------------------------------------------------------------
     std::unique_ptr<Expression> Parser::parseIdentifier() {
         std::unique_ptr<Expression> currentExpression = nullptr;
         Token nameToken = advance();
@@ -238,6 +241,7 @@ namespace DreiZehn {
                 // currentExpression = std::make_unique<VariableExpression>(varRegister, isGlobal);
             }
 
+            // MOVED TO PARSE POSTFIX
             while (true) {
                 if (peek().mType  == TokenType::Dot && peekNext().mType == TokenType::Identifier ) {
                     advance(); // eat DOT

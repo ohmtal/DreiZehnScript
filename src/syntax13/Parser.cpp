@@ -636,7 +636,7 @@ namespace DreiZehn {
                     PrintParseError("SequenceExpression but no left!");
                     return nullptr;
                 }
-                if (left->mNodeType == NodeType::AssignStatement)  {
+                if (left->mNodeType == NodeType::AssignStatement || (left->mNodeType == NodeType::AssignOPStatement))  {
                     auto rhs = parseMath(0);
                     if (!rhs) {
                         PrintParseError("SequenceExpression but no right!");

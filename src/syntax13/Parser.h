@@ -70,7 +70,7 @@ private:
     std::unique_ptr<Expression> parseMath(int minPrecedence = 0);
 
     std::unique_ptr<Expression> parseComparison();
-    std::unique_ptr<Expression> parseExpression();
+    //obsolete! std::unique_ptr<Expression> parseExpression();
     std::unique_ptr<Expression> parseIdentifier();
     std::unique_ptr<Expression> parsePostFix(std::unique_ptr<Expression> currentExpression); // [] -> .
 

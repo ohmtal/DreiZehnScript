@@ -181,6 +181,8 @@ namespace DreiZehn {
     }
 
     // ----------------------------------------------------------------------------
+    //    --- getPrecedence ---
+    // ----------------------------------------------------------------------------
     int Parser::getPrecedence(TokenType type) {
         if (isInlineMathType(type)) return 100;
         if (type == TokenType::Mul || type == TokenType::Div ||
@@ -215,6 +217,8 @@ namespace DreiZehn {
         return -1;
     }
 
+    // ----------------------------------------------------------------------------
+    //    --- parsePostFix ---
     // ----------------------------------------------------------------------------
      std::unique_ptr<Expression> Parser::parsePostFix(std::unique_ptr<Expression> currentExpression) {
          // std::unique_ptr<Expression> currentExpression = nullptr;
@@ -281,6 +285,8 @@ namespace DreiZehn {
         return currentExpression;
      }
     // ----------------------------------------------------------------------------
+    //      --- parseIdentifier ---
+    // ----------------------------------------------------------------------------
     std::unique_ptr<Expression> Parser::parseIdentifier() {
         std::unique_ptr<Expression> currentExpression = nullptr;
         Token nameToken = advance();
@@ -339,6 +345,8 @@ namespace DreiZehn {
             return currentExpression;
 
     }
+    // ----------------------------------------------------------------------------
+    //  --- parsePrimary ---
     // ----------------------------------------------------------------------------
     std::unique_ptr< DreiZehn::Expression > Parser::parsePrimary() {
         Token t = peek();
@@ -427,7 +435,7 @@ namespace DreiZehn {
             }
             case TokenType::BitAnd:  {
                 Token t = advance();
-                auto expr = parseMath();
+                auto expr = parsePrimary();
                 if (!expr || (expr.get()->mNodeType != NodeType::LocalVariableExpression &&
                     expr.get()->mNodeType != NodeType::GlobalVariableExpression &&
                     expr.get()->mNodeType != NodeType::ObjectFieldExpression)
@@ -440,12 +448,12 @@ namespace DreiZehn {
             }
             case TokenType::Mul: {
                 Token t = advance();
-                auto expr = parseExpression();
+                auto expr = parsePrimary();
                 if (!expr || (expr.get()->mNodeType != NodeType::LocalVariableExpression &&
                     expr.get()->mNodeType != NodeType::GlobalVariableExpression &&
                     expr.get()->mNodeType != NodeType::ObjectFieldExpression)
                 ) {
-                    PrintParseError("Get by Reference (&) need a Variable!");
+                    PrintParseError("Get by Pointer (*) need a Variable!");
                     return nullptr;
                 }
 
@@ -464,6 +472,8 @@ namespace DreiZehn {
         return nullptr;
     }
 
+    // ----------------------------------------------------------------------------
+    //      --- parseMath ---
     // ----------------------------------------------------------------------------
     std::unique_ptr< DreiZehn::Expression > Parser::parseMath(int minPrecedence) {
 
@@ -552,34 +562,35 @@ namespace DreiZehn {
                 );
                 continue;
             } else
-            if (op.mType  == TokenType::Dot && peek().mType == TokenType::Identifier ) {
-
-                Token fieldToken = advance();
-                uint32_t fieldSymbolId = SymbolTable::insert(fieldToken.mValue);
-                return  std::make_unique<ObjectFieldExpression>(std::move(left), fieldSymbolId);
-            } else
-            if (op.mType  == TokenType::Arrow && peek().mType == TokenType::Identifier ) {
-                Token methodToken = advance();
-                uint32_t methodSymbolId = SymbolTable::insert(methodToken.mValue);
-
-                std::vector<std::unique_ptr<Expression>> args;
-                while (isContinueToken(peek())) {
-                    size_t lastPos = mPos;
-                    auto arg = parseMath();
-                    if (arg){
-                        args.push_back(std::move(arg));
-                        args.back()->mLineNumber = lineNumber;
-                    }
-
-                    if (checkCommaBreak(args)) break; //TEST
-
-                    if (lastPos == mPos) {
-                        PrintParseError("In method call:");
-                        break;
-                    }
-                }
-                return std::make_unique<MethodExpression>(std::move(left), methodSymbolId, std::move(args));
-            } else
+            // NOTE 0.92 this should not be here it's handled by parsePostFix
+            // if (op.mType  == TokenType::Dot && peek().mType == TokenType::Identifier ) {
+            //
+            //     Token fieldToken = advance();
+            //     uint32_t fieldSymbolId = SymbolTable::insert(fieldToken.mValue);
+            //     return  std::make_unique<ObjectFieldExpression>(std::move(left), fieldSymbolId);
+            // } else
+            // if (op.mType  == TokenType::Arrow && peek().mType == TokenType::Identifier ) {
+            //     Token methodToken = advance();
+            //     uint32_t methodSymbolId = SymbolTable::insert(methodToken.mValue);
+            //
+            //     std::vector<std::unique_ptr<Expression>> args;
+            //     while (isContinueToken(peek())) {
+            //         size_t lastPos = mPos;
+            //         auto arg = parseMath();
+            //         if (arg){
+            //             args.push_back(std::move(arg));
+            //             args.back()->mLineNumber = lineNumber;
+            //         }
+            //
+            //         if (checkCommaBreak(args)) break; //TEST
+            //
+            //         if (lastPos == mPos) {
+            //             PrintParseError("In method call:");
+            //             break;
+            //         }
+            //     }
+            //     return std::make_unique<MethodExpression>(std::move(left), methodSymbolId, std::move(args));
+            // } else
             if (op.mType == TokenType::KeyValue) {
                 if (!left) {
                     PrintParseError("Key Value Assignment but no Key Expression!");
@@ -629,7 +640,7 @@ namespace DreiZehn {
                 );
                 continue;
             }
-            // TEST FIXME see TODO
+
 #ifdef COMMA_MADNESS
             else if (op.mType == TokenType::Comma ) {
                 if (!left) {
@@ -671,20 +682,10 @@ namespace DreiZehn {
         return left;
     }
     // ----------------------------------------------------------------------------
+    //      --- parseComparison ---
+    // ----------------------------------------------------------------------------
     std::unique_ptr< DreiZehn::Expression > Parser::parseComparison() {
         auto left = parseMath();
-
-
-        // // SequenceExpression NOT HERE!
-        // if (peek().mType == TokenType::Comma) {
-        //     Tools::printf("%s\n",tokenTypeToString(peekPrev().mType));
-        //     while (peek().mType == TokenType::Comma) {
-        //         advance();
-        //         auto rhs = parseMath(0);
-        //         left = std::make_unique<SequenceExpression>(std::move(left), std::move(rhs));
-        //     }
-        //     // return left;
-        // }
 
 
         while (peek().mType == TokenType::Greater
@@ -702,77 +703,80 @@ namespace DreiZehn {
         return left;
     }
     // ----------------------------------------------------------------------------
-    std::unique_ptr< DreiZehn::Expression > Parser::parseExpression() {
-
-
-        if (peek().mType == TokenType::LParen) {
-            advance(); // skip '('
-            auto expr = parseExpression(); // inner statement
-
-            if (peek().mType == TokenType::RParen) {
-                advance(); // skip ')'
-            } else {
-                PrintParseError("Error: Missing closing brackets (parseExpression)");
-            }
-            return expr;
-        }
-
-        if (peek().mType == TokenType::Number || peek().mType == TokenType::StringLiteral) {
-            Token t = advance();
-            return std::make_unique<LiteralExpression>(t.mType, t.mValue);
-        }
-
-
-        if (peek().mType == TokenType::Identifier) {
-            Token nameToken = advance();
-            uint32_t nameTokenSymbolId = SymbolTable::insert(nameToken.mValue);
-
-            if (FunctionMap::IsFunction(nameTokenSymbolId)) {
-                std::vector<std::unique_ptr<Expression>> args;
-
-                while (isContinueToken(peek()))
-                {
-                    size_t lastPos = mPos;
-                    auto arg = parseMath();
-                    if (arg) {
-                        args.push_back(std::move(arg));
-                        args.back()->mLineNumber = lineNumber;
-                    }
-                    if (checkCommaBreak(args)) break; //TEST
-
-                    if (lastPos == mPos) {
-                        PrintParseError("In function call:");
-                        break;
-                    }
-                }
-                return std::make_unique<CallExpression>(nameTokenSymbolId, std::move(args));
-            }
-
-            // ------ insert variable -------
-            bool isGlobal = peekOffset(-2).mType == TokenType::Global;
-
-            if (!isGlobal) {
-                S32 globalRes = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
-                if (globalRes < 0) PrintParseWarning("Unknown Identifier:", nameToken.mValue);
-                isGlobal = globalRes > 0;
-            }
-
-            size_t varRegister = 0;
-            if (isGlobal) {
-                varRegister = mEnvPtr->reserveGlobal(nameTokenSymbolId);
-                return std::make_unique<GlobalVariableExpression>(varRegister);
-            } else {
-                varRegister = parserFrame.insertLocalVar(nameTokenSymbolId);
-                return std::make_unique<LocalVariableExpression>(varRegister);
-            }
-            // // return std::make_unique<VariableExpression>(varRegister, isGlobal);
-
-
-        }
-
-        return nullptr;
-    }
+    //      --- parseExpression --- OBSOLETE !!! ---- can be removed
     // ----------------------------------------------------------------------------
+    // // std::unique_ptr< DreiZehn::Expression > Parser::parseExpression() {
+    // //
+    // //
+    // //     if (peek().mType == TokenType::LParen) {
+    // //         advance(); // skip '('
+    // //         auto expr = parseExpression(); // inner statement
+    // //
+    // //         if (peek().mType == TokenType::RParen) {
+    // //             advance(); // skip ')'
+    // //         } else {
+    // //             PrintParseError("Error: Missing closing brackets (parseExpression)");
+    // //         }
+    // //         return expr;
+    // //     }
+    // //
+    // //     if (peek().mType == TokenType::Number || peek().mType == TokenType::StringLiteral) {
+    // //         Token t = advance();
+    // //         return std::make_unique<LiteralExpression>(t.mType, t.mValue);
+    // //     }
+    // //
+    // //
+    // //     if (peek().mType == TokenType::Identifier) {
+    // //         Token nameToken = advance();
+    // //         uint32_t nameTokenSymbolId = SymbolTable::insert(nameToken.mValue);
+    // //
+    // //         if (FunctionMap::IsFunction(nameTokenSymbolId)) {
+    // //             std::vector<std::unique_ptr<Expression>> args;
+    // //
+    // //             while (isContinueToken(peek()))
+    // //             {
+    // //                 size_t lastPos = mPos;
+    // //                 auto arg = parseMath();
+    // //                 if (arg) {
+    // //                     args.push_back(std::move(arg));
+    // //                     args.back()->mLineNumber = lineNumber;
+    // //                 }
+    // //                 if (checkCommaBreak(args)) break; //TEST
+    // //
+    // //                 if (lastPos == mPos) {
+    // //                     PrintParseError("In function call:");
+    // //                     break;
+    // //                 }
+    // //             }
+    // //             return std::make_unique<CallExpression>(nameTokenSymbolId, std::move(args));
+    // //         }
+    // //
+    // //         // ------ insert variable -------
+    // //         bool isGlobal = peekOffset(-2).mType == TokenType::Global;
+    // //
+    // //         if (!isGlobal) {
+    // //             S32 globalRes = parserFrame.guessGlobalVar(*mEnvPtr,nameTokenSymbolId);
+    // //             if (globalRes < 0) PrintParseWarning("Unknown Identifier:", nameToken.mValue);
+    // //             isGlobal = globalRes > 0;
+    // //         }
+    // //
+    // //         size_t varRegister = 0;
+    // //         if (isGlobal) {
+    // //             varRegister = mEnvPtr->reserveGlobal(nameTokenSymbolId);
+    // //             return std::make_unique<GlobalVariableExpression>(varRegister);
+    // //         } else {
+    // //             varRegister = parserFrame.insertLocalVar(nameTokenSymbolId);
+    // //             return std::make_unique<LocalVariableExpression>(varRegister);
+    // //         }
+    // //         // // return std::make_unique<VariableExpression>(varRegister, isGlobal);
+    // //
+    // //
+    // //     }
+    // //
+    // //     return nullptr;
+    // // }
+    // ----------------------------------------------------------------------------
+    //      --- parseStatement ---
     // ----------------------------------------------------------------------------
     std::unique_ptr< DreiZehn::ASTNode > Parser::parseStatement() {
 
@@ -1063,6 +1067,7 @@ namespace DreiZehn {
         return parseComparison();
     }
     // -------------------------------------------------------------------------
+    //      --- parse :: MainEntry ---
     // -------------------------------------------------------------------------
     // std::vector< std::unique_ptr< DreiZehn::ASTNode > > Parser::parse() {
     std::shared_ptr<BlockStatement> Parser::parse() {

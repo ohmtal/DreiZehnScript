@@ -301,6 +301,10 @@ print "outside bla is (global was: 1212):" bla2
 print "its 12 so fasel hijacked the global var ... good or bad ? "
 print "setVariable and getVariable does the magic"
 
+
+print "-----------------------------------------------------------------------"
+myInt = 0; intP= &myInt; *intP++; print "by Reference Test:" myInt intP (*intP)
+
 print ""
 print "....................."
 print "--- test ends ... ---"

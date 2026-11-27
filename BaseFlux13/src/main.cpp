@@ -221,6 +221,9 @@ void onDraw(SDL_Renderer* renderer, Environment& env) {
         if (ImGui::BeginMenu("Main")) {
             ImGui::MenuItem("Console", "GraveAccent", &showConsole);
             ImGui::MenuItem("---");
+            if (ImGui::MenuItem("Dump Tape")) {
+                env.getVM().dumpTape();
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Scripts")) {
@@ -271,11 +274,12 @@ int main(int argc, char* argv[]) {
     FunctionMap::ModuleRegistry::LoadAll(env);
     RegisterBaseFluxFunctions(env);
 
-    FunctionMap::ScriptEvent evSetup, evInit, evRender, evShutDown, evOnKey, evOnMouse;
+    FunctionMap::ScriptEvent evSetup, evInit, evRender, evUpdate, evShutDown, evOnKey, evOnMouse;
     FunctionMap::RegisterScriptEvent(&env, evSetup,"flux::Setup",{},"When is start bevore sdl is initialited.");
     FunctionMap::RegisterScriptEvent(&env, evInit,"flux::Init",{},"When ready to load stuff");
-    FunctionMap::RegisterScriptEvent(&env, evRender,"flux::Render",{"ft"},"When is rendered.");
-    FunctionMap::RegisterScriptEvent(&env, evShutDown,"flux::ShutDown",{},"When it-s ShutDown.");
+    FunctionMap::RegisterScriptEvent(&env, evRender,"flux::Render",{"ft"},"When it's rendered.");
+    FunctionMap::RegisterScriptEvent(&env, evUpdate,"flux::Update",{"dt"},"When it's updated.");
+    FunctionMap::RegisterScriptEvent(&env, evShutDown,"flux::ShutDown",{},"When it's ShutDown.");
     FunctionMap::RegisterScriptEvent(&env, evOnKey,"flux::OnKey",{"keycode","isDown", "mod"},"When is is pressed or released.");
     FunctionMap::RegisterScriptEvent(&env, evOnMouse,"flux::OnMouse",{"x","y","button","isDown"},"mouse event.");
 
@@ -342,10 +346,8 @@ int main(int argc, char* argv[]) {
     };
 
     // -------------------------------------------------------------------------
-    app.OnUpdate = [](const float dt) {
-        //FIXME
-        // if (gDoUpdateCall)Con::executef("OnUpdate", dt);
-        // engineGlue::process((SimTime)(dt * 1000.f));
+    app.OnUpdate = [&env, &evUpdate](const float dt) {
+        FunctionMap::FireScriptEvent(env,evUpdate,{Value(dt)});
     };
     // -------------------------------------------------------------------------
     app.OnEvent = [&env,&evOnKey, &evOnMouse](const SDL_Event& event) {

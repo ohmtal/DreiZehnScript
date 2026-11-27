@@ -11,13 +11,25 @@
 
 namespace DreiZehn {
 
-#ifdef DREIZEHN_DEBUG
+// #ifdef DREIZEHN_DEBUG
     size_t disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize) {
         uint32_t opcode = code[offset];
-        Tools::printf("%04zu: ", offset);
+
+        char buffer[512] = {};
+        size_t pos = 0;
+        auto append = [&](const char* fmt, auto... args) {
+            if (pos < sizeof(buffer)) {
+                int written = snprintf(buffer + pos, sizeof(buffer) - pos, fmt, args...);
+                if (written > 0) {
+                    pos += static_cast<size_t>(written);
+                }
+            }
+        };
+
+        append("%04zu: [%02u]", offset, opcode);
 
         if (opcode < OP_INVALID) {
-            Tools::printf("%s", OpCodeInfos[opcode].name);
+            append("%-20s", OpCodeInfos[opcode].name);
 
             switch (opcode) {
                 case OP_PUSH_VALUE: {
@@ -25,9 +37,10 @@ namespace DreiZehn {
                     Value val;
                     std::memcpy(&val, &code[offset], sizeof(Value));
                     offset += 2;
-                    Tools::printf("  Value: %s", val.toString().c_str());
+                    append("  Value: %s", val.toString().c_str());
                     break;
                 }
+                case OP_CALL_C_FUNC_VOID:
                 case OP_CALL_C_FUNCTION: {
                     offset++;
                     U32 symId = code[offset++];
@@ -35,30 +48,34 @@ namespace DreiZehn {
                     std::memcpy(&cb, &code[offset], sizeof(void*));
                     offset += 2;
                     U32 argCount = code[offset++];
-                    Tools::printf("  SymId:%u Pointer: %p, Arg: %u", symId, cb, argCount);
+                    append("%s :: SymId:%u Pointer: %p, Arg: %u", SymbolTable::getName(symId).c_str(), symId, cb, argCount);
                     break;
                 }
                 default: {
                     U32 count = OpCodeInfos[opcode].emittedCount;
+                    append(" %s", "[ ");
                     if (count > 0) {
-                        Tools::printf(" Arg: ");
                         for (U32 i = 1; i <= count; i++) {
-                            Tools::printf("%u ", code[offset + i]);
+                            if (i > 1) append("%s",", ");
+                            append("%u", code[offset + i]);
                         }
+                    } else {
+                        append("%s", "-");
                     }
+                    append(" %s", "]");
                     offset += 1 + count;
                     break;
                 }
             }
         } else {
-            Tools::printf("UNKNOWN_OPCODE [%u]", opcode);
+            append("UNKNOWN_OPCODE [%u]", opcode);
             offset++;
         }
 
         if (stk >= 0) {
-            Tools::printf(", _STK[%d], CF:%zu (%zu)", stk, callstk, localsSize);
+            append(", _STK[%d], CF:%zu (%zu)", stk, callstk, localsSize);
         }
-        Tools::printf("\n");
+        Tools::printf("%s\n", buffer);
 
         return offset;
     }
@@ -71,6 +88,7 @@ namespace DreiZehn {
         }
         Tools::printf("=====================\n");
     }
+
 
 
 // void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize) {
@@ -116,6 +134,6 @@ namespace DreiZehn {
 //     }
 //     Tools::printf(", _STK[%d], CF:%zu (%zu)\n", stk, callstk, localsSize);
 // }
-#endif
+// #endif
 
 } // namespace

@@ -65,6 +65,7 @@ public:
     Value() : mBits(0) {}
     // // // // // Value() : mBits(QNAN_MASK | TAG_INT) {}
 
+    bool operator==(const Value& other) const { return mBits == other.mBits;}
     // -------------------------------------------------------------------------
     inline Value(Unsafe, uint64_t rawBits) noexcept : mBits(rawBits) {}
     // -------------------------------------------------------------------------

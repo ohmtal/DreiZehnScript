@@ -242,6 +242,43 @@ void RegisterBaseFluxFunctions(Environment& env) {
         return true;
     }, "Draw Rectangle Vector 4 floats, Vector 4 int, bool fill");
     // ---------------------------------
+    FunctionMap::RegisterFunction("flux::BatchRect", [&env](std::span<Value> args, Value& ret) -> bool {
+        if (args.size() < 1 || !args[0].isObjectPointer() || args[0].asPointerObject()->mType != TypeVectorObject) {
+            env.PrintRuntimeError("flux::BatchRect: Missing Parameter");
+            return false;
+        }
+        VectorValueObject* vec = static_cast<VectorValueObject*>(args[0].asPointerObject());
+
+        SDL_FRect rect;
+        SDL_Color color;
+        bool fill = false;
+
+        U32 idPoint = SymbolTable::insert("point");
+        U32 idColor = SymbolTable::insert("color");
+        U32 idFill  = SymbolTable::insert("fill");
+
+        for(auto item: vec->mElements) {
+            if (!item.isObjectPointer() || item.asPointerObject()->mType != TypeArrayObject) return false;
+            ArrayObject* arr =  static_cast<ArrayObject*>(item.asPointerObject());
+            if (!arr) return false;
+
+            Value* rectPtr = arr->onGetArrayByStringSymId(idPoint);
+            if (!rectPtr) return false;
+            if (!MapVectorFRect(*rectPtr, rect)) return false;
+
+            Value* colorPtr = arr->onGetArrayByStringSymId(idColor);
+            if (!colorPtr) return false;
+            if  (!MapVectorColor(*colorPtr, color)) return false;
+
+            Value* fillPtr = arr->onGetArrayByStringSymId(idFill);
+            if (!fillPtr) return false;
+            fill = fillPtr->getBool();
+            BaseFlux::DrawRect(app.getRenderer(),rect, color, fill);
+        }
+
+        return true;
+    }, "Draw Batch Rect array: point:Vector 4, color:Vector 4, fill:bool ");
+    // ---------------------------------
     FunctionMap::RegisterFunction("flux::DrawFPS", [](std::span<Value> args, Value& ret) -> bool {
         if (args.size() < 2) return false;
 

@@ -21,6 +21,7 @@ struct CallFrame {
     // S64 mConstansOffset = 0;   // offset of the constans
 };
 
+#define OP_NO_OP UINT32_MAX
 
 #define OP_CODE_LIST \
 /* Basic types & stack */ \
@@ -71,6 +72,7 @@ X(OP_PUSHPTR_ARRAY_SYMID,      1, "push array element pointer by symId") \
 /* ..... */ \
 X(OP_SAVE_ARRAY,               0, "save array element") \
 X(OP_CALL_C_FUNCTION,          0, "SPECIAL emittedCount variable") \
+X(OP_CALL_C_FUNC_VOID,         0, "SPECIAL emittedCount variable") \
 X(OP_CALL_SF_FUNCTION,         3,  "call script function") \
 X(OP_CALL_SF_METHOD,           3,  "call script method") \
 X(OP_INC_LOCAL,                2, "increment local variable") \
@@ -105,6 +107,7 @@ X(OP_CREATE_KEYVALUE,          0, "create key-value pair") \
 X(OP_CONSTRUCT_VECTOR,         1, "create curly list to vector") \
 X(OP_CONSTRUCT_ARRAY,          1, "create curly key value list to array") \
 /* ..... */ \
+X(OP_DUP,                      0, "duplicate the last Value on Stack") \
 X(OP_RETURN,                   0, "return from function") \
 X(OP_STR_CONCAT,               0, "string add (concat)") \
 X(OP_EXIT,                     0, "exit interpreter") \
@@ -131,12 +134,12 @@ constexpr OpCodeInfo OpCodeInfos[] = {
 #undef X
 
 
-#ifdef DREIZEHN_DEBUG
+// #ifdef DREIZEHN_DEBUG
     size_t disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk = -1, const size_t callstk = 0, size_t localsSize = 0);
     void disassembleCode(const uint32_t* code, size_t codeSize);
 
 // void disassembleInstruction(const uint32_t* code, size_t offset, const S32 stk, const size_t callstk, size_t localsSize);
-#endif
+// #endif
 
 // -----------------------------------------------------------------------------
 
@@ -151,6 +154,7 @@ struct BytecodeChunk {
     std::vector<U32> mTape;
     ValueVector mConstants;
 
+    U32 mLastOP = OP_NO_OP;
     RollBackMarker mRollBackMarker = {0, 0, false};
 
     void reset() {
@@ -175,11 +179,20 @@ struct BytecodeChunk {
     }
 
 
-    U32 addConstant(Value val) {
+    // U32 addConstant(Value val) {
+    //
+    //     mConstants.push_back(val);
+    //     return static_cast<U32>(mConstants.size() - 1);
+    // }
+    U32 addConstant(const Value val) {
+        for (size_t iter = 0; iter < mConstants.size(); iter++) {
+            if (val == mConstants[iter])
+                return static_cast<U32>(iter);
+        }
+
         mConstants.push_back(val);
         return static_cast<U32>(mConstants.size() - 1);
     }
-
 
     // U32 emitValue(Value val) {
     //     U32 startIp = (U32)mByteCodes.size();
@@ -246,10 +259,20 @@ struct BytecodeChunk {
         return (U32)mTape.size() - 1;
     }
 
+    U32 emitOP(U32 op) {
+        mLastOP = op;
+        mTape.push_back(op);
+        return (U32)mTape.size() - 1;
+    }
 
     U32 emit(U32 op) {
         mTape.push_back(op);
         return (U32)mTape.size() - 1;
+    }
+
+    U32 peek(U32 reverseOffset = 0) {
+        if (mTape.size() - reverseOffset <=0) return OP_NO_OP;
+        return mTape[mTape.size() - 1 - reverseOffset];
     }
 
 };

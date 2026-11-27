@@ -1098,6 +1098,53 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         DISPATCH();
     }
     // -------------------------------
+    handle_OP_CALL_C_FUNC_VOID: {
+        // pull function name id
+        U32 symID = ADVANCE_U32();
+        U32 ptrPOS = ip;
+        // void* rawPtr = ADVANCE_PTR();
+        void* rawPtr =  advance_ptr(code,ip);
+        FunctionMap::CallBack* callPtr = nullptr;
+        if (rawPtr) [[likely]] {
+            callPtr = static_cast<FunctionMap::CallBack*>(rawPtr);
+        } else {
+            callPtr = FunctionMap::GetCFunction(symID);
+            // PATCH_PTR(ptrPOS, callPtr);
+            patch_ptr(code, ptrPOS, callPtr);
+        }
+        U32 argCount = ADVANCE_U32();
+
+        {
+            const size_t numArgs = argCount;
+            bool success = false;
+            Value returnValue = NumberNullValue;
+
+            if (numArgs <= 12) [[likely]] {
+                Value evaluatedArgsStack[12];
+                for (int i = (int)numArgs - 1; i >= 0; i--) {
+                    evaluatedArgsStack[i] = POP_STACK();
+                }
+                success = (*callPtr)(ValueSpan(evaluatedArgsStack, numArgs), returnValue);
+            }
+            else {
+                ValueVector evaluatedArgs(numArgs);
+                for (int i = (int)numArgs - 1; i >= 0; i--) {
+                    evaluatedArgs[i] = POP_STACK();
+                }
+                success = (*callPtr)(evaluatedArgs, returnValue);
+            }
+
+            // SILENT !
+            // if (!success) [[unlikely]]{
+            // THROW_VM_ERROR(ip, OP_CALL_C_FUNCTION, "Runtime Error in native function call\n");
+            // }
+
+            // VOID PUSH_STACK(returnValue);
+        }
+
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_CALL_C_FUNCTION: {
         // pull function name id
         U32 symID = ADVANCE_U32();
@@ -1131,7 +1178,7 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
                 for (int i = (int)numArgs - 1; i >= 0; i--) {
                     evaluatedArgs[i] = POP_STACK();
                 }
-                success = (*callPtr)(evaluatedArgs, returnValue); // Konvertiert implizit in span
+                success = (*callPtr)(evaluatedArgs, returnValue);
             }
 
             // SILENT !
@@ -1779,6 +1826,11 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
         return _STK == 0 ? NumberNullValue : PEEK_STACK(0);
     }
     // -------------------------------
+    handle_OP_DUP: {
+        PUSH_STACK(PEEK_STACK(0));
+        DISPATCH();
+    }
+    // -------------------------------
     handle_OP_INVALID: {
         // assert(false && "RUNTIME ERROR IN VM INVALID BYTE CODE!");
         return Value();
@@ -1787,4 +1839,23 @@ Value VM::runVM(Environment& env, BytecodeChunk& chunk, U32 numLocals, U32 offse
 
     // Tools::errorf("SHOULD NOT BE HERE !!! Did you forget OP_EXIT?");
     return NumberNullValue;
-}}
+} // run
+
+
+// =============================================================================
+void VM::dumpTape(size_t start, size_t end) {
+    size_t tapeSize = mChunk.mTape.size();
+    if (start >= tapeSize || end <= start) {
+        Tools::errorf("TAPE DUMP: out of bounds: %u - %u :: %u", (U32)start, (U32)end, (U32)tapeSize);
+        return;
+    }
+    if (end > tapeSize) {
+        end = tapeSize;
+    }
+    const U32* code = mChunk.mTape.data() + start;
+    size_t codeSize = end - start;
+    disassembleCode(code, codeSize);
+}
+
+
+} //namespace

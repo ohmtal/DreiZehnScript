@@ -33,7 +33,7 @@ namespace DreiZehn {
         }
 
 
-        chunk.emit(OP_EXIT);
+        chunk.emitOP(OP_EXIT);
 
 
         return true;

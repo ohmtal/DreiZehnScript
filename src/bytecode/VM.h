@@ -46,6 +46,11 @@ namespace DreiZehn {
         inline BytecodeChunk& getChunk() { return mChunk; }
         inline CompilerScope& getScope() { return mCompilerScope; }
 
+        // ------------------------------------------
+        // Debug:
+        // ------------------------------------------
+        void dumpTape(size_t start = 0, size_t end = SIZE_MAX);
+
     private:
         inline Value advance_value(const U32* code, U32& ip) {
             Value val;

@@ -96,6 +96,23 @@ namespace DreiZehn {
     bool AssignActive = false;
     // -------------------------------------------------------------------------
 
+    bool opDupOptimize(BytecodeChunk& chunk, const U32 constIdx) {
+        // OP_DUP optimize
+        if ((chunk.mLastOP == OP_CONST && constIdx == chunk.peek(0)) || chunk.mLastOP == OP_DUP) {
+            if (chunk.mLastOP == OP_DUP) {
+                U32 reverseOffset = 0;
+                while (chunk.peek(reverseOffset) == OP_DUP) reverseOffset++;
+                if (chunk.peek(reverseOffset + 1 ) == OP_CONST && chunk.peek(reverseOffset) == constIdx) {
+                    chunk.emitOP(OP_DUP);
+                    return true;
+                }
+            } else {
+                chunk.emitOP(OP_DUP);
+                return true;
+            }
+        }
+        return false;
+    }
 
     // -------------------------------------------------------------------------
     // LiteralExpression :: optimized
@@ -129,7 +146,11 @@ namespace DreiZehn {
             return false;
         }
         uint32_t constIdx = chunk.addConstant(this->evaluate(env));
-        chunk.emit(OP_CONST);
+
+        // OP_DUP optimize
+        if (opDupOptimize(chunk, constIdx)) return true;
+
+        chunk.emitOP(OP_CONST);
         chunk.emit(constIdx);
         return true;
     }
@@ -142,7 +163,12 @@ namespace DreiZehn {
             return false;
         }
         uint32_t constIdx = chunk.addConstant(this->evaluate(env));
-        chunk.emit(OP_CONST);
+
+
+        // OP_DUP optimize
+        if (opDupOptimize(chunk, constIdx)) return true;
+
+        chunk.emitOP(OP_CONST);
         chunk.emit(constIdx);
         return true;
     }
@@ -159,7 +185,7 @@ namespace DreiZehn {
     }
     bool LocalVariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
         U32 localSlot = scope.insert(mVariableRegister);
-        chunk.emit(OP_GET_LOCAL);
+        chunk.emitOP(OP_GET_LOCAL);
         chunk.emit(localSlot);
         return true;
     }
@@ -170,7 +196,7 @@ namespace DreiZehn {
             return false;
         }
         U32 localSlot = scope.insert(mVariableRegister);
-        chunk.emit(OP_PUSHPRT_LOCAL);
+        chunk.emitOP(OP_PUSHPRT_LOCAL);
         chunk.emit(localSlot);
 
         return true;
@@ -179,11 +205,11 @@ namespace DreiZehn {
     bool LocalVariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         // save var
         U32 localSlot = scope.insert(mVariableRegister);
-        chunk.emit(OP_SET_LOCAL);
+        chunk.emitOP(OP_SET_LOCAL);
         chunk.emit(static_cast<U32>(localSlot));
 
         if (requestType == ValueType::NONE) {
-            chunk.emit(OP_POP_STACK);
+            chunk.emitOP(OP_POP_STACK);
         }
         return true;
     }
@@ -202,7 +228,7 @@ namespace DreiZehn {
 
     bool GlobalVariableExpression::compile(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType){
 
-        chunk.emit(OP_LOAD_VAR);
+        chunk.emitOP(OP_LOAD_VAR);
         chunk.emit(mVariableRegister);
         // // chunk.emitPointer(nullptr); //space for cache ptr
         return true;
@@ -213,7 +239,7 @@ namespace DreiZehn {
             PrintASTCompileError( env, this,"compile pointer need a request!");
             return false;
         }
-        chunk.emit(OP_PUSHPTR_VAR);
+        chunk.emitOP(OP_PUSHPTR_VAR);
         chunk.emit(mVariableRegister);
         // // chunk.emitPointer(nullptr); //space for cache ptr
         return true;
@@ -221,12 +247,12 @@ namespace DreiZehn {
 
     bool GlobalVariableExpression::compileAssignment(Environment& env, BytecodeChunk& chunk, CompilerScope& scope, ValueType requestType) {
         // save var
-        chunk.emit(OP_SAVE_VAR);
+        chunk.emitOP(OP_SAVE_VAR);
         chunk.emit(mVariableRegister);
         // // chunk.emitPointer(nullptr); //space for cache ptr
 
         if (requestType == ValueType::NONE) {
-            chunk.emit(OP_POP_STACK);
+            chunk.emitOP(OP_POP_STACK);
         }
 
         return true;
@@ -311,7 +337,7 @@ namespace DreiZehn {
         }
 
         mVarExpr->compilePtr(env,chunk,scope,requestType);
-        chunk.emit(OP_VALUE_PTR_PTR_TO_VALUE);
+        chunk.emitOP(OP_VALUE_PTR_PTR_TO_VALUE);
 
         return true;
     }
@@ -323,10 +349,10 @@ namespace DreiZehn {
         }
 
         mVarExpr->compilePtr(env,chunk,scope,ValueType::ANY);
-        chunk.emit(OP_VALUE_PTR_PTR_TO_VALUE_PTR);
-        chunk.emit(OP_ASSIGN_PTR);
+        chunk.emitOP(OP_VALUE_PTR_PTR_TO_VALUE_PTR);
+        chunk.emitOP(OP_ASSIGN_PTR);
 
-        if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+        if (requestType == ValueType::NONE) chunk.emitOP(OP_POP_STACK);
         return true;
     }
     // -------------------------
@@ -338,7 +364,7 @@ namespace DreiZehn {
         }
 
         mVarExpr->compilePtr(env,chunk,scope,requestType);
-        chunk.emit(OP_VALUE_PTR_PTR_TO_VALUE_PTR);
+        chunk.emitOP(OP_VALUE_PTR_PTR_TO_VALUE_PTR);
 
 
         return true;
@@ -411,10 +437,10 @@ namespace DreiZehn {
         if (mIndexExpr->mNodeType == NodeType::LiteralExpression) {
             Value val = mIndexExpr->evaluate(env); //NOTE good idea?
             if (val.isNumber()) {
-                chunk.emit(OP_LOAD_ARRAY_INDEX);
+                chunk.emitOP(OP_LOAD_ARRAY_INDEX);
                 chunk.emit(val.getUInt());
             } else if (val.isString()) {
-                chunk.emit(OP_LOAD_ARRAY_SYMID);
+                chunk.emitOP(OP_LOAD_ARRAY_SYMID);
                 chunk.emit(SymbolTable::insert( val.getStringRef()) );
             } else {
                 PrintASTCompileError( env, this,"Array Field index is NOT a number and NOT a string ?!");
@@ -422,11 +448,11 @@ namespace DreiZehn {
             }
         } else {
             if (!mIndexExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
-            chunk.emit(OP_LOAD_ARRAY);
+            chunk.emitOP(OP_LOAD_ARRAY);
         }
 
 
-        if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+        if (requestType == ValueType::NONE) chunk.emitOP(OP_POP_STACK);
 
         return true;
     }
@@ -446,10 +472,10 @@ namespace DreiZehn {
        if (mIndexExpr->mNodeType == NodeType::LiteralExpression) {
             Value val = mIndexExpr->evaluate(env); //NOTE: good idea ?
             if (val.isNumber()) {
-                chunk.emit(OP_PUSHPTR_ARRAY_INDEX);
+                chunk.emitOP(OP_PUSHPTR_ARRAY_INDEX);
                 chunk.emit(val.getUInt());
             } else if (val.isString()) {
-                chunk.emit(OP_PUSHPTR_ARRAY_SYMID);
+                chunk.emitOP(OP_PUSHPTR_ARRAY_SYMID);
                 chunk.emit(SymbolTable::insert( val.getStringRef()) );
             } else {
                 PrintASTCompileError( env, this,"Array Field index is NOT a number and NOT a string ?!");
@@ -457,7 +483,7 @@ namespace DreiZehn {
             }
         } else {
             if (!mIndexExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
-            chunk.emit(OP_PUSHPTR_ARRAY);
+            chunk.emitOP(OP_PUSHPTR_ARRAY);
         }
 
         return true;
@@ -471,8 +497,8 @@ namespace DreiZehn {
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
         if (!mIndexExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
 
-        chunk.emit(OP_SAVE_ARRAY);
-        if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+        chunk.emitOP(OP_SAVE_ARRAY);
+        if (requestType == ValueType::NONE) chunk.emitOP(OP_POP_STACK);
         return true;
     }
 
@@ -543,7 +569,7 @@ namespace DreiZehn {
         // PUSH VAR
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
 
-        chunk.emit(OP_LOAD_OBJECT_FIELD);
+        chunk.emitOP(OP_LOAD_OBJECT_FIELD);
         // Field symid
         chunk.emit(mFieldSymbolId);
         // SPACE FOR Cached object
@@ -566,7 +592,7 @@ namespace DreiZehn {
         // PUSH VAR
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
 
-        chunk.emit(OP_PUSHPTR_OBJECT_FIELD);
+        chunk.emitOP(OP_PUSHPTR_OBJECT_FIELD);
         // Field symid
         chunk.emit(mFieldSymbolId);
         // SPACE FOR Cached object
@@ -586,7 +612,7 @@ namespace DreiZehn {
         // PUSH VAR
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
 
-        chunk.emit(OP_SAVE_OBJECT_FIELD);
+        chunk.emitOP(OP_SAVE_OBJECT_FIELD);
         // Field symid
         chunk.emit(mFieldSymbolId);
         // SPACE FOR Cached object
@@ -595,7 +621,7 @@ namespace DreiZehn {
         chunk.emitPointer(nullptr);
 
         if (requestType == ValueType::NONE) {
-            chunk.emit(OP_POP_STACK);
+            chunk.emitOP(OP_POP_STACK);
         }
 
         return true;
@@ -665,12 +691,12 @@ namespace DreiZehn {
             }
         }
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
-        chunk.emit(OP_CALL_OBJECT_METHOD);
+        chunk.emitOP(OP_CALL_OBJECT_METHOD);
         chunk.emit(mMethodNameSymbolId);
         chunk.emit(argCount);
         chunk.emit(0); //placeholder when it's a Script method
 
-        if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+        if (requestType == ValueType::NONE) chunk.emitOP(OP_POP_STACK);
         return true;
     }
     // ---------------------
@@ -691,7 +717,7 @@ namespace DreiZehn {
             }
         }
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
-        chunk.emit(OP_PUSHPTR_OBJECT_METHOD);
+        chunk.emitOP(OP_PUSHPTR_OBJECT_METHOD);
         chunk.emit(mMethodNameSymbolId);
         chunk.emit(argCount);
 
@@ -712,11 +738,11 @@ namespace DreiZehn {
             }
         }
         if (!mVarExpr->compile(env,chunk,scope,ValueType::ObjectPointer)) return false;
-        chunk.emit(OP_SAVE_OBJECT_METHOD);
+        chunk.emitOP(OP_SAVE_OBJECT_METHOD);
         chunk.emit(mMethodNameSymbolId);
         chunk.emit(argCount);
 
-        if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+        if (requestType == ValueType::NONE) chunk.emitOP(OP_POP_STACK);
         return true;
     }
     // -------------------------------------------------------------------------
@@ -766,9 +792,9 @@ namespace DreiZehn {
             }
         }
         if (mAllKeyValue)
-            chunk.emit(OP_CONSTRUCT_ARRAY);
+            chunk.emitOP(OP_CONSTRUCT_ARRAY);
         else
-            chunk.emit(OP_CONSTRUCT_VECTOR);
+            chunk.emitOP(OP_CONSTRUCT_VECTOR);
 
         chunk.emit(argCount);
 
@@ -936,16 +962,20 @@ namespace DreiZehn {
                     argCount++;
                 }
             }
-            chunk.emit(OP_CALL_C_FUNCTION);
+            if (requestType == ValueType::NONE) {
+                chunk.emitOP(OP_CALL_C_FUNC_VOID);
+            } else {
+                chunk.emitOP(OP_CALL_C_FUNCTION);
+            }
             chunk.emit(mFuncSymbolId);
 
             chunk.emitPointer(nullptr); //placeholder for cache
             chunk.emit(argCount);
 
 
-            if (requestType == ValueType::NONE) {
-                chunk.emit(OP_POP_STACK);
-            }
+            // if (requestType == ValueType::NONE) {
+            //     chunk.emitOP(OP_POP_STACK);
+            // }
             return true;
         }
         FunctionMap::ScriptFunction* sf = FunctionMap::GetScriptFunction(mFuncSymbolId);
@@ -958,7 +988,7 @@ namespace DreiZehn {
                 }
             }
 
-            chunk.emit(OP_CALL_SF_FUNCTION);
+            chunk.emitOP(OP_CALL_SF_FUNCTION);
 
             chunk.emit(argCount);
 
@@ -969,7 +999,7 @@ namespace DreiZehn {
 
 
             if (requestType == ValueType::NONE) {
-                chunk.emit(OP_POP_STACK);
+                chunk.emitOP(OP_POP_STACK);
             }
             return true;
         }
@@ -1133,10 +1163,10 @@ namespace DreiZehn {
 
 
         switch (this->mOp) {
-            case TokenType::Plus    : chunk.emit(OP_ADD); break;
-            case TokenType::Minus   : chunk.emit(OP_SUB); break;
-            case TokenType::Mul     : chunk.emit(OP_MUL); break;
-            case TokenType::Div     : chunk.emit(OP_DIV); break;
+            case TokenType::Plus    : chunk.emitOP(OP_ADD); break;
+            case TokenType::Minus   : chunk.emitOP(OP_SUB); break;
+            case TokenType::Mul     : chunk.emitOP(OP_MUL); break;
+            case TokenType::Div     : chunk.emitOP(OP_DIV); break;
             default:
                 PrintASTCompileError( env, this, "COMPILE ERROR BinaryOpExpression : unknown TokenType:", std::to_string( (int)this->mOp) );
                 return false;
@@ -1233,12 +1263,12 @@ namespace DreiZehn {
                 return true; // do not stop!
             }
 
-            chunk.emit(OP_INC_LOCAL);
+            chunk.emitOP(OP_INC_LOCAL);
             chunk.emit(localSlot);
             chunk.emitS32(inc);
 
             if (requestType == ValueType::NONE) {
-                chunk.emit(OP_POP_STACK);
+                chunk.emitOP(OP_POP_STACK);
             }
             return true;
         }
@@ -1246,10 +1276,10 @@ namespace DreiZehn {
         // load var pointer
         // FIXME FALLBACK
         if (mExpr->compilePtr(env,chunk,scope,ValueType::ANY)) {
-            chunk.emit(OP_INC_PTR);
+            chunk.emitOP(OP_INC_PTR);
             chunk.emitS32(inc);
             if (requestType == ValueType::NONE) {
-                chunk.emit(OP_POP_STACK);
+                chunk.emitOP(OP_POP_STACK);
             }
             return true;
         } else {
@@ -1257,10 +1287,10 @@ namespace DreiZehn {
             // load left
             if (!mExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
             // PUSH INC
-            chunk.emit(OP_PUSH_VALUE);
+            chunk.emitOP(OP_PUSH_VALUE);
             chunk.emitValue(Value(inc));
             // ADD INC
-            chunk.emit(OP_ADD);
+            chunk.emitOP(OP_ADD);
             // SAVE VAR
             if (!mExpr->compileAssignment(env,chunk,scope, requestType)) return false;
             return true;
@@ -1332,27 +1362,27 @@ namespace DreiZehn {
         if (!mLeft->compile(env,chunk,scope, ValueType::ANY)) return false;
 
         if (mOp == TokenType::Or) {
-            chunk.emit(OP_JUMP_IF_TRUE_NO_POP);
+            chunk.emitOP(OP_JUMP_IF_TRUE_NO_POP);
             U32 jumpOffset = chunk.tell();
             chunk.emit(0); //placeholder
 
-            chunk.emit(OP_POP_STACK);
+            chunk.emitOP(OP_POP_STACK);
             if (!mRight->compile(env,chunk,scope, ValueType::ANY)) return false;
             chunk.patch(jumpOffset, chunk.tell());
 
         } else { // TokenType::And
-            chunk.emit(OP_JUMP_IF_FALSE_NO_POP);
+            chunk.emitOP(OP_JUMP_IF_FALSE_NO_POP);
             U32 jumpOffset = chunk.tell();
             chunk.emit(0); // placeholder
 
-            chunk.emit(OP_POP_STACK);
+            chunk.emitOP(OP_POP_STACK);
             if (!mRight->compile(env, chunk, scope, ValueType::ANY)) return false;
 
             chunk.patch(jumpOffset, chunk.tell());
         }
 
         if (requestType == ValueType::NONE)
-             chunk.emit(OP_POP_STACK);
+             chunk.emitOP(OP_POP_STACK);
 
         return true;
     }
@@ -1367,19 +1397,19 @@ namespace DreiZehn {
         if (!mRight->compile(env, chunk, scope, ValueType::ANY)) return false;
 
         switch (mOp) {
-            case TokenType::Greater:      chunk.emit(OP_GREATER); break;
-            case TokenType::GreaterEqual: chunk.emit(OP_GREATER_EQUAL); break;
-            case TokenType::Less:         chunk.emit(OP_LESS); break;
-            case TokenType::LowerEqual:   chunk.emit(OP_LESS_EQUAL); break;
-            case TokenType::Equal:        chunk.emit(OP_EQUAL); break;
-            case TokenType::NotEqual:     chunk.emit(OP_NOT_EQUAL); break;
+            case TokenType::Greater:      chunk.emitOP(OP_GREATER); break;
+            case TokenType::GreaterEqual: chunk.emitOP(OP_GREATER_EQUAL); break;
+            case TokenType::Less:         chunk.emitOP(OP_LESS); break;
+            case TokenType::LowerEqual:   chunk.emitOP(OP_LESS_EQUAL); break;
+            case TokenType::Equal:        chunk.emitOP(OP_EQUAL); break;
+            case TokenType::NotEqual:     chunk.emitOP(OP_NOT_EQUAL); break;
 
-            case TokenType::BitAnd:       chunk.emit(OP_BIT_AND); break;
-            case TokenType::BitOr:        chunk.emit(OP_BIT_OR); break;
-            case TokenType::BitXOr:       chunk.emit(OP_BIT_XOR); break;
-            case TokenType::SHL:          chunk.emit(OP_SHL); break;
-            case TokenType::SHR:          chunk.emit(OP_SHR); break;
-            case TokenType::Modulo:       chunk.emit(OP_MODULO); break;
+            case TokenType::BitAnd:       chunk.emitOP(OP_BIT_AND); break;
+            case TokenType::BitOr:        chunk.emitOP(OP_BIT_OR); break;
+            case TokenType::BitXOr:       chunk.emitOP(OP_BIT_XOR); break;
+            case TokenType::SHL:          chunk.emitOP(OP_SHL); break;
+            case TokenType::SHR:          chunk.emitOP(OP_SHR); break;
+            case TokenType::Modulo:       chunk.emitOP(OP_MODULO); break;
 
             default:
                 PrintASTCompileError( env, this,"Unknown binary operator");
@@ -1387,7 +1417,7 @@ namespace DreiZehn {
         }
 
         if (requestType == ValueType::NONE) {
-            chunk.emit(OP_POP_STACK);
+            chunk.emitOP(OP_POP_STACK);
         }
 
         return true;
@@ -1665,7 +1695,7 @@ namespace DreiZehn {
         if (!mRight) return false;
 
         if (!mRight->compile(env,chunk,scope,requestType)) return false;
-        chunk.emit(OP_NOT);
+        chunk.emitOP(OP_NOT);
 
         return true;
     }
@@ -1807,17 +1837,17 @@ namespace DreiZehn {
             }
 
             switch(mOp) {
-                case TokenType::AssignPlus:  chunk.emit(OP_ADD_LOCAL);  break;
-                case TokenType::AssignMinus: chunk.emit(OP_SUB_LOCAL);  break;
-                case TokenType::AssignMul:   chunk.emit(OP_MUL_LOCAL);  break;
-                case TokenType::AssignDiv:   chunk.emit(OP_DIV_LOCAL);  break;
+                case TokenType::AssignPlus:  chunk.emitOP(OP_ADD_LOCAL);  break;
+                case TokenType::AssignMinus: chunk.emitOP(OP_SUB_LOCAL);  break;
+                case TokenType::AssignMul:   chunk.emitOP(OP_MUL_LOCAL);  break;
+                case TokenType::AssignDiv:   chunk.emitOP(OP_DIV_LOCAL);  break;
                 default: return false;
             }
 
             chunk.emit(localSlot);
 
             if (requestType == ValueType::NONE) {
-                chunk.emit(OP_POP_STACK);
+                chunk.emitOP(OP_POP_STACK);
             }
             return true;
         }
@@ -1826,15 +1856,15 @@ namespace DreiZehn {
             if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
 
             switch(mOp) {
-                case TokenType::AssignPlus:  chunk.emit(OP_ADD_PTR);  break;
-                case TokenType::AssignMinus: chunk.emit(OP_SUB_PTR);  break;
-                case TokenType::AssignMul:   chunk.emit(OP_MUL_PTR);  break;
-                case TokenType::AssignDiv:   chunk.emit(OP_DIV_PTR);  break;
+                case TokenType::AssignPlus:  chunk.emitOP(OP_ADD_PTR);  break;
+                case TokenType::AssignMinus: chunk.emitOP(OP_SUB_PTR);  break;
+                case TokenType::AssignMul:   chunk.emitOP(OP_MUL_PTR);  break;
+                case TokenType::AssignDiv:   chunk.emitOP(OP_DIV_PTR);  break;
                 default: return false;
             }
 
             if (requestType == ValueType::NONE) {
-                chunk.emit(OP_POP_STACK);
+                chunk.emitOP(OP_POP_STACK);
             }
             return true;
 
@@ -1844,10 +1874,10 @@ namespace DreiZehn {
             if (!mVarExpr->compile(env,chunk,scope,ValueType::ANY)) return false;
             if (!mRhs->compile(env,chunk,scope,ValueType::ANY)) return false;
             switch(mOp) {
-                case TokenType::AssignPlus:  chunk.emit(OP_ADD);  break;
-                case TokenType::AssignMinus: chunk.emit(OP_SUB);  break;
-                case TokenType::AssignMul:   chunk.emit(OP_MUL);  break;
-                case TokenType::AssignDiv:   chunk.emit(OP_DIV);  break;
+                case TokenType::AssignPlus:  chunk.emitOP(OP_ADD);  break;
+                case TokenType::AssignMinus: chunk.emitOP(OP_SUB);  break;
+                case TokenType::AssignMul:   chunk.emitOP(OP_MUL);  break;
+                case TokenType::AssignDiv:   chunk.emitOP(OP_DIV);  break;
                 default: return false;
             }
 
@@ -1866,13 +1896,13 @@ namespace DreiZehn {
         }
 
         if (!mCondition->compile(env,chunk,scope,requestType)) return false;
-        chunk.emit(OP_JUMP_IF_FALSE);
+        chunk.emitOP(OP_JUMP_IF_FALSE);
         U32 falseJumpMarker = chunk.tell();
         chunk.emit(0); //placeholder
 
         // if true we use the true branch
         if (!mTrueBranch->compile(env,chunk,scope,requestType)) return false;
-        chunk.emit(OP_JUMP);
+        chunk.emitOP(OP_JUMP);
         U32 endJumpMarker = chunk.tell();
         chunk.emit(0); //placeholder
 
@@ -1901,9 +1931,9 @@ namespace DreiZehn {
         }
         if (!mExpr) return false;
         if (!mExpr->compile(env,chunk,scope,requestType)) return false;
-        chunk.emit(OP_PUSH_VALUE);
+        chunk.emitOP(OP_PUSH_VALUE);
         chunk.emitValue(Value(-1));
-        chunk.emit(OP_MUL);
+        chunk.emitOP(OP_MUL);
 
         return true;
     }
@@ -1929,11 +1959,11 @@ namespace DreiZehn {
         if (this->mExpression) {
             if (!this->mExpression->compile(env, chunk, scope, ValueType::ANY)) return false;
         } else {
-            chunk.emit(OP_PUSH_VALUE);
+            chunk.emitOP(OP_PUSH_VALUE);
             chunk.emitValue(NumberNullValue);
         }
 
-        chunk.emit(OP_RETURN);
+        chunk.emitOP(OP_RETURN);
 
 
         return true;
@@ -1971,7 +2001,7 @@ namespace DreiZehn {
 
         if (!mCondition->compile(env, chunk, scope, ValueType::ANY)) return false;
 
-        chunk.emit(OP_JUMP_IF_FALSE);
+        chunk.emitOP(OP_JUMP_IF_FALSE);
         U32 jumpToElseOffset = chunk.tell();
         chunk.emit(0);
 
@@ -1980,7 +2010,7 @@ namespace DreiZehn {
         }
 
         if (mElseBranch.get()) {
-            chunk.emit(OP_JUMP);
+            chunk.emitOP(OP_JUMP);
             U32 jumpToEndOffset = chunk.tell();
             chunk.emit(0);
 
@@ -2043,7 +2073,7 @@ namespace DreiZehn {
         // set the limit (count)
         if (!this->mCountExpr->compile(env,chunk,scope,ValueType::Int)) return false;
 
-        chunk.emit(OP_FOR_RANGE);
+        chunk.emitOP(OP_FOR_RANGE);
         U32 exitIPPatch = chunk.tell();
         chunk.emit(0); //exitIP placeholder
         chunk.emit(iteratorSlot);
@@ -2058,7 +2088,7 @@ namespace DreiZehn {
         }
         U32 continueIP = chunk.tell();
 
-        chunk.emit(OP_LOOP_INCREMENT_JUMP);
+        chunk.emitOP(OP_LOOP_INCREMENT_JUMP);
         chunk.emit(iteratorSlot);
         chunk.emit(bodyStart);
         chunk.emitS32(1); //increment
@@ -2156,11 +2186,11 @@ namespace DreiZehn {
 
            if (!mStepExpr->compile(env, chunk, scope, ValueType::ANY)) return false;
         } else {
-            chunk.emit(OP_PUSH_VALUE);
+            chunk.emitOP(OP_PUSH_VALUE);
             chunk.emitValue(Value(1));
         }
 
-        chunk.emit(OP_FOR_STEP_INIT);
+        chunk.emitOP(OP_FOR_STEP_INIT);
         U32 exitIPPatch = chunk.tell();
         chunk.emit(0); // place holder for loop end
         U32 incrementIPPatch = chunk.tell();
@@ -2177,7 +2207,7 @@ namespace DreiZehn {
 
         U32 continueIP = chunk.tell();
 
-        chunk.emit(OP_LOOP_INCREMENT_JUMP);
+        chunk.emitOP(OP_LOOP_INCREMENT_JUMP);
         chunk.emit(iteratorSlot);
         chunk.emit(bodyStart);
         U32 incrementCodePosPatch = chunk.tell();
@@ -2236,7 +2266,7 @@ namespace DreiZehn {
         }
         U32 loopStartIP = chunk.tell();
         if (!mCondition->compile(env, chunk, scope, ValueType::ANY)) return false;
-        chunk.emit(OP_JUMP_IF_FALSE);
+        chunk.emitOP(OP_JUMP_IF_FALSE);
         U32 exitIPPatch = chunk.tell();
         chunk.emit(0); // placeholder
 
@@ -2250,7 +2280,7 @@ namespace DreiZehn {
         LoopInfo finishedLoop = scope.mLoopStack.back();
         scope.mLoopStack.pop_back();
 
-        chunk.emit(OP_JUMP);
+        chunk.emitOP(OP_JUMP);
         chunk.emit(loopStartIP);
 
         U32 loopEndIP = chunk.tell();
@@ -2336,7 +2366,7 @@ namespace DreiZehn {
         // compile object var expression
         if (!this->mVarExpr->compile(env,chunk,scope,ValueType::Int)) return false;
 
-        chunk.emit(OP_FOR_EACH_INIT);
+        chunk.emitOP(OP_FOR_EACH_INIT);
         U32 exitIPPatch = chunk.tell();
         chunk.emit(0); //exitIP placeholder
         chunk.emit(iteratorSlot);
@@ -2351,7 +2381,7 @@ namespace DreiZehn {
         }
         U32 continueIP = chunk.tell();
 
-        chunk.emit(OP_FOR_EACH_INCREMENT_JUMP);
+        chunk.emitOP(OP_FOR_EACH_INCREMENT_JUMP);
         chunk.emit(iteratorSlot);
         chunk.emit(bodyStart);
 
@@ -2413,10 +2443,10 @@ namespace DreiZehn {
         if (!mKeyExpr->compile(env,chunk,scope, ValueType::ANY)) return false;
         if (!mValueExpr->compile(env,chunk,scope, ValueType::ANY)) return false;
 
-        chunk.emit(OP_CREATE_KEYVALUE);
+        chunk.emitOP(OP_CREATE_KEYVALUE);
 
         if (requestType == ValueType::NONE) {
-            chunk.emit(OP_POP_STACK);
+            chunk.emitOP(OP_POP_STACK);
         }
         return true;
     }
@@ -2443,12 +2473,12 @@ namespace DreiZehn {
         U32 jmpOverMarker = 0;
         if (mNoExecCondition) {
             if (!mNoExecCondition->compile(env, chunk, scope, ValueType::Int)) return false;
-            chunk.emit(OP_JUMP_IF_TRUE);
+            chunk.emitOP(OP_JUMP_IF_TRUE);
             jmpOverMarker = chunk.tell();
             chunk.emit(0);
         } else {
             // default noExec is true
-            chunk.emit(OP_JUMP);
+            chunk.emitOP(OP_JUMP);
             jmpOverMarker = chunk.tell();
             chunk.emit(0);
 
@@ -2467,7 +2497,7 @@ namespace DreiZehn {
     // // //     // compile condition
     // // //     if (!mNoExecCondition->compile(env,chunk,scope,ValueType::Int)) return false;
     // // //     // jump if true
-    // // //     chunk.emit(OP_JUMP_IF_TRUE);
+    // // //     chunk.emitOP(OP_JUMP_IF_TRUE);
     // // //     U32 jmpOverMarker = chunk.tell();
     // // //     chunk.emit(0);
     // // //     // the body
@@ -2475,7 +2505,7 @@ namespace DreiZehn {
     // // //     // path the jump
     // // //     chunk.patch(jmpOverMarker, chunk.tell());
     // // //
-    // // //     // if (requestType == ValueType::NONE) chunk.emit(OP_POP_STACK);
+    // // //     // if (requestType == ValueType::NONE) chunk.emitOP(OP_POP_STACK);
     // // //
     // // //     return true;
     // // // }
@@ -2487,7 +2517,7 @@ namespace DreiZehn {
             PrintASTCompileError( env, this,"Error: 'break' outside of loop context!");
             return false;
         }
-        chunk.emit(OP_JUMP_CLEAN_STACK);
+        chunk.emitOP(OP_JUMP_CLEAN_STACK);
         U32 breakPlaceholder = chunk.tell();
         chunk.emit(0); // placeholder clean stack count
         chunk.emit(0); // placeholder for jump ip
@@ -2503,7 +2533,7 @@ namespace DreiZehn {
             return false;
         }
 
-        chunk.emit(OP_JUMP);
+        chunk.emitOP(OP_JUMP);
         U32 continuePlaceholder = chunk.tell();
         chunk.emit(0); // placeholder
 
@@ -2540,7 +2570,7 @@ namespace DreiZehn {
         if (!this->mLeft->compile(env,chunk, scope, requestType)) return false;
         if (!this->mRight->compile(env,chunk, scope, requestType)) return false;
 
-        chunk.emit(OP_STR_CONCAT);
+        chunk.emitOP(OP_STR_CONCAT);
         return true;
     }
     // -------------------------------------------------------------------------
@@ -2573,7 +2603,7 @@ namespace DreiZehn {
 
         if (!mLeft->compile(env,chunk,scope,ValueType::ANY)) return false;
         if (!mRight->compile(env,chunk,scope,ValueType::ANY)) return false;
-        chunk.emit(OP_STR_CONCAT);
+        chunk.emitOP(OP_STR_CONCAT);
 
 
         if (!mLeft->compileAssignment(env,chunk,scope, requestType)) return false;
@@ -2593,7 +2623,7 @@ namespace DreiZehn {
         }
 
         // when running jump over definition
-        chunk.emit(OP_JUMP);
+        chunk.emitOP(OP_JUMP);
         U32 jumpOffset = chunk.tell();
         chunk.emit(0); //placeholder
 
@@ -2618,9 +2648,9 @@ namespace DreiZehn {
         // value 0 here.
         // i could check a return was emitted but to be sure this is better.
         // cost 3 slots = 12 bytes on every script function.
-        chunk.emit(OP_PUSH_VALUE);
+        chunk.emitOP(OP_PUSH_VALUE);
         chunk.emitValue(NumberNullValue);
-        chunk.emit(OP_RETURN);
+        chunk.emitOP(OP_RETURN);
 
         sf->localVarCount = funcScope.getLocalCount();
 
@@ -2657,7 +2687,7 @@ namespace DreiZehn {
         }
 
         if (!this->mLeft->compile(env,chunk, scope, requestType)) return false;
-        chunk.emit(OP_POP_STACK);
+        chunk.emitOP(OP_POP_STACK);
         if (!this->mRight->compile(env,chunk, scope, requestType)) return false;
 
         return true;

@@ -105,18 +105,18 @@ namespace DreiZehn::FunctionMap {
             for (auto& arg: arguments) {
                 uint32_t constIdx = chunk.addConstant(arg);
                 chunk.addConstant(constIdx);
-                chunk.emit(OP_CONST);
+                chunk.emitOP(OP_CONST);
                 chunk.emit(constIdx);
             }
 
             // main function
-            chunk.emit(OP_CALL_SF_FUNCTION);
+            chunk.emitOP(OP_CALL_SF_FUNCTION);
             chunk.emit((U32)chunkArguments);
             chunk.emit((U32)event.sf->bytecodeAddress);
             chunk.emit((U32)event.sf->localVarCount);
 
 
-            chunk.emit(OP_EXIT);
+            chunk.emitOP(OP_EXIT);
 
             Value result = env.getVM().runVM(env, chunk, env.getVM().getScope().getLocalCount(), ip);
 

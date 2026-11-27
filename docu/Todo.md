@@ -880,6 +880,13 @@ debug::printAst "scripts/l.13"; run "scripts/l.13"
 - NOT: `a = (b=5,b*3)` like before 3 9 27 or stays on 0
 - NOT: `print a,b` : only print a
 
+
+- [X] from DLS optimize
+    - [X] beautify bytecode dump
+    - [X] c function void 
+    - [X] mConstants accept dups - we can save some data here ! 
+    - [X] op dup 
+
 ================================================================================
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 
 

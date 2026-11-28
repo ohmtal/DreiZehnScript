@@ -15,7 +15,10 @@ if sys::args->count < 3
     return false
 end
 -- -----------------------------------------------------------------------------
-jsonFilename = str::concat "json/" (sys::args->value 2)  ".json"
+headerFile = sys::args->value 2
+baseName = str::substr  headerFile 0 -2
+
+jsonFilename = str::concat "json/" headerFile  ".json"
 print "** loading " jsonFilename
 fileTool = FileTool::new jsonFilename
 fileTool->load
@@ -25,7 +28,7 @@ if fileTool.content == ""; error "Failed to load " jsonFilename; return; end
 --  last boolean is debug flag
 print "** start json parser ....."
 parser = Parser::new fileTool.content false
-parser->dump
+// // parser->dump
 print "** start tokens ....."
 tokenWorker  = Tokens::new parser true
 
@@ -36,4 +39,25 @@ global doReload = false
 fn postRL; doReload = false if sys::args->count > 1; run (sys::args->value 1) ;; end
 fn rl; doReload = true;;
 -- -----------------------------------------------------------------------------
--- while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;
+print "SAVING CONST: " (REGISTER_CONST != "")
+if (REGISTER_CONST != "")
+    fileTool.filename = "output/" .. baseName .. "_const.cpp"
+    fileTool.content = REGISTER_CONST
+    fileTool->save
+end
+
+if (REGISTER_OBJ != "")
+    fileTool.filename = "output/" .. baseName .. "_objects.cpp"
+    fileTool.content = REGISTER_OBJ
+    fileTool->save
+end
+
+if (REGISTER_STR != "")
+    fileTool.filename = "output/" .. baseName .. "_addreg.cpp"
+    fileTool.content = REGISTER_STR
+    fileTool->save
+end
+
+
+
+// while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;

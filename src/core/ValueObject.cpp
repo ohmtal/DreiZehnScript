@@ -229,7 +229,7 @@ namespace DreiZehn {
                 Tools::errorf("get a field value by fieldname Usage: \"fieldname\" OR index of dynamic field\n");
                 return nullptr;
             }
-            Value* valPtr = nullptr;
+            // Value* valPtr = nullptr;
             if (args[0].isString()) {
                 return getDynamicFieldPtr(SymbolTable::insert(args[0].getStringRef()));
             } else {
@@ -320,6 +320,18 @@ namespace DreiZehn {
                 Tools::errorf("return the type id. Usage: getType\n");
             }
             ret = Value(mType);
+            return true;
+        }
+
+        // ----------- idField ---------------
+        else if (methodNameSymbolId == sIsFieldId) {
+            if (args.size() != 1 || !args[0].isString() ) {
+                Tools::errorf("Usage: isField \"fieldname\" \n");
+                return true;
+            }
+            uint32_t fieldId = SymbolTable::insert(args[0].getStringRef());
+            Value* result =getDynamicFieldPtr(fieldId);
+            ret = Value(result != nullptr);
             return true;
         }
         // ----------- setField ---------------

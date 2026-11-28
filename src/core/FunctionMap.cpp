@@ -86,7 +86,7 @@ namespace DreiZehn::FunctionMap {
     }
 
     // -------------------------------------------------------------------------
-    Value FireScriptEvent( Environment& env,ScriptEvent& event, ValueVector arguments) {
+    Value FireScriptEvent( Environment& env,const ScriptEvent& event, ValueVector arguments) {
         if (!event.sf || !event.envPtr) {
             Tools::errorf("FireScriptEvent - Init first - function not found!");
             return NumberNullValue;

@@ -11,8 +11,9 @@
 import All
 
 -- -----------------------------------------------------------------------------
+global REGISTER_OBJ = ""
 global REGISTER_CONST = ""
-global REGISTER_STR = "\n\n"
+global REGISTER_STR = ""
 global getFieldSetFieldStr = ""
 getFieldSetFieldStr = "   inline virtual bool onGetField(uint32_t fieldSymbolId, Value& ret) override { \n"
 getFieldSetFieldStr .="      Value* ptr = onGetFieldPtr(fieldSymbolId);\n"
@@ -34,10 +35,32 @@ fn createConst tokenObject
     return result
 end
 -- -----------------------------------------------------------------------------
-fn createStruct tokenObject
+fn headerLine text linelen
+    if linelen < 1; linelen = 80;;
     result = ""
+    result .= "// " forRange i linelen - 3; result .= "-";; result .= "\n"
+    len = (str::strlen text) + 2
+
+    left = 37 - int::cast len / 2
+    right = 77 - left - len
+    result .= "// "
+    forRange i left; result .= " ";;
+    result .= " " .. text .. " "
+    forRange i right; result .= " ";;
+    result .= "\n"
+
+    result .= "// " forRange i linelen - 3; result .= "-";; result .= "\n"
+//     print "*** LEN:" len "LEFT:" left "RIGHT:" right
+    return result;
+end
+-- -----------------------------------------------------------------------------
+fn createStruct tokenObject
+
+
     objname  = str::format "%sObject" tokenObject.name
     typename = str::format "Type%s" objname
+
+    result = headerLine objname
 
     -- register type
     result .= str::format "inline const int %s =  RegisterUserObjectType(\"%s\");\n" typename tokenObject.name
@@ -45,11 +68,13 @@ fn createStruct tokenObject
     -- create struct
     result .= str::format "struct %s : public ValueObject {\n" objname
     -- values and data
-    forEach param tokenObject.params
-        result .= str::format "   Value m%s;" param.field
-        result .= str::format " inline static ValueObjectProperty m%sProp;\n" param.field
+    if  tokenObject->isField "params"
+        forEach param tokenObject.params
+            result .= str::format "   Value m%s;" param.field
+            result .= str::format " inline static ValueObjectProperty m%sProp;\n" param.field
+        end
     end
-    result .= str::format "   %s mData = {0}; \n" tokenObject.name
+//     result .= str::format "   %s mData = {0}; \n" tokenObject.name
     result .= "\n"
 
     -- constructor
@@ -60,28 +85,55 @@ fn createStruct tokenObject
     -- clone
     result .= "   virtual ValueObject* clone() override {\n"
     result .= str::format "      %s* clone = new %s();\n" objname objname
-    result .= "      ValueObject::cloneBase(clone);"
-    forEach param tokenObject.params
-        result .= str::format "         clone->m%s = this->m%s;\n" param.field param.field
+    result .= "      ValueObject::cloneBase(clone);\n"
+
+    if  tokenObject->isField "params"
+        forEach param tokenObject.params
+            result .= str::format "      clone->m%s = this->m%s;\n" param.field param.field
+        end
     end
     result .= "      return clone;\n"
     result .= "   }\n"
 
-    -- dataPrt
-    result .= str::format "   inline virtual %s* dataPtr()  {\n" tokenObject.name
-    forEach param tokenObject.params
-        result .= str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
+    -- getData
+    if  tokenObject->isField "params"
+        result .= str::format "   inline %s getData()  {\n" tokenObject.name
+        result .= str::format "      %s data;\n" tokenObject.name
+        forEach param tokenObject.params
+            result .= str::format "      data.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
+        end
+        result .= "      return data;\n"
+        result .= "   }\n"
     end
-    result .= "      return &mData;\n"
-    result .= "   }\n"
 
-    -- dataPrt
-    result .= "   inline virtual void syncFromData() {\n"
-    forEach param tokenObject.params
-        result .= str::format "      m%s = Value((%s) mData.%s);\n" param.field param.type param.field
+    -- setData
+    if  tokenObject->isField "params"
+        result .= str::format "   inline void setData(const %s& data) {\n" tokenObject.name
+        forEach param tokenObject.params
+            result .= str::format "      m%s = Value((%s) data.%s);\n" param.field param.type param.field
+        end
+        result .= "   }\n"
     end
-    result .= "   }\n"
-    -- data
+
+//     -- dataPrt
+//     if  tokenObject->isField "params"
+//         result .= str::format "   inline virtual %s* dataPtr()  {\n" tokenObject.name
+//         forEach param tokenObject.params
+//             result .= str::format "      mData.%s = (%s)m%s.getDouble();\n" param.field param.type param.field
+//         end
+//         result .= "      return &mData;\n"
+//         result .= "   }\n"
+//     end
+//
+//     -- dataPrt
+//     if  tokenObject->isField "params"
+//         result .= "   inline virtual void syncFromData() {\n"
+//         forEach param tokenObject.params
+//             result .= str::format "      m%s = Value((%s) mData.%s);\n" param.field param.type param.field
+//         end
+//         result .= "   }\n"
+//     end
+//     -- data
 --     result .= str::format "   inline virtual const %s& data()  {\n" tokenObject.name
 --     forEach param tokenObject.params
 --     -- FIXME not allways getDouble!!
@@ -92,14 +144,16 @@ fn createStruct tokenObject
 
 
     -- onGetFieldPtr
-    result .= "   inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {\n"
-        forEach param tokenObject.params
-            result .= str::format \
-                "        if (fieldSymbolId == m%sProp.mSymbolId) return &m%s;\n" \
-                param.field param.field
-        end
+    if  tokenObject->isField "params"
+        result .= "   inline virtual Value* onGetFieldPtr(uint32_t fieldSymbolId) override {\n"
+            forEach param tokenObject.params
+                result .= str::format \
+                    "        if (fieldSymbolId == m%sProp.mSymbolId) return &m%s;\n" \
+                    param.field param.field
+            end
         result .= "      return ValueObject::onGetFieldPtr(fieldSymbolId);\n"
         result .= "   }\n"
+    end
 --     }
 
     -- other getter/setter
@@ -110,9 +164,11 @@ fn createStruct tokenObject
     result .= "   inline static void RegisterSymbols() {\n"
     result .= "   static bool mSymbolsLoaded = false;\n"
     result .= "   if (mSymbolsLoaded) return ;\n"
-    forEach param tokenObject.params
-        result .= str::format "      m%sProp = ValueObjectProperty(\"%s\",\"\",%s) ;\n" \
-                param.field param.field typename
+    if  tokenObject->isField "params"
+        forEach param tokenObject.params
+            result .= str::format "      m%sProp = ValueObjectProperty(\"%s\",\"\",%s) ;\n" \
+                    param.field param.field typename
+        end
     end
     result .= "      mSymbolsLoaded = true;\n   }\n"
 
@@ -124,17 +180,140 @@ fn createStruct tokenObject
             tokenObject.name
     REGISTER_STR .= str::format "   %s* obj= new %s();\n" objname objname
     iter = 0
-    forEach param tokenObject.params
-        -- FIXME not always getDouble!!
-        REGISTER_STR .= str::format "   if (args.size() > %d) obj->m%s = args[%d].getDouble();\n" \
-                iter  param.field iter
-        iter++
+    if  tokenObject->isField "params"
+        forEach param tokenObject.params
+            -- FIXME not always getDouble!!
+            REGISTER_STR .= str::format "   if (args.size() > %d) obj->m%s = args[%d].getDouble();\n" \
+                    iter  param.field iter
+            iter++
+        end
     end
     REGISTER_STR .= "   ret = Value(obj);\n"
     REGISTER_STR .= "   return true;\n"
     REGISTER_STR .= "});\n"
 
-
+    REGISTER_OBJ .= result
 
     return result
+end
+// ==================== FUNCTION ===============================================
+fn getTypeIsObject var_type
+    return var_type != "void" \
+        && var_type != "int" \
+        && var_type != "const char" \
+        && var_type != "float" \
+end
+
+// --- tricky ;)
+fn functionParameterSetup tokenObject
+    result = ""
+    function_name = tokenObject.name
+    argNo = 0
+    forEach subToken tokenObject.params
+        var_name = subToken.name
+
+        var_type = subToken.type
+        plaintype = var_type
+        isPointer = (str::substr var_type -2) == " *"
+        if (isPointer) plaintype = (str::substr var_type 0 -2);;
+        isConst = (str::substr plaintype 0 6) == "const "
+        if (isConst) plaintype = (str::substr plaintype 6);;
+
+
+//         print "functionParameterSetup DEBUG: plaintype:" plaintype "isPointer:" isPointer "substr:" (str::substr var_type 0 -2) "isConst:" isConst
+
+        isObject = getTypeIsObject plaintype
+
+        if (isObject)
+            result .= str::format "    if (!args[%u].isPointerObject() || args[%u].asPointerObject().type != Type%sObject) return false;\n" \
+                argNo argNo plaintype
+            result .= str::format "    %s %s;\n" plaintype var_name
+            result .= str::format "    %s = static_cast<%sObject>(args[%u].getPointerObject()).getData();\n" var_name plaintype argNo
+        else
+            result .= str::format "    %s %s = (%s)args[%u].getDouble();\n" plaintype var_name plaintype argNo
+        end
+        argNo++
+    end
+    return result
+end
+
+fn functionBuilder tokenObject
+    function_name = tokenObject.name
+    result = ""
+    argNo = 0
+    result .= str::format "%s(" function_name
+    if (tokenObject->getField "params")
+        forEach subToken tokenObject.params
+            var_name = subToken.name
+
+            var_type = subToken.type
+            plaintype = var_type
+            isPointer = (str::substr var_type -2) == " *"
+            if (isPointer) plaintype = (str::substr var_type 0 -2);;
+            isConst = (str::substr plaintype 0 6) == "const "
+            if (isConst) plaintype = (str::substr plaintype 6);;
+            isObject = getTypeIsObject plaintype
+
+            if (argNo > 0) result .= ", ";;
+            if isPointer
+                result .= "&" .. var_name
+            else
+                result .= var_name
+            end
+            argNo++
+        end
+    end
+    result .= ");\n"
+    return result;
+end
+
+fn createFunction tokenObject
+
+    tokenObject->dump
+
+    function_name = tokenObject.name
+    return_type = tokenObject.return_type
+    if return_type == "void *"; return str::format "\n\n// FIXME %s return void*\n\n" function_name;;
+    isVoid = return_type == "void"
+    result = "";
+    result .= str::format "RegisterFunction(\"%s\", [](ValueSpan args, Value& ret) -> bool {\n" function_name
+    result .= "   \n"
+    argCount = tokenObject.params->size
+    if (argCount > 0)
+        result .= str::format "    if (args.size() != %u) { Tools::errorf(\"%%s need %%u parameter.\", \"%s\", %u) return false;}\n" \
+                argCount function_name argCount
+
+        result .= functionParameterSetup tokenObject
+
+        if (tokenObject->getField "params")
+            forEach subToken tokenObject.params
+                if subToken.name == "count"
+                    return str::format "\n\n// FIXME %s have a count parameter usually this means it wants a pointer list!\n\n" function_name
+                end
+            end
+        end
+    end
+
+    return_plaintype = return_type
+    return_isPointer = (str::substr return_type -2) == " *"
+    if (return_isPointer) plaintype = (str::substr return_type 0 -2);;
+    return_isConst = (str::substr return_plaintype 0 6) == "const "
+    if (return_isConst) return_plaintype = (str::substr return_plaintype 6);;
+
+
+    if isVoid
+        result .= str::format "%s\n" (functionBuilder tokenObject)
+        result .= "   \n"
+    elif getTypeIsObject return_type
+        return str::format "\n\n// FIXME %s return an object\n\n" function_name
+    else
+        if return_type == "const char *"; return_type = "std::string";;
+        result .= str::format "    %s result = %s\n" return_type (functionBuilder tokenObject)
+        result .= "    ret = Value(result);\n"
+    end
+    result .= "    return true;\n"
+    result .= "});\n"
+
+    return result
+
 end

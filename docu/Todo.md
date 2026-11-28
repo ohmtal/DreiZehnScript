@@ -887,6 +887,8 @@ debug::printAst "scripts/l.13"; run "scripts/l.13"
     - [X] mConstants accept dups - we can save some data here ! 
     - [X] op dup 
 
+- [ ] Interpreter config for HaltOnError and save errors to a list    
+    
 ================================================================================
 ##  SDL3 parser .... ongoing process .... wait until ByteCode is done !! 
 

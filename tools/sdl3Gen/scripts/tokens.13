@@ -26,16 +26,17 @@ fn Tokens::run this jsonTree
         elif (token.kind == "struct_field")
             structname = token.struct
             field = this->getField structname
-            if (field && field->getType == TypeObject  )
-                if (field.params && field.params->getType == TypeVector)
-                    if this._debug_; print "add >>>>" token "<<<<< to" structname;;
---                     this->debug "ADD " (token) "TO" structname
+            if field && field->getType == TypeObject
+//                 print "ISFIELD:" (field->isField "params") "FIELD:" field
+//                 print "ISVECTOR:" (field.params->getType == TypeVector)
+                if (field->isField "params") && field.params->getType == TypeVector
+                    if this._debug_; print "*add* >>>>" token.field "<<<<< to" structname;;
                     field.params->push token
                 else
-                    if this._debug_; print "add >>>>" token "<<<<< to" structname;;
---                     this->debug "add " (token) "TO NEW "  structname ".params"
+                    if this._debug_; print "add >>>>" token.field "<<<<< to" structname;;
                     field->setField "params" Vector::new
                     field.params->push token
+                    // field->dump
                 end
             else
                 this->debug "DID NOT FIND" structname "LET SEE IN AFTER PARSE!"
@@ -57,7 +58,12 @@ end
 
 -- -----------------------------------------------------------------------------
 fn Tokens::generateSource this
-    this->dump
+
+print "........ SDL_Rect.params >>>>>>>>>>"
+    this.SDL_Rect.params->dump
+print "<<<<<<<< SDL_Rect.params "
+
+
     count = this->getFieldCount
 
     forRange i count
@@ -76,8 +82,7 @@ fn Tokens::generateSource this
             this->debug "    " (token->getFieldName j) "=" (token->getField j)
         end
         if (token.kind == "constant_macro")
-        else
-
+        elif token->isField "params"
             forEach subToken token.params
                 forRange j subToken->getFieldCount
                     this->debug "          " (subToken->getFieldName j) "=" (subToken->getField j)
@@ -88,6 +93,7 @@ fn Tokens::generateSource this
 
         if (token.kind == "struct"); print(createStruct token)
         elif (token.kind == "constant_macro") print(createConst token)
+        elif (token.kind) == "function" print(createFunction token)
 --         if (token.kind == "struct"); createStruct token
 --         elif (token.kind == "constant_macro") createConst token
         else this->debug "================ TODO:" token.kind token.name" =========================="

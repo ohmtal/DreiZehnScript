@@ -43,6 +43,7 @@ struct ValueObject {
     static inline uint32_t sClassNameMethodId = SymbolTable::insert("setClassName");
     static inline uint32_t sDumpMethodId = SymbolTable::insert("dump");
     static inline uint32_t sIsMethodId = SymbolTable::insert("isScriptMethod");
+    static inline uint32_t sIsFieldId = SymbolTable::insert("isField");
     static inline uint32_t sGetTypeId = SymbolTable::insert("getType");
     static inline uint32_t sSetFieldId = SymbolTable::insert("setField");
     static inline uint32_t sGetFieldId = SymbolTable::insert("getField");

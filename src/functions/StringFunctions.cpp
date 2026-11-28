@@ -438,7 +438,7 @@ namespace DreiZehn {
         }, "return right side trimmed string");
         // ---------------------------------------------------------------------
         RegisterFunction("str::trim", [](ValueSpan args, Value& ret) -> bool {
-            if (!ArgsCheckString("str::ltrim", args, 1)) return true;
+            if (!ArgsCheckString("str::trim", args, 1)) return true;
             std::string str = args[0].getStringRef();
             FluxStr::trim(str);
             ret = Value(str);

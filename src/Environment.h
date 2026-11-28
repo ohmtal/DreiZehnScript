@@ -57,6 +57,7 @@ private:
 public:
     std::string CurrentFilename = "";
     bool FatalError = false;
+    bool HaltOnError = false;
 
     Environment() {
         mLocalsRegister.resize(LOCALS_SIZE);
@@ -204,7 +205,7 @@ public:
         if (node->mFlags & NodeFlag_Expression) [[likely]] {
             auto* expr = static_cast<Expression*>(node);
             expr->evaluate(currentEnv);
-            if (FatalError) [[unlikely]] return FlowStatus(FlowSignal::Error);
+            if (FatalError && HaltOnError) [[unlikely]] return FlowStatus(FlowSignal::Error);
         } else if (node->mFlags & NodeFlag_Flow) {
             auto* flowStmt = static_cast<FlowBaseStatement*>(node);
             return flowStmt->execute(currentEnv);

@@ -1308,23 +1308,39 @@ namespace DreiZehn {
         }
 
         Value a = mLeft->evaluate(env);
-        U32 l = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : a.getUInt());
-
+        bool l = a.getBool();
         switch (mOp) {
             case TokenType::And: {
-                if (l == 0) return Value(0);
+                if (!l) return Value(0);
                 Value b = mRight->evaluate(env);
-                U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
-                return Value( l && r);
+                return Value( l && b.getBool());
             }
             case TokenType::Or: {
-                if (l == 1) return Value(1);
+                if (l) return Value(1);
                 Value b = mRight->evaluate(env);
-                U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
-                return Value( l || r);
+                return Value( l || b.getBool());
             }
             default: {}
         }
+
+        // Value a = mLeft->evaluate(env);
+        // U32 l = a.isInt() ? a.asFastInt() : (a.isDouble() ? static_cast<U32>(a.asFastDouble()) : a.getUInt());
+        //
+        // switch (mOp) {
+        //     case TokenType::And: {
+        //         if (l == 0) return Value(0);
+        //         Value b = mRight->evaluate(env);
+        //         U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
+        //         return Value( l && r);
+        //     }
+        //     case TokenType::Or: {
+        //         if (l == 1) return Value(1);
+        //         Value b = mRight->evaluate(env);
+        //         U32 r = b.isInt() ? b.asFastInt() : (b.isDouble() ? static_cast<U32>(b.asFastDouble()) : b.getUInt());
+        //         return Value( l || r);
+        //     }
+        //     default: {}
+        // }
 
 
         // if (mOp == TokenType::And) {

@@ -228,6 +228,7 @@ namespace DreiZehn {
                  Token fieldToken = advance();
                  uint32_t fieldSymbolId = SymbolTable::insert(fieldToken.mValue);
                  currentExpression = std::make_unique<ObjectFieldExpression>(std::move(currentExpression), fieldSymbolId);
+                 currentExpression->mLineNumber = lineNumber;
              }
              else  if (peek().mType  == TokenType::Arrow && peekNext().mType == TokenType::Identifier ) {
                  advance(); // eat ->
@@ -282,6 +283,7 @@ namespace DreiZehn {
                  break;
              }
          } // while true
+
         return currentExpression;
      }
     // ----------------------------------------------------------------------------

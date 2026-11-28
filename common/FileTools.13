@@ -32,6 +32,16 @@ fn FileTool::save this
     return result
 end
 -- -----------------------------------------------------------------------------
+fn FileTool::append this
+    if this.filename == ""; return 0;;
+    if this.content == ""; return 0;;
+    fs = FileStream::open this.filename "a"
+    if (!fs); return 0;;
+    result = fs->write this.content
+    fs->close
+    return result
+end
+-- -----------------------------------------------------------------------------
 fn FileTool::new filename
     result = Object::new
     result->setClassName "FileTool"
@@ -40,30 +50,38 @@ fn FileTool::new filename
     return result
 end
 
--- -----------------------------------------------------------------------------
---  TEST
--- -----------------------------------------------------------------------------
--- global doReload = false
--- fn postRL; doReload = false if sys::args->count > 1; run (sys::args->value 1) ;; end
--- fn rl; doReload = true;;
--- -- -----------------------------------------------------------------------------
--- fn testLoad
---     if sys::args.argc < 2; error "no script param for test avaiable :P";;
---     filename = sys::args.argv_1
---     ft = FileTool::new filename
---     ft->load
---     print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
---     print ft.content
---     print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
--- end
--- -- -----------------------------------------------------------------------------
--- fn testSave
---     ft = FileTool::new "testFileTool.txt"
---     ft.content = "Gude alder babsack!\n"
---     if (ft->save) print "save success!"
---     else error "save failed!"
---     end
--- end
--- -- -----------------------------------------------------------------------------
---
--- while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;
+// -----------------------------------------------------------------------------
+//   TEST
+// -----------------------------------------------------------------------------
+// global doReload = false
+// fn postRL; doReload = false if sys::args->count > 1; run (sys::args->value 1) ;; end
+// fn rl; doReload = true;;
+// -- -----------------------------------------------------------------------------
+// fn testLoad
+//     if sys::args.argc < 2; error "no script param for test avaiable :P";;
+//     filename = sys::args.argv_1
+//     ft = FileTool::new filename
+//     ft->load
+//     print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+//     print ft.content
+//     print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+// end
+// -- -----------------------------------------------------------------------------
+// fn testSave
+//     ft = FileTool::new "testFileTool.txt"
+//     ft.content = "Gude alder babsack!".. core::time .."\n"
+//     if (ft->save) print "save success!"
+//     else error "save failed!"
+//     end
+// end
+//
+// fn testAppend
+//     ft = FileTool::new "testFileTool.txt"
+//     ft.content = "Gude alder babsack!".. core::time .."\n"
+//     if (ft->append) print "save success!"
+//     else error "append failed!"
+//     end
+// end
+// -- -----------------------------------------------------------------------------
+//
+// while core::breath && !doReload; core::sleep 16; end; if (doReload) postRL;;
